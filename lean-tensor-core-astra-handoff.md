@@ -1,5 +1,12 @@
 # Astra handoff: formalizing the corrected tensor-core model in Lean
 
+> Continuation note, 5 September 2026: start with [START_HERE.md](START_HERE.md)
+> and [the current plan](tensor-core/docs/CURRENT_PLAN.md). They record the
+> current implementation and supersede this document's future-work ordering.
+> One invocation means one dot product with unnormalized products and block
+> accumulation; generalize that unit first, then implement downstream uses.
+> The original R4 midpoint expectation below is corrected in the current tests/docs.
+
 **Prepared:** 4 September 2026  
 **Purpose:** a standalone implementation and metaprogramming plan for Astra in a Codex terminal session.  
 **Current state:** model specification and proof targets prepared; no Lean implementation or completed Lean proofs are delivered with this plan.

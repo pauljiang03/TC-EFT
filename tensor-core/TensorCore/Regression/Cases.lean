@@ -109,8 +109,13 @@ theorem subnormal_accumulator :
 theorem nonfinite_rejected :
     outputBits (⟨List.replicate 4 (0x7c00, 0), 0⟩ : V100Input) =
       .error .nonfiniteInput := by decide +kernel
+/-- The accepted domain remains the explicitly specified finite range. -/
 theorem out_of_range_rejected :
-    round32 .towardZero (maxFinite32 + 1) = none := by decide +kernel
+    round32 .towardZero (maxFinite32 + 1) = none ∧
+    round32 .towardZero (pow2 128) = none ∧
+    round32 .nearestEven (maxFinite32 + pow2 102) = none ∧
+    round32 .nearestEven (maxFinite32 + pow2 103) = none ∧
+    round32 .nearestEven (-(maxFinite32 + pow2 103)) = none := by decide +kernel
 
 theorem wrong_shape_rejected :
     outputBits (⟨[], 0⟩ : V100Input) = .error .wrongProductCount := by decide +kernel

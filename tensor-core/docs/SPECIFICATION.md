@@ -45,13 +45,38 @@ implementation. No current main branch has replaced the pinned release.
 | Range | Reject `abs(Aacc) > maxFinite32`; do not assign an unverified overflow/saturation rule. |
 | Zero policy | Exact cancellation/all-zero output -> +0. Converter preserves the sign of a negative nonzero value rounded to zero. No device signed-zero claim. |
 | Correction | Return per-term residuals and output residual as exact rationals. |
-| Final rounding | Executable quotient/remainder/parity conversion, rejecting `abs(S)>maxFinite32`; general nearest-value correctness remains open. |
+| Final rounding | Executable quotient/remainder/parity conversion, rejecting `abs(S)>maxFinite32`; finite output existence, nearest-value selection, and even parity at ties proved for all rational inputs in range. |
 | Invocation boundary | Decode the actual output encoding before using it as the next c. |
 
 In traces, c appears **first**, followed by the four products. `rawScales`
 lists products only; zero products can display a dummy scale and never select eta.
 The FP32 ideal-sum evaluator multiplies decoded operand values directly and
 does not invoke `rawMul`, alignment, output conversion, or extraction.
+
+`Profile` parameterizes the input format, number of products, fractional
+alignment precision, and optional floor. `evalBlock` and `runBlocks` share the
+generic semantics and proofs; `evalV100` and `runV100` are abbreviations for the
+only instantiated profile. The parameterization does not itself validate
+another architecture.
+
+This is the implemented schema, not the complete target feature universe:
+c/output formats, c placement, and output stages are still fixed here.
+[CURRENT_PLAN.md](CURRENT_PLAN.md) specifies the general single-dot-product
+invocation gate and the planned extensions.
+
+The public `round32` retains the range guard above. `round32Core` factors out
+the bounded encoding calculation for the proof; its behavior outside the
+public domain is not an IEEE overflow specification. The corrected block and
+schedule theorems require the final exact sum to be in range, separately from
+successful intermediate model calls. Residual consolidation uses exact `Rat`.
+
+The first DSL elaborates typed block calls, sequencing, and bounded repetition
+into an ordinary `Program p`. It preserves this block model and its encoded
+boundaries. `Program.ideal` computes a separate exact sum from the original
+operand bits. The verification command establishes successful model execution,
+exact ledger recovery of that sum, and one final nearest-even reference
+correction. Scalar operations and matrix layouts are not implicit in the DSL;
+see [the language guide](DSL.md) for the supported fragment and trust boundary.
 
 ## Other paths recorded, not instantiated
 
@@ -65,8 +90,10 @@ does not invoke `rawMul`, alignment, output conversion, or extraction.
 | Hopper TF32 mma.sync.aligned.m16n8k8 -> FP32 | 8 | 25 | -133; WMMA path may instead use K=4 |
 
 These rows follow Accurate Models 4.1.2, 4.1.6 and Tables 3–4, pp. 8–15.
-FP8 grouping, late-c paths, Blackwell, FP16 outputs, and Turing remain out of
-scope. Turing is not characterized by the controlling source.
+FP8 grouping, late-c paths, Blackwell, FP16 outputs, and Turing are not
+implemented by the current evaluator. The current plan includes source-backed
+feature families in the general invocation gate; Turing requires another
+numerical source because it is not characterized by the controlling paper.
 
 ## Library inventory and proof strategy
 

@@ -48,6 +48,7 @@ def neighbors(x):
 
 
 def round_oracle(x, nearest):
+    # Public converter domain: do not infer an overflow policy from finite outputs.
     if abs(x) > MAX32:
         return None
     lo, hi = neighbors(abs(x))
@@ -139,7 +140,9 @@ def main():
                0x3f800000, 0x3f800001, 0x3fffffff, 0x7f7ffffe}
     anchors.update((e << 23) - 1 for e in range(1, 255))
     anchors.update(rng.randrange(0x7f7fffff) for _ in range(100))
-    rounds = [Q(0), MAX32, -MAX32, MAX32 + 1, -MAX32 - 1, Q(1) - 3 * power(-25)]
+    rounds = [Q(0), MAX32, -MAX32, MAX32 + 1, -MAX32 - 1, Q(1) - 3 * power(-25),
+              MAX32 + power(102), MAX32 + power(103), MAX32 + power(103) + 1, power(128) - 1, power(128),
+              -(MAX32 + power(103)), -power(128), power(130)]
     for a in sorted(anchors):
         lo, hi = f32(a), f32(a + 1)
         for t in [Q(0), Q(1, 4), Q(1, 2), Q(3, 4)]:

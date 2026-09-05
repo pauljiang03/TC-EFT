@@ -1,4 +1,4 @@
-import TensorCore.Programs.Composition
+import TensorCore.Programs.Correction
 import TensorCore.Regression.Cases
 
 namespace TensorCore.Regression
@@ -19,6 +19,14 @@ set_option maxHeartbeats 2000000
 theorem two_block_cancellation :
     twoBlockSummary = .ok ([0x4107ffff, 0xb5800000],
       15 / 16777216, -1 / 16777216) := by decide +kernel
+
+def twoBlockCorrection : Except ModelError (Option F32) := do
+  let ts ← runV100 r3.c [r3.products, cancelEightAndHalf]
+  let some initial := finite32 r3.c | .error .nonfiniteInput
+  return correctedSchedule initial ts
+
+theorem two_block_corrected : twoBlockCorrection = .ok (some 0xb3800000) := by
+  decide +kernel
 
 /-- A finite value-level midpoint check independently documents the handoff correction. -/
 theorem r4_midpoint_distances :

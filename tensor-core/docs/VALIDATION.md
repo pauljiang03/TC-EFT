@@ -25,10 +25,19 @@ The two-invocation case feeds R3's actual `4107ffff` into a block subtracting
 17/2. The final encoded result is `b5800000` = -2^-20. The exact ledger is
 15 * 2^-24, recovering -2^-24. The arbitrary-length theorem is an induction,
 not a generalization inferred from this two-call test.
+`two_block_corrected` also checks the executable schedule correction returns
+`b3800000`, the encoding of that recovered value.
+
+The general converter proof is now separate from these concrete checks:
+`round32_nearestEven_correct` establishes finite output existence, nearest
+finite-value selection, and even encoding parity at ties for all rational
+inputs with magnitude at most `maxFinite32`. Corrected block/schedule theorems
+combine it with exact residual recovery. `evalBlock_error_bound` separately
+proves the alignment-plus-output error bound for successful model calls.
 
 ## Independent exact oracle
 
-`python3 scripts/validate.py` checks 715 blocks and 2,910 rational rounding
+`python3 scripts/validate.py` checks 715 blocks and 2,918 rational rounding
 inputs with deterministic seed 20260905. It reports **zero mismatches**;
 three intentionally nonfinite blocks are explicitly rejected.
 The machine-readable record is `data/regressions/validation-report.json`.
@@ -44,14 +53,15 @@ Samples span all finite exponent fields, signed products, opposite-product
 cancellation, subnormal multiplicands, and subnormal c. Rounding samples
 include exact points, quarter points, midpoints, both signs, every normal
 exponent boundary, gradual underflow, and explicit out-of-range rejection.
-This is deterministic differential testing, not exhaustive validation or a
-parametric conversion-correctness proof.
+Eight additional inputs exercise the finite-range boundary and rejection on
+both signs. This deterministic differential test supplements the general
+conversion proof; it is not exhaustive validation.
 
 ## Three comparisons
 
 | Comparison | Current evidence |
 | --- | --- |
-| Implementation / reference | Raw-product and accumulation value bridges; exact executable residual and schedule theorems. No optimized machine implementation yet. |
+| Implementation / reference | Raw-product and accumulation value bridges; exact executable residual and schedule theorems; mathematical FP32 rounding and two-stage model-error proofs. No optimized machine implementation yet. |
 | Model / independent numerical implementation | Separate Python integer-grid oracle agrees on retained sums, outputs, residual traces and corrected results. |
 | Correction / independent ideal sum | Direct original-bit IEEE sum and nearest-neighbor oracle; correction identity proved separately. |
 | Model / device | 5,000 V100 GPU vectors from the v0.5 release match the evaluator bit for bit; see below. No new measurements were taken. |
@@ -99,3 +109,28 @@ with no `.lake` directory; it records `data/regressions/clean-build.json` and
 keeps the log in `tmp/clean-build.log`. `validate.py` fails if the oracle
 traces drift from the checked-in `expected-traces.json`. No external Lean
 dependency downloads are needed once the pinned toolchain is installed.
+The current fresh build checks 51 targets; the audit checks 83 theorem roots
+against the standard Lean axiom allowlist.
+
+## Program language and metaprogramming
+
+`python3 scripts/check_programs.py` compiles `examples/Verify.lean`, exercises
+`tc_verify`/`tc_inspect`, checks the displayed AST/source sites/results, and
+checks the generated theorem dependencies. It then compiles ten intentionally
+invalid examples separately. They cover malformed groups, oversized operand
+and initial literals, wrong operand format, nonfinite operands/initial state,
+final range rejection, unsupported operations, unresolved symbolic conditions,
+and an invalid supplied proof. Each must fail; failed verification names must
+remain absent. All checks pass; see `data/regressions/program-report.json`.
+
+Imported Lean regressions separately check exact DSL input order, nested-loop
+execution, the two-block corrected result, zero-iteration behavior, failure
+source/index, and an arbitrary-count loop theorem using a proved invariant.
+The symbolic theorem is proved by induction and supplied to the command; it
+is not derived from finite enumeration. Final range rejection includes a case
+where the model call succeeds at `maxFinite32` but the exact sum is
+`maxFinite32 + 1`, outside the declared correction domain.
+
+The fresh-build script now runs the frontend test script after the build and
+audit, ensuring that the custom elaborator and generated proofs work in a
+source copy without preexisting artifacts.

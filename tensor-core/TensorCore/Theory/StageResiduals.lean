@@ -77,6 +77,15 @@ theorem evalBlock_prepared {p : Profile} {x : BlockInput p} {t : BlockTrace}
       simp [hp] at h
       rw [evalPrepared_block h]
 
+theorem evalBlock_evalPrepared {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) : evalPrepared t.block = .ok t := by
+  have hp := evalBlock_prepared h
+  unfold evalBlock at h
+  split at h
+  · simp at h
+  · rw [hp] at h
+    exact h
+
 /-- End-to-end local recovery, connected to the executable encoded-input evaluator. -/
 theorem evalBlock_residual_identity {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) :

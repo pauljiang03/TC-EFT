@@ -8,9 +8,9 @@ structure Format where
   bias : Int
   deriving Repr, DecidableEq
 
-def fp16 : Format := ⟨10, 5, 15⟩
-def fp32 : Format := ⟨23, 8, 127⟩
-def Format.width (f : Format) : Nat := 1 + f.exponentBits + f.fractionBits
+@[implicit_reducible] def fp16 : Format := ⟨10, 5, 15⟩
+@[implicit_reducible] def fp32 : Format := ⟨23, 8, 127⟩
+@[implicit_reducible] def Format.width (f : Format) : Nat := 1 + f.exponentBits + f.fractionBits
 abbrev F16 := BitVec 16
 abbrev F32 := BitVec 32
 
@@ -32,8 +32,8 @@ inductive Classification where
   | nan
   deriving Repr, DecidableEq
 
-def classify (f : Format) (bits : BitVec f.width) : Classification :=
-  let n := bits.toNat
+/-- Classification of a bit pattern given as a natural number below `2 ^ f.width`. -/
+def classifyNat (f : Format) (n : Nat) : Classification :=
   let fraction := n % 2 ^ f.fractionBits
   let exponent := n / 2 ^ f.fractionBits % 2 ^ f.exponentBits
   let negative := n / 2 ^ (f.fractionBits + f.exponentBits) != 0
@@ -46,13 +46,18 @@ def classify (f : Format) (bits : BitVec f.width) : Classification :=
   else .normal ⟨signed (2 ^ f.fractionBits + fraction),
     (exponent : Int) - f.bias, f.fractionBits⟩
 
+def classify (f : Format) (bits : BitVec f.width) : Classification := classifyNat f bits.toNat
+
 def Classification.finite : Classification → Option Decoded
   | .zero _ => some ⟨0, 0, 0⟩
   | .subnormal x | .normal x => some x
   | .infinity _ | .nan => none
 
-def decode16 (x : F16) : Option Decoded := (classify fp16 x).finite
-def decode32 (x : F32) : Option Decoded := (classify fp32 x).finite
+@[implicit_reducible] def decode16 (x : F16) : Option Decoded := (classify fp16 x).finite
+@[implicit_reducible] def decode32 (x : F32) : Option Decoded := (classify fp32 x).finite
+
+/-- Width-free restatement used by the encoding proofs. -/
+theorem decode32_eq (x : F32) : decode32 x = (classifyNat fp32 x.toNat).finite := rfl
 
 /-- Numerical projection for encoded boundaries. Special encodings have no value. -/
 def value32 (x : F32) : Option Rat := (decode32 x).map Decoded.value

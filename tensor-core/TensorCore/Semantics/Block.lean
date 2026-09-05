@@ -70,7 +70,7 @@ structure Finite32 where
   bits : F32
   decoded : Decoded
   valid : decode32 bits = some decoded
-  deriving Repr
+  deriving Repr, DecidableEq
 
 def finite32 (bits : F32) : Option Finite32 :=
   match h : decode32 bits with
@@ -83,7 +83,7 @@ def Finite32.value (x : Finite32) : Rat := x.decoded.value
 structure BlockTrace where
   block : PreparedBlock
   output : Finite32
-  deriving Repr
+  deriving Repr, DecidableEq
 
 def BlockTrace.residual (t : BlockTrace) : Rat := t.block.extractReference t.output.value
 def BlockTrace.outputResidual (t : BlockTrace) : Rat := t.block.accumulator - t.output.value

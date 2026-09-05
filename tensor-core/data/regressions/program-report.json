@@ -1,0 +1,18 @@
+{
+  "example_compiles": true,
+  "rejection_cases": [
+    "wrong_group_size",
+    "oversized_operand",
+    "oversized_initial",
+    "nonfinite_call",
+    "final_range",
+    "nonfinite_initial",
+    "unsupported_operation",
+    "wrong_operand_format",
+    "unresolved_symbolic_vc",
+    "invalid_supplied_proof"
+  ],
+  "rejections": 10,
+  "success": true,
+  "method": "Lean elaboration and kernel proof generation; failures checked in separate compilations"
+}

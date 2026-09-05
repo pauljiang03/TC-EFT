@@ -1,5 +1,11 @@
 # Plan review, 5 September 2026
 
+**Historical review.** The user's latest direction is to complete the general
+parameterized single-invocation model first, then consider downstream uses.
+EFT is a separate invocation-local application. The authoritative ordering and
+completion criteria are now in [CURRENT_PLAN.md](CURRENT_PLAN.md); the review
+below records the earlier decisions and must not override that plan.
+
 Reviewed the full handoff, Accurate Models v4, and the supplied revised TC-EFT
 paper. The handoff's immediate work package is sound. Keep the staged approach;
 the larger roadmap is research scope, not a claim of an already verified EFT.
@@ -54,3 +60,34 @@ FP32 conversion, checked R1–R3 traces, returned-residual theorem, and inductio
 over finite invocation schedules. Audit theorem axioms. Defer custom syntax,
 other architecture evaluators, optimized overlap extraction, hardware claims,
 and general rounding/error-bound completion until their stated proofs exist.
+
+## Follow-up gate completed
+
+Fable added profile-indexed semantics, the published V100 device comparison,
+and rounding proof foundations. The follow-up review repaired unfinished
+encoding proofs and preserved the explicit range policy. General finite-range
+nearest-even correctness, corrected block/schedule correctness, and the
+two-stage error bound are now proved. The separate rounding milestone in
+item 5 is therefore complete; the scalar representation and machine-width
+obligations remain. See [the review](FABLE_REVIEW.md) and [status](STATUS.md).
+
+## Program-language increment
+
+With the initial gate and general rounding proofs in place, the next increment
+implements handoff §15 steps C–F for a restricted fragment: typed block calls,
+sequencing, bounded repetition, final reference correction, inspectable terms,
+and proof-producing commands. Full scalar representability and fixed-width
+refinement are not prerequisites for this fragment and remain explicit work.
+The pinned `mvcgen`/`vcgen` implementations were assessed; this increment
+applies existing program theorems directly without introducing a general
+Hoare framework. See [the DSL guide](DSL.md) for that decision and scope.
+
+## Downstream verification priority
+
+The user identified that model-schedule proofs must not be conflated with
+PTX instruction/program proofs. The single-invocation example has been checked,
+but its unit is one V100 normalization group. Review of v4 §4.2/Table 4, the
+release's GEMM/WMMA sources, and the official PTX documentation confirms the
+need for a distinct instruction-path and lowering contract. That connection
+now precedes additional profile expansion in the next work list. See
+[the concrete revised milestone](PTX_BOUNDARY.md).

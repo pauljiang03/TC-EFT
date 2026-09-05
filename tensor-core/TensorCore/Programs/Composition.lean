@@ -36,7 +36,7 @@ def lastOutput : Finite32 → List BlockTrace → Finite32
   | d, [] => d
   | _, t :: ts => lastOutput t.output ts
 
-/-- V100 trace specialization of the ledger, with a checked encoded-boundary premise. -/
+/-- Block-trace specialization of the ledger, with a checked encoded-boundary premise. -/
 theorem encoded_trace_ledger (initial : Finite32) (ts : List BlockTrace)
     (chain : EncodedChain initial ts) :
     initial.value + sumQ (ts.map fun t => t.block.exactProducts) =
