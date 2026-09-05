@@ -8,12 +8,12 @@ import TensorCore
 #print axioms TensorCore.accumulator_value
 #print axioms TensorCore.block_residual_identity
 #print axioms TensorCore.returned_residual_identity
-#print axioms TensorCore.evalV100_residual_identity
+#print axioms TensorCore.evalBlock_residual_identity
 #print axioms TensorCore.corrected_eq_round_exactDot
 #print axioms TensorCore.fold_residual_ledger
 #print axioms TensorCore.encoded_trace_ledger
-#print axioms TensorCore.runV100_chain
-#print axioms TensorCore.runV100_residual_ledger
+#print axioms TensorCore.runBlocks_chain
+#print axioms TensorCore.runBlocks_residual_ledger
 #print axioms TensorCore.Regression.r1_equal_product_values
 #print axioms TensorCore.Regression.r1_factorization_changes_output
 #print axioms TensorCore.Regression.r1a_trace

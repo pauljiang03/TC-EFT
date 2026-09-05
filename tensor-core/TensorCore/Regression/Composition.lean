@@ -4,7 +4,7 @@ import TensorCore.Regression.Cases
 namespace TensorCore.Regression
 
 /-- The second block cancels 17/2, exposing the first block's lost residual. -/
-def cancelEightAndHalf : List (F16 × F16) :=
+def cancelEightAndHalf : List (v100F16F32.Word × v100F16F32.Word) :=
   [(0xc000, 0x4400), (0xb800, 0x3c00), (0, 0), (0, 0)]
 
 def twoBlockSummary : Except ModelError (List Nat × Rat × Rat) := do

@@ -1,25 +1,30 @@
 import TensorCore.Semantics.RawProduct
+import TensorCore.Semantics.Profile
 import TensorCore.Foundations.Rounding
 
 namespace TensorCore
 
-structure BlockInput where
-  products : List (F16 × F16)
+/-- Encoded operands of one normalization group under a profile; `c` is always FP32. -/
+structure BlockInput (p : Profile) where
+  products : List (p.Word × p.Word)
   c : F32
   deriving Repr, DecidableEq
 
+/-- Decoded operands together with the profile that fixes their alignment semantics. -/
 structure PreparedBlock where
+  profile : Profile
   products : List (Decoded × Decoded)
   c : Decoded
   deriving Repr, DecidableEq
 
-def prepareProducts (ps : List (F16 × F16)) : Option (List (Decoded × Decoded)) :=
+def prepareProducts (p : Profile) (ps : List (p.Word × p.Word)) :
+    Option (List (Decoded × Decoded)) :=
   ps.mapM fun (a, b) => do
-    return (← decode16 a, ← decode16 b)
+    return (← p.decode a, ← p.decode b)
 
-def prepare (x : BlockInput) : Option PreparedBlock :=
-  match decode32 x.c, prepareProducts x.products with
-  | some c, some ps => some ⟨ps, c⟩
+def prepare {p : Profile} (x : BlockInput p) : Option PreparedBlock :=
+  match decode32 x.c, prepareProducts p x.products with
+  | some c, some ps => some ⟨p, ps, c⟩
   | _, _ => none
 
 /-- Ideal sum from decoded operands, without raw multiplication, alignment, or correction. -/
@@ -28,7 +33,8 @@ def PreparedBlock.exactProducts (b : PreparedBlock) : Rat :=
 
 def PreparedBlock.exactDot (b : PreparedBlock) : Rat := b.c.value + b.exactProducts
 
-def exactDot (x : BlockInput) : Option Rat := (prepare x).map PreparedBlock.exactDot
+def exactDot {p : Profile} (x : BlockInput p) : Option Rat :=
+  (prepare x).map PreparedBlock.exactDot
 
 def PreparedBlock.terms (b : PreparedBlock) : List RawProduct :=
   ⟨b.c.significand, b.c.rawScale, b.c.fractionalBits⟩ ::
@@ -39,9 +45,13 @@ def alignmentScale (ts : List RawProduct) : Option Int :=
   (ts.filterMap fun t => if t.significand = 0 then none else some t.rawScale).foldl
     (fun acc e => some (match acc with | none => e | some v => max v e)) none
 
-/-- V100 has 23 fractional alignment bits. In an all-zero block any grid is equivalent. -/
+/-- Alignment exponent `eta`: nonzero raw-scale maximum, then the profile floor. -/
+def PreparedBlock.eta (b : PreparedBlock) : Option Int :=
+  b.profile.applyFloor (alignmentScale b.terms)
+
+/-- Grid exponent `eta - F`. In an all-zero block any grid is equivalent. -/
 def PreparedBlock.quantumExponent (b : PreparedBlock) : Int :=
-  (alignmentScale b.terms).getD 0 - 23
+  b.eta.getD 0 - b.profile.alignFraction
 
 def PreparedBlock.coefficients (b : PreparedBlock) : List Int :=
   b.terms.map fun t => truncCoeff t.value b.quantumExponent
@@ -94,11 +104,13 @@ def evalPrepared (b : PreparedBlock) : Except ModelError BlockTrace :=
     | none => .error .nonfiniteOutput
     | some d => .ok ⟨b, d⟩
 
-/-- One V100 normalization group, not a complete PTX tile or GEMM. -/
-def evalV100 (x : BlockInput) : Except ModelError BlockTrace :=
-  if x.products.length != 4 then .error .wrongProductCount
+/-- One normalization group of the profile, not a complete PTX tile or GEMM. -/
+def evalBlock {p : Profile} (x : BlockInput p) : Except ModelError BlockTrace :=
+  if x.products.length != p.products then .error .wrongProductCount
   else match prepare x with
     | none => .error .nonfiniteInput
     | some b => evalPrepared b
+
+abbrev evalV100 (x : BlockInput v100F16F32) : Except ModelError BlockTrace := evalBlock x
 
 end TensorCore

@@ -5,7 +5,7 @@ open TensorCore TensorCore.Regression Lean
 
 def ratText (q : Rat) : String := s!"{q.num}/{q.den}"
 
-def snapshotJson (x : BlockInput) : Json :=
+def snapshotJson (x : BlockInput v100F16F32) : Json :=
   match snapshot x with
   | .error e => Json.mkObj [("error", toJson (reprStr e))]
   | .ok s => Json.mkObj [
@@ -25,7 +25,7 @@ def parseHex (s : String) : Option Nat :=
       else none
     return 16 * n + v) 0
 
-def parseInput (args : List String) : Option BlockInput := do
+def parseInput (args : List String) : Option (BlockInput v100F16F32) := do
   let ns ← args.mapM parseHex
   match ns with
   | [a0,b0,a1,b1,a2,b2,a3,b3,c] =>

@@ -66,9 +66,9 @@ theorem evalPrepared_block {b : PreparedBlock} {t : BlockTrace}
       cases h
       rfl
 
-theorem evalV100_prepared {x : BlockInput} {t : BlockTrace}
-    (h : evalV100 x = .ok t) : prepare x = some t.block := by
-  unfold evalV100 at h
+theorem evalBlock_prepared {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) : prepare x = some t.block := by
+  unfold evalBlock at h
   split at h
   · simp at h
   · cases hp : prepare x with
@@ -78,27 +78,41 @@ theorem evalV100_prepared {x : BlockInput} {t : BlockTrace}
       rw [evalPrepared_block h]
 
 /-- End-to-end local recovery, connected to the executable encoded-input evaluator. -/
-theorem evalV100_residual_identity {x : BlockInput} {t : BlockTrace}
-    (h : evalV100 x = .ok t) :
+theorem evalBlock_residual_identity {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) :
     exactDot x = some (t.output.value + t.residual) := by
-  simp only [exactDot, evalV100_prepared h, Option.map_some]
+  simp only [exactDot, evalBlock_prepared h, Option.map_some]
   rw [returned_residual_identity]
 
-theorem prepare_c {x : BlockInput} {b : PreparedBlock}
+theorem prepare_c {p : Profile} {x : BlockInput p} {b : PreparedBlock}
     (h : prepare x = some b) : decode32 x.c = some b.c := by
   unfold prepare at h
   cases hc : decode32 x.c with
   | none => simp [hc] at h
   | some c =>
-    cases hp : prepareProducts x.products with
+    cases hp : prepareProducts p x.products with
     | none => simp [hc, hp] at h
     | some ps =>
       simp [hc, hp] at h
       cases h
       rfl
 
-theorem evalV100_c {x : BlockInput} {t : BlockTrace}
-    (h : evalV100 x = .ok t) : decode32 x.c = some t.block.c :=
-  prepare_c (evalV100_prepared h)
+theorem evalBlock_c {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) : decode32 x.c = some t.block.c :=
+  prepare_c (evalBlock_prepared h)
+
+/-- The profile of a successful trace is the profile of its input. -/
+theorem evalBlock_profile {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) : t.block.profile = p := by
+  have hp := evalBlock_prepared h
+  unfold prepare at hp
+  cases hc : decode32 x.c with
+  | none => simp [hc] at hp
+  | some c =>
+    cases hps : prepareProducts p x.products with
+    | none => simp [hc, hps] at hp
+    | some ps =>
+      simp [hc, hps] at hp
+      rw [← hp]
 
 end TensorCore

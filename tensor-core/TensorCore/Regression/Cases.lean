@@ -2,13 +2,15 @@ import TensorCore.Theory.StageResiduals
 
 namespace TensorCore.Regression
 
-def r1a : BlockInput := ⟨[(0x3e00, 0x3e00), (0x1000, 0x0c00),
+abbrev V100Input := BlockInput v100F16F32
+
+def r1a : V100Input := ⟨[(0x3e00, 0x3e00), (0x1000, 0x0c00),
   (0x1000, 0x0c00), (0, 0)], 0⟩
-def r1b : BlockInput := ⟨[(0x3c00, 0x4080), (0x1000, 0x0c00),
+def r1b : V100Input := ⟨[(0x3c00, 0x4080), (0x1000, 0x0c00),
   (0x1000, 0x0c00), (0, 0)], 0⟩
-def r2 : BlockInput := ⟨[(0x3e00, 0x3e00), (0x3c01, 0x3001),
+def r2 : V100Input := ⟨[(0x3e00, 0x3e00), (0x3c01, 0x3001),
   (0x3c01, 0x3001), (0x3c00, 0x3000)], 0x3e000000⟩
-def r3 : BlockInput := ⟨List.replicate 4 (0x3e00, 0x3d00), 0x3f7fffff⟩
+def r3 : V100Input := ⟨List.replicate 4 (0x3e00, 0x3d00), 0x3f7fffff⟩
 
 /-- Proof-free projection: traces come exclusively from the evaluator. c is term zero. -/
 structure Snapshot where
@@ -25,16 +27,16 @@ structure Snapshot where
   correctedBits : Option Nat
   deriving Repr, DecidableEq
 
-def snapshot (x : BlockInput) : Except ModelError Snapshot := do
-  let t ← evalV100 x
-  return ⟨t.output.bits.toNat, alignmentScale t.block.terms, t.block.quantumExponent,
+def snapshot {p : Profile} (x : BlockInput p) : Except ModelError Snapshot := do
+  let t ← evalBlock x
+  return ⟨t.output.bits.toNat, t.block.eta, t.block.quantumExponent,
     t.block.products.map (fun (a, b) => (rawMul a b).rawScale),
     t.block.coefficients, t.block.exactDot, t.block.accumulator,
     t.block.alignmentResiduals, t.outputResidual, t.residual,
     t.corrected.map BitVec.toNat⟩
 
-def outputBits (x : BlockInput) : Except ModelError Nat :=
-  (evalV100 x).map fun t => t.output.bits.toNat
+def outputBits {p : Profile} (x : BlockInput p) : Except ModelError Nat :=
+  (evalBlock x).map fun t => t.output.bits.toNat
 
 set_option maxRecDepth 16384
 set_option maxHeartbeats 2000000
@@ -98,24 +100,25 @@ theorem r4_negative_zero :
     round32 .nearestEven (-pow2 (-150)) = some 0x80000000 := by decide +kernel
 
 theorem zero_block :
-    outputBits ⟨List.replicate 4 (0, 0), 0x80000000⟩ = .ok 0 := by decide +kernel
+    outputBits (⟨List.replicate 4 (0, 0), 0x80000000⟩ : V100Input) = .ok 0 := by decide +kernel
 theorem subnormal_multiplicand :
-    outputBits ⟨[(1, 0x3c00), (0, 0), (0, 0), (0, 0)], 0⟩ =
+    outputBits (⟨[(1, 0x3c00), (0, 0), (0, 0), (0, 0)], 0⟩ : V100Input) =
       .ok 0x33800000 := by decide +kernel
 theorem subnormal_accumulator :
-    outputBits ⟨List.replicate 4 (0, 0), 1⟩ = .ok 1 := by decide +kernel
+    outputBits (⟨List.replicate 4 (0, 0), 1⟩ : V100Input) = .ok 1 := by decide +kernel
 theorem nonfinite_rejected :
-    outputBits ⟨List.replicate 4 (0x7c00, 0), 0⟩ =
+    outputBits (⟨List.replicate 4 (0x7c00, 0), 0⟩ : V100Input) =
       .error .nonfiniteInput := by decide +kernel
 theorem out_of_range_rejected :
     round32 .towardZero (maxFinite32 + 1) = none := by decide +kernel
 
 theorem wrong_shape_rejected :
-    outputBits ⟨[], 0⟩ = .error .wrongProductCount := by decide +kernel
+    outputBits (⟨[], 0⟩ : V100Input) = .error .wrongProductCount := by decide +kernel
 
 /-- Revised TC-EFT III.4, one concrete V100 witness, not a universal threshold. -/
 theorem v100_nonmonotonicity_witness :
-    outputBits ⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f800000⟩ = .ok 0x3f800000 ∧
-    outputBits ⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f7fffff⟩ = .ok 0x3f800001 := by decide +kernel
+    outputBits (⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f800000⟩ : V100Input) = .ok 0x3f800000 ∧
+    outputBits (⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f7fffff⟩ : V100Input) = .ok 0x3f800001 := by
+  decide +kernel
 
 end TensorCore.Regression

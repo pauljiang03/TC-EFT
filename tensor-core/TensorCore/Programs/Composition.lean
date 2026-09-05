@@ -54,43 +54,48 @@ theorem encoded_trace_ledger (initial : Finite32) (ts : List BlockTrace)
     change t.output.value + _ = _ at h'
     grind
 
-/-- Runnable schedule. Each call receives the bits returned by its predecessor. -/
-def runV100 : F32 → List (List (F16 × F16)) → Except ModelError (List BlockTrace)
+/-- Runnable schedule under one profile. Each call receives the bits returned by its
+predecessor. -/
+def runBlocks (p : Profile) :
+    F32 → List (List (p.Word × p.Word)) → Except ModelError (List BlockTrace)
   | _, [] => .ok []
   | c, ps :: rest =>
-    match evalV100 ⟨ps, c⟩ with
+    match evalBlock (p := p) ⟨ps, c⟩ with
     | .error e => .error e
-    | .ok t => match runV100 t.output.bits rest with
+    | .ok t => match runBlocks p t.output.bits rest with
       | .error e => .error e
       | .ok ts => .ok (t :: ts)
 
-theorem runV100_chain (initial : Finite32) (ps : List (List (F16 × F16)))
-    (ts : List BlockTrace) (h : runV100 initial.bits ps = .ok ts) :
+abbrev runV100 := runBlocks v100F16F32
+
+theorem runBlocks_chain (p : Profile) (initial : Finite32)
+    (ps : List (List (p.Word × p.Word)))
+    (ts : List BlockTrace) (h : runBlocks p initial.bits ps = .ok ts) :
     EncodedChain initial ts := by
   induction ps generalizing initial ts with
-  | nil => simp [runV100] at h; cases h; trivial
-  | cons p ps ih =>
-    cases he : evalV100 ⟨p, initial.bits⟩ with
-    | error e => simp [runV100, he] at h
+  | nil => simp [runBlocks] at h; cases h; trivial
+  | cons q ps ih =>
+    cases he : evalBlock (p := p) ⟨q, initial.bits⟩ with
+    | error e => simp [runBlocks, he] at h
     | ok t =>
-      cases hr : runV100 t.output.bits ps with
-      | error e => simp [runV100, he, hr] at h
+      cases hr : runBlocks p t.output.bits ps with
+      | error e => simp [runBlocks, he, hr] at h
       | ok rest =>
-        simp [runV100, he, hr] at h
+        simp [runBlocks, he, hr] at h
         cases h
         constructor
-        · have hc := evalV100_c he
+        · have hc := evalBlock_c he
           change decode32 initial.bits = some t.block.c at hc
           rw [initial.valid] at hc
           exact (Option.some.inj hc).symm
         · exact ih t.output rest hr
 
 /-- Every successful executable schedule inherits the encoded-boundary ledger. -/
-theorem runV100_residual_ledger (initial : Finite32)
-    (ps : List (List (F16 × F16))) (ts : List BlockTrace)
-    (h : runV100 initial.bits ps = .ok ts) :
+theorem runBlocks_residual_ledger (p : Profile) (initial : Finite32)
+    (ps : List (List (p.Word × p.Word))) (ts : List BlockTrace)
+    (h : runBlocks p initial.bits ps = .ok ts) :
     initial.value + sumQ (ts.map fun t => t.block.exactProducts) =
       (lastOutput initial ts).value + sumQ (ts.map BlockTrace.residual) :=
-  encoded_trace_ledger initial ts (runV100_chain initial ps ts h)
+  encoded_trace_ledger initial ts (runBlocks_chain p initial ps ts h)
 
 end TensorCore
