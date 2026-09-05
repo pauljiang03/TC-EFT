@@ -1,0 +1,266 @@
+[
+  {
+    "name": "R1a",
+    "trace": {
+      "bits": 1074790401,
+      "eta": 0,
+      "qExponent": -23,
+      "rawScales": [
+        0,
+        -23,
+        -23,
+        0
+      ],
+      "coefficients": [
+        0,
+        18874368,
+        1,
+        1,
+        0
+      ],
+      "ideal": "9437185/4194304",
+      "accumulator": "9437185/4194304",
+      "alignmentResiduals": [
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1"
+      ],
+      "outputResidual": "0/1",
+      "residual": "0/1",
+      "correctedBits": 1074790401
+    }
+  },
+  {
+    "name": "R1b",
+    "trace": {
+      "bits": 1074790400,
+      "eta": 1,
+      "qExponent": -22,
+      "rawScales": [
+        1,
+        -23,
+        -23,
+        0
+      ],
+      "coefficients": [
+        0,
+        9437184,
+        0,
+        0,
+        0
+      ],
+      "ideal": "9437185/4194304",
+      "accumulator": "9/4",
+      "alignmentResiduals": [
+        "0/1",
+        "0/1",
+        "1/8388608",
+        "1/8388608",
+        "0/1"
+      ],
+      "outputResidual": "0/1",
+      "residual": "1/4194304",
+      "correctedBits": 1074790401
+    }
+  },
+  {
+    "name": "R2",
+    "trace": {
+      "bits": 1076889601,
+      "eta": 0,
+      "qExponent": -23,
+      "rawScales": [
+        0,
+        -3,
+        -3,
+        -3
+      ],
+      "coefficients": [
+        1048576,
+        18874368,
+        1050625,
+        1050625,
+        1048576
+      ],
+      "ideal": "11536385/4194304",
+      "accumulator": "11536385/4194304",
+      "alignmentResiduals": [
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1"
+      ],
+      "outputResidual": "0/1",
+      "residual": "0/1",
+      "correctedBits": 1076889601
+    }
+  },
+  {
+    "name": "R3",
+    "trace": {
+      "bits": 1091043327,
+      "eta": 0,
+      "qExponent": -23,
+      "rawScales": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        8388607,
+        15728640,
+        15728640,
+        15728640,
+        15728640
+      ],
+      "ideal": "142606335/16777216",
+      "accumulator": "71303167/8388608",
+      "alignmentResiduals": [
+        "1/16777216",
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1"
+      ],
+      "outputResidual": "7/8388608",
+      "residual": "15/16777216",
+      "correctedBits": 1091043328
+    }
+  },
+  {
+    "name": "zero",
+    "trace": {
+      "bits": 0,
+      "eta": null,
+      "qExponent": -23,
+      "rawScales": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "ideal": "0/1",
+      "accumulator": "0/1",
+      "alignmentResiduals": [
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1"
+      ],
+      "outputResidual": "0/1",
+      "residual": "0/1",
+      "correctedBits": 0
+    }
+  },
+  {
+    "name": "subnormal-product",
+    "trace": {
+      "bits": 662700032,
+      "eta": -28,
+      "qExponent": -51,
+      "rawScales": [
+        -28,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        0,
+        8,
+        0,
+        0,
+        0
+      ],
+      "ideal": "1/281474976710656",
+      "accumulator": "1/281474976710656",
+      "alignmentResiduals": [
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1"
+      ],
+      "outputResidual": "0/1",
+      "residual": "0/1",
+      "correctedBits": 662700032
+    }
+  },
+  {
+    "name": "subnormal-c",
+    "trace": {
+      "bits": 1,
+      "eta": -126,
+      "qExponent": -149,
+      "rawScales": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "ideal": "1/713623846352979940529142984724747568191373312",
+      "accumulator": "1/713623846352979940529142984724747568191373312",
+      "alignmentResiduals": [
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1",
+        "0/1"
+      ],
+      "outputResidual": "0/1",
+      "residual": "0/1",
+      "correctedBits": 1
+    }
+  },
+  {
+    "name": "historical-reconstructed",
+    "trace": {
+      "bits": 1151319632,
+      "eta": 14,
+      "qExponent": -9,
+      "rawScales": [
+        14,
+        11,
+        5,
+        14
+      ],
+      "coefficients": [
+        308863,
+        -13358520,
+        2046946,
+        25660,
+        11631360
+      ],
+      "ideal": "20937923/16384",
+      "accumulator": "654309/512",
+      "alignmentResiduals": [
+        "5/16384",
+        "0/1",
+        "0/1",
+        "15/8192",
+        "0/1"
+      ],
+      "outputResidual": "0/1",
+      "residual": "35/16384",
+      "correctedBits": 1151319650
+    }
+  }
+]

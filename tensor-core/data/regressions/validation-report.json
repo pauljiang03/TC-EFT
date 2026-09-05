@@ -1,0 +1,9 @@
+{
+  "seed": 20260905,
+  "blocks": 715,
+  "rounding_cases": 2910,
+  "rejected_blocks": 3,
+  "mismatches": 0,
+  "device_measurements": 0,
+  "method": "Independent IEEE decoder, integer-grid alignment, encoding binary-search rounding"
+}

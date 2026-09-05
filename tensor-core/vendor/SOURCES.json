@@ -1,0 +1,15 @@
+{
+  "repository": "https://github.com/north-numerical-computing/MATLAB-tensor-core",
+  "tag": "v0.5",
+  "commit": "bbcf00a273868172494eaacaa8d6128ab0fb8704",
+  "selection": "Unmodified source subset used for semantic review; not a complete MATLAB installation",
+  "sha256": {
+    "LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
+    "README.md": "7117c699a313ab65f6039a365bc2d6012e4b917041072dbc645a51ba9d647efb",
+    "models/A100TC.m": "f5e8f405d698e324aedff5e62ea58a94a75ce48261bef7dc6860f718a6e159ab",
+    "models/H100TC.m": "e23beb2986ea31780972f9853df07b63d49562ccf92ad1106e2aea40b6dafdbc",
+    "models/V100TC.m": "5ce606129b95e340581f76a58d0eff048561c13bf3206586480042485b539b8b",
+    "models/tools/GEMM.m": "cc3bed803f92a29a68610e27f34822c527b50cb5801c08b8486faf3b4d14e72f",
+    "models/tools/Generic_BFMA_TC.m": "75461dfbb59e3fdee40a208b6edb89a1a2e3af4e65babc2538e797a4492bef8e"
+  }
+}

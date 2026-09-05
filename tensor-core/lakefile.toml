@@ -1,0 +1,10 @@
+name = "tensorCore"
+version = "0.1.0"
+defaultTargets = ["TensorCore", "tc_trace"]
+
+[[lean_lib]]
+name = "TensorCore"
+
+[[lean_exe]]
+name = "tc_trace"
+root = "Main"

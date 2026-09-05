@@ -1,0 +1,10 @@
+[
+  {"name":"R1a","words":["3e00","3e00","1000","0c00","1000","0c00","0000","0000","00000000"],"source":"Accurate Models v4 section 4.1.1; handoff R1; model prediction"},
+  {"name":"R1b","words":["3c00","4080","1000","0c00","1000","0c00","0000","0000","00000000"],"source":"Accurate Models v4 section 4.1.1; handoff R1; model prediction"},
+  {"name":"R2","words":["3e00","3e00","3c01","3001","3c01","3001","3c00","3000","3e000000"],"source":"Revised TC-EFT IV-A; handoff R2; model prediction"},
+  {"name":"R3","words":["3e00","3d00","3e00","3d00","3e00","3d00","3e00","3d00","3f7fffff"],"source":"Revised TC-EFT III-A; handoff R3; model prediction"},
+  {"name":"zero","words":["0000","0000","0000","0000","0000","0000","0000","0000","80000000"],"source":"Explicit zero policy"},
+  {"name":"subnormal-product","words":["0001","0001","0000","0000","0000","0000","0000","0000","00000000"],"source":"Reconciled v0.5 subnormal decoder"},
+  {"name":"subnormal-c","words":["0000","0000","0000","0000","0000","0000","0000","0000","00000001"],"source":"FP32 gradual underflow"},
+  {"name":"historical-reconstructed","words":["d83d","5a03","5061","5722","444c","49d5","5810","5976","4416cfe5"],"source":"Revised TC-EFT V-D reconstructed operand witness, not original GPU input log"}
+]

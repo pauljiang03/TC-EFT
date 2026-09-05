@@ -1,0 +1,4 @@
+tmp/
+.lake/
+.DS_Store
+__pycache__/
