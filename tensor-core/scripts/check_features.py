@@ -3,11 +3,13 @@
 
 The rounding oracle searches ordered FP32 encodings for the two neighboring
 values. It does not use the Lean converter's exponent/coefficient construction.
-No hardware beyond the separately pinned V100 data is inferred by these tests.
+Published V100, A100, and H100 measurements are replayed separately; these
+numerical checks do not establish instruction scheduling or hardware conformance.
 """
 from fractions import Fraction as Q
 from pathlib import Path
 import json
+import hashlib
 import random
 import subprocess
 
@@ -70,7 +72,8 @@ def reference(words, K, extra, floor):
     bits = round32_search(acc)
     if bits is None:
         return None
-    return dict(bits=bits, ideal=ideal, accumulated=acc, value=val32(bits), residual=ideal-val32(bits))
+    return dict(bits=bits, ideal=ideal, accumulated=acc, value=val32(bits),
+                residual=ideal-val32(bits), quantum=q)
 
 
 def run_rows(rows, filename):
@@ -85,11 +88,17 @@ def run_rows(rows, filename):
 
 
 def main():
+    pins = json.loads((ROOT / 'vendor/SOURCES.json').read_text())
+    for name, expected in pins['sha256'].items():
+        assert hashlib.sha256((ROOT / 'vendor/matlab-tensor-core-v0.5' / name).read_bytes()).hexdigest() == expected, name
     cases = []
     # Include arbitrary, non-hardware block sizes and extra-bit counts.
     configs = [(4, 0, None), (8, 1, -132), (16, 2, -133)]
     configs += [(k, e, f) for k in [1, 3, 7, 17, 37, 64]
                 for e in [0, 1, 2, 5, 9, 24] for f in [None, -132, 4]]
+    # The proved conservative threshold, including its largest permitted floor.
+    configs += [(k, 253, f) for k in [1, 17, 64] for f in [None, 127]]
+    configs += [(k, 156, f) for k in [1, 17, 64] for f in [None, 30]]
     boundary16 = [0, 0x8000, 1, 0x8001, 0x3ff, 0x83ff, 0x400, 0x8400,
                   0x3c00, 0xbc00, 0x3c01, 0x3bff, 0x7bff, 0xfbff]
     boundary32 = [0, 0x80000000, 1, 0x80000001, 0x7fffff, 0x807fffff,
@@ -112,6 +121,11 @@ def main():
     # Distinguish extra alignment bits and preserve raw factorization.
     for extra in [0, 1, 2, 9]:
         cases.append((4, extra, None, [0x3c00,0x3c00,0xc00,0xc00,0xc00,0xc00,0,0,0]))
+    for extra in [104, 156, 253, 257]:
+        cases.append((1, extra, None, [0x3c00,0x3c00,0x7f7fffff]))
+        cases.append((1, extra, None, [1,1,0x80000001]))
+    for extra in [155, 156]:
+        cases.append((1, extra, None, [0x7800,0x7800,1]))
     # Explicit model-domain and parser checks (wrong count and special values).
     for words in [[0]*7, [0x7c00,0]*4+[0], [0]*8+[0x7f800000]]:
         cases.append((4, 0, None, words))
@@ -120,6 +134,8 @@ def main():
     got = run_rows(rows, 'canonical-features.txt')
     losses = dict(alignment=0, output=0, both=0)
     rejected = 0
+    exact_padding_checked = 0
+    source_padding_checked = 0
     for args, result in zip(cases, got):
         expected = reference(args[3], *args[:3])
         if expected is None:
@@ -131,30 +147,52 @@ def main():
         for key in ['ideal', 'accumulated', 'value', 'residual']:
             assert Q(result[key]) == expected[key], (args, key, result, expected)
         alignment = expected['ideal'] != expected['accumulated']
+        if args[1] >= 253 and (args[2] is None or args[2] <= 127):
+            assert not alignment, (args, result)
+            exact_padding_checked += 1
+        if args[1] >= 156 and (args[2] is None or args[2] <= 30):
+            assert not alignment, (args, result)
+            source_padding_checked += 1
         output = expected['accumulated'] != expected['value']
         losses['alignment'] += alignment
         losses['output'] += output
         losses['both'] += alignment and output
-    # Run the new invocation API against the already pinned V100 device vectors.
-    from check_device import VECTORS, read_hex_rows, read_bin, fp32_word_to_fp16
-    av = read_hex_rows(VECTORS / 'a_V100_fp16.txt')
-    bv = read_hex_rows(VECTORS / 'b_V100_fp16.txt')
-    cv = read_bin(VECTORS / 'c_V100_fp32.txt')
-    dv = read_bin(VECTORS / 'd_V100_fp32.txt')
-    device_rows = []
-    for a, b, c in zip(av, bv, cv):
-        words = [fp32_word_to_fp16(h) for pair in zip(a,b) for h in pair] + [c]
-        device_rows.append('canonical 4 0 none ' + ' '.join(map(str, words)))
-    device = run_rows(device_rows, 'canonical-v100-device.txt')
-    assert len(device) == len(dv)
-    mismatch = sum(t.get('bits') != d for t, d in zip(device, dv))
-    assert mismatch == 0, mismatch
+    # Published canonical device vectors, each row one source-defined group.
+    from check_device import read_hex_rows, read_bin, fp32_word_to_fp16
+    device_reports = []
+    for gpu, k, extra, floor in [('V100',4,0,None),('A100',8,1,-132),('H100',16,2,-133)]:
+        vectors = ROOT / 'vendor/matlab-tensor-core-v0.5/model_validation' / gpu / 'fp16'
+        av = read_hex_rows(vectors / f'a_{gpu}_fp16.txt')
+        bv = read_hex_rows(vectors / f'b_{gpu}_fp16.txt')
+        cv = read_bin(vectors / f'c_{gpu}_fp32.txt')
+        dv = read_bin(vectors / f'd_{gpu}_fp32.txt')
+        assert len(av) == len(bv) == len(cv) == len(dv) == 5000
+        assert all(len(r) == k for r in av+bv)
+        device_rows = []
+        coverage = dict(zero_operands=0, subnormal_operands=0, zero_c=0, subnormal_c=0)
+        for a, b, c in zip(av, bv, cv):
+            words = [fp32_word_to_fp16(h) for pair in zip(a,b) for h in pair] + [c]
+            for h in words[:-1]:
+                coverage['zero_operands'] += h & 0x7fff == 0
+                coverage['subnormal_operands'] += h & 0x7fff != 0 and h & 0x7c00 == 0
+            coverage['zero_c'] += c & 0x7fffffff == 0
+            coverage['subnormal_c'] += c & 0x7fffffff != 0 and c & 0x7f800000 == 0
+            device_rows.append('canonical ' + ' '.join(map(str,[k,extra,'none' if floor is None else floor,*words])))
+        device = run_rows(device_rows, f'canonical-{gpu.lower()}-device.txt')
+        mismatch = sum(t.get('bits') != d for t, d in zip(device, dv))
+        assert mismatch == 0, (gpu, mismatch, [(i,t,d) for i,(t,d) in enumerate(zip(device,dv)) if t.get('bits') != d][:3])
+        device_reports.append(dict(gpu=gpu, products=k, extra_bits=extra, vectors=len(device),
+                                   mismatches=mismatch, coverage=coverage))
     report = dict(scope='Canonical FP16 products, FP32 c/output, unnormalized products, RTZ',
                   oracle='Exact Fraction arithmetic; FP32 output found by binary search over encodings',
-                  configurations=len(configs), cases=len(cases), rejected=rejected, mismatches=0,
-                  K=sorted({c[0] for c in configs}), extra_bits=sorted({c[1] for c in configs}),
-                  exercised_losses=losses, published_v100_vectors=len(device),
-                  published_v100_mismatches=mismatch, new_gpu_measurements=False,
+                  configurations=len({c[:3] for c in cases}), cases=len(cases), rejected=rejected, mismatches=0,
+                  K=sorted({c[0] for c in cases}), extra_bits=sorted({c[1] for c in cases}),
+                  exercised_losses=losses, published_device_comparisons=device_reports,
+                  exact_padding_accepted_cases=exact_padding_checked,
+                  source_padding_accepted_cases=source_padding_checked,
+                  published_device_vectors=sum(r['vectors'] for r in device_reports),
+                  new_gpu_measurements=False,
+                  source_files_hash_checked=len(pins['sha256']),
                   other_formats='Deferred by user; not part of this acceptance gate')
     (ROOT / 'data/regressions/feature-report.json').write_text(json.dumps(report, indent=2)+'\n')
     print(json.dumps(report, indent=2))

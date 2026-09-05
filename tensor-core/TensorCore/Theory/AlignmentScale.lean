@@ -207,21 +207,42 @@ theorem prepared_coefficient_bound (b : PreparedBlock) (F : Nat)
     rw [hq]
     exact aligned_term_coefficient_bound t eta F (ht t hmem) hle
 
+/-- Capacity follows from finite decoded inputs and shape, before any output-range check. -/
+theorem prepare_coefficient_capacity {p : Profile} {x : BlockInput p} {b : PreparedBlock}
+    (hp : prepare x = some b) (hshape : x.products.length = p.products) (F carryBits : Nat)
+    (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
+    magnitudeSum b.coefficients < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
+  have hb := prepare_terms_bounded hp
+  have hprof := prepare_profile hp
+  apply coefficient_width_sufficient
+  · exact prepared_coefficient_bound b F (by rw [hprof, hF]) hb.2
+  · simpa [PreparedBlock.coefficients, hb.1, hshape] using hcount
+
 /-- Width derived from decoded inputs, with c included in the member count. -/
-theorem evalBlock_machineAccumulator {p : Profile} {x : BlockInput p} {t : BlockTrace}
+theorem evalBlock_coefficient_capacity {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) (F carryBits : Nat)
     (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
-    t.block.machineAccumulator (F + 2 + carryBits + 1) = t.block.accumulator := by
-  have hp := evalBlock_prepared h
-  have hb := prepare_terms_bounded hp
-  have hprof := evalBlock_profile h
+    magnitudeSum t.block.coefficients < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
   have hshape : x.products.length = p.products := by
     unfold evalBlock at h
     split at h <;> simp_all
-  apply machineAccumulator_eq _ _ (by omega)
-  apply coefficient_width_sufficient
-  · exact prepared_coefficient_bound t.block F (by rw [hprof, hF]) hb.2
-  · simpa [PreparedBlock.coefficients, hb.1, hshape] using hcount
+  exact prepare_coefficient_capacity (evalBlock_prepared h) hshape F carryBits hF hcount
+
+theorem evalBlock_machineAccumulator {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) (F carryBits : Nat)
+    (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
+    t.block.machineAccumulator (F + 2 + carryBits + 1) = t.block.accumulator :=
+  machineAccumulator_eq _ _ (by omega) (evalBlock_coefficient_capacity h F carryBits hF hcount)
+
+/-- Every prefix of a successful encoded invocation is safe at the derived width. -/
+theorem evalBlock_machinePrefix {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) (F carryBits : Nat)
+    (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits)
+    (xs ys : List Int) (hsplit : t.block.coefficients = xs ++ ys) :
+    (machineAccumulate (F + 2 + carryBits + 1) 0 xs).toInt = sumZ xs := by
+  apply machineAccumulate_prefix_exact _ xs ys (by omega)
+  rw [← hsplit]
+  exact evalBlock_coefficient_capacity h F carryBits hF hcount
 
 /-- The conservative V100 bound is 29 signed bits: 25 magnitude bits per term,
 three carry bits for five terms, and one sign bit. This is not a device register claim. -/

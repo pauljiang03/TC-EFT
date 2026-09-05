@@ -88,4 +88,35 @@ theorem classifyNat_scale_lower (f : Format) (n : Nat) (d : Decoded)
       change 1 - f.bias ≤ ((n / 2 ^ f.fractionBits % 2 ^ f.exponentBits : Nat) : Int) - f.bias
       omega
 
+/-- Nonzero finite decoded values retain the format's fraction width and bounded
+raw scale. The exponent field has at least two bits. -/
+theorem classifyNat_metadata (f : Format) (he : 2 ≤ f.exponentBits) (n : Nat) (d : Decoded)
+    (h : (classifyNat f n).finite = some d) (hnz : d.significand ≠ 0) :
+    d.fractionalBits = f.fractionBits ∧ 1 - f.bias ≤ d.rawScale ∧
+      d.rawScale ≤ ((2 ^ f.exponentBits - 2 : Nat) : Int) - f.bias := by
+  have hp : (2 : Nat) ^ 2 ≤ 2 ^ f.exponentBits := Nat.pow_le_pow_right (by decide) he
+  have hm := Nat.mod_lt (n / 2 ^ f.fractionBits) (Nat.two_pow_pos f.exponentBits)
+  unfold classifyNat at h
+  dsimp only at h
+  split at h
+  · split at h <;> simp [Classification.finite] at h
+  · split at h
+    · split at h
+      · simp only [Classification.finite, Option.some.injEq] at h
+        subst d
+        simp at hnz
+      · simp only [Classification.finite, Option.some.injEq] at h
+        subst d
+        refine ⟨rfl, Int.le_refl _, ?_⟩
+        change 1 - f.bias ≤ ((2 ^ f.exponentBits - 2 : Nat) : Int) - f.bias
+        omega
+    · simp only [Classification.finite, Option.some.injEq] at h
+      subst d
+      refine ⟨rfl, ?_, ?_⟩
+      · change 1 - f.bias ≤ ((n / 2 ^ f.fractionBits % 2 ^ f.exponentBits : Nat) : Int) - f.bias
+        omega
+      · change ((n / 2 ^ f.fractionBits % 2 ^ f.exponentBits : Nat) : Int) - f.bias ≤
+          ((2 ^ f.exponentBits - 2 : Nat) : Int) - f.bias
+        omega
+
 end TensorCore

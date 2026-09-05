@@ -22,9 +22,9 @@ support subnormal operands.
 | V100, FP16, WMMA / HMMA.844 | 4 | 23 | none relevant | c in group; FP32 RTZ | `fp16Fp32Profile 4 0`; proved, oracle-checked, 5,000 published vectors |
 | A100/A2/A30, FP16, WMMA / HMMA.1688; L40S/Ada corresponding paths | 8 | 24 | −132 | FP32 c in group; FP32 RTZ | `fp16Fp32Profile 8 1 (−132)`; proved, oracle-checked, 5,000 published A100 vectors; floor proved inert |
 | H100/H200/B200/RTX PRO, FP16, HMMA.16816; B200 UTCHMMA f16 | 16 | 25 | −133 | FP32 c in group; FP32 RTZ | `fp16Fp32Profile 16 2 (−133)`; proved, oracle-checked, 5,000 published H100 vectors; floor proved inert |
-| A100/A2/A30 and Hopper/Blackwell BF16 | 8 / 16 | 24 / 25 | −132 / −133 | FP32 c in group; FP32 RTZ | `InvocationSpec` only; floor is active for tiny BF16 products; no proofs or device evidence beyond exact loss accounting |
-| Ampere/Ada, TF32, HMMA.1684 | 4 | 24 | −132 | FP32 c in group; FP32 RTZ | `InvocationSpec` with `tf32Register` padding checks; not claimed |
-| Hopper/Blackwell TF32, WMMA / HMMA.1684 | 4 | 25 | −133 | FP32 c in group; FP32 RTZ | `InvocationSpec` only; distinct from the K = 8 path |
+| A100/A2/A30 and Hopper/Blackwell BF16 | 8 / 16 | 24 / 25 | −132 / −133 | FP32 c in group; FP32 RTZ | `a100BF16Invocation`, `hopperBF16Invocation`: descriptors match 5,000 published rows each, none reaching the floor; no rounding proof; not claimed |
+| Ampere/Ada, TF32, HMMA.1684 | 4 | 24 | −132 | FP32 c in group; FP32 RTZ | `a100TF32Invocation` with `tf32Register` padding checks: matches 5,000 published rows; no rounding proof; not claimed |
+| Hopper/Blackwell TF32, WMMA / HMMA.1684 | 4 | 25 | −133 | FP32 c in group; FP32 RTZ | `hopperTF32WmmaInvocation`: matches 5,000 published rows; distinct from the K = 8 path; not claimed |
 | Hopper/Blackwell TF32, mma.sync m16n8k8 / HMMA.1688; B200 tcgen05 kind=tf32 | 8 | 25 | −133 | FP32 c in group; FP32 RTZ | `InvocationSpec` only; instruction mapping open |
 | V100 and later, FP16 output | as above | as above | as above | final FP16 RNE; stage order to resolve | Two candidate specifications kept (register item 1); neither claimed |
 | L40S/Ada native FP8, mma.sync m16n8k16/32 / QMMA.16816 | 16 | 13 | irrelevant for finite FP8 products | c in group; FP32 RTZ or FP16 RNE | Not implemented; output-precision question (register item 2) |
@@ -54,7 +54,7 @@ arbitrary custom-model flags are outside the characterized universe.
 | Finite domain | Reject nonfinite input, invalid shape, and out-of-range conversion inputs | The finite guard is narrower than IEEE overflow handling; each stage checks its own range |
 | Zero | Exact zero gives +0; negative nonzero rounded to zero keeps its sign | Model policy, not a hardware theorem; value-level proofs identify both zeros |
 | FP64 FMA | One exact a·b + c and one rounding; no lossy alignment grid | `AccumulationKind.fused` with `binary64Fma`; no rounding proof |
-| Evidence | Model proof, independent oracle, published vectors, instruction mapping | Kept separate; device evidence covers single FP16 groups on V100, A100, and H100 |
+| Evidence | Model proof, independent oracle, published vectors, instruction mapping | Kept separate; device evidence covers single groups on V100, A100, and H100 for FP16 (claimed family) and on A100 and H100 for BF16 and TF32 (descriptors only) |
 
 ## Reconciliation register
 

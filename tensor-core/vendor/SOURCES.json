@@ -2,7 +2,7 @@
   "repository": "https://github.com/north-numerical-computing/MATLAB-tensor-core",
   "tag": "v0.5",
   "commit": "bbcf00a273868172494eaacaa8d6128ab0fb8704",
-  "selection": "Unmodified source subset used for semantic review, plus the V100 FP16 model_validation vectors and their readers used as device evidence; not a complete MATLAB installation",
+  "selection": "Unmodified source subset and canonical FP16-to-FP32 published vectors for V100/A100/H100; not a complete MATLAB installation",
   "sha256": {
     "LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
     "README.md": "7117c699a313ab65f6039a365bc2d6012e4b917041072dbc645a51ba9d647efb",
@@ -22,26 +22,59 @@
     "model_validation/A100/fp16/a_A100_fp16.txt": "69e9abd30801c1cb569e766af9a00a47c970761c52304ce5c58d052521d9f264",
     "model_validation/A100/fp16/b_A100_fp16.txt": "5e9dfabb73ee4188bb30ad67e1e02ab20586a929db066350f899b5586d6182fe",
     "model_validation/A100/fp16/c_A100_fp32.txt": "41d30aa86e0cf0977a7a75f8ead6af8f60c4bad2fca3e66312f54b1baf2a9c0f",
-    "model_validation/A100/fp16/d_A100_fp16.txt": "382b420782160fe31e4b95b9b2ea80cfea9fd93e74b28b857cd96e5d78e1bda7",
     "model_validation/A100/fp16/d_A100_fp32.txt": "b89cc3c2ab581799fb9e9d3af072c4059c8cecc4d1b707706da9728f5506edfb",
     "model_validation/H100/fp16/a_H100_fp16.txt": "0672b27f1fe4e99d6f781600650f908e69f00ac0ac0f7c87fe27eea6c35cd7e9",
     "model_validation/H100/fp16/b_H100_fp16.txt": "f29a269fc3e534cdde204ac72f28cb0335117a477e901d5740c077cb0599e93e",
     "model_validation/H100/fp16/c_H100_fp32.txt": "91798c84f0b2bd0d817eb1ed2b5f0a305247f0ce0227ccc2a808053f08b3aa2c",
-    "model_validation/H100/fp16/d_H100_fp16.txt": "68b5bccd7afb9c8d28fa16841dea18a49888501004ea3f8988126339ab681d6f",
-    "model_validation/H100/fp16/d_H100_fp32.txt": "49fc4f860424411556be17ffb1f6c9041d1dbb93251a48c256eb456c264bd7cd"
+    "model_validation/H100/fp16/d_H100_fp32.txt": "49fc4f860424411556be17ffb1f6c9041d1dbb93251a48c256eb456c264bd7cd",
+    "model_validation/A100/bf16/a_A100_bf16.txt": "451badf33ce4cdcb9953db64ede3c561827ba79068a222723f1dc033bbe7122e",
+    "model_validation/A100/bf16/b_A100_bf16.txt": "64dd5b9fe0a210a7b660aca0d35e5ab3ce9a9ed69137eaea02099b1e62d3a895",
+    "model_validation/A100/bf16/c_A100_fp32.txt": "23f934d9a61e266bec5ba50159caee9be855a4c79156fd84715dc6d374e1e93c",
+    "model_validation/A100/bf16/d_A100_fp32.txt": "e411491e371ae14522f0196b659169ffe910bbeb4d26f00535e5ac357b58e295",
+    "model_validation/A100/tf32/a_A100_tf32.txt": "53d8534fd1106f7e9a23e902b918e59108f9e1b05843d20a36b3049a61bf8204",
+    "model_validation/A100/tf32/b_A100_tf32.txt": "1a019e8dcec2a44a741e691268e4c4a9eb9eb9ebc128be097f9921b813d4c6f9",
+    "model_validation/A100/tf32/c_A100_fp32.txt": "03353ec360c1b95e24ded892e590797a85d1fd8f060f483f77b4c68c56e7ca32",
+    "model_validation/A100/tf32/d_A100_fp32.txt": "08fdb267afb519168e8b82aabef40542d1dd18474a5f3b2c679f0304ba5f429a",
+    "model_validation/H100/bf16/a_H100_bf16.txt": "0b2302c35bbd13072c4a3ac4103a3bf631f928e02b7878bb90893756d862aa18",
+    "model_validation/H100/bf16/b_H100_bf16.txt": "d1ab103643c56f021cd3a41fcef824072d94bfe8994eccdf6fb91fbec9ff53a5",
+    "model_validation/H100/bf16/c_H100_fp32.txt": "eb0874a6969cb35eddbb60fcedc90422b24036dcba47c6c57d5b59ccb7ef1bc6",
+    "model_validation/H100/bf16/d_H100_fp32.txt": "243fe26cf259ed549f5ea306ff1b56f35a3ba148944bba8f91ffbf53c0e6ae37",
+    "model_validation/H100/tf32/a_H100_tf32.txt": "53d8534fd1106f7e9a23e902b918e59108f9e1b05843d20a36b3049a61bf8204",
+    "model_validation/H100/tf32/b_H100_tf32.txt": "1a019e8dcec2a44a741e691268e4c4a9eb9eb9ebc128be097f9921b813d4c6f9",
+    "model_validation/H100/tf32/c_H100_fp32.txt": "0e13e585a11bd64b0fc40bafc9fd0b8037176e4f98097c76869505fefbcba23c",
+    "model_validation/H100/tf32/d_H100_fp32.txt": "c879699e2cbac246e311ebdfb1ed4528b2463bf9d588faa3ca3651a4af7222ab"
   },
   "device_vectors": {
-    "paths": [
-      "model_validation/V100/fp16",
-      "model_validation/A100/fp16",
-      "model_validation/H100/fp16"
-    ],
+    "path": "model_validation/V100/fp16",
     "rows": 5000,
-    "layout": "a/b: K FP32 hexadecimal words per row holding FP16 values (K = 4, 8, 16); c/d: one 32-bit binary string per row",
-    "interpretation": "Validate_TC_models.m reshapes A and B into rows of K = N_FMA and calls the model once per row, so one row is one normalization group; the CUDA harness placed the K products in k positions 0..K-1 of one WMMA instruction",
-    "used_by": [
-      "scripts/check_device.py",
-      "scripts/check_device_families.py"
-    ]
+    "layout": "a/b: four FP32 hexadecimal words per row holding FP16 values; c/d: one 32-bit binary string per row",
+    "interpretation": "Validate_TC_models.m reshapes A and B into rows of K=4 and calls V100TC once per row, so one row is one normalization group",
+    "used_by": "scripts/check_device.py",
+    "format_evidence": {
+      "paths": [
+        "model_validation/A100/bf16",
+        "model_validation/A100/tf32",
+        "model_validation/H100/bf16",
+        "model_validation/H100/tf32"
+      ],
+      "rows": 5000,
+      "layout": "a/b: K FP32 hexadecimal words per row holding BF16 values (low 16 bits zero) or TF32 values (low 13 bits zero); c/d: one 32-bit binary string per row",
+      "used_by": "scripts/check_device_formats.py",
+      "status": "Evidence for the deferred BF16/TF32 InvocationSpec descriptors only; no proofs are claimed for those formats"
+    }
+  },
+  "additional_canonical_vectors": {
+    "GPUs": [
+      "A100",
+      "H100"
+    ],
+    "format": "FP16 products, FP32 c/output",
+    "products_per_row": {
+      "A100": 8,
+      "H100": 16
+    },
+    "used_by": "scripts/check_features.py",
+    "archive_root": "north-numerical-computing-MATLAB-tensor-core-bbcf00a",
+    "archive_sha256": "38b84ee13344331e354f10b0321b3ae3050b76cdeb23da101595c9641db8458e"
   }
 }

@@ -13,8 +13,8 @@ structure Profile where
   alignFloor : Option Int
   deriving Repr, DecidableEq
 
-/-- V100 FP16 -> FP32: `K = 4`, `(2, 23, 0)` alignment, no relevant floor. This is the
-only profile with regression theorems and device evidence. -/
+/-- V100 FP16 -> FP32: `K = 4`, `(2, 23, 0)` alignment, no relevant floor.
+The canonical Ampere/Hopper instances are defined in Semantics.Canonical. -/
 def v100F16F32 : Profile := ⟨fp16, 4, 23, none⟩
 
 /-- The floor only raises a nonempty maximum; an all-zero block stays `none`. -/

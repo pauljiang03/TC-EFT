@@ -6,4 +6,6 @@ import TensorCore.Programs.Correction
 import TensorCore.Regression.Composition
 import TensorCore.Regression.Programs
 import TensorCore.Regression.Features
-import TensorCore.Theory.CanonicalFloor
+import TensorCore.Regression.DotProduct
+import TensorCore.Regression.EFT
+import TensorCore.Regression.Monotonicity

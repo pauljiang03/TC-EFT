@@ -1,4 +1,4 @@
-import TensorCore.Semantics.Block
+import TensorCore.Semantics.Accumulator
 
 namespace TensorCore
 
@@ -30,11 +30,6 @@ theorem magnitudeSum_le_length_mul (zs : List Int) (B : Nat)
     have ht := ih (by intro t ht; exact h t (by simp [ht]))
     simp only [magnitudeSum, List.length_cons, Nat.add_mul, Nat.one_mul]
     omega
-
-/-- Actual modular signed-word additions, starting from a supplied register. -/
-def machineAccumulate (w : Nat) (acc : BitVec w) : List Int → BitVec w
-  | [] => acc
-  | z :: zs => machineAccumulate w (acc + BitVec.ofInt w z) zs
 
 theorem machineAccumulate_eq (w : Nat) (initial : Int) (zs : List Int) :
     machineAccumulate w (BitVec.ofInt w initial) zs = BitVec.ofInt w (initial + sumZ zs) := by
@@ -84,10 +79,6 @@ theorem machineAccumulate_of_coefficient_bound (zs : List Int) (B c : Nat)
     (hterm : ∀ z ∈ zs, z.natAbs < 2 ^ B) (hcount : zs.length ≤ 2 ^ c) :
     (machineAccumulate (B + c + 1) 0 zs).toInt = sumZ zs :=
   machineAccumulate_exact _ zs (by omega) (coefficient_width_sufficient zs B c hterm hcount)
-
-/-- Signed machine accumulation refines the reference at its actual alignment quantum. -/
-def PreparedBlock.machineAccumulator (b : PreparedBlock) (w : Nat) : Rat :=
-  ((machineAccumulate w 0 b.coefficients).toInt : Rat) * pow2 b.quantumExponent
 
 theorem machineAccumulator_eq (b : PreparedBlock) (w : Nat) (hw : 0 < w)
     (h : magnitudeSum b.coefficients < 2 ^ (w - 1)) :

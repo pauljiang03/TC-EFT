@@ -12,10 +12,34 @@
     [
       "python3",
       "scripts/check_programs.py"
+    ],
+    [
+      "python3",
+      "scripts/check_features.py"
+    ],
+    [
+      "python3",
+      "scripts/check_dot_products.py"
+    ],
+    [
+      "python3",
+      "scripts/check_device_formats.py"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "examples/CanonicalInvocation.lean"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "examples/LongDotProduct.lean"
     ]
   ],
-  "targets_built": 82,
-  "audit": "117 theorem roots audited; only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 110,
+  "audit": "201 theorem roots audited; only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [
@@ -34,5 +58,140 @@
     "success": true,
     "method": "Lean elaboration and kernel proof generation; failures checked in separate compilations"
   },
+  "feature_checks": {
+    "scope": "Canonical FP16 products, FP32 c/output, unnormalized products, RTZ",
+    "oracle": "Exact Fraction arithmetic; FP32 output found by binary search over encodings",
+    "configurations": 129,
+    "cases": 1985,
+    "rejected": 15,
+    "mismatches": 0,
+    "K": [
+      1,
+      3,
+      4,
+      7,
+      8,
+      16,
+      17,
+      37,
+      64
+    ],
+    "extra_bits": [
+      0,
+      1,
+      2,
+      5,
+      9,
+      24,
+      104,
+      155,
+      156,
+      253,
+      257
+    ],
+    "exercised_losses": {
+      "alignment": 1378,
+      "output": 731,
+      "both": 526
+    },
+    "published_device_comparisons": [
+      {
+        "gpu": "V100",
+        "products": 4,
+        "extra_bits": 0,
+        "vectors": 5000,
+        "mismatches": 0,
+        "coverage": {
+          "zero_operands": 0,
+          "subnormal_operands": 0,
+          "zero_c": 0,
+          "subnormal_c": 0
+        }
+      },
+      {
+        "gpu": "A100",
+        "products": 8,
+        "extra_bits": 1,
+        "vectors": 5000,
+        "mismatches": 0,
+        "coverage": {
+          "zero_operands": 0,
+          "subnormal_operands": 1,
+          "zero_c": 0,
+          "subnormal_c": 0
+        }
+      },
+      {
+        "gpu": "H100",
+        "products": 16,
+        "extra_bits": 2,
+        "vectors": 5000,
+        "mismatches": 0,
+        "coverage": {
+          "zero_operands": 0,
+          "subnormal_operands": 5,
+          "zero_c": 0,
+          "subnormal_c": 0
+        }
+      }
+    ],
+    "exact_padding_accepted_cases": 95,
+    "source_padding_accepted_cases": 142,
+    "published_device_vectors": 15000,
+    "new_gpu_measurements": false,
+    "source_files_hash_checked": 39,
+    "other_formats": "Deferred by user; not part of this acceptance gate"
+  },
+  "dot_product_checks": {
+    "cases": 278,
+    "rejected": 4,
+    "mismatches": 0,
+    "configurations": 25,
+    "partial_tail_cases": 160,
+    "nonzero_error_cases": 103,
+    "every_encoded_boundary_compared": true,
+    "ideal_from_unpadded_original_bits": true,
+    "error_budget_comparison": true,
+    "ordered_error_causes_compared": true,
+    "new_gpu_measurements": false
+  },
+  "format_evidence": {
+    "A100-bf16": {
+      "descriptor": "a100-bf16",
+      "products": 8,
+      "vectors": 5000,
+      "model_errors": 0,
+      "bit_mismatches": 0,
+      "zero_or_subnormal_operands_or_c": 0
+    },
+    "A100-tf32": {
+      "descriptor": "a100-tf32",
+      "products": 4,
+      "vectors": 5000,
+      "model_errors": 0,
+      "bit_mismatches": 0,
+      "zero_or_subnormal_operands_or_c": 0
+    },
+    "H100-bf16": {
+      "descriptor": "hopper-bf16",
+      "products": 16,
+      "vectors": 5000,
+      "model_errors": 0,
+      "bit_mismatches": 0,
+      "zero_or_subnormal_operands_or_c": 0
+    },
+    "H100-tf32": {
+      "descriptor": "hopper-tf32-wmma",
+      "products": 4,
+      "vectors": 5000,
+      "model_errors": 0,
+      "bit_mismatches": 0,
+      "zero_or_subnormal_operands_or_c": 0
+    },
+    "status": "Descriptor evidence for deferred formats; the alignment floors are not exercised by these rows and no rounding proof is claimed",
+    "method": "One descriptor evaluation per row, bitwise output comparison; no new GPU measurements"
+  },
+  "canonical_example": true,
+  "long_dot_product_example": true,
   "success": true
 }

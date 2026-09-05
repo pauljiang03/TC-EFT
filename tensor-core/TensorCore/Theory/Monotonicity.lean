@@ -1,0 +1,390 @@
+import TensorCore.Theory.CorrectRounding
+import TensorCore.Theory.StageResiduals
+import TensorCore.Theory.AlignmentScale
+import TensorCore.Theory.Padding
+
+/-! TC-EFT Theorem III.4 as a theorem over the product count `K` and the padding `p`:
+decreasing the accumulator input from `1` to `1 − 2^-24` raises the output exactly when
+`K ≥ 3·2^p`, for `K` equal products of value `2^-(24+p)` whose raw scales are at most `−1`. -/
+
+namespace TensorCore
+
+def oneDecoded : Decoded := ⟨8388608, 0, 23⟩
+def belowOneDecoded : Decoded := ⟨16777215, -1, 23⟩
+
+theorem oneDecoded_value : oneDecoded.value = 1 := by decide +kernel
+theorem belowOneDecoded_value : belowOneDecoded.value = 16777215 * pow2 (-24) := by
+  decide +kernel
+
+theorem pow2_zero : pow2 0 = 1 := by simp [pow2]
+
+theorem pow2_div (a b : Int) : pow2 a / pow2 b = pow2 (a - b) := by
+  have h : pow2 a = pow2 (a - b) * pow2 b := by
+    rw [← pow2_add]; congr 1; omega
+  rw [h, Rat.mul_div_cancel (Rat.ne_of_gt (pow2_pos b))]
+
+theorem div_pow2 (x : Rat) (e : Int) : x / pow2 e = x * pow2 (-e) := by
+  have h1 : pow2 (-e) * pow2 e = 1 := by
+    rw [← pow2_add]
+    have : -e + e = 0 := by omega
+    rw [this, pow2_zero]
+  have hne := Rat.ne_of_gt (pow2_pos e)
+  calc x / pow2 e = x * pow2 (-e) * pow2 e / pow2 e := by rw [Rat.mul_assoc, h1, Rat.mul_one]
+    _ = x * pow2 (-e) := Rat.mul_div_cancel hne
+
+/-- A term already on the grid keeps its coefficient. -/
+theorem truncCoeff_of_grid (k e : Int) : truncCoeff ((k : Rat) * pow2 e) e = k := by
+  have hne := Rat.ne_of_gt (pow2_pos e)
+  unfold truncCoeff
+  split
+  · rw [show -((k : Rat) * pow2 e) = ((-k : Int) : Rat) * pow2 e by
+        rw [Rat.intCast_neg]; grind,
+      Rat.mul_div_cancel hne, Rat.floor_intCast]
+    omega
+  · rw [Rat.mul_div_cancel hne, Rat.floor_intCast]
+
+theorem sumZ_replicate (K : Nat) (z : Int) : sumZ (List.replicate K z) = K * z := by
+  induction K with
+  | zero => simp [sumZ]
+  | succ n ih =>
+    simp only [List.replicate_succ, sumZ, ih]
+    have : ((n + 1 : Nat) : Int) = (n : Int) + 1 := by omega
+    rw [this]; grind
+
+theorem magnitudeExponent_eq_of_bounds (x : Rat) (e : Int) (h1 : pow2 e ≤ x)
+    (h2 : x < pow2 (e + 1)) : magnitudeExponent x = e := by
+  have hx : 0 < x := by have := pow2_pos e; grind
+  obtain ⟨hlo, hhi⟩ := magnitudeExponent_spec x hx
+  apply Classical.byContradiction
+  intro hne
+  rcases Int.lt_or_gt_of_ne hne with hlt | hgt
+  · have := pow2_le_of_le (show magnitudeExponent x + 1 ≤ e by omega)
+    grind
+  · have := pow2_le_of_le (show e + 1 ≤ magnitudeExponent x by omega)
+    grind
+
+theorem finite32_of_value32 (b : F32) (v : Rat) (h : value32 b = some v) :
+    ∃ f : Finite32, finite32 b = some f ∧ f.bits = b ∧ f.value = v := by
+  unfold value32 at h
+  cases hd : decode32 b with
+  | none => simp [hd] at h
+  | some d =>
+    simp only [hd, Option.map_some, Option.some.injEq] at h
+    refine ⟨⟨b, d, hd⟩, ?_, rfl, h⟩
+    unfold finite32
+    split
+    · rename_i h'; rw [hd] at h'; contradiction
+    · rename_i d' h'; rw [hd] at h'; cases Option.some.inj h'; rfl
+
+/-- The alignment exponent of the construction is the accumulator input's raw scale when
+every product's raw scale is at most that value. -/
+theorem construction_eta (prof : Profile) (K : Nat) (da db c : Decoded)
+    (hc : c.significand ≠ 0) (_hu : (rawMul da db).significand ≠ 0)
+    (hs : (rawMul da db).rawScale ≤ c.rawScale) (hfl : ∀ f ∈ prof.alignFloor, f ≤ c.rawScale) :
+    (PreparedBlock.mk prof (List.replicate K (da, db)) c).eta = some c.rawScale := by
+  have hterms : (PreparedBlock.mk prof (List.replicate K (da, db)) c).terms =
+      ⟨c.significand, c.rawScale, c.fractionalBits⟩ :: List.replicate K (rawMul da db) := by
+    simp [PreparedBlock.terms, List.map_replicate]
+  have hmem : (⟨c.significand, c.rawScale, c.fractionalBits⟩ : RawProduct) ∈
+      (PreparedBlock.mk prof (List.replicate K (da, db)) c).terms := by
+    rw [hterms]; simp
+  obtain ⟨e, he, hle⟩ := alignmentScale_term _ _ hmem hc
+  have hle' : c.rawScale ≤ e := hle
+  have hup := alignmentScale_upper (PreparedBlock.mk prof (List.replicate K (da, db)) c).terms
+    c.rawScale (by
+      intro t ht _
+      rw [hterms] at ht
+      simp only [List.mem_cons, List.mem_replicate] at ht
+      rcases ht with rfl | ⟨_, rfl⟩
+      · exact Int.le_refl _
+      · exact hs) e (by rw [he]; simp)
+  have heq : e = c.rawScale := by omega
+  subst heq
+  unfold PreparedBlock.eta
+  rw [he]
+  show prof.applyFloor (some c.rawScale) = some c.rawScale
+  unfold Profile.applyFloor
+  cases hf : prof.alignFloor with
+  | none => rfl
+  | some f =>
+    have := hfl f (by rw [hf]; simp)
+    simp [Int.max_eq_left this]
+
+theorem construction_coefficients (prof : Profile) (K : Nat) (da db c : Decoded) :
+    (PreparedBlock.mk prof (List.replicate K (da, db)) c).coefficients =
+      truncCoeff c.value (PreparedBlock.mk prof (List.replicate K (da, db)) c).quantumExponent ::
+      List.replicate K (truncCoeff (rawMul da db).value
+        (PreparedBlock.mk prof (List.replicate K (da, db)) c).quantumExponent) := by
+  simp [PreparedBlock.coefficients, PreparedBlock.terms, List.map_replicate, RawProduct.value,
+    Decoded.value]
+
+theorem rawMul_significand_ne_zero (da db : Decoded) (p : Nat)
+    (hval : (rawMul da db).value = pow2 (-(24 + p))) : (rawMul da db).significand ≠ 0 := by
+  intro h
+  unfold RawProduct.value at hval
+  rw [h] at hval
+  have := pow2_pos (-(24 + p))
+  simp at hval
+  grind
+
+/-- Accumulator with `c = 1`: every product truncates to zero. -/
+theorem construction_accumulator_one (prof : Profile) (p K : Nat) (da db : Decoded)
+    (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1) :
+    (PreparedBlock.mk prof (List.replicate K (da, db)) oneDecoded).accumulator = 1 := by
+  have hu := rawMul_significand_ne_zero da db p hval
+  have heta := construction_eta prof K da db oneDecoded (by decide) hu
+    (by change (rawMul da db).rawScale ≤ 0; omega)
+    (by intro f hf; have := hfl f hf; change f ≤ 0; omega)
+  have hq : (PreparedBlock.mk prof (List.replicate K (da, db)) oneDecoded).quantumExponent =
+      -(23 + p) := by
+    unfold PreparedBlock.quantumExponent
+    rw [heta]
+    change oneDecoded.rawScale - prof.alignFraction = _
+    rw [hF]
+    simp only [oneDecoded]
+    omega
+  have hcoef := construction_coefficients prof K da db oneDecoded
+  rw [hq] at hcoef
+  have hc : truncCoeff oneDecoded.value (-(23 + p)) = ((2 ^ (23 + p) : Nat) : Int) := by
+    rw [oneDecoded_value]
+    have h1 : (1 : Rat) = (((2 ^ (23 + p) : Nat) : Int) : Rat) * pow2 (-(23 + p)) := by
+      rw [Rat.intCast_natCast, ← pow2_natCast, ← pow2_add]
+      have : ((23 + p : Nat) : Int) + -(23 + p) = 0 := by omega
+      rw [this, pow2_zero]
+    rw [h1, truncCoeff_of_grid]
+  have hp : truncCoeff (rawMul da db).value (-(23 + p)) = 0 := by
+    rw [hval]
+    unfold truncCoeff
+    have hpos := pow2_pos (-(24 + p))
+    rw [if_neg (by grind), pow2_div]
+    have : (-(24 + p) : Int) - -(23 + p) = -1 := by omega
+    rw [this]
+    decide +kernel
+  unfold PreparedBlock.accumulator
+  rw [hcoef, hq]
+  simp only [sumZ, hc, hp, sumZ_replicate, Int.mul_zero, Int.add_zero]
+  rw [Rat.intCast_natCast, ← pow2_natCast, ← pow2_add]
+  have : ((23 + p : Nat) : Int) + -(23 + p) = 0 := by omega
+  rw [this, pow2_zero]
+
+/-- Accumulator with `c' = 1 − 2^-24`: every product is retained. -/
+theorem construction_accumulator_below (prof : Profile) (p K : Nat) (da db : Decoded)
+    (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1) :
+    (PreparedBlock.mk prof (List.replicate K (da, db)) belowOneDecoded).accumulator =
+      ((16777215 * 2 ^ p + K : Nat) : Rat) * pow2 (-(24 + p)) := by
+  have hu := rawMul_significand_ne_zero da db p hval
+  have heta := construction_eta prof K da db belowOneDecoded (by decide) hu hscale hfl
+  have hq : (PreparedBlock.mk prof (List.replicate K (da, db)) belowOneDecoded).quantumExponent =
+      -(24 + p) := by
+    unfold PreparedBlock.quantumExponent
+    rw [heta]
+    change belowOneDecoded.rawScale - prof.alignFraction = _
+    rw [hF]
+    simp only [belowOneDecoded]
+    omega
+  have hcoef := construction_coefficients prof K da db belowOneDecoded
+  rw [hq] at hcoef
+  have hc : truncCoeff belowOneDecoded.value (-(24 + p)) = ((16777215 * 2 ^ p : Nat) : Int) := by
+    rw [belowOneDecoded_value]
+    have h1 : (16777215 : Rat) * pow2 (-24) =
+        (((16777215 * 2 ^ p : Nat) : Int) : Rat) * pow2 (-(24 + p)) := by
+      rw [Rat.intCast_natCast, Rat.natCast_mul, ← pow2_natCast, Rat.mul_assoc, ← pow2_add]
+      have : (p : Int) + -(24 + p) = -24 := by omega
+      rw [this]
+      all_goals simp
+    rw [h1, truncCoeff_of_grid]
+  have hp : truncCoeff (rawMul da db).value (-(24 + p)) = 1 := by
+    rw [hval]
+    have h1 : pow2 (-(24 + p)) = ((1 : Int) : Rat) * pow2 (-(24 + p)) := by simp
+    rw [h1, truncCoeff_of_grid]
+  unfold PreparedBlock.accumulator
+  rw [hcoef, hq]
+  simp only [sumZ, hc, hp, sumZ_replicate, Int.mul_one]
+  congr 1
+  all_goals rw [Rat.intCast_add, Rat.intCast_natCast, Rat.intCast_natCast, Rat.natCast_add]
+
+/-- TC-EFT Theorem III.4. For any profile with `F = 23 + p`, a floor at most `−1`, and
+`K < 2^(24+p)` equal products of value `2^-(24+p)` with raw scale at most `−1`: the block
+with `c = 1` returns `1`, and the block with `c' = 1 − 2^-24` returns more than `1` exactly
+when `K ≥ 3·2^p`. -/
+theorem nonmonotone_perturbation (prof : Profile) (p K : Nat) (da db : Decoded)
+    (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
+    (hK : K < 2 ^ (24 + p)) :
+    ∃ t t' : BlockTrace,
+      evalPrepared ⟨prof, List.replicate K (da, db), oneDecoded⟩ = .ok t ∧
+      evalPrepared ⟨prof, List.replicate K (da, db), belowOneDecoded⟩ = .ok t' ∧
+      t.output.value = 1 ∧ (1 < t'.output.value ↔ 3 * 2 ^ p ≤ K) := by
+  have hA1 := construction_accumulator_one prof p K da db hF hfl hval hscale
+  have hA2 := construction_accumulator_below prof p K da db hF hfl hval hscale
+  have hr1 : round32 .towardZero 1 = some (BitVec.ofNat 32 0x3f800000) := by decide +kernel
+  have hv1 : value32 (BitVec.ofNat 32 0x3f800000) = some 1 := by decide +kernel
+  obtain ⟨f1, hf1, _, hf1v⟩ := finite32_of_value32 _ _ hv1
+  have hq := pow2_pos (-(24 + p))
+  have h2p24 : 2 ^ (24 + p) = 16777216 * 2 ^ p := by
+    rw [Nat.pow_add]
+    all_goals simp
+  have hPpos := Nat.two_pow_pos p
+  generalize hN : 16777215 * 2 ^ p + K = N at hA2
+  generalize hA : (N : Rat) * pow2 (-(24 + p)) = A at hA2
+  have hNpos : (0 : Rat) < (N : Rat) := Rat.natCast_pos.mpr (by omega)
+  have hApos : 0 < A := by
+    rw [← hA]
+    have := Rat.mul_lt_mul_of_pos_right hNpos hq
+    simpa using this
+  have hA2lt : A < 2 := by
+    rw [← hA]
+    have hlt : (N : Rat) < ((2 ^ (25 + p) : Nat) : Rat) := by
+      apply Rat.natCast_lt_natCast.mpr
+      have h1 : 2 ^ (25 + p) = 2 * (16777216 * 2 ^ p) := by
+        rw [show 25 + p = 1 + (24 + p) by omega, Nat.pow_add, Nat.pow_add]
+        all_goals simp
+      omega
+    have := Rat.mul_lt_mul_of_pos_right hlt hq
+    rw [← pow2_natCast, ← pow2_add] at this
+    have h25 : ((25 + p : Nat) : Int) + -(24 + p) = 1 := by omega
+    rw [h25, pow2_one] at this
+    exact this
+  have hrange : absQ A ≤ maxFinite32 := by
+    rw [absQ_of_nonneg (Rat.le_of_lt hApos)]
+    have : (2 : Rat) ≤ maxFinite32 := by decide +kernel
+    grind
+  obtain ⟨b2, hb2, hv2, _, _⟩ := round32_nonzero_spec .towardZero A (Rat.ne_of_gt hApos) hrange
+  obtain ⟨f2, hf2, _, hf2v⟩ := finite32_of_value32 _ _ hv2
+  refine ⟨⟨⟨prof, List.replicate K (da, db), oneDecoded⟩, f1⟩,
+    ⟨⟨prof, List.replicate K (da, db), belowOneDecoded⟩, f2⟩, ?_, ?_, hf1v, ?_⟩
+  · simp only [evalPrepared, hA1, hr1, hf1]
+  · simp only [evalPrepared, hA2, hb2, hf2]
+  · change 1 < f2.value ↔ _
+    rw [hf2v]
+    unfold signedRounded
+    rw [if_neg (by grind), absQ_of_nonneg (Rat.le_of_lt hApos)]
+    unfold magnitudeRounded convCoeff roundCoefficient
+    dsimp only
+    by_cases hKp : K < 2 ^ p
+    · have hAlt : A < 1 := by
+        rw [← hA]
+        have hlt : (N : Rat) < ((2 ^ (24 + p) : Nat) : Rat) := by
+          apply Rat.natCast_lt_natCast.mpr
+          omega
+        have := Rat.mul_lt_mul_of_pos_right hlt hq
+        rw [← pow2_natCast, ← pow2_add] at this
+        have h24 : ((24 + p : Nat) : Int) + -(24 + p) = 0 := by omega
+        rw [h24, pow2_zero] at this
+        exact this
+      have hqe := pow2_pos (convExp A - 23)
+      have hle : (((A / pow2 (convExp A - 23)).floor : Int) : Rat) * pow2 (convExp A - 23) ≤ A := by
+        have := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (A / pow2 (convExp A - 23)))
+          (Rat.le_of_lt hqe)
+        rwa [Rat.div_mul_cancel (Rat.ne_of_gt hqe)] at this
+      constructor
+      · intro h; exfalso; grind
+      · intro h; exfalso; omega
+    · have hAge : 1 ≤ A := by
+        rw [← hA]
+        have hle : ((2 ^ (24 + p) : Nat) : Rat) ≤ (N : Rat) := by
+          apply Rat.natCast_le_natCast.mpr
+          omega
+        have := Rat.mul_le_mul_of_nonneg_right hle (Rat.le_of_lt hq)
+        rw [← pow2_natCast, ← pow2_add] at this
+        have h24 : ((24 + p : Nat) : Int) + -(24 + p) = 0 := by omega
+        rw [h24, pow2_zero] at this
+        exact this
+      have hexp : convExp A = 0 := by
+        unfold convExp emin32
+        rw [magnitudeExponent_eq_of_bounds A 0 (by rw [pow2_zero]; exact hAge)
+          (by rw [show (0 : Int) + 1 = 1 by omega, pow2_one]; exact hA2lt)]
+        decide
+      rw [hexp]
+      simp only [Int.zero_sub]
+      rw [div_pow2, Int.neg_neg]
+      have hA23 : A * pow2 23 = (N : Rat) * pow2 (-(1 + p)) := by
+        rw [← hA, Rat.mul_assoc, ← pow2_add]
+        congr 2
+        omega
+      rw [hA23]
+      have hq1 := pow2_pos (-(1 + p))
+      have hq23 := pow2_pos (-23)
+      have hcmp : ∀ m : Int, (1 < (m : Rat) * pow2 (-23) ↔ 8388608 < m) := by
+        intro m
+        have h1 : (1 : Rat) = ((8388608 : Int) : Rat) * pow2 (-23) := by decide +kernel
+        rw [h1, Rat.mul_lt_mul_right hq23]
+        exact Rat.intCast_lt_intCast
+      rw [hcmp]
+      have hfloor : (8388608 < ((N : Rat) * pow2 (-(1 + p))).floor) ↔
+          ((8388609 : Int) : Rat) * pow2 ((1 + p : Nat) : Int) ≤ (N : Rat) := by
+        rw [Int.lt_iff_add_one_le, Rat.le_floor_iff]
+        have hz : -(1 + (p : Int)) + ((1 + p : Nat) : Int) = 0 := by omega
+        have hz' : ((1 + p : Nat) : Int) + -(1 + (p : Int)) = 0 := by omega
+        constructor
+        · intro h
+          have := Rat.mul_le_mul_of_nonneg_right h (Rat.le_of_lt (pow2_pos ((1 + p : Nat) : Int)))
+          rw [Rat.mul_assoc, ← pow2_add, hz, pow2_zero, Rat.mul_one] at this
+          exact this
+        · intro h
+          have := Rat.mul_le_mul_of_nonneg_right h (Rat.le_of_lt hq1)
+          rw [Rat.mul_assoc, ← pow2_add, hz', pow2_zero, Rat.mul_one] at this
+          exact this
+      rw [hfloor]
+      have hcast : ((8388609 : Int) : Rat) * pow2 ((1 + p : Nat) : Int) =
+          ((8388609 * 2 ^ (1 + p) : Nat) : Rat) := by
+        rw [pow2_natCast, Rat.natCast_mul]
+        simp
+      rw [hcast, Rat.natCast_le_natCast]
+      have h2p : 2 ^ (1 + p) = 2 * 2 ^ p := by
+        rw [Nat.pow_add]
+        all_goals simp
+      subst hN
+      rw [h2p]
+      constructor
+      · intro h; omega
+      · intro h; omega
+
+theorem prepareProducts_replicate (p : Profile) (a b : p.Word) (da db : Decoded) (K : Nat)
+    (ha : p.decode a = some da) (hb : p.decode b = some db) :
+    prepareProducts p (List.replicate K (a, b)) = some (List.replicate K (da, db)) := by
+  induction K with
+  | zero => rfl
+  | succ n ih =>
+    have ih' := ih
+    simp [prepareProducts] at ih'
+    simp [prepareProducts, List.replicate_succ, List.mapM_cons, ha, hb, ih']
+
+/-- The construction on encoded FP16 operands under any canonical profile: `K` copies of
+one factor pair whose raw product is `2^-(24+p)` with raw scale at most `−1`, and the two
+FP32 accumulator inputs `3f800000` and `3f7fffff`. -/
+theorem nonmonotone_encoded (K p : Nat) (floor : Option Int) (hfl : ∀ f ∈ floor, f ≤ -1)
+    (a b : (fp16Fp32Profile K p floor).Word) (da db : Decoded)
+    (ha : (fp16Fp32Profile K p floor).decode a = some da)
+    (hb : (fp16Fp32Profile K p floor).decode b = some db)
+    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
+    (hK : K < 2 ^ (24 + p)) :
+    ∃ t t' : BlockTrace,
+      evalBlock (⟨List.replicate K (a, b), 0x3f800000⟩ : BlockInput (fp16Fp32Profile K p floor)) =
+        .ok t ∧
+      evalBlock (⟨List.replicate K (a, b), 0x3f7fffff⟩ : BlockInput (fp16Fp32Profile K p floor)) =
+        .ok t' ∧
+      t.output.value = 1 ∧ (1 < t'.output.value ↔ 3 * 2 ^ p ≤ K) := by
+  have hF : (fp16Fp32Profile K p floor).alignFraction = 23 + p := by
+    show ((23 + p : Nat) : Int) = 23 + (p : Int)
+    omega
+  obtain ⟨t, t', h1, h2, hv, hiff⟩ :=
+    nonmonotone_perturbation (fp16Fp32Profile K p floor) p K da db hF hfl hval hscale hK
+  have hc1 : decode32 (0x3f800000 : F32) = some oneDecoded := by decide +kernel
+  have hc2 : decode32 (0x3f7fffff : F32) = some belowOneDecoded := by decide +kernel
+  have hps := prepareProducts_replicate _ a b da db K ha hb
+  have hlen : ¬ ((List.replicate K (a, b)).length != (fp16Fp32Profile K p floor).products) = true := by
+    simp [fp16Fp32Profile]
+  refine ⟨t, t', ?_, ?_, hv, hiff⟩
+  · unfold evalBlock
+    rw [if_neg hlen]
+    simp only [prepare, hc1, hps]
+    exact h1
+  · unfold evalBlock
+    rw [if_neg hlen]
+    simp only [prepare, hc2, hps]
+    exact h2
+
+end TensorCore

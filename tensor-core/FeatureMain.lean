@@ -1,5 +1,6 @@
 import TensorCore.Semantics.Profiles
 import TensorCore.Semantics.Canonical
+import TensorCore.Programs.Partition
 import Lean
 
 open TensorCore Lean
@@ -59,6 +60,40 @@ private def invocationJson (p : InvocationSpec) (ns : List Nat) : Option Json :=
       ("localConversions", toJson (t.accumulation.conversions.map eventJson)),
       ("intermediate", toJson (t.intermediate.events.map eventJson))]
 
+private def parseFp16Pairs : List Nat → Option (List (F16 × F16))
+  | [] => some []
+  | a :: b :: rest => do
+    if a ≥ 65536 || b ≥ 65536 then none
+    else return (BitVec.ofNat 16 a, BitVec.ofNat 16 b) :: (← parseFp16Pairs rest)
+  | _ => none
+
+private def dotJson (K extra : Nat) (floor : Option Int) (ns : List Nat) : Option Json := do
+  if hK : 0 < K then
+    let c ← ns.getLast?
+    if c ≥ 2 ^ 32 then none else do
+      let ps ← parseFp16Pairs ns.dropLast
+      let p := fp16Fp32Profile K extra floor
+      let cBits : F32 := BitVec.ofNat 32 c
+      let failure (e : ModelError) := Json.mkObj [("error", toJson (reprStr e))]
+      match finite32 cBits with
+      | some initial =>
+        return match runCanonicalDot K extra floor hK ps cBits with
+        | .error e => failure e
+        | .ok ts =>
+          match idealProducts p ps with
+          | none => failure .nonfiniteInput
+          | some products =>
+            let result := lastOutput initial ts
+            Json.mkObj [
+              ("bits", toJson result.bits.toNat), ("value", toJson (qText result.value)),
+              ("ideal", toJson (qText (initial.value + products))),
+              ("groups", toJson ts.length), ("tailPadding", toJson (tailPadding K ps.length)),
+              ("outputs", toJson (ts.map fun t => t.output.bits.toNat)),
+              ("errorBudget", toJson (qText (sumQ (ts.map BlockTrace.errorBudget)))),
+              ("absoluteError", toJson (qText (absQ (initial.value + products - result.value))))]
+      | none => return failure .nonfiniteInput
+  else none
+
 private def command (args : List String) : Option Json := do
   match args with
   | ["round", fmt, n, d] =>
@@ -86,6 +121,12 @@ private def command (args : List String) : Option Json := do
     let floor ← if floorText = "none" then some none else floorText.toInt? |>.map some
     let ns ← words.mapM String.toNat?
     invocationJson (fp16Fp32Invocation K E floor) ns
+  | "dot" :: k :: extra :: floorText :: words =>
+    let K ← k.toNat?
+    let E ← extra.toNat?
+    let floor ← if floorText = "none" then some none else floorText.toInt? |>.map some
+    let ns ← words.mapM String.toNat?
+    dotJson K E floor ns
   | _ => none
 
 def main (args : List String) : IO Unit := do

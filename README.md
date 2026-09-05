@@ -3,9 +3,10 @@
 Machine-checked reference semantics for NVIDIA tensor-core dot products, in Lean 4.
 
 The model follows *Accurate Models of NVIDIA Tensor Cores* (Khattak and Mikaitis,
-arXiv:2512.07004v4) and its MATLAB Tensor Core v0.5 release. The implemented and validated
-family is FP16 products with an FP32 accumulator, parameterized by the number of products
-per group and the number of extra alignment bits, which covers the V100, Ampere/Ada, and
+arXiv:2512.07004v4) and its MATLAB Tensor Core v0.5 release, and formalizes the arithmetic
+results of *TC-EFT: Characterizing and Correcting Tensor Core Arithmetic*. The claimed family
+is FP16 products with an FP32 accumulator, parameterized by the number of products per group
+and the number of extra alignment bits, which covers the V100, Ampere/Ada, and
 Hopper/Blackwell FP16 paths. All arithmetic is exact (`Int`, `Rat`); there are no external
 Lean dependencies and no native `Float`.
 
@@ -33,18 +34,17 @@ Every theorem is checked by the Lean kernel. The complete contract → declarati
 
 | Result | Declaration |
 | --- | --- |
-| Raw products preserve value | `rawProduct_value` |
-| Alignment residual is strictly below the grid | `alignment_residual` |
-| Exact recovery for any supplied output | `block_residual_identity`, `evalBlock_residual_identity` |
-| Two-stage error bound `abs(S − D) < n·qA + qD` | `block_error_bound`, `evalBlock_error_bound` |
-| Nearest-even FP32 conversion is correct for every rational in range | `round32_nearestEven_correct`, `finalRound_correct` |
-| Corrected output is the correctly rounded exact sum | `evalBlock_corrected_correct`, `runBlocks_corrected_correct` |
-| Exact residual ledger over any finite chain of invocations through encoded FP32 boundaries | `runBlocks_residual_ledger` |
+| Raw products preserve value; alignment residual is strictly below the grid | `rawProduct_value`, `alignment_residual` |
+| Exact recovery for any supplied output; two-stage error bound `abs(S − D) < n·qA + qD` | `block_residual_identity`, `evalBlock_error_bound` |
+| Nearest-even FP32 conversion is correct for every rational in range | `round32_nearestEven_correct` |
+| Contract for any product count and extra alignment bits, with a modular signed-word accumulator returning the same complete result | `fp16Fp32_contract`, `fp16Fp32_machine_eq` |
+| Exact accepted domain; floors at or below −126 inactive; padding thresholds that make alignment exact | `evalBlock_success_iff`, `canonical_eta_floor_inactive`, `canonical_source_padding_exact` |
+| Scalar EFT: naive FP32 summation is exact under the coefficient bound, and Algorithm 1's scalar branch returns the correctly rounded dot product (TC-EFT IV.7–IV.11) | `naiveSum32_exact`, `scalarCorrected_correct`, `tceft_correct` |
+| Non-monotonicity as a theorem over `K` and padding `p`: lowering the accumulator from `1` to `1 − 2^-24` raises the output exactly when `K ≥ 3·2^p` (TC-EFT III.4) | `nonmonotone_perturbation`, `nonmonotone_encoded` |
+| Exact residual ledger over any finite chain through encoded FP32 boundaries; composed uncorrected error bound; machine equivalence through schedules | `runBlocks_residual_ledger`, `runBlocks_uncorrected_error`, `fp16Fp32_schedule_machine_eq` |
+| Ordered partition of a long dot product with proved ideal preservation and tail padding | `OrderedPartition.uncorrected_error`, `canonicalPartition_ideal` |
 | Program checker soundness | `Program.vc_sound` |
-| Contract for any product count and extra alignment bits, with a signed machine-width refinement | `fp16Fp32_contract`, `evalBlock_machineAccumulator` |
-| Floors at or below −126 are inactive on FP16 paths | `canonical_eta_floor_inactive` |
-| Generalized invocation evaluator: exact loss accounting and bitwise agreement with the original evaluator | `evalInvocation_recovery`, `v100_invocation_bits` |
-| R1–R4 witnesses, rounding boundaries, rejections, non-monotonicity, extra-bit sensitivity | `Regression.*` |
+| R1–R4, Table III, EFT examples, rounding boundaries, rejections | `Regression.*` |
 
 The rounding theorem is a general proof over all rationals with magnitude at most
 `maxFinite32`, not a test. Concrete regressions are decided by kernel reduction of the actual
@@ -52,17 +52,18 @@ evaluator (`decide +kernel`).
 
 ## What is tested
 
-- `scripts/validate.py`: an independent Python oracle (separate IEEE decoder, fixed 2^-149
-  integer grid, binary-search nearest neighbor) agrees with the V100 evaluator on 715 blocks
-  and 2,918 rounding inputs.
+- `scripts/validate.py`: an independent Python oracle agrees with the V100 evaluator on 715
+  blocks and 2,918 rounding inputs.
 - `scripts/check_features.py`: a second oracle agrees with the parameterized evaluator on
-  1,783 cases over 111 combinations of product count, extra bits, and floor.
-- `scripts/check_device.py` and `scripts/check_device_families.py`: the FP16 vectors
-  published with MATLAB Tensor Core v0.5 match bit for bit: 5,000 rows each for V100
-  (`K = 4`), A100 (`K = 8`, 1 extra bit), and H100 (`K = 16`, 2 extra bits). Each row is one
-  group; the vectors contain almost no zero or subnormal operands.
+  1,985 cases over 129 combinations of product count, extra bits, and floor, and replays the
+  published V100, A100, and H100 FP16 vectors: 5,000 rows each, zero mismatches.
+- `scripts/check_dot_products.py`: constructed long dot products with partial tails, every
+  encoded boundary and error budget compared: 278 cases over 25 configurations.
+- `scripts/check_device_formats.py`: the published A100 and H100 BF16 and TF32 vectors
+  match the deferred-format descriptors, 5,000 rows each. Evidence only; no proofs for those
+  formats are claimed.
 - `scripts/check_programs.py`: the DSL example compiles and ten malformed programs are rejected.
-- `scripts/check_axioms.py`: 117 theorem roots depend only on `propext`, `Classical.choice`,
+- `scripts/check_axioms.py`: 201 theorem roots depend only on `propext`, `Classical.choice`,
   and `Quot.sound`; the sources contain no `sorry`, `axiom`, `native_decide`, or compiled
   reflection.
 
@@ -76,31 +77,36 @@ lake build
 python3 scripts/check_axioms.py
 python3 scripts/validate.py
 python3 scripts/check_features.py
+python3 scripts/check_dot_products.py
 python3 scripts/check_device.py
-python3 scripts/check_device_families.py
+python3 scripts/check_device_formats.py
 python3 scripts/check_programs.py
-lake env lean examples/Verify.lean
+python3 scripts/check_clean_build.py
 ```
 
 `lake exe tc_trace a0 b0 a1 b1 a2 b2 a3 b3 c` prints the exact trace of one V100 block; operands
-are FP16 hex words and `c` is an FP32 hex word, without `0x`. `lake exe tc_features` does the
-same for the parameterized profiles from a file of `canonical K extraBits floor words...` rows.
+are FP16 hex words and `c` is an FP32 hex word, without `0x`. `lake exe tc_features` evaluates
+the parameterized profiles, descriptors, and constructed long dot products from a file of
+commands (`canonical K extra floor words…`, `block profile words…`, `dot K extra floor words…`).
 
 ## Layout
 
 ```
 tensor-core/
   TensorCore/Foundations   exact rationals, IEEE formats and decoding, FP32 and general conversion
-  TensorCore/Semantics     profiles, raw products, block evaluator, generalized invocation evaluator
-  TensorCore/Theory        residual identities, error bounds, rounding correctness, machine width,
-                           parameterized contract, floor inactivity
-  TensorCore/Programs      schedules, exact ledger, program AST, checker
+  TensorCore/Semantics     profiles, raw products, block evaluator, machine accumulator,
+                           generalized invocation evaluator
+  TensorCore/Theory        residual identities, error bounds, rounding correctness, machine
+                           refinement, parameterized contract, padding, floor inactivity,
+                           scalar summation, non-monotonicity
+  TensorCore/Programs      schedules, exact ledger, error budgets, ordered partitions, program AST,
+                           checker, Algorithm 1 (EFT)
   TensorCore/Meta          tc%{ } syntax, tc_verify, tc_inspect
   TensorCore/Regression    kernel-checked witnesses
-  examples/                runnable DSL examples
+  examples/                runnable examples
   scripts/                 audit and validation
   data/regressions/        inputs, expected traces, reports
-  vendor/                  pinned MATLAB v0.5 subset and V100, A100, H100 FP16 vectors
+  vendor/                  pinned MATLAB v0.5 subset and the published device vectors
   docs/                    specification, theorem map, trust report, validation, plan
 ```
 
@@ -108,13 +114,13 @@ tensor-core/
 
 - The claimed family is FP16 products with FP32 c and output, c in the common alignment,
   any product count, any number of extra alignment bits, and one FP32 truncation. The
-  generalized `InvocationSpec` can also describe BF16, TF32, FP64-FMA, and FP16-output
-  variants as executable specifications with exact loss accounting, but they have no
-  rounding-correctness proofs beyond FP32 and no device evidence, and are not claimed.
+  generalized `InvocationSpec` also describes BF16, TF32, FP64-FMA, and FP16-output variants
+  as executable specifications with exact loss accounting; the BF16 and TF32 descriptors
+  match published vectors, but they have no rounding-correctness proofs and are not claimed.
 - NaN and infinity inputs are rejected. Accumulators above `maxFinite32` are rejected rather
   than saturated; no overflow policy is claimed.
-- Residual correction uses exact rational arithmetic. The scalar floating-point EFT of the
-  TC-EFT paper is not formalized.
+- The scalar EFT is proved for the paper's left-to-right naive summation on values; a
+  machine implementation of the residual extraction is not modeled.
 - Schedules execute the supplied order and feed each FP32 output to the next call. How an
   instruction groups its k dimension is an empirical question; see
   [docs/COMPOSITION.md](tensor-core/docs/COMPOSITION.md).

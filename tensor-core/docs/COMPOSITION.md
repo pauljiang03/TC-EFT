@@ -51,10 +51,19 @@ metaprogramming.
 
 `runBlocks` follows the supplied list of groups; each group's output bits are decoded as
 the next c. `runBlocks_residual_ledger` proves `c0 + Σ Pj = dm + Σ ej` for any finite list,
-with every local residual `ej` kept exactly. `Program` adds sequencing and bounded
-repetition; `runBlocks_append` and `runBlocks_repeat_invariant` are the composition rules.
-When the schedule is the increasing-k partition, this is exactly the GEMM.m rule. Nothing in
-the model infers a hardware order; the order is an input.
+with every local residual `ej` kept exactly. `runBlocks_uncorrected_error` bounds the final
+uncorrected error by the sum of the traces' local budgets, and `fp16Fp32_schedule_machine_eq`
+carries the modular-accumulator equivalence through every encoded boundary. `Program` adds
+sequencing and bounded repetition; `runBlocks_append` and `runBlocks_repeat_invariant` are
+the composition rules.
+
+`OrderedPartition` and `canonicalPartition` turn a long list of original operand pairs into
+contiguous fixed-size groups in increasing k, padding only a partial tail with zero pairs,
+with the original ideal preserved by proof. When the schedule is that partition, this is
+exactly the GEMM.m rule, and `runCanonicalDot` executes it with proved group count, error
+bound, and machine equivalence. Nothing in the model infers a hardware order; the order is an
+input, and `Regression.partition_order_changes_output` shows that reversing two groups can
+change the bits while the ideal is unchanged.
 
 ## Modeling composition with metaprogramming
 

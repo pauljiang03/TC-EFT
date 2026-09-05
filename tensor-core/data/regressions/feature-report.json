@@ -1,9 +1,9 @@
 {
   "scope": "Canonical FP16 products, FP32 c/output, unnormalized products, RTZ",
   "oracle": "Exact Fraction arithmetic; FP32 output found by binary search over encodings",
-  "configurations": 111,
-  "cases": 1783,
-  "rejected": 3,
+  "configurations": 129,
+  "cases": 1985,
+  "rejected": 15,
   "mismatches": 0,
   "K": [
     1,
@@ -22,15 +22,63 @@
     2,
     5,
     9,
-    24
+    24,
+    104,
+    155,
+    156,
+    253,
+    257
   ],
   "exercised_losses": {
-    "alignment": 1377,
-    "output": 585,
+    "alignment": 1378,
+    "output": 731,
     "both": 526
   },
-  "published_v100_vectors": 5000,
-  "published_v100_mismatches": 0,
+  "published_device_comparisons": [
+    {
+      "gpu": "V100",
+      "products": 4,
+      "extra_bits": 0,
+      "vectors": 5000,
+      "mismatches": 0,
+      "coverage": {
+        "zero_operands": 0,
+        "subnormal_operands": 0,
+        "zero_c": 0,
+        "subnormal_c": 0
+      }
+    },
+    {
+      "gpu": "A100",
+      "products": 8,
+      "extra_bits": 1,
+      "vectors": 5000,
+      "mismatches": 0,
+      "coverage": {
+        "zero_operands": 0,
+        "subnormal_operands": 1,
+        "zero_c": 0,
+        "subnormal_c": 0
+      }
+    },
+    {
+      "gpu": "H100",
+      "products": 16,
+      "extra_bits": 2,
+      "vectors": 5000,
+      "mismatches": 0,
+      "coverage": {
+        "zero_operands": 0,
+        "subnormal_operands": 5,
+        "zero_c": 0,
+        "subnormal_c": 0
+      }
+    }
+  ],
+  "exact_padding_accepted_cases": 95,
+  "source_padding_accepted_cases": 142,
+  "published_device_vectors": 15000,
   "new_gpu_measurements": false,
+  "source_files_hash_checked": 39,
   "other_formats": "Deferred by user; not part of this acceptance gate"
 }

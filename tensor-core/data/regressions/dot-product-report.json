@@ -1,0 +1,13 @@
+{
+  "cases": 278,
+  "rejected": 4,
+  "mismatches": 0,
+  "configurations": 25,
+  "partial_tail_cases": 160,
+  "nonzero_error_cases": 103,
+  "every_encoded_boundary_compared": true,
+  "ideal_from_unpadded_original_bits": true,
+  "error_budget_comparison": true,
+  "ordered_error_causes_compared": true,
+  "new_gpu_measurements": false
+}
