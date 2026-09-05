@@ -1,0 +1,16 @@
+{
+  "preexisting_build_cache": false,
+  "commands": [
+    [
+      "lake",
+      "build"
+    ],
+    [
+      "python3",
+      "scripts/check_axioms.py"
+    ]
+  ],
+  "targets_built": 27,
+  "audit": "39 theorem roots audited; only standard Lean axioms; no placeholders or compiled reflection.",
+  "success": true
+}

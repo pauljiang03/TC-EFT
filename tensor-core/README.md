@@ -11,6 +11,7 @@ lake build
 lake exe tc_trace
 python3 scripts/check_axioms.py
 python3 scripts/validate.py
+python3 scripts/check_device.py
 ```
 
 Lean is pinned to 4.33.1; there are no external Lean packages or solvers. With
@@ -31,8 +32,8 @@ Start with [status](docs/STATUS.md), [plan review](docs/PLAN_REVIEW.md), and
 [specification decisions](docs/SPECIFICATION.md). [The theorem map](docs/THEOREM_MAP.md)
 and [assumption report](docs/ASSUMPTIONS.md) identify exactly what is proved.
 
-The first executable acceptance gate is implemented. The general FP32
-nearest-value rounding proof, output-error bound, fixed-width refinement,
-optimized TC-EFT, and device validation remain separate work. Exact residuals
+The first executable acceptance gate is implemented, and the evaluator matches
+the 5,000 V100 GPU vectors published with the MATLAB release. The fixed-width
+refinement, optimized TC-EFT, and further profiles remain separate work. Exact residuals
 are arbitrary-precision rational values over dyadic inputs, not promised single
 FP32 values or classical floating-point expansions.

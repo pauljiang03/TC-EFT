@@ -2,7 +2,7 @@
   "repository": "https://github.com/north-numerical-computing/MATLAB-tensor-core",
   "tag": "v0.5",
   "commit": "bbcf00a273868172494eaacaa8d6128ab0fb8704",
-  "selection": "Unmodified source subset used for semantic review; not a complete MATLAB installation",
+  "selection": "Unmodified source subset used for semantic review, plus the V100 FP16 model_validation vectors and their readers used as device evidence; not a complete MATLAB installation",
   "sha256": {
     "LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
     "README.md": "7117c699a313ab65f6039a365bc2d6012e4b917041072dbc645a51ba9d647efb",
@@ -10,6 +10,21 @@
     "models/H100TC.m": "e23beb2986ea31780972f9853df07b63d49562ccf92ad1106e2aea40b6dafdbc",
     "models/V100TC.m": "5ce606129b95e340581f76a58d0eff048561c13bf3206586480042485b539b8b",
     "models/tools/GEMM.m": "cc3bed803f92a29a68610e27f34822c527b50cb5801c08b8486faf3b4d14e72f",
-    "models/tools/Generic_BFMA_TC.m": "75461dfbb59e3fdee40a208b6edb89a1a2e3af4e65babc2538e797a4492bef8e"
+    "models/tools/Generic_BFMA_TC.m": "75461dfbb59e3fdee40a208b6edb89a1a2e3af4e65babc2538e797a4492bef8e",
+    "model_validation/Validate_TC_models.m": "017a341642516e263e0ff7d6f6c355b905c7143d92f1afdf4d04f7142ec00fe5",
+    "model_validation/readHexFloatFile.m": "3a73792439c503b1551fcdaa1c6865f80d1dd204e9083c8271085701e2a58553",
+    "model_validation/readIeeeFloatsFromFile.m": "5cdfd3fb1cce2484ab6159e7a95ac820cc052c072e9a8100aa3385a05636ff23",
+    "model_validation/V100/fp16/a_V100_fp16.txt": "53d8534fd1106f7e9a23e902b918e59108f9e1b05843d20a36b3049a61bf8204",
+    "model_validation/V100/fp16/b_V100_fp16.txt": "1a019e8dcec2a44a741e691268e4c4a9eb9eb9ebc128be097f9921b813d4c6f9",
+    "model_validation/V100/fp16/c_V100_fp32.txt": "d38097e1e4d5547234e7be1c6daabeb4ba8fe24e99367391a3f7b5c600001848",
+    "model_validation/V100/fp16/d_V100_fp16.txt": "7322aff1d735e6dd6a225754bd981e6520f3a6078c14ebf1614ce42b115c029a",
+    "model_validation/V100/fp16/d_V100_fp32.txt": "1cfbb62768f303c90aff43458afe386e297b99df7a4e69ab4b0cde26dbcbac83"
+  },
+  "device_vectors": {
+    "path": "model_validation/V100/fp16",
+    "rows": 5000,
+    "layout": "a/b: four FP32 hexadecimal words per row holding FP16 values; c/d: one 32-bit binary string per row",
+    "interpretation": "Validate_TC_models.m reshapes A and B into rows of K=4 and calls V100TC once per row, so one row is one normalization group",
+    "used_by": "scripts/check_device.py"
   }
 }

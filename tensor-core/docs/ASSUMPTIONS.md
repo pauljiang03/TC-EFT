@@ -49,9 +49,13 @@ Python tests are tests, not additional logical assumptions or proofs.
 
 The V100 profile is an explicit interpretation of Accurate Models v4 and v0.5
 source. Their empirical model/device correspondence is outside these Lean
-proofs. No GPU was used in this session. The paper's historical 100-case V100
-experiment is not new evidence for this implementation. Its reconstructed
-cancellation witness is labeled accordingly in the regression data.
+proofs. No GPU was used by this project. The 5,000 V100 FP16/FP32 vectors
+published with v0.5 match the evaluator bitwise (`scripts/check_device.py`);
+that is test evidence for the normal-operand path of one profile, not a
+theorem, and it does not cover zero or subnormal operands or c. The paper's
+historical 100-case V100 experiment is not new evidence for this
+implementation. Its reconstructed cancellation witness is labeled accordingly
+in the regression data.
 
 Still unproved: universal decoder/encoder round trips, mathematical correctness
 of FP32 conversion, output residual/error bounds, a machine-width accumulator

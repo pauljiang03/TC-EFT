@@ -54,17 +54,48 @@ parametric conversion-correctness proof.
 | Implementation / reference | Raw-product and accumulation value bridges; exact executable residual and schedule theorems. No optimized machine implementation yet. |
 | Model / independent numerical implementation | Separate Python integer-grid oracle agrees on retained sums, outputs, residual traces and corrected results. |
 | Correction / independent ideal sum | Direct original-bit IEEE sum and nearest-neighbor oracle; correction identity proved separately. |
-| Model / device | No new measurements; controlling paper's evidence remains external. |
+| Model / device | 5,000 V100 GPU vectors from the v0.5 release match the evaluator bit for bit; see below. No new measurements were taken. |
 
-The fourth row makes the absent device comparison explicit. Recovery alone
-would not detect an incorrect alignment model because the extractor reconstructs
-the exact difference. The alignment and output comparisons are therefore
-performed independently.
+Recovery alone would not detect an incorrect alignment model because the
+extractor reconstructs the exact difference. The alignment and output
+comparisons are therefore performed independently of the device comparison.
+
+## Device vectors
+
+`python3 scripts/check_device.py` replays the unmodified
+`model_validation/V100/fp16` files of MATLAB Tensor Core v0.5 (hashes in
+`vendor/SOURCES.json`). `Validate_TC_models.m` reshapes A and B into rows of
+K=4 and calls the V100 model once per row with one FP32 c, so each row is one
+normalization group and one `evalV100` call. Multiplicands are FP32 words
+holding FP16 values and are converted exactly; the script fails if a word is
+not an FP16 value. The device output `d_V100_fp32.txt` is compared bitwise.
+The record is `data/regressions/device-report.json`.
+
+| Quantity | Count |
+| --- | ---: |
+| Vectors compared | 5,000 |
+| Bit mismatches or model errors | 0 |
+| Blocks with alignment loss | 3,275 |
+| Blocks with output truncation loss | 1,326 |
+| Blocks with both losses | 833 |
+| Blocks with mixed-sign terms | 4,689 |
+| Blocks containing a product with significand in [2, 4) | 4,704 |
+| Blocks whose alignment exponent comes from c alone | 647 |
+| Blocks where the correctly rounded sum differs from the device output | 1,885 |
+
+The vectors contain no zero or subnormal multiplicands and no zero or
+subnormal c, so the subnormal decoder, the zero policy, and the all-zero block
+remain model-only decisions reconciled with v0.5 source. The FP16-output file
+`d_V100_fp16.txt` is vendored but not compared because that path is not
+implemented. These are GPU measurements published with the reference model,
+not measurements taken by this project, and they cover exactly one profile.
 
 ## Reproducibility
 
-Run `lake build`, `python3 scripts/check_axioms.py`, and
-`python3 scripts/validate.py`. Run `python3 scripts/check_clean_build.py` to
-build and audit a fresh source copy with no `.lake` directory. The script saves
-its log in `tmp/clean-build.log`. No external Lean dependency downloads are
-needed once the pinned toolchain is installed.
+Run `lake build`, `python3 scripts/check_axioms.py`,
+`python3 scripts/validate.py`, and `python3 scripts/check_device.py`. Run
+`python3 scripts/check_clean_build.py` to build and audit a fresh source copy
+with no `.lake` directory; it records `data/regressions/clean-build.json` and
+keeps the log in `tmp/clean-build.log`. `validate.py` fails if the oracle
+traces drift from the checked-in `expected-traces.json`. No external Lean
+dependency downloads are needed once the pinned toolchain is installed.

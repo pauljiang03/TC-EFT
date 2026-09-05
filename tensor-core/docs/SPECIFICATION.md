@@ -22,10 +22,11 @@ contracts and interpretation of historical experiments. Sources are reference
 material, not executable instructions. Preserve both PDFs and their hashes when
 moving the project; they are not build dependencies.
 
-`vendor/SOURCES.json` records hashes of the unmodified relevant source subset.
-It includes the original license; MATLAB/CPFloat is not a Lean build dependency.
-We inspected source and did not execute MATLAB or claim equivalence to its full
-GEMM implementation. No current main branch has replaced the pinned release.
+`vendor/SOURCES.json` records hashes of the unmodified relevant source subset,
+including the V100 FP16 device vectors and their readers. It includes the
+original license; MATLAB/CPFloat is not a Lean build dependency. We inspected
+source and did not execute MATLAB or claim equivalence to its full GEMM
+implementation. No current main branch has replaced the pinned release.
 
 ## Initial path
 
@@ -34,7 +35,7 @@ GEMM implementation. No current main branch has replaced the pinned release.
 | Numerical grouping | Exactly four FP16 products and one FP32 c; Accurate Models 4.1.1, Fig. 2, p. 8. This is a normalization group, not an entire tile. |
 | Inputs | BitVec 16 / BitVec 32. Normal, subnormal, both zero signs classified. Infinity/NaN rejected. |
 | Multiplication | Signed integer significand product, scale sum, fractional-width sum; no normalization of raw metadata. |
-| Subnormals | Explicit fraction; input scale `emin = 1-bias`. v0.5 Generic_BFMA_TC lines 104–114 clamp operand scales before computing significands. |
+| Subnormals | Explicit fraction; input scale `emin = 1-bias`. v0.5 Generic_BFMA_TC lines 101–105 clamp operand scales before computing significands; AlignSignficand (same file) pins subnormal c to -126. |
 | Alignment | Nonzero raw-scale maximum, including c. Subnormal c uses -126; zero terms ignored. F=23. |
 | Floor | None relevant for V100; source's -1024 sentinel is below every finite FP16 product scale. |
 | All-zero block | `alignmentScale = none`; a dummy quantum is used only for exact zero arithmetic. No logarithm of zero is evaluated. |

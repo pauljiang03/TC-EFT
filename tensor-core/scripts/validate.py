@@ -155,8 +155,12 @@ def main():
                   mismatches=0, device_measurements=0,
                   method='Independent IEEE decoder, integer-grid alignment, encoding binary-search rounding')
     (ROOT / 'data/regressions/validation-report.json').write_text(json.dumps(report, indent=2) + '\n')
-    (ROOT / 'data/regressions/expected-traces.json').write_text(
-        json.dumps([dict(name=n['name'], trace=block_oracle(b)) for n,b in zip(named, blocks)], indent=2)+'\n')
+    expected = [dict(name=n['name'], trace=block_oracle(b)) for n, b in zip(named, blocks)]
+    golden = ROOT / 'data/regressions/expected-traces.json'
+    if golden.exists():
+        assert json.loads(golden.read_text()) == expected, 'oracle traces drifted from the golden file'
+    else:
+        golden.write_text(json.dumps(expected, indent=2) + '\n')
     print(json.dumps(report, indent=2))
 
 
