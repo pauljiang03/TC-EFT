@@ -14,8 +14,8 @@
       "scripts/check_programs.py"
     ]
   ],
-  "targets_built": 51,
-  "audit": "83 theorem roots audited; only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 82,
+  "audit": "117 theorem roots audited; only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [

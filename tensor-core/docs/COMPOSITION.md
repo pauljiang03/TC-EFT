@@ -27,11 +27,12 @@ metaprogramming.
    instructions in four sets of four steps (Jia et al., arXiv:1804.06826); each instruction
    reads and writes the FP32 accumulator registers, so the group boundary is visible at the
    SASS level.
-4. **What the vendored V100 vectors show.** The harness
-   `model_validation/CUDA/wmma_fp16_bf16_tf32_input.cu` writes the four products into k
-   positions 0–3 of a 16×16×16 WMMA and zeros the rest. The 5,000 matches therefore validate
-   one group plus pass-through of an FP32 accumulator through three all-zero groups. They do
-   not distinguish orderings of nonzero groups.
+4. **What the vendored vectors show.** The harness
+   `model_validation/CUDA/wmma_fp16_bf16_tf32_input.cu` writes `K = N_FMA` products into k
+   positions `0..K−1` of a 16×16×16 WMMA and zeros the rest (4 on V100, 8 on A100, 16 on
+   H100). The 5,000 matches per family therefore validate one group, plus pass-through of an
+   FP32 accumulator through the remaining all-zero groups on V100 and A100. They do not
+   distinguish orderings of nonzero groups.
 5. **Exceptions.** Hopper and Blackwell FP8 through mma.sync are converted to FP16 and run
    on HMMA.16816: the 32 products split into two interleaved groups by alternating pairs, and
    c is added to the normalized product sum with RNE (§4.1.6, Fig. 5c). The paper's text

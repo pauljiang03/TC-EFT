@@ -2,7 +2,7 @@
 
 ## Proof checking
 
-`python3 scripts/check_axioms.py` runs `Audit.lean`, which prints the axioms of 83 theorem
+`python3 scripts/check_axioms.py` runs `Audit.lean`, which prints the axioms of 117 theorem
 roots, and fails if any root uses an axiom outside `propext`, `Classical.choice`, and
 `Quot.sound`. The verbatim output is [axioms.txt](axioms.txt). The script also fails if any
 source under `TensorCore/` mentions `sorry`, `admit`, `axiom`, `native_decide`,
@@ -23,8 +23,10 @@ diagnostics only; nothing it computes is used as a proof certificate.
 - `rawProduct_value` holds for arbitrary integer significands and scales. Format
   correctness is a property of the decoder, not a hypothesis.
 - Alignment lemmas hold for every rational term and every integer grid exponent.
-- Accumulation is over unbounded `Int`; no-wrap is a property of that representation, not
-  a claim about a register.
+- Accumulation is over unbounded `Int`; no-wrap is a property of that representation.
+  `evalBlock_machineAccumulator` separately proves that modular signed-word accumulation of
+  width `F + 2 + carry + 1` equals the exact sum for every prefix, from decoded operand
+  bounds. That width is derived, not a claim about a device register.
 - `block_residual_identity` is algebraic recovery for any supplied rational output. It needs
   no model or device hypothesis. `evalBlock_residual_identity` connects it to a successful
   encoded evaluation, which enforces the product count, finite inputs, and a finite-range
@@ -48,8 +50,15 @@ diagnostics only; nothing it computes is used as a proof certificate.
 - Conversion and final rounding reject magnitudes above `maxFinite32`. Successful
   intermediate calls bound each retained accumulator; the final exact sum needs its own
   bound. Neither implies the other.
-- Generic theorems over `Profile` do not give arbitrary parameter values a hardware
-  meaning. Only V100 FP16/FP32 is instantiated.
+- `fp16Fp32_contract` quantifies over the product count and the extra alignment bits of
+  `fp16Fp32Profile`. `canonical_eta_floor_inactive` shows any floor at or below −126 never
+  changes the alignment exponent for FP16 operands and FP32 c, so the Ampere and Hopper
+  floors are inert on these paths. Neither theorem gives a parameter value a hardware meaning.
+- `evalInvocation_recovery` is exact loss accounting for every `InvocationSpec`, including
+  ordered conversion stages, late c, and the fused variant. `v100_invocation_bits` proves the
+  generalized evaluator returns the same bits, and rejects the same inputs, as `evalBlock`.
+  `roundBinary` is proved to agree with `round32` on FP32 (`roundBinary_fp32`); its
+  correctness for other formats and directed modes is not proved.
 - `Program.recovery` connects the compiled invocation list to `Program.ideal`, which decodes
   the original operand bits independently. `Program.Correct` states success, recovery, and
   nearest-even correction of that ideal.
@@ -61,17 +70,19 @@ diagnostics only; nothing it computes is used as a proof certificate.
 
 ## Hardware and open obligations
 
-The V100 profile is an interpretation of Accurate Models v4 and the v0.5 source. The
-correspondence between that model and a device is empirical and outside the proofs. The
-5,000 published V100 vectors match the evaluator (`scripts/check_device.py`); that is test
-evidence for the normal-operand path of one profile, covering no zero or subnormal operands or
-c. No GPU was used by this project, and the TC-EFT paper's historical 100-case V100
-experiment is not evidence for this implementation.
+The profiles are interpretations of Accurate Models v4 and the v0.5 source. The
+correspondence between a profile and a device is empirical and outside the proofs. The
+published FP16 vectors match the evaluator for V100, A100, and H100, 5,000 rows each
+(`scripts/check_device.py`, `scripts/check_device_families.py`). Each row is one group with
+its products in k positions `0..K−1`, and the rows contain almost no zero or subnormal
+operands or c. No GPU was used by this project, and the TC-EFT paper's historical 100-case
+V100 experiment is not evidence for this implementation.
 
 `runBlocks` composes groups in the supplied order. Nothing here discovers the order inside a
 hardware instruction; see [COMPOSITION.md](COMPOSITION.md).
 
-Not proved: bit-for-bit decoder/encoder round trips, a machine-width accumulator refinement,
-scalar residual representability and consolidation, a residual expansion interface, optimized
-overlap extraction, and any profile other than V100. No placeholder declaration stands in for
-these. See [ROADMAP.md](ROADMAP.md).
+Not proved: bit-for-bit decoder/encoder round trips, rounding correctness for any output
+format other than FP32, scalar residual representability and consolidation, a residual
+expansion interface, optimized overlap extraction, and conformance of any BF16, TF32, FP8,
+FP16-output, or FP64 specification. No placeholder declaration stands in for these. See
+[PLAN.md](PLAN.md).

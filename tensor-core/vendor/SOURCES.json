@@ -18,13 +18,30 @@
     "model_validation/V100/fp16/b_V100_fp16.txt": "1a019e8dcec2a44a741e691268e4c4a9eb9eb9ebc128be097f9921b813d4c6f9",
     "model_validation/V100/fp16/c_V100_fp32.txt": "d38097e1e4d5547234e7be1c6daabeb4ba8fe24e99367391a3f7b5c600001848",
     "model_validation/V100/fp16/d_V100_fp16.txt": "7322aff1d735e6dd6a225754bd981e6520f3a6078c14ebf1614ce42b115c029a",
-    "model_validation/V100/fp16/d_V100_fp32.txt": "1cfbb62768f303c90aff43458afe386e297b99df7a4e69ab4b0cde26dbcbac83"
+    "model_validation/V100/fp16/d_V100_fp32.txt": "1cfbb62768f303c90aff43458afe386e297b99df7a4e69ab4b0cde26dbcbac83",
+    "model_validation/A100/fp16/a_A100_fp16.txt": "69e9abd30801c1cb569e766af9a00a47c970761c52304ce5c58d052521d9f264",
+    "model_validation/A100/fp16/b_A100_fp16.txt": "5e9dfabb73ee4188bb30ad67e1e02ab20586a929db066350f899b5586d6182fe",
+    "model_validation/A100/fp16/c_A100_fp32.txt": "41d30aa86e0cf0977a7a75f8ead6af8f60c4bad2fca3e66312f54b1baf2a9c0f",
+    "model_validation/A100/fp16/d_A100_fp16.txt": "382b420782160fe31e4b95b9b2ea80cfea9fd93e74b28b857cd96e5d78e1bda7",
+    "model_validation/A100/fp16/d_A100_fp32.txt": "b89cc3c2ab581799fb9e9d3af072c4059c8cecc4d1b707706da9728f5506edfb",
+    "model_validation/H100/fp16/a_H100_fp16.txt": "0672b27f1fe4e99d6f781600650f908e69f00ac0ac0f7c87fe27eea6c35cd7e9",
+    "model_validation/H100/fp16/b_H100_fp16.txt": "f29a269fc3e534cdde204ac72f28cb0335117a477e901d5740c077cb0599e93e",
+    "model_validation/H100/fp16/c_H100_fp32.txt": "91798c84f0b2bd0d817eb1ed2b5f0a305247f0ce0227ccc2a808053f08b3aa2c",
+    "model_validation/H100/fp16/d_H100_fp16.txt": "68b5bccd7afb9c8d28fa16841dea18a49888501004ea3f8988126339ab681d6f",
+    "model_validation/H100/fp16/d_H100_fp32.txt": "49fc4f860424411556be17ffb1f6c9041d1dbb93251a48c256eb456c264bd7cd"
   },
   "device_vectors": {
-    "path": "model_validation/V100/fp16",
+    "paths": [
+      "model_validation/V100/fp16",
+      "model_validation/A100/fp16",
+      "model_validation/H100/fp16"
+    ],
     "rows": 5000,
-    "layout": "a/b: four FP32 hexadecimal words per row holding FP16 values; c/d: one 32-bit binary string per row",
-    "interpretation": "Validate_TC_models.m reshapes A and B into rows of K=4 and calls V100TC once per row, so one row is one normalization group",
-    "used_by": "scripts/check_device.py"
+    "layout": "a/b: K FP32 hexadecimal words per row holding FP16 values (K = 4, 8, 16); c/d: one 32-bit binary string per row",
+    "interpretation": "Validate_TC_models.m reshapes A and B into rows of K = N_FMA and calls the model once per row, so one row is one normalization group; the CUDA harness placed the K products in k positions 0..K-1 of one WMMA instruction",
+    "used_by": [
+      "scripts/check_device.py",
+      "scripts/check_device_families.py"
+    ]
   }
 }

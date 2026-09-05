@@ -2,7 +2,7 @@
 
 The numerical unit is one dot product, not a tile or a multi-group instruction. This is the
 full interface the generalized model should satisfy. The active subset, per
-[ROADMAP.md](ROADMAP.md), is FP16 inputs, FP32 c in the common alignment, raw products,
+[PLAN.md](PLAN.md), is FP16 inputs, FP32 c in the common alignment, raw products,
 `F = 23 + extraBits`, any positive `K`, an optional floor, and one final FP32 truncation.
 Everything else below describes deferred interfaces, and each increment must state the
 subset it actually proves.

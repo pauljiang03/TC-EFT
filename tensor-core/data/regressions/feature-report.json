@@ -1,0 +1,36 @@
+{
+  "scope": "Canonical FP16 products, FP32 c/output, unnormalized products, RTZ",
+  "oracle": "Exact Fraction arithmetic; FP32 output found by binary search over encodings",
+  "configurations": 111,
+  "cases": 1783,
+  "rejected": 3,
+  "mismatches": 0,
+  "K": [
+    1,
+    3,
+    4,
+    7,
+    8,
+    16,
+    17,
+    37,
+    64
+  ],
+  "extra_bits": [
+    0,
+    1,
+    2,
+    5,
+    9,
+    24
+  ],
+  "exercised_losses": {
+    "alignment": 1377,
+    "output": 585,
+    "both": 526
+  },
+  "published_v100_vectors": 5000,
+  "published_v100_mismatches": 0,
+  "new_gpu_measurements": false,
+  "other_formats": "Deferred by user; not part of this acceptance gate"
+}

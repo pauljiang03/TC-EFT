@@ -5,6 +5,10 @@ MATLAB Tensor Core v0.5, commit `bbcf00a273868172494eaacaa8d6128ab0fb8704`. The 
 unit is one dot product with raw products and one block accumulation. Group partitions and
 their order inside an instruction are a separate question ([COMPOSITION.md](COMPOSITION.md)).
 
+The claimed family is FP16 products with FP32 c and output, any product count `K`, and any
+number of extra alignment bits. Every other row is either an executable specification
+without proofs beyond exact loss accounting, or not implemented.
+
 ## Source families
 
 `K` counts products, excluding c. `F` counts all fractional alignment bits, including extra
@@ -15,19 +19,19 @@ support subnormal operands.
 
 | Family / source path | K | F | Floor | c / output stages | Current claim |
 | --- | ---: | ---: | ---: | --- | --- |
-| V100, FP16, WMMA / HMMA.844 | 4 | 23 | none relevant | c in group; FP32 RTZ | Executable, proved, oracle-checked, 5,000 published vectors |
-| V100, FP16 output | 4 | 23 | none relevant | c is FP16; Fig. 2 shows FP32 normalize/truncate then FP16 RNE | Output-stage order to reconcile (register item 1) |
-| A100/A2/A30, FP16/BF16, WMMA / HMMA.1688; L40S/Ada corresponding paths | 8 | 24 | −132 | FP32 c in group; FP32 RTZ | Parameters known; not instantiated |
-| Ampere/Ada, TF32, HMMA.1684 | 4 | 24 | −132 | FP32 c in group; FP32 RTZ | Value format versus register storage must be explicit |
-| H100/H200/B200/RTX PRO, FP16/BF16, HMMA.16816; B200 UTCHMMA f16 | 16 | 25 | −133 | FP32 c in group; FP32 RTZ | Parameters known; not instantiated |
-| Hopper/Blackwell TF32, WMMA / HMMA.1684 | 4 | 25 | −133 | FP32 c in group; FP32 RTZ | Distinct from the K = 8 path |
-| Hopper/Blackwell TF32, mma.sync m16n8k8 / HMMA.1688; B200 tcgen05 kind=tf32 | 8 | 25 | −133 | FP32 c in group; FP32 RTZ | Path-specific grouping; instruction mapping open |
-| FP16 output for the FP16 input paths | as above | as above | as above | final FP16 RNE; stage order to resolve | No BF16→FP16 device claim inferred from permissive software arguments |
-| L40S/Ada native FP8, mma.sync m16n8k16/32 / QMMA.16816 | 16 | 13 | irrelevant for finite FP8 products | c in group; FP32 RTZ or FP16 RNE | Output-precision question (register item 2); not implemented |
-| Hopper native FP8, wgmma m64nNk32 / QGMMA.16832 | 32 | 13 | irrelevant | c in group; FP32 RTZ or FP16 RNE | Distinct from Hopper mma.sync; register item 2 |
-| B200 native FP8, tcgen05 kind=f8f6f4 / UTCQMMA; RTX PRO mma.sync / QMMA.16832 | 32 | 25 | irrelevant | c in group; FP32 RTZ or FP16 RNE | B200 source forces FP32 output (register item 3) |
-| Hopper/B200 emulated FP8, mma.sync / HMMA.16816 | 16 per component group | 25 | to specify | exact FP8→FP16 preparation; interleaved groups; late c with RNE | Fig. 5c; group combination to reconcile (register item 4) |
-| A100 and later FP64 / DMMA.884 | 1 | no truncating alignment | none | exact fused product plus c, one FP64 rounding; four directions | Separate fused variant; not modeled in v0.5 (§4.2) |
+| V100, FP16, WMMA / HMMA.844 | 4 | 23 | none relevant | c in group; FP32 RTZ | `fp16Fp32Profile 4 0`; proved, oracle-checked, 5,000 published vectors |
+| A100/A2/A30, FP16, WMMA / HMMA.1688; L40S/Ada corresponding paths | 8 | 24 | −132 | FP32 c in group; FP32 RTZ | `fp16Fp32Profile 8 1 (−132)`; proved, oracle-checked, 5,000 published A100 vectors; floor proved inert |
+| H100/H200/B200/RTX PRO, FP16, HMMA.16816; B200 UTCHMMA f16 | 16 | 25 | −133 | FP32 c in group; FP32 RTZ | `fp16Fp32Profile 16 2 (−133)`; proved, oracle-checked, 5,000 published H100 vectors; floor proved inert |
+| A100/A2/A30 and Hopper/Blackwell BF16 | 8 / 16 | 24 / 25 | −132 / −133 | FP32 c in group; FP32 RTZ | `InvocationSpec` only; floor is active for tiny BF16 products; no proofs or device evidence beyond exact loss accounting |
+| Ampere/Ada, TF32, HMMA.1684 | 4 | 24 | −132 | FP32 c in group; FP32 RTZ | `InvocationSpec` with `tf32Register` padding checks; not claimed |
+| Hopper/Blackwell TF32, WMMA / HMMA.1684 | 4 | 25 | −133 | FP32 c in group; FP32 RTZ | `InvocationSpec` only; distinct from the K = 8 path |
+| Hopper/Blackwell TF32, mma.sync m16n8k8 / HMMA.1688; B200 tcgen05 kind=tf32 | 8 | 25 | −133 | FP32 c in group; FP32 RTZ | `InvocationSpec` only; instruction mapping open |
+| V100 and later, FP16 output | as above | as above | as above | final FP16 RNE; stage order to resolve | Two candidate specifications kept (register item 1); neither claimed |
+| L40S/Ada native FP8, mma.sync m16n8k16/32 / QMMA.16816 | 16 | 13 | irrelevant for finite FP8 products | c in group; FP32 RTZ or FP16 RNE | Not implemented; output-precision question (register item 2) |
+| Hopper native FP8, wgmma m64nNk32 / QGMMA.16832 | 32 | 13 | irrelevant | c in group; FP32 RTZ or FP16 RNE | Not implemented; register item 2 |
+| B200 native FP8, tcgen05 kind=f8f6f4 / UTCQMMA; RTX PRO mma.sync / QMMA.16832 | 32 | 25 | irrelevant | c in group; FP32 RTZ or FP16 RNE | Not implemented; register item 3 |
+| Hopper/B200 emulated FP8, mma.sync / HMMA.16816 | 16 per component group | 25 | to specify | exact FP8→FP16 preparation; interleaved groups; late c with RNE | Not implemented; group combination to reconcile (register item 4) |
+| A100 and later FP64 / DMMA.884 | 1 | no truncating alignment | none | exact fused product plus c, one FP64 rounding; four directions | `binary64Fma` executable specification; no rounding proof; not modeled in v0.5 (§4.2) |
 
 "Hopper/Blackwell" abbreviates the named devices and paths in Tables 3–4. A2/A30 have no
 FP64 variant (§4.1.3). V100 does not accept BF16. Turing, FP6/FP4, block scaling, and
@@ -37,20 +41,20 @@ arbitrary custom-model flags are outside the characterized universe.
 
 | Axis | Meaning and source | Coverage and needed work |
 | --- | --- | --- |
-| Encoded value | IEEE-style sign/exponent/fraction for FP16, BF16, TF32 value, FP32, FP64, E5M2 (Table 2; `GEMM.fpformatinfo`) | `Format`/`classify` are parametric; only FP16 and FP32 are named, and only FP32 has representation proofs |
-| E4M3 | Bias 7, precision 4, maximum 448; exponent 15 is finite except fraction 7 (Table 2, OCP) | Needs a distinct special-value policy; the IEEE decoder would wrongly reject 256–448 |
-| TF32 storage | 10 fraction bits and 8 exponent bits; the source calls it tf19 and prepares it with CPFloat RTZ | A packed 19-bit encoding is not a CUDA register; model FP32-register padding checks separately |
+| Encoded value | IEEE-style sign/exponent/fraction for FP16, BF16, TF32 value, FP32, FP64, E5M2 (Table 2; `GEMM.fpformatinfo`) | `Format`/`classify` are parametric and the formats are named; representation and rounding proofs exist for FP32 only |
+| E4M3 | Bias 7, precision 4, maximum 448; exponent 15 is finite except fraction 7 (Table 2, OCP) | `ValueFormat` with the `finiteTopNaN` policy decodes it; no further proofs |
+| TF32 storage | 10 fraction bits and 8 exponent bits; the source calls it tf19 and prepares it with CPFloat RTZ | `tf32Register` requires the 13 low bits to be zero; conversion from arbitrary FP32 is separate and not modeled |
 | Operand preparation | Already-encoded operands versus conversion; subnormal keep/flush | The core accepts encoded finite operands and keeps subnormals; conversions need their own loss accounting |
 | Raw product | Signed significand product, sum of scales and fractional widths; no normalization or clipping (§4.2.1) | `rawProduct_value` proved; metadata retained |
-| c format and membership | Source prepares c in the output format; most paths align it with products; Fig. 5c adds it late | `BlockInput` fixes FP32 c in the group; typed c format and late addition required |
-| Exponent selection | Ignore zero terms, maximum nonzero raw scale, then floor; nonzero subnormal FP32 c has scale −126 (§4.1.2, §4.1.6) | Executable; reusable maximum/membership and all-zero lemmas needed |
+| c format and membership | Source prepares c in the output format; most paths align it with products; Fig. 5c adds it late | `InvocationSpec` has a c format and `CPlacement` (in group, or after products through conversion stages); exact loss accounting proved; no late-c device evidence |
+| Exponent selection | Ignore zero terms, maximum nonzero raw scale, then floor; nonzero subnormal FP32 c has scale −126 (§4.1.2, §4.1.6) | `alignmentScale_none`, `eta_term`, `alignmentScale_lower` proved; floors at or below −126 proved inert for FP16 operands |
 | Alignment | `qA = 2^(η−F)`; sign times floor of magnitude/qA; no sticky bits on the characterized paths | Generic signed residual bound proved; arithmetic shift of negatives is a different operation |
-| Accumulation | Exact signed integer sum on qA; no intermediate normalization | `accumulator_value` proved; per-term capacity, prefix bounds, and a signed BitVec refinement needed |
-| Output | Normalize and convert through explicitly ordered formats and modes, decoding between stages | FP32 RTZ/RNE proved; general formats, directed modes, and staged sequences required |
-| Finite domain | Reject nonfinite input, invalid shape, and out-of-range conversion inputs | The finite guard is narrower than IEEE overflow handling; each new stage checks its own range |
+| Accumulation | Exact signed integer sum on qA; no intermediate normalization | `accumulator_value` proved; per-term bound `2^(F+2)`, prefix exactness, and the derived signed width `F + 2 + carry + 1` proved |
+| Output | Normalize and convert through explicitly ordered formats and modes, decoding between stages | `roundBinary` implements every format and directed mode and `runConversions` chains stages with proved loss accounting; correctness is proved for FP32 only |
+| Finite domain | Reject nonfinite input, invalid shape, and out-of-range conversion inputs | The finite guard is narrower than IEEE overflow handling; each stage checks its own range |
 | Zero | Exact zero gives +0; negative nonzero rounded to zero keeps its sign | Model policy, not a hardware theorem; value-level proofs identify both zeros |
-| FP64 FMA | One exact a·b + c and one rounding; no lossy alignment grid | Needs a distinct fused path; K = 1 does not turn the truncating evaluator into an FMA |
-| Evidence | Model proof, independent oracle, published vectors, instruction mapping | Kept separate; device evidence covers finite V100 FP16/FP32 only |
+| FP64 FMA | One exact a·b + c and one rounding; no lossy alignment grid | `AccumulationKind.fused` with `binary64Fma`; no rounding proof |
+| Evidence | Model proof, independent oracle, published vectors, instruction mapping | Kept separate; device evidence covers single FP16 groups on V100, A100, and H100 |
 
 ## Reconciliation register
 
@@ -61,8 +65,9 @@ Independent arithmetic and proof work can proceed meanwhile.
    followed by FP16 RNE. In `Generic_BFMA_TC.m` lines 257–291, `ieeeround` receives
    `NoManBitsOut` directly after normalization, and `GEMM.m` lines 80–82 set it to the
    requested output's fraction width; there is no FP32 encoding boundary. Direct FP16 RNE and
-   FP32 RTZ followed by FP16 RNE can disagree. Specify both, construct a distinguishing
-   vector, and compare with the published FP16 data.
+   FP32 RTZ followed by FP16 RNE can disagree. Both are kept as `v100HalfDirectCandidate` and
+   `v100HalfStagedCandidate`. Construct a distinguishing vector and compare with the vendored
+   `d_*_fp16.txt` files before assigning either.
 2. **Native FP8 output precision.** `GEMM.m` lines 92–94 reduce `NoManBitsOut` when
    `neab < 0`, while alignment independently uses `23 + neab`. For FP32 output this sets the
    post-normalization precision to 13 fraction bits; for FP16 output to zero. This does not
@@ -76,5 +81,5 @@ Independent arithmetic and proof work can proceed meanwhile.
 5. **FP64 and directed rounding.** §4.2 excludes DMMA from the package and the randomized
    tests. Use a finite-domain FMA specification, not an invented MATLAB profile.
 
-Implementation order and gate criteria are in [ROADMAP.md](ROADMAP.md); the target interface
-is [INVOCATION_CONTRACT.md](INVOCATION_CONTRACT.md).
+Implementation order is in [PLAN.md](PLAN.md); the target interface is
+[INVOCATION_CONTRACT.md](INVOCATION_CONTRACT.md).

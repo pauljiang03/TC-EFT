@@ -77,7 +77,8 @@ and relational loop invariants arrive.
 
 ## Limits
 
-- Only V100 FP16/FP32 has an instantiated, validated profile.
+- Programs are typed by a `Profile`; the validated family is `fp16Fp32Profile K extraBits`,
+  and the examples use V100.
 - Operands are fixed; they cannot depend on rounded program state.
 - Repetition can be symbolic in proofs; `tc_inspect` and automatic checking materialize
   finite schedules.

@@ -47,10 +47,20 @@ output, or correction code.
 ## Profile
 
 `Profile` fixes the input format, product count `K`, fractional alignment precision `F`, and
-an optional floor. `evalBlock` and `runBlocks` are generic over it; `evalV100` and `runV100`
-abbreviate the only instantiated profile. c and the output are FP32, c joins the common
-alignment, and the output is one truncation. Parameterization does not validate another
-architecture; the target feature universe is in [FEATURE_COVERAGE.md](FEATURE_COVERAGE.md).
+an optional floor. `evalBlock` and `runBlocks` are generic over it. c and the output are
+FP32, c joins the common alignment, and the output is one truncation.
+`fp16Fp32Profile K extraBits floor` is the claimed family, with `F = 23 + extraBits`;
+`v100F16F32 = fp16Fp32Profile 4 0`, `ampereF16F32 = fp16Fp32Profile 8 1 (−132)`, and
+`hopperF16F32 = fp16Fp32Profile 16 2 (−133)`. Any floor at or below −126 is proved inert for
+FP16 operands (`canonical_eta_floor_inactive`).
+
+`InvocationSpec` generalizes the description with an operand encoding (including padded
+TF32 storage), a c format, `CPlacement` (in the group, or added after the products through
+conversion stages), an aligned or fused accumulation, and ordered conversion stages.
+`evalInvocation` executes it with proved exact loss accounting, and `v100_invocation_bits`
+proves it agrees bitwise with `evalBlock`. Rounding correctness is proved for FP32 output
+only; the other formats it can describe are not claimed. The target feature universe is in
+[FEATURE_COVERAGE.md](FEATURE_COVERAGE.md).
 
 ## Conversion
 
@@ -61,17 +71,18 @@ range as a separate premise from successful intermediate calls.
 
 ## Other paths, recorded and not instantiated
 
-| Path | K | F | Notes |
+| Path | K | F | Status |
 | --- | ---: | ---: | --- |
-| V100 FP16 → FP16 | 4 | 23 | Final FP16 RNE; stage order to be settled (FEATURE_COVERAGE.md) |
-| A100/Ada FP16/BF16 → FP32 | 8 | 24 | Floor −132 for tiny BF16 products |
-| A100/Ada TF32 → FP32 | 4 | 24 | Floor −132 |
-| Hopper/Blackwell FP16/BF16 → FP32 | 16 | 25 | Floor −133 |
-| Hopper/Blackwell TF32, mma.sync m16n8k8 → FP32 | 8 | 25 | Floor −133; WMMA path uses K = 4 |
+| A100/Ada FP16 → FP32 | 8 | 24 | `fp16Fp32Profile 8 1 (−132)`; proved and matched to 5,000 A100 vectors |
+| Hopper/Blackwell FP16 → FP32 | 16 | 25 | `fp16Fp32Profile 16 2 (−133)`; proved and matched to 5,000 H100 vectors |
+| V100 FP16 → FP16 | 4 | 23 | Two candidate `InvocationSpec`s; stage order unsettled (FEATURE_COVERAGE.md) |
+| A100/Ada and Hopper/Blackwell BF16 → FP32 | 8 / 16 | 24 / 25 | `InvocationSpec` only; floors −132 / −133 active for tiny BF16 products |
+| A100/Ada TF32 → FP32 | 4 | 24 | `InvocationSpec` only; floor −132 |
+| Hopper/Blackwell TF32, mma.sync m16n8k8 → FP32 | 8 | 25 | `InvocationSpec` only; floor −133; WMMA path uses K = 4 |
 
-Rows follow Accurate Models §4.1.2, §4.1.6, and Tables 3–4. FP8 paths, late-c paths, FP16
-outputs, and Turing are not implemented. Turing is not characterized by the controlling
-paper and needs another source.
+Rows follow Accurate Models §4.1.2, §4.1.6, and Tables 3–4. FP8 paths, late-c paths, and
+Turing are not implemented. Turing is not characterized by the controlling paper and needs
+another source.
 
 ## Lean and libraries
 

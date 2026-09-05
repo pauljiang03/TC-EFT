@@ -15,10 +15,11 @@ bits. Traces list c first, then the products; scales list products only.
 | R3 | `4107ffff` | `41080000` | 15 · 2^-24 |
 
 In R3 alignment loses 2^-24 and output truncation loses 7 · 2^-23. R4 records a corrected
-expectation: `1 − 3·2^-25` is a midpoint and rounds to `3f7ffffe`, the even neighbor. Other cases
-cover even and odd ties, a carry into the next binade, the subnormal boundary, cancellation,
-positive and negative zero, subnormal operands and c, nonfinite and malformed inputs, and
-range rejection.
+expectation: `1 − 3·2^-25` is a midpoint and rounds to `3f7ffffe`, the even neighbor. Other
+cases cover even and odd ties, a carry into the next binade, the subnormal boundary,
+cancellation, positive and negative zero, subnormal operands and c, nonfinite and malformed
+inputs, range rejection, one extra alignment bit changing an output, and the Ampere and
+Hopper profiles on a block of ones.
 
 The two-invocation case feeds R3's `4107ffff` into a group that subtracts 17/2. The final
 encoded result is `b5800000` (−2^-20); the exact ledger of 15 · 2^-24 recovers −2^-24, and
@@ -28,9 +29,9 @@ arbitrary-length ledger theorem is an induction, not a generalization of this te
 The converter proof is separate from these cases: `round32_nearestEven_correct` holds for all
 rational inputs with magnitude at most `maxFinite32`.
 
-## Independent oracle
+## Independent oracles
 
-`python3 scripts/validate.py` checks 715 blocks and 2,918 rounding inputs with seed
+`python3 scripts/validate.py` checks 715 V100 blocks and 2,918 rounding inputs with seed
 20260905 and reports zero mismatches; three deliberately nonfinite blocks are rejected. The
 record is `data/regressions/validation-report.json`, and the named traces must match
 `data/regressions/expected-traces.json`.
@@ -41,19 +42,26 @@ integer division, finds FP32 neighbors by binary search over the positive encodi
 compares exact distances and encoding parity. It never calls the Lean exponent logic and never
 uses the recovered value as the ideal.
 
+`python3 scripts/check_features.py` checks the parameterized evaluator (`tc_features`) with
+a second exact oracle over 111 combinations of product count (`1, 3, 4, 7, 8, 16, 17, 37, 64`),
+extra bits (`0, 1, 2, 5, 9, 24`), and floor (none, −132, 4): 1,783 cases, 3 rejections, zero
+mismatches, then replays the V100 vectors through the new API. The record is
+`data/regressions/feature-report.json`.
+
 Samples span all finite exponent fields, signed products, opposite-product cancellation,
-subnormal multiplicands, and subnormal c. Rounding samples include exact points, quarter
-points, midpoints, both signs, every normal exponent boundary, gradual underflow, and
-out-of-range rejection on both signs. This is differential testing, not exhaustive validation.
+subnormal multiplicands, subnormal c, boundary encodings, and similar-scale cancellation.
+Rounding samples include exact points, quarter points, midpoints, both signs, every normal
+exponent boundary, gradual underflow, and out-of-range rejection. This is differential
+testing, not exhaustive validation.
 
 ## Three comparisons
 
 | Comparison | Evidence |
 | --- | --- |
-| Implementation against reference | Value bridges for raw products and accumulation; exact residual and schedule theorems; rounding and error-bound proofs. No optimized machine implementation yet. |
-| Model against an independent implementation | The Python oracle agrees on retained sums, outputs, residual traces, and corrected results. |
+| Implementation against reference | Value bridges for raw products and accumulation; exact residual and schedule theorems; rounding and error-bound proofs; machine-width refinement. No optimized machine implementation yet. |
+| Model against an independent implementation | Two Python oracles agree on retained sums, outputs, residual traces, and corrected results. |
 | Correction against an independent ideal | Direct original-bit sum and nearest-neighbor oracle; the recovery identity is proved separately. |
-| Model against device | 5,000 V100 vectors match bit for bit. No new measurements. |
+| Model against device | 15,000 published FP16 vectors across V100, A100, and H100 match bit for bit. No new measurements. |
 
 Recovery alone cannot detect a wrong alignment model, because the extractor reconstructs the
 exact difference whatever the output is. The alignment and output comparisons are therefore
@@ -61,18 +69,25 @@ made independently of the device comparison.
 
 ## Device vectors
 
-`python3 scripts/check_device.py` replays the unmodified `model_validation/V100/fp16` files
-of MATLAB Tensor Core v0.5 (hashes in `vendor/SOURCES.json`). `Validate_TC_models.m`
-reshapes A and B into rows of K = 4 and calls the model once per row with one FP32 c, so one
-row is one group and one evaluator call. The CUDA harness placed those four products in k
-positions 0–3 of a 16×16×16 WMMA with zeros elsewhere. Multiplicands are FP32 words holding
-FP16 values and are converted exactly; the script fails if a word is not an FP16 value. The
-record is `data/regressions/device-report.json`.
+`python3 scripts/check_device.py` and `python3 scripts/check_device_families.py` replay the
+unmodified `model_validation/{V100,A100,H100}/fp16` files of MATLAB Tensor Core v0.5
+(hashes in `vendor/SOURCES.json`). `Validate_TC_models.m` reshapes A and B into rows of
+`K = N_FMA` and calls the model once per row with one FP32 c, so one row is one group and one
+evaluator call. The CUDA harness placed those `K` products in k positions `0..K−1` of one
+WMMA instruction with zeros elsewhere. Multiplicands are FP32 words holding FP16 values and
+are converted exactly; the scripts fail if a word is not an FP16 value. Records are
+`data/regressions/device-report.json` and `data/regressions/device-families-report.json`.
+
+| Family | Profile | Vectors | Mismatches | Rows with a zero or subnormal operand or c |
+| --- | --- | ---: | ---: | ---: |
+| V100 | `fp16Fp32Profile 4 0 none` | 5,000 | 0 | 0 |
+| A100 | `fp16Fp32Profile 8 1 (−132)` | 5,000 | 0 | 1 |
+| H100 | `fp16Fp32Profile 16 2 (−133)` | 5,000 | 0 | 5 |
+
+V100 coverage detail from `check_device.py`:
 
 | Quantity | Count |
 | --- | ---: |
-| Vectors compared | 5,000 |
-| Bit mismatches or model errors | 0 |
 | Blocks with alignment loss | 3,275 |
 | Blocks with output truncation loss | 1,326 |
 | Blocks with both losses | 833 |
@@ -81,10 +96,10 @@ record is `data/regressions/device-report.json`.
 | Blocks whose alignment exponent comes from c alone | 647 |
 | Blocks where the correctly rounded sum differs from the device output | 1,885 |
 
-The vectors contain no zero or subnormal multiplicands and no zero or subnormal c, so those
-branches rest on the MATLAB source only. The FP16-output file `d_V100_fp16.txt` is vendored
-but not compared because that path is not implemented. These are measurements published with
-the reference model, for one profile.
+Zero and subnormal branches therefore rest almost entirely on the MATLAB source. The
+FP16-output files `d_*_fp16.txt` are vendored but not compared because that path is not
+implemented. These are measurements published with the reference model, one group per row;
+they do not test the order of groups inside an instruction.
 
 ## Program language
 
@@ -107,7 +122,9 @@ cd tensor-core
 lake build
 python3 scripts/check_axioms.py
 python3 scripts/validate.py
+python3 scripts/check_features.py
 python3 scripts/check_device.py
+python3 scripts/check_device_families.py
 python3 scripts/check_programs.py
 python3 scripts/check_clean_build.py
 ```

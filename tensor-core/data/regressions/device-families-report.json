@@ -1,0 +1,27 @@
+{
+  "V100": {
+    "profile": "fp16Fp32Profile 4 0 None",
+    "vectors": 5000,
+    "model_errors": 0,
+    "bit_mismatches": 0,
+    "zero_or_subnormal_operands_or_c": 0,
+    "fp16_output_vectors_present_but_not_compared": true
+  },
+  "A100": {
+    "profile": "fp16Fp32Profile 8 1 -132",
+    "vectors": 5000,
+    "model_errors": 0,
+    "bit_mismatches": 0,
+    "zero_or_subnormal_operands_or_c": 1,
+    "fp16_output_vectors_present_but_not_compared": true
+  },
+  "H100": {
+    "profile": "fp16Fp32Profile 16 2 -133",
+    "vectors": 5000,
+    "model_errors": 0,
+    "bit_mismatches": 0,
+    "zero_or_subnormal_operands_or_c": 5,
+    "fp16_output_vectors_present_but_not_compared": true
+  },
+  "method": "Exact FP32-word to FP16 conversion, one evaluator call per row, bitwise output comparison; no new GPU measurements"
+}
