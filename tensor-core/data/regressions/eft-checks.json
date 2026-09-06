@@ -20,7 +20,7 @@
         "Audit.lean"
       ],
       "exit_code": 0,
-      "audit": "tc_audit: 891 theorem roots (568 written in source, the rest generated)"
+      "audit": "tc_audit: 892 theorem roots (569 written in source, the rest generated)"
     },
     {
       "command": [
