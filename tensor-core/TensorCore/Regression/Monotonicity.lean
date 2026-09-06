@@ -1,7 +1,8 @@
-import TensorCore.Theory.Monotonicity
+import TensorCore.Theory.MonotonicityRange
 import TensorCore.Regression.Cases
 
-/-! TC-EFT Theorem III.4 on the three source FP16 paths, and the Table III witnesses. -/
+/-! TC-EFT Theorems III.4 and III.5 on the three source FP16 paths, the Table III witnesses,
+and the witness ranges. -/
 
 namespace TensorCore
 
@@ -48,6 +49,55 @@ theorem nonmonotone_hopper_family (K : Nat) (hK : K < 2 ^ 26) :
     (by show (classify fp16 0x0400).finite = some _; decide +kernel)
     (by decide +kernel) (by decide +kernel) hK
 
+/-- V100 family, Theorem III.5: with `c_j = 3f800000 − j`, the output exceeds `1` exactly for
+`1 ≤ j ≤ min(2^23, K − 2)`, equals `1 + 2^-23·⌊(K − j)/2⌋` whenever `j ≤ K`, and never
+exceeds the `j = 1` value. -/
+theorem nonmonotone_range_v100_family (K j : Nat) (hK : K < 2 ^ 24) (hj1 : 1 ≤ j)
+    (hj2 : j ≤ 2 ^ 23) :
+    ∃ t : BlockTrace,
+      evalBlock (⟨List.replicate K (0x0c00, 0x0c00), BitVec.ofNat 32 (0x3f800000 - j)⟩ :
+        BlockInput (fp16Fp32Profile K 0 none)) = .ok t ∧
+      (1 < t.output.value ↔ j ≤ min (2 ^ 23) (K / 2 ^ 0 - 2)) ∧
+      (j * 2 ^ 0 ≤ K →
+        t.output.value = 1 + (((K - j * 2 ^ 0) / 2 ^ (0 + 1) : Nat) : Rat) * pow2 (-23)) ∧
+      t.output.value ≤ 1 + (((K - 2 ^ 0) / 2 ^ (0 + 1) : Nat) : Rat) * pow2 (-23) :=
+  nonmonotone_range_encoded K 0 j none (by simp) _ _ (halfDecoded (-12)) (halfDecoded (-12))
+    (by show (classify fp16 0x0c00).finite = some _; decide +kernel)
+    (by show (classify fp16 0x0c00).finite = some _; decide +kernel)
+    (by decide +kernel) (by decide +kernel) hK hj1 hj2
+
+/-- Ampere family, Theorem III.5: witnesses for `1 ≤ j ≤ min(2^23, ⌊K/2⌋ − 2)`. -/
+theorem nonmonotone_range_ampere_family (K j : Nat) (hK : K < 2 ^ 25) (hj1 : 1 ≤ j)
+    (hj2 : j ≤ 2 ^ 23) :
+    ∃ t : BlockTrace,
+      evalBlock (⟨List.replicate K (0x0c00, 0x0800), BitVec.ofNat 32 (0x3f800000 - j)⟩ :
+        BlockInput (fp16Fp32Profile K 1 (some (-132)))) = .ok t ∧
+      (1 < t.output.value ↔ j ≤ min (2 ^ 23) (K / 2 ^ 1 - 2)) ∧
+      (j * 2 ^ 1 ≤ K →
+        t.output.value = 1 + (((K - j * 2 ^ 1) / 2 ^ (1 + 1) : Nat) : Rat) * pow2 (-23)) ∧
+      t.output.value ≤ 1 + (((K - 2 ^ 1) / 2 ^ (1 + 1) : Nat) : Rat) * pow2 (-23) :=
+  nonmonotone_range_encoded K 1 j (some (-132)) (by simp) _ _ (halfDecoded (-12))
+    (halfDecoded (-13))
+    (by show (classify fp16 0x0c00).finite = some _; decide +kernel)
+    (by show (classify fp16 0x0800).finite = some _; decide +kernel)
+    (by decide +kernel) (by decide +kernel) hK hj1 hj2
+
+/-- Hopper family, Theorem III.5: witnesses for `1 ≤ j ≤ min(2^23, ⌊K/4⌋ − 2)`. -/
+theorem nonmonotone_range_hopper_family (K j : Nat) (hK : K < 2 ^ 26) (hj1 : 1 ≤ j)
+    (hj2 : j ≤ 2 ^ 23) :
+    ∃ t : BlockTrace,
+      evalBlock (⟨List.replicate K (0x0c00, 0x0400), BitVec.ofNat 32 (0x3f800000 - j)⟩ :
+        BlockInput (fp16Fp32Profile K 2 (some (-133)))) = .ok t ∧
+      (1 < t.output.value ↔ j ≤ min (2 ^ 23) (K / 2 ^ 2 - 2)) ∧
+      (j * 2 ^ 2 ≤ K →
+        t.output.value = 1 + (((K - j * 2 ^ 2) / 2 ^ (2 + 1) : Nat) : Rat) * pow2 (-23)) ∧
+      t.output.value ≤ 1 + (((K - 2 ^ 2) / 2 ^ (2 + 1) : Nat) : Rat) * pow2 (-23) :=
+  nonmonotone_range_encoded K 2 j (some (-133)) (by simp) _ _ (halfDecoded (-12))
+    (halfDecoded (-14))
+    (by show (classify fp16 0x0c00).finite = some _; decide +kernel)
+    (by show (classify fp16 0x0400).finite = some _; decide +kernel)
+    (by decide +kernel) (by decide +kernel) hK hj1 hj2
+
 namespace Regression
 
 set_option maxRecDepth 16384
@@ -72,6 +122,33 @@ theorem below_threshold_monotone :
       BlockInput (fp16Fp32Profile 2 0 none)) = .ok 0x3f800000 ∧
     outputBits (⟨List.replicate 11 (0x0c00, 0x0400), 0x3f7fffff⟩ :
       BlockInput (fp16Fp32Profile 11 2 (some (-133)))) = .ok 0x3f800000 := by decide +kernel
+
+/-- Theorem III.5 witness ranges on the source widths: `J = min(2^23, ⌊K/2^p⌋ − 2) = 2` for
+V100 (`K = 4`), Ampere (`K = 8`), and Hopper (`K = 16`). `c_2 = 3f7ffffe` still raises the
+output to `3f800001`; `c_3 = 3f7ffffd` does not. -/
+theorem range_witnesses :
+    outputBits (⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f7ffffe⟩ : BlockInput v100F16F32) =
+      .ok 0x3f800001 ∧
+    outputBits (⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f7ffffd⟩ : BlockInput v100F16F32) =
+      .ok 0x3f800000 ∧
+    outputBits (⟨List.replicate 8 (0x0c00, 0x0800), 0x3f7ffffe⟩ : BlockInput ampereF16F32) =
+      .ok 0x3f800001 ∧
+    outputBits (⟨List.replicate 8 (0x0c00, 0x0800), 0x3f7ffffd⟩ : BlockInput ampereF16F32) =
+      .ok 0x3f800000 ∧
+    outputBits (⟨List.replicate 16 (0x0c00, 0x0400), 0x3f7ffffe⟩ : BlockInput hopperF16F32) =
+      .ok 0x3f800001 ∧
+    outputBits (⟨List.replicate 16 (0x0c00, 0x0400), 0x3f7ffffd⟩ : BlockInput hopperF16F32) =
+      .ok 0x3f800000 := by decide +kernel
+
+/-- The paper's `K = 5`, `p = 0` example: the largest output increase `2·2^-23` occurs at
+`j = 1`, the largest input decrease `3·2^-24` at `J = 3`, and `j = 4` is monotone. -/
+theorem range_extrema_k5 :
+    outputBits (⟨List.replicate 5 (0x0c00, 0x0c00), 0x3f7fffff⟩ :
+      BlockInput (fp16Fp32Profile 5 0 none)) = .ok 0x3f800002 ∧
+    outputBits (⟨List.replicate 5 (0x0c00, 0x0c00), 0x3f7ffffd⟩ :
+      BlockInput (fp16Fp32Profile 5 0 none)) = .ok 0x3f800001 ∧
+    outputBits (⟨List.replicate 5 (0x0c00, 0x0c00), 0x3f7ffffc⟩ :
+      BlockInput (fp16Fp32Profile 5 0 none)) = .ok 0x3f800000 := by decide +kernel
 
 end Regression
 

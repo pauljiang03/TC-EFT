@@ -3,8 +3,9 @@ import TensorCore.Regression.Cases
 
 namespace TensorCore.Regression
 
-/-- Components of Algorithm 1 on one trace: extraction exponent, low parts (c first),
-overlap correction, scalar predicate, scalar-branch bits, and Algorithm 1 bits. -/
+/-- Components of the scalar EFT on one trace: extraction exponent, low parts (c first),
+overlap correction, scalar predicate, scalar-branch bits computed unconditionally, and the
+bits the scalar EFT returns (`none` when the predicate fails). -/
 structure EftSnapshot where
   extractionExponent : Int
   lowParts : List Rat
@@ -47,14 +48,32 @@ theorem cancellation_eft :
   decide +kernel
 
 /-- Three products near `128` on a `2^-15` grid next to a `2^-48` product exceed the
-24-bit coefficient budget on the common grid, so the predicate fails and Algorithm 1
-takes the exact-dyadic branch. -/
+24-bit coefficient budget on the common grid. The predicate fails, the scalar EFT returns
+nothing, and only the exact-rational reference gives `4e800003`. -/
 def supportOverflow : V100Input :=
   ⟨[(0x5bff, 0x37ff), (0x5bff, 0x37ff), (0x5bff, 0x37ff), (1, 1)], 0x4e800000⟩
 
-theorem predicate_fallback :
+theorem predicate_rejected :
     outputBits supportOverflow = .ok 0x4e800000 ∧
     ((eftSnapshot supportOverflow).map fun s => (s.scalarPredicate, s.tceftBits)) =
-      .ok (false, some 0x4e800003) := by decide +kernel
+      .ok (false, none) ∧
+    ((snapshot supportOverflow).map fun s => s.correctedBits) = .ok (some 0x4e800003) := by
+  decide +kernel
+
+/-- A subnormal accumulator `2^-149` with products `1` and `2^-24`: the output is `1`, the
+exact sum `1 + 2^-24 + 2^-149` rounds up to `3f800001`, but naive FP32 summation of the low
+parts loses `2^-149` and the scalar branch would return the tie-rounded `3f800000`. The
+support grid `2^-149` puts the coefficient sum far above `2^24`, so the predicate rejects
+the case and the scalar EFT returns nothing. -/
+def subnormalAccumulator : V100Input :=
+  ⟨[(0x3c00, 0x3c00), (0x0001, 0x3c00), (0, 0), (0, 0)], 0x00000001⟩
+
+theorem subnormal_accumulator_rejected :
+    outputBits subnormalAccumulator = .ok 0x3f800000 ∧
+    ((eftSnapshot subnormalAccumulator).map fun s =>
+      (s.extractionExponent, s.scalarPredicate, s.scalarBits, s.tceftBits)) =
+      .ok (-23, false, some 0x3f800000, none) ∧
+    ((snapshot subnormalAccumulator).map fun s => s.correctedBits) = .ok (some 0x3f800001) := by
+  decide +kernel
 
 end TensorCore.Regression

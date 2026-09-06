@@ -272,9 +272,12 @@ def InstructionPath.schedule (p : InstructionPath) (pairs : List (F16 × F16)) :
     List (List (p.profile.Word × p.profile.Word)) :=
   chunks p.products p.groups pairs
 
+/-- Execute the instruction. Inputs that are not exactly `k` pairs are rejected; nothing is
+padded or discarded. -/
 def InstructionPath.run (p : InstructionPath) (c : F32) (pairs : List (F16 × F16)) :
     Except ModelError (List BlockTrace) :=
-  runBlocks p.profile c (p.schedule pairs)
+  if pairs.length != p.k then .error .wrongProductCount
+  else runBlocks p.profile c (p.schedule pairs)
 
 /-- The instruction's FP32 result: the last group's output, or the accumulator input when
 there are no groups. `none` when a group is rejected by the finite model. -/
@@ -294,30 +297,52 @@ theorem InstructionPath.schedule_flatten (p : InstructionPath) (pairs : List (F1
   rw [h]
   exact (Nat.div_mul_cancel p.kDiv).symm
 
-/-- Conformance of a device function to the modeled path on every `k`-wide input. This is the
-hardware premise; no theorem below asserts it. -/
+/-- Conformance of a device function to the modeled path on the model's accepted domain:
+whenever the model produces an output, the device produces the same bits. Inputs the finite
+model rejects (wrong width, nonfinite operands, out-of-range accumulators) are outside the
+modeled domain and leave the device unconstrained. This is the hardware premise; no theorem
+below asserts it for any device. -/
 def Conforms (p : InstructionPath) (device : F32 → List (F16 × F16) → Option F32) : Prop :=
-  ∀ c pairs, pairs.length = p.k → device c pairs = p.output c pairs
+  ∀ c pairs out, p.output c pairs = some out → device c pairs = some out
+
+theorem InstructionPath.run_length (p : InstructionPath) (c : F32) (pairs : List (F16 × F16))
+    (ts : List BlockTrace) (h : p.run c pairs = .ok ts) : pairs.length = p.k := by
+  unfold InstructionPath.run at h
+  split at h
+  · contradiction
+  · rename_i hne
+    simpa using hne
+
+theorem InstructionPath.run_blocks (p : InstructionPath) (c : F32) (pairs : List (F16 × F16))
+    (ts : List BlockTrace) (h : p.run c pairs = .ok ts) :
+    runBlocks p.profile c (p.schedule pairs) = .ok ts := by
+  unfold InstructionPath.run at h
+  split at h
+  · contradiction
+  · exact h
 
 /-- Under conformance, a device result is the model's last group output and satisfies the
 composed uncorrected error bound against the original-input ideal. -/
 theorem conforms_uncorrected_error (p : InstructionPath)
     (device : F32 → List (F16 × F16) → Option F32) (h : Conforms p device) (initial : Finite32)
-    (pairs : List (F16 × F16)) (hlen : pairs.length = p.k) (ts : List BlockTrace)
+    (pairs : List (F16 × F16)) (ts : List BlockTrace)
     (hrun : p.run initial.bits pairs = .ok ts) (products : Rat)
     (hi : idealProducts p.profile pairs = some products) :
     device initial.bits pairs = some (lastOutput initial ts).bits ∧
     absQ (initial.value + products - (lastOutput initial ts).value) ≤
       sumQ (ts.map BlockTrace.errorBudget) := by
+  have hlen := p.run_length _ _ _ hrun
+  have hblocks := p.run_blocks _ _ _ hrun
   constructor
-  · rw [h initial.bits pairs hlen]
+  · apply h
     unfold InstructionPath.output
     rw [hrun]
     show some ((ts.getLast?.map fun t => t.output.bits).getD initial.bits) = _
     rw [lastOutput_bits]
   · have hi' : idealContributions p.profile (p.schedule pairs) = some products := by
       rw [idealContributions_flatten, p.schedule_flatten pairs hlen, hi]
-    exact (runBlocks_uncorrected_error p.profile initial (p.schedule pairs) ts products hrun hi').1
+    exact (runBlocks_uncorrected_error p.profile initial (p.schedule pairs) ts products hblocks
+      hi').1
 
 /-- A `k`-wide input whose products beyond the first group are zero pairs returns the first
 group's output: every later group passes the accumulator through. Published single-group
@@ -345,8 +370,11 @@ theorem single_group_output (p : InstructionPath) (hfl : ∀ f ∈ p.floor, f �
     simp only [Nat.add_sub_cancel]
   obtain ⟨ts, hts, hlast⟩ := runBlocks_zero_groups p.products p.extraBits p.floor hfl
     (p.groups - 1) t.output.bits t.output (finite32_self t.output) hneg
+  have hlenpad : (g ++ List.replicate (p.k - p.products) (0, 0)).length = p.k := by
+    simp only [List.length_append, List.length_replicate, hg]
+    omega
   unfold InstructionPath.output InstructionPath.run
-  rw [hsched]
+  rw [if_neg (by rw [hlenpad]; simp), hsched]
   simp only [runBlocks, h1, hts]
   cases ts with
   | nil => rfl

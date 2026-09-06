@@ -34,8 +34,16 @@ theorem ampere_instruction_order_matters :
       ((0x0001, 0x3c00) :: zeros 7 ++ (0xbc00, 0x3c00) :: zeros 7) = some 0 := by
   decide +kernel
 
-/-- Wrong operand count: a k = 16 path fed 15 pairs is rejected by the last group. -/
+/-- Operand counts other than `k` are rejected in either direction: fifteen pairs, seventeen
+pairs, and sixteen pairs followed by an infinity are all refused, so no operand is padded or
+discarded. Sixteen pairs with an infinity in the last position are refused by the last
+group. Exactly sixteen finite pairs are accepted. -/
 theorem instruction_wrong_width :
-    v100Wmma16.output 0 (List.replicate 15 (0x3c00, 0x3c00)) = none := by decide +kernel
+    v100Wmma16.output 0 (List.replicate 15 (0x3c00, 0x3c00)) = none ∧
+    v100Wmma16.output 0 (List.replicate 17 (0x3c00, 0x3c00)) = none ∧
+    v100Wmma16.output 0 (List.replicate 16 (0x3c00, 0x3c00) ++ [(0x7c00, 0x3c00)]) = none ∧
+    v100Wmma16.output 0 (List.replicate 15 (0x3c00, 0x3c00) ++ [(0x7c00, 0x3c00)]) = none ∧
+    v100Wmma16.output 0 (List.replicate 16 (0x3c00, 0x3c00)) = some 0x41800000 := by
+  decide +kernel
 
 end TensorCore.Regression

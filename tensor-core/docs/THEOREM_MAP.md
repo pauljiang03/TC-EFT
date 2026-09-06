@@ -56,7 +56,8 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Executable representability implies representability | `representable32_finite` | proved |
 | IV.9–IV.10: under the predicate the scalar branch computes `RN(S)` | `scalarCorrected_eq` | Predicate on the actual components; proved |
 | Corollary IV.11: the scalar branch is correctly rounded | `scalarCorrected_correct` | proved |
-| Algorithm 1 equals the exact-rational reference on both branches | `tceft_eq_corrected`, `tceft_correct`, `evalBlock_tceft_correct` | Ideal in range; proved |
+| Lemmas IV.3–IV.4: a coarse low part is its retained part on the alignment grid plus the alignment residual; `ε_o = Σ φ(εᵢ) − r_out` | `truncGrid_split`, `accumulator_eq_retained`, `overlap_eq_retained_sub_outputResidual` | Any trace; proved |
+| The scalar EFT returns a result exactly when its predicate holds; every result is correctly rounded and equals the exact-rational reference | `tceft_isSome_iff`, `tceft_correct`, `tceft_eq_corrected`, `evalBlock_tceft_correct` | proved |
 
 ## Non-monotonicity (TC-EFT §III)
 
@@ -67,6 +68,9 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Theorem III.4 | `nonmonotone_perturbation` | `K < 2^(24+p)` products `2^-(24+p)` with raw scale ≤ −1; output rises iff `K ≥ 3·2^p`; proved |
 | Encoded-operand form on the canonical family | `prepareProducts_replicate`, `nonmonotone_encoded` | Any `K`, `p`, floor ≤ −1; proved |
 | Source-path families | `nonmonotone_v100_family`, `nonmonotone_ampere_family`, `nonmonotone_hopper_family` | Thresholds 3, 6, 12; proved |
+| Floor of a natural number scaled by `2^-d` | `floor_eq_of_bounds`, `floor_natCast_mul_pow2_neg` | proved |
+| Theorem III.5: with `c_j = 1 − j·2^-24`, the output rises iff `(j + 2)·2^p ≤ K`; output `1 + 2^-23·⌊(K − j·2^p)/2^(p+1)⌋` when `j·2^p ≤ K`; maximum at `j = 1` | `construction_accumulator_range`, `nonmonotone_range`, `nonmonotone_range_iff` | `1 ≤ j ≤ 2^23`, same family as III.4; proved |
+| Encoded form: `c_j` has bits `3f800000 − j` | `decode32_below`, `nonmonotone_range_encoded`, `nonmonotone_range_v100_family`, `nonmonotone_range_ampere_family`, `nonmonotone_range_hopper_family` | proved |
 
 ## Generalized invocation evaluator
 
@@ -88,7 +92,8 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Zero-value encodings other than `−0` are `+0` | `zero_value_bits` | proved |
 | Contiguous grouping of an instruction's operands | `chunks_flatten`, `chunks_first_group`, `chunks_replicate`, `InstructionPath.schedule_flatten` | `N_FMA ∣ k`; proved |
 | A group of zero products passes its accumulator through | `zero_products_eta`, `zero_products_passthrough`, `runBlocks_zero_groups` | Finite accumulator other than `−0`; floors at most −126; proved |
-| Under conformance, a device result is the model's last group output and obeys the composed error bound | `conforms_uncorrected_error` | `Conforms path device` as an explicit premise; proved |
+| An instruction runs on exactly `k` operands | `InstructionPath.run_length`, `InstructionPath.run_blocks` | Other counts are rejected; proved |
+| Under conformance, a device result is the model's last group output and obeys the composed error bound | `conforms_uncorrected_error` | `Conforms path device` (agreement on the model's accepted domain) as an explicit premise; proved |
 | Single-group inputs reproduce the first group's output on the whole instruction | `single_group_output` | First group's output not `−0`; proved |
 | Pinned paths | `v100Wmma16` (4 × 4), `ampereWmma16` (2 × 8), `hopperWmma16` (1 × 16) | Descriptors with sources; `tc_instruction` refuses other names |
 
@@ -117,9 +122,9 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Machine width changes the result when undersized | `Regression.machine_width_changes_result`, `signed_capacity_prefix` |
 | Ampere, Hopper, and a non-hardware profile evaluate | `Regression.canonical_profile_results` |
 | Two-invocation cancellation and correction; partition order changes output | `Regression.two_block_cancellation`, `two_block_corrected`, `partition_original_order`, `partition_order_changes_output`, `partition_error_contract`, `constructed_partition_*` |
-| EFT on R2, R3, the paper's cancellation example, and a predicate failure | `Regression.r2_eft`, `r3_eft`, `cancellation_eft`, `predicate_fallback` |
-| TC-EFT Table III witnesses and below-threshold monotone cases | `Regression.v100_nonmonotonicity_witness`, `table_iii_witnesses`, `below_threshold_monotone` |
-| Instruction paths: padded single group equals one group, two Ampere groups, one Hopper group, group order observable, wrong width rejected | `Regression.v100_instruction_single_group`, `ampere_instruction_two_groups`, `hopper_instruction_one_group`, `ampere_instruction_order_matters`, `instruction_wrong_width` |
+| EFT on R2, R3, the paper's cancellation example, and two predicate rejections | `Regression.r2_eft`, `r3_eft`, `cancellation_eft`, `predicate_rejected`, `subnormal_accumulator_rejected` |
+| TC-EFT Table III witnesses, below-threshold monotone cases, III.5 ranges and extrema | `Regression.v100_nonmonotonicity_witness`, `table_iii_witnesses`, `below_threshold_monotone`, `range_witnesses`, `range_extrema_k5` |
+| Instruction paths: padded single group equals one group, two Ampere groups, one Hopper group, group order observable, wrong width rejected in both directions | `Regression.v100_instruction_single_group`, `ampere_instruction_two_groups`, `hopper_instruction_one_group`, `ampere_instruction_order_matters`, `instruction_wrong_width` |
 | Generated DSL correctness and intended elaboration | `Regression.cancellation_program_correct`, `repeated_program_correct`, `zero_iterations_correct`, `symbolic_cycle_correct`, `nested_program_order`, `rejected_program_location`, `final_range_rejected` |
 
 Next targets are listed in [PLAN.md](PLAN.md); no placeholder declaration stands in for them.

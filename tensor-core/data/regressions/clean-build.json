@@ -38,8 +38,8 @@
       "examples/LongDotProduct.lean"
     ]
   ],
-  "targets_built": 118,
-  "audit": "606 theorem roots audited (343 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 120,
+  "audit": "636 theorem roots audited (372 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [

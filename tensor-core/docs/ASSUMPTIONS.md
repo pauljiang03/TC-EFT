@@ -3,8 +3,8 @@
 ## Proof checking
 
 `python3 scripts/check_axioms.py` runs `Audit.lean`, whose `tc_audit` command enumerates
-every theorem in the `TensorCore` namespace from the compiled environment (606 constants,
-343 written in source, the rest generated structural lemmas) and prints the axioms each
+every theorem in the `TensorCore` namespace from the compiled environment (636 constants,
+372 written in source, the rest generated structural lemmas) and prints the axioms each
 depends on. The command fails if any theorem uses an axiom outside `propext`,
 `Classical.choice`, and `Quot.sound`. The verbatim output is [axioms.txt](axioms.txt). The
 script also fails if any Lean source in the library, executables, or examples mentions
@@ -40,12 +40,15 @@ are part of the audit. `tc_inspect` and `tc_instruction` evaluate for diagnostic
   final uncorrected error by the sum of the traces' local budgets; the budgets depend on the
   actual traces, not on a static input analysis. `OrderedPartition` is a supplied contiguous
   grouping; nothing infers a hardware grouping or justifies permuting groups.
-- `InstructionPath` fixes a contiguous increasing-k grouping and its source. `Conforms path
-  device` is a definition, not a theorem: it states that a device function agrees with the
-  path on every k-wide input, and every result about a device takes it as a premise.
-  `single_group_output` and `zero_products_passthrough` hold for finite accumulators other
-  than `−0` and for floors at most −126; a zero group turns `−0` into `+0` in the model, and
-  the device behavior for that case is not established.
+- `InstructionPath` fixes a contiguous increasing-k grouping and its source.
+  `InstructionPath.run` rejects any operand list whose length is not `k`; nothing is padded
+  or discarded. `Conforms path device` is a definition, not a theorem: it states that
+  whenever the model produces an output, the device produces the same bits. Inputs the model
+  rejects (wrong operand count, nonfinite operands, out-of-range accumulators) are outside the
+  modeled domain and do not constrain the device. Every result about a device takes
+  `Conforms` as a premise. `single_group_output` and `zero_products_passthrough` hold for
+  finite accumulators other than `−0` and for floors at most −126; a zero group turns `−0`
+  into `+0` in the model, and the device behavior for that case is not established.
 - `FiniteValue32` is the arithmetic form of finite FP32 values; `value32_finite` and
   `finiteValue32_abs_le` place every such value in range. `round32_nearestEven_correct`
   proves finite output, nearest value, and even parity at ties for every rational in range.
@@ -56,14 +59,26 @@ are part of the audit. `tc_inspect` and `tc_instruction` evaluate for diagnostic
   `naiveSum32_exact` is stated for grid exponents `-149 ≤ ℓ ≤ 104`, which covers every grid
   a term or output quantum of this model can have; the paper's explicit range condition is
   then implied by the coefficient bound. `scalarPredicate` decides the hypotheses of
-  Theorem IV.9, Lemma IV.10, and Corollary IV.11 on the actual components, including
-  representability of `D`, `ε_o`, and `H`. `tceft_correct` needs the ideal sum in range.
-  The theorems concern the left-to-right naive summation on values; no machine extraction
-  of the residuals is modeled.
+  Theorem IV.9, Lemma IV.10, and Corollary IV.11 on the actual components: the common grid,
+  the coefficient bound, representability of `D`, `ε_o`, and `H`, and the range of the
+  component sum `H + Σ εᵢ`. It never evaluates the exact ideal. `tceft` returns a result only
+  when the predicate holds (`tceft_isSome_iff`), and `tceft_correct` proves every result is
+  the correctly rounded exact sum. The predicate is sufficient, not necessary: a rejected
+  input is a failure of the procedure, and the exact-rational `corrected` reference is a
+  separate specification, not a substitute. Lemmas IV.3–IV.4 are `truncGrid_split`,
+  `accumulator_eq_retained`, and `overlap_eq_retained_sub_outputResidual`: each coarse low
+  part splits into its retained part on the alignment grid and the alignment residual, and
+  `ε_o` is the retained low sum minus the output residual. The theorems concern the
+  left-to-right naive summation on values; no machine extraction of the residuals is
+  modeled.
 - `nonmonotone_perturbation` fixes `c = 1`, `c' = 1 − 2^-24`, and `K` equal products of
   value `2^-(24+p)` with raw scale at most `−1`, for any profile with `F = 23 + p` and a
   floor at most `−1`, and `K < 2^(24+p)`. It is a theorem about this family only; a profile
-  where the construction fails is not thereby proved monotone.
+  where the construction fails is not thereby proved monotone. `nonmonotone_range` extends
+  it to `c_j = 1 − j·2^-24` for `1 ≤ j ≤ 2^23`: the output exceeds `1` exactly when
+  `(j + 2)·2^p ≤ K`, equals `1 + 2^-23·⌊(K − j·2^p)/2^(p+1)⌋` whenever `j·2^p ≤ K`, and never
+  exceeds the `j = 1` value. `nonmonotone_range_iff` rewrites the condition as
+  `j ≤ min(2^23, ⌊K/2^p⌋ − 2)`; `decode32_below` connects `c_j` to the bits `3f800000 − j`.
 - `fp16Fp32_contract` quantifies over the product count and the extra alignment bits.
   `canonical_eta_floor_inactive` shows floors at or below −126 never change the alignment
   exponent for FP16 operands and FP32 c. The padding thresholds are sufficient, not minimal;
@@ -90,8 +105,7 @@ contain almost no zero or subnormal operands or c, and none reach the BF16/TF32 
 floors. No GPU was used by this project, and the TC-EFT paper's historical 100-case V100
 experiment is not evidence for this implementation.
 
-Not proved: rounding correctness for any output format other than FP32, the overlap lemmas
-IV.3–IV.4 in coarse-component form, Theorem III.5, an efficient residual extractor,
-boundary operators other than the encoded FP32 boundary, and conformance of any BF16, TF32,
-FP8, FP16-output, or FP64 specification. No placeholder declaration stands in for these. See
-[PLAN.md](PLAN.md).
+Not proved: rounding correctness for any output format other than FP32, an efficient
+residual extractor, boundary operators other than the encoded FP32 boundary, and conformance
+of any BF16, TF32, FP8, FP16-output, or FP64 specification. No placeholder declaration stands
+in for these. See [PLAN.md](PLAN.md).

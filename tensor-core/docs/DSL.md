@@ -74,8 +74,9 @@ statement. `runLocated_erases` proves diagnostics cannot change execution, and
 its inner dimension, products per group, extra alignment bits, floor, groups per instruction,
 and the source of those parameters. The pinned names are `v100-wmma-k16`, `ampere-wmma-k16`,
 and `hopper-wmma-k16`; any other name is refused, because naming a path gives it no
-semantics. The theorems about a path (`single_group_output`, `conforms_uncorrected_error`)
-take hardware conformance as an explicit premise.
+semantics. A path runs on exactly `k` operand pairs and rejects any other count. The
+theorems about a path (`single_group_output`, `conforms_uncorrected_error`) take hardware
+conformance on the model's accepted domain as an explicit premise.
 
 Lean 4.33.1 ships `mvcgen`/`vcgen` with Hoare-style specification databases and loop
 invariant support. This fragment applies the schedule theorems directly instead of adding a

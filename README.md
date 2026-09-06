@@ -39,12 +39,12 @@ Every theorem is checked by the Lean kernel. The complete contract → declarati
 | Nearest-even FP32 conversion is correct for every rational in range | `round32_nearestEven_correct` |
 | Contract for any product count and extra alignment bits, with a modular signed-word accumulator returning the same complete result | `fp16Fp32_contract`, `fp16Fp32_machine_eq` |
 | Exact accepted domain; floors at or below −126 inactive; padding thresholds that make alignment exact | `evalBlock_success_iff`, `canonical_eta_floor_inactive`, `canonical_source_padding_exact` |
-| Scalar EFT: naive FP32 summation is exact under the coefficient bound, and Algorithm 1's scalar branch returns the correctly rounded dot product (TC-EFT IV.7–IV.11) | `naiveSum32_exact`, `scalarCorrected_correct`, `tceft_correct` |
-| Non-monotonicity as a theorem over `K` and padding `p`: lowering the accumulator from `1` to `1 − 2^-24` raises the output exactly when `K ≥ 3·2^p` (TC-EFT III.4) | `nonmonotone_perturbation`, `nonmonotone_encoded` |
+| Scalar EFT: naive FP32 summation is exact under the coefficient bound; the scalar EFT returns a result only when its predicate holds, and every result is the correctly rounded dot product (TC-EFT IV.3–IV.4, IV.7–IV.11) | `naiveSum32_exact`, `truncGrid_split`, `tceft_isSome_iff`, `tceft_correct` |
+| Non-monotonicity as a theorem over `K` and padding `p`: lowering the accumulator from `1` to `1 − 2^-24` raises the output exactly when `K ≥ 3·2^p` (TC-EFT III.4), and lowering it to `1 − j·2^-24` does so exactly for `1 ≤ j ≤ min(2^23, ⌊K/2^p⌋ − 2)`, with the output increase largest at `j = 1` (III.5) | `nonmonotone_perturbation`, `nonmonotone_encoded`, `nonmonotone_range_encoded` |
 | Exact residual ledger over any finite chain through encoded FP32 boundaries; composed uncorrected error bound; machine equivalence through schedules | `runBlocks_residual_ledger`, `runBlocks_uncorrected_error`, `fp16Fp32_schedule_machine_eq` |
 | Ordered partition of a long dot product with proved ideal preservation and tail padding | `OrderedPartition.uncorrected_error`, `canonicalPartition_ideal` |
 | Decoder/encoder round trip: converting a nonzero finite value returns its own bits; nonzero values have unique encodings | `value32_round32`, `value32_injective` |
-| Instruction paths: contiguous increasing-k grouping, zero groups pass the accumulator through, single-group inputs reproduce one group, and the composed error bound holds for any device that conforms | `single_group_output`, `conforms_uncorrected_error` |
+| Instruction paths: exactly `k` operands, contiguous increasing-k grouping, zero groups pass the accumulator through, single-group inputs reproduce one group, and the composed error bound holds for any device that agrees with the model on its accepted domain | `single_group_output`, `conforms_uncorrected_error` |
 | Program checker soundness | `Program.vc_sound` |
 | R1–R4, Table III, EFT examples, rounding boundaries, rejections | `Regression.*` |
 
@@ -68,7 +68,7 @@ evaluator (`decide +kernel`).
   an unrelated earlier error does not roll back a later verification, the three pinned
   instruction paths print their parameters, and an unsourced path name is refused.
 - `scripts/check_axioms.py`: every theorem in the `TensorCore` namespace, enumerated from the
-  compiled environment (606 constants, 343 written in source, the rest generated structural
+  compiled environment (636 constants, 372 written in source, the rest generated structural
   lemmas), depends only on `propext`, `Classical.choice`, and `Quot.sound`; no Lean source
   contains `sorry`, `axiom`, `native_decide`, or compiled reflection.
 

@@ -59,15 +59,16 @@ with zero pairs, with the original ideal preserved by proof; `runCanonicalDot` e
 
 `InstructionPath` (`Programs/Instruction.lean`) pins one instruction: name, `k`, `N_FMA`,
 extra alignment bits, floor, and the source of those parameters, with `N_FMA ∣ k`. Its
-schedule is `k / N_FMA` contiguous groups in increasing k (`chunks`), and `output` is the last
-group's FP32 bits. Three paths are pinned: `v100Wmma16` (four groups of four),
+schedule is `k / N_FMA` contiguous groups in increasing k (`chunks`), `run` rejects any
+operand list whose length is not `k`, and `output` is the last group's FP32 bits. Three paths are pinned: `v100Wmma16` (four groups of four),
 `ampereWmma16` (two of eight), and `hopperWmma16` (one of sixteen). The command
 `tc_instruction "ampere-wmma-k16"` prints a pinned path and refuses any other name.
 
-Hardware enters only as a premise. `Conforms path device` says a device function agrees
-with `path.output` on every k-wide input; `conforms_uncorrected_error` then gives, for that
-device, the model's last-group output and the composed error bound against the
-original-input ideal. No theorem asserts `Conforms` for any real GPU.
+Hardware enters only as a premise. `Conforms path device` says that whenever `path.output`
+produces bits for an input, the device produces the same bits; inputs the model rejects leave
+the device unconstrained. `conforms_uncorrected_error` then gives, for that device, the
+model's last-group output and the composed error bound against the original-input ideal. No
+theorem asserts `Conforms` for any real GPU.
 
 Two facts make the published vectors meaningful for whole instructions.
 `zero_products_passthrough` proves a group of zero products returns its accumulator input

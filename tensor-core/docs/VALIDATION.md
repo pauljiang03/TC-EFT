@@ -32,19 +32,28 @@ extraction grid `2^-20`, one low part `15·2^-24`, zero overlap, and the scalar 
 `41080000`. The TC-EFT §V-D cancellation example returns `449fbe50` with low parts `5/16384`
 and `15/8192`, and the scalar branch resolves the tie to `449fbe62`. A block with three
 products near 128 next to a `2^-48` product exceeds the coefficient budget, so the predicate
-fails and Algorithm 1 takes the exact-dyadic branch, returning `4e800003`.
+fails, the scalar EFT returns nothing, and only the exact-rational reference gives
+`4e800003`. A subnormal accumulator `2^-149` with products `1` and `2^-24` returns
+`3f800000`; the exact sum rounds to `3f800001`, naive FP32 summation of the low parts would
+lose `2^-149` and the scalar branch would return `3f800000`, and the predicate rejects the
+case.
 
 Non-monotonicity: `K = 8` Ampere products `2^-12 · 2^-13` and `K = 16` Hopper products
 `2^-12 · 2^-14` raise the output from `3f800000` to `3f800001` when c drops from `3f800000`
 to `3f7fffff` (TC-EFT Table III); `K = 2` on V100 and `K = 11` on Hopper, below the
-`3·2^p` thresholds, stay at `3f800000`.
+`3·2^p` thresholds, stay at `3f800000`. Theorem III.5 ranges: on the source widths
+`K = 4, 8, 16` the witness range is `1 ≤ j ≤ 2`, so `c_2 = 3f7ffffe` still returns
+`3f800001` and `c_3 = 3f7ffffd` returns `3f800000`. The paper's `K = 5`, `p = 0` example
+returns `3f800002` at `j = 1`, `3f800001` at `j = 3`, and `3f800000` at `j = 4`.
 
 Instruction paths: R3's four products padded with twelve zero pairs give `4107ffff` on the
 whole V100 k = 16 path, the same as the single group; sixteen ones give `41800000` on both
 the two-group Ampere path and the one-group Hopper path; on the Ampere path, cancelling the
 accumulator `1` in the first group and adding `2^-24` in the second returns `33800000`, while
-the reverse order returns `0` for the same exact dot product; and fifteen pairs on a k = 16
-path are rejected.
+the reverse order returns `0` for the same exact dot product. On a k = 16 path, fifteen
+pairs, seventeen pairs, and sixteen pairs followed by an infinity are all rejected, so no
+operand is padded or discarded; an infinity in the sixteenth position is rejected by the
+last group.
 
 The converter proof is separate from these cases: `round32_nearestEven_correct` holds for all
 rational inputs with magnitude at most `maxFinite32`.
