@@ -7,10 +7,10 @@ def Format.WellFormed (f : Format) : Prop := 0 < f.fractionBits ∧ 1 < f.expone
 
 instance (f : Format) : Decidable f.WellFormed := inferInstanceAs (Decidable (_ ∧ _))
 
-def bf16 : Format := ⟨7, 8, 127⟩
+@[implicit_reducible] def bf16 : Format := ⟨7, 8, 127⟩
 /-- Packed mathematical TF32 value format; register storage is defined separately. -/
-def tf19 : Format := ⟨10, 8, 127⟩
-def fp64 : Format := ⟨52, 11, 1023⟩
+@[implicit_reducible] def tf19 : Format := ⟨10, 8, 127⟩
+@[implicit_reducible] def fp64 : Format := ⟨52, 11, 1023⟩
 def e5m2 : Format := ⟨2, 5, 15⟩
 
 inductive SpecialEncoding where

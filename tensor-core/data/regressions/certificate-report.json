@@ -14,7 +14,7 @@
   "prior_error_does_not_roll_back": true,
   "supplied_proof_compiles": true,
   "example_compiles": true,
-  "example_elaboration_wall_seconds": 0.525845,
+  "example_elaboration_wall_seconds": 0.518229,
   "executable_dependency_checks": 3,
   "dependency_negative_control": true,
   "concrete_path": "Exact ideal prefixes, no model execution or residual ledger",

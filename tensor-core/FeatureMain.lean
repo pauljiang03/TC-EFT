@@ -2,6 +2,7 @@ import TensorCore.Semantics.Profiles
 import TensorCore.Semantics.Canonical
 import TensorCore.Programs.Partition
 import TensorCore.Applications.BoundedDot
+import TensorCore.Semantics.CanonicalFormats
 import Lean
 
 open TensorCore Lean
@@ -95,6 +96,48 @@ private def dotJson (K extra : Nat) (floor : Option Int) (ns : List Nat) : Optio
       | none => return failure .nonfiniteInput
   else none
 
+private def parseProfilePairs (p : Profile) : List Nat → Option (List (p.Word × p.Word))
+  | [] => some []
+  | a :: b :: rest => do
+    if a ≥ 2 ^ p.input.width || b ≥ 2 ^ p.input.width then none
+    else return (BitVec.ofNat _ a, BitVec.ofNat _ b) :: (← parseProfilePairs p rest)
+  | _ => none
+
+/-- Evaluate one block through a proved profile rather than through a descriptor. -/
+private def profileJson (p : Profile) (ps : List (p.Word × p.Word)) (c : Nat) : Json :=
+  let x : BlockInput p := ⟨ps, BitVec.ofNat 32 c⟩
+  match evalBlock x with
+  | .error e => Json.mkObj [("error", toJson (reprStr e))]
+  | .ok t => Json.mkObj [
+    ("bits", toJson t.output.bits.toNat), ("value", toJson (qText t.output.value)),
+    ("ideal", toJson (qText t.block.exactDot)), ("residual", toJson (qText t.residual)),
+    ("accumulated", toJson (qText t.block.accumulator))]
+
+private def bf16Json (K extra : Nat) (floor : Option Int) (ns : List Nat) : Option Json := do
+  let c ← ns.getLast?
+  if c ≥ 2 ^ 32 then none else do
+    let ps ← parseProfilePairs (bf16Fp32Profile K extra floor) ns.dropLast
+    return profileJson (bf16Fp32Profile K extra floor) ps c
+
+/-- TF32 register words: the thirteen low bits must be zero, then the value word is used. -/
+private def tf32Json (K extra : Nat) (floor : Option Int) (ns : List Nat) : Option Json := do
+  let c ← ns.getLast?
+  if c ≥ 2 ^ 32 then none else do
+    let words ← parseFp32Words ns.dropLast
+    if words.any (fun w => !tf32Padded w) then
+      return Json.mkObj [("error", toJson "invalidPadding")]
+    else
+      let ps := tf32UnpackPairs (pairUp words)
+      return profileJson (tf19Fp32Profile K extra floor) ps c
+where
+  parseFp32Words : List Nat → Option (List tf32Register.Word)
+    | [] => some []
+    | w :: rest => do
+      if w ≥ 2 ^ 32 then none else return (BitVec.ofNat _ w) :: (← parseFp32Words rest)
+  pairUp : List tf32Register.Word → List (tf32Register.Word × tf32Register.Word)
+    | a :: b :: rest => (a, b) :: pairUp rest
+    | _ => []
+
 private def command (args : List String) : Option Json := do
   match args with
   | ["round", fmt, n, d] =>
@@ -122,6 +165,18 @@ private def command (args : List String) : Option Json := do
     let floor ← if floorText = "none" then some none else floorText.toInt? |>.map some
     let ns ← words.mapM String.toNat?
     invocationJson (fp16Fp32Invocation K E floor) ns
+  | "bf16" :: k :: extra :: floorText :: words =>
+    let K ← k.toNat?
+    let E ← extra.toNat?
+    let floor ← if floorText = "none" then some none else floorText.toInt? |>.map some
+    let ns ← words.mapM String.toNat?
+    bf16Json K E floor ns
+  | "tf32" :: k :: extra :: floorText :: words =>
+    let K ← k.toNat?
+    let E ← extra.toNat?
+    let floor ← if floorText = "none" then some none else floorText.toInt? |>.map some
+    let ns ← words.mapM String.toNat?
+    if ns.dropLast.length % 2 != 0 then none else tf32Json K E floor ns
   | "dot" :: k :: extra :: floorText :: words =>
     let K ← k.toNat?
     let E ← extra.toNat?

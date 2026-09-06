@@ -4,7 +4,7 @@ namespace TensorCore
 
 /-- Source-backed FP32-output families. These describe one arithmetic group;
 profile names do not assert instruction mapping or independent device conformance. -/
-def alignedInvocation (input : OperandEncoding) (K F : Nat) (floor : Option Int) : InvocationSpec :=
+@[implicit_reducible] def alignedInvocation (input : OperandEncoding) (K F : Nat) (floor : Option Int) : InvocationSpec :=
   ⟨input, fp32, K, .aligned F floor .inGroup, [], ⟨fp32, .towardZero⟩⟩
 
 def a100F16Invocation : InvocationSpec := alignedInvocation (packedIEEE fp16) 8 24 (some (-132))

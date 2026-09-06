@@ -94,8 +94,8 @@
       "examples/Verify.lean"
     ]
   ],
-  "targets_built": 148,
-  "audit": "772 theorem roots audited (471 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 160,
+  "audit": "836 theorem roots audited (517 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [
@@ -218,38 +218,50 @@
   "format_evidence": {
     "A100-bf16": {
       "descriptor": "a100-bf16",
+      "profile": "bf16Fp32Profile 8 1 (-132)",
       "products": 8,
       "vectors": 5000,
       "model_errors": 0,
       "bit_mismatches": 0,
+      "profile_bit_mismatches": 0,
+      "descriptor_profile_disagreements": 0,
       "zero_or_subnormal_operands_or_c": 0
     },
     "A100-tf32": {
       "descriptor": "a100-tf32",
+      "profile": "tf32Fp32Profile 4 1 (-132)",
       "products": 4,
       "vectors": 5000,
       "model_errors": 0,
       "bit_mismatches": 0,
+      "profile_bit_mismatches": 0,
+      "descriptor_profile_disagreements": 0,
       "zero_or_subnormal_operands_or_c": 0
     },
     "H100-bf16": {
       "descriptor": "hopper-bf16",
+      "profile": "bf16Fp32Profile 16 2 (-133)",
       "products": 16,
       "vectors": 5000,
       "model_errors": 0,
       "bit_mismatches": 0,
+      "profile_bit_mismatches": 0,
+      "descriptor_profile_disagreements": 0,
       "zero_or_subnormal_operands_or_c": 0
     },
     "H100-tf32": {
       "descriptor": "hopper-tf32-wmma",
+      "profile": "tf32Fp32Profile 4 2 (-133)",
       "products": 4,
       "vectors": 5000,
       "model_errors": 0,
       "bit_mismatches": 0,
+      "profile_bit_mismatches": 0,
+      "descriptor_profile_disagreements": 0,
       "zero_or_subnormal_operands_or_c": 0
     },
-    "status": "Descriptor evidence for deferred formats; the alignment floors are not exercised by these rows and no rounding proof is claimed",
-    "method": "One descriptor evaluation per row, bitwise output comparison; no new GPU measurements"
+    "status": "Descriptor and proved-profile replay; the alignment floors are not exercised by these rows",
+    "method": "One descriptor and one profile evaluation per row, bitwise comparison with the device output and with each other; no new GPU measurements"
   },
   "canonical_example": true,
   "long_dot_product_example": true,
@@ -270,7 +282,7 @@
     "prior_error_does_not_roll_back": true,
     "supplied_proof_compiles": true,
     "example_compiles": true,
-    "example_elaboration_wall_seconds": 0.525845,
+    "example_elaboration_wall_seconds": 0.518229,
     "executable_dependency_checks": 3,
     "dependency_negative_control": true,
     "concrete_path": "Exact ideal prefixes, no model execution or residual ledger",
@@ -314,84 +326,84 @@
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.17157583000000032
+        "median_wall_ms_per_case": 0.17239625000000092
       },
       {
         "products": 1,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.1738087499999996
+        "median_wall_ms_per_case": 0.1775233399999998
       },
       {
         "products": 1,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.1817712500000002
+        "median_wall_ms_per_case": 0.1791241700000001
       },
       {
         "products": 16,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.18193833000000104
+        "median_wall_ms_per_case": 0.18854625000000014
       },
       {
         "products": 16,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.20432458000000042
+        "median_wall_ms_per_case": 0.20273499999999944
       },
       {
         "products": 16,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.2296891599999995
+        "median_wall_ms_per_case": 0.22672208000000027
       },
       {
         "products": 64,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.23921791999999997
+        "median_wall_ms_per_case": 0.24052583000000016
       },
       {
         "products": 64,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.3096791600000004
+        "median_wall_ms_per_case": 0.33441084000000115
       },
       {
         "products": 64,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.42499290999999945
+        "median_wall_ms_per_case": 0.43159582999999996
       },
       {
         "products": 256,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.4558937499999982
+        "median_wall_ms_per_case": 0.4593849999999988
       },
       {
         "products": 256,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.7822954199999986
+        "median_wall_ms_per_case": 0.7550520899999991
       },
       {
         "products": 256,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 1.0971241599999981
+        "median_wall_ms_per_case": 1.0883945799999983
       }
     ],
     "timing_scope": "Compiled CLI batches, including process startup, parsing and JSON; 1 warmup and 3 measured processes of 100 cases. Model path also computes its exact ideal and trace report. No extraction or GPU timing claim."
@@ -418,7 +430,7 @@
           "Audit.lean"
         ],
         "exit_code": 0,
-        "audit": "tc_audit: 772 theorem roots (471 written in source, the rest generated)"
+        "audit": "tc_audit: 836 theorem roots (517 written in source, the rest generated)"
       },
       {
         "command": [
@@ -443,7 +455,7 @@
         "exit_code": 0
       }
     ],
-    "scanned_lean_sources": 79,
+    "scanned_lean_sources": 85,
     "bounded_scope": "11-bit significand multiplication and 24-bit magnitude splitting, with exact truncation/residual refinement",
     "incomplete": [
       "Encoded decoder and extraction pipeline",
