@@ -16,15 +16,15 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Returned trace recovery | `returned_residual_identity`, `recovered_eq_exactDot` | Every well-typed trace; proved |
 | Encoded-input evaluator recovery | `evalBlock_residual_identity` | Successful `evalBlock x` under any profile; proved |
 | Correction and executable rounding agree | `corrected_eq_round_exactDot` | Substitution only |
-| Finite decoded values have bounded arithmetic form | `decode32_finite`, `value32_finite` | All finite FP32 encodings; proved |
+| Finite decoded values have bounded arithmetic form (TC-EFT Definition II.1 for FP32) | `decode32_finite`, `value32_finite` | All finite FP32 encodings; proved |
 | Bounded encoding value, parity, quantum | `encode32_toNat`, `encode32_value`, `encode32_quantum` | Explicit exponent, coefficient, and subnormal bounds; proved |
 | Nearest-even integer selection | `rneInt_nearest`, `rneInt_tie_even` | Every rational input and competing integer; proved |
 | Exponent selection | `magnitudeExponent_spec`, `magnitudeExponent_eq_of_bounds` | Every positive rational; proved |
 | Conversion bounds and carry | `convExp_bounds`, `convCoeff_bounds`, `carry_spec` | Positive finite-range magnitude and bounded coefficient; proved |
 | Converter returns its selected grid value | `round32_nonzero_spec` | Nonzero rational x in range, RTZ or RNE; proved |
-| Nearest-even FP32 correctness | `round32_nearestEven_correct`, `finalRound_correct` | Every rational x with `absQ x ≤ maxFinite32`; proved |
+| Nearest-even FP32 correctness (TC-EFT Definition II.2) | `round32_nearestEven_correct`, `finalRound_correct` | Every rational x with `absQ x ≤ maxFinite32`; proved |
 | Corrected block is correctly rounded | `corrected_correct`, `evalBlock_corrected_correct` | Successful evaluation and independent ideal in range; proved |
-| Output truncation loss; aggregate alignment loss; two-stage error | `output_residual_bound`, `block_alignment_bound`, `block_error_bound`, `evalBlock_error_bound` | `abs(S − d) < n·qA + qO`; proved |
+| Output truncation loss; aggregate alignment loss; two-stage error (TC-EFT Theorem III.1, `ϵD < n·qA + qD`) | `output_residual_bound`, `block_alignment_bound`, `block_error_bound`, `evalBlock_error_bound` | `abs(S − d) < n·qA + qO` with `abs(Aacc) ≤ maxFinite32`; proved |
 
 ## Parameterized family, accepted domain, machine width, padding
 

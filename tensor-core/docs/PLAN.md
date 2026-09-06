@@ -6,7 +6,8 @@ and prevent superficial fixes. The latest review independently reconfirmed the o
 and added scalar-predicate coverage measurements. Agent A has now implemented and validated
 the public-domain, certification, changing-state loop, and bounded-dot application work.
 The historical reviews below remain as evidence; current F-item statuses distinguish the
-delivered A track, B's completed milestones, and the combined integration.
+delivered A track, B's completed milestones, and the combined integration. The working
+order is now the papers-as-specification list below.
 
 ## Specification authority and completion scope
 
@@ -287,6 +288,54 @@ GPU fidelity remains empirical. No equivalence between this reference and the SM
 has been proved, and this repo does not reproduce their solver-based discovery workflow.
 These are concrete differences in proof scope and tooling, not a claim of overall
 superiority, firstness, or a new numerical error-analysis technique.
+
+## Priorities under the papers-as-specification scope
+
+Decided 6 September 2026 after the integration of `56fb8b8`. The goal is to formalize
+what the two papers state and know. The list below is the working order; the F items
+that follow are kept as the record of the reviews, and their acceptance criteria still
+apply to whichever of them is taken up.
+
+Coverage of the two papers as of `56fb8b8`, from their numbered results:
+
+| Source | Result | Status |
+| --- | --- | --- |
+| TC-EFT | Definitions II.1–II.2 (encoding, correct rounding) | Decoder and `round32_nearestEven_correct`; map by name |
+| TC-EFT | Theorem III.1, `ϵD < n·qA + qD` | `block_error_bound`; map by name |
+| TC-EFT | Definitions III.2–III.3, Equation 6 (monotonicity, flowback `ω`, `ΔA`) | Not formalized |
+| TC-EFT | Theorems III.4–III.5, Table III | Proved |
+| TC-EFT | Lemma IV.1, IV.3–IV.4, Theorem IV.5, Definition IV.6, Lemma IV.7, Theorems IV.8–IV.9, Lemma IV.10, Corollary IV.11 | Proved |
+| TC-EFT | Lemma IV.2 (overlap window width `τ`) | Implicit in `accumulator_eq_retained`; not a named theorem |
+| TC-EFT | Algorithm 1 (exact reference recovery with the scalar consolidation branch), Table V ledger | Exact reference `corrected` and guarded scalar `tceft` exist separately; not one named procedure |
+| Accurate Models | Block FMA model, FP16 → FP32 paths of Table 3 (V100, Ampere/Ada, Hopper/Blackwell) | Proved family, published vectors |
+| Accurate Models | BF16 and TF32 paths of Table 3 | Descriptors match vectors; no rounding proof |
+| Accurate Models | FP16 output, native and emulated FP8, late c, FP64 DMMA | Register items 1–5; not implemented or not proved |
+| Accurate Models | Algorithms 1–2, Tables 5–6 | Model-discovery method and mismatch rates; empirical, not formalization targets |
+
+Order of work:
+
+1. **TC-EFT completeness.** Name Theorem III.1 and Definitions II.1–II.2 in the theorem
+   map. Formalize Definition III.2 as a monotonicity predicate on the accumulator input,
+   Definition III.3 with the identity `A'acc = Aacc + ω − ΔA`, the encoded-output
+   condition of Equation 6, the necessity of `ω > ΔA` (from monotonicity of FP32
+   truncation in its real argument, a new lemma), and its sufficiency when both
+   accumulators are representable. State Lemma IV.2 as a named theorem. Present Algorithm 1
+   as one named procedure with both branches as the paper defines them, the exact
+   reference branch labeled as such, and record the Table V operation ledger. Whether the
+   exact branch belongs in the public procedure is the user's call; it is the paper's
+   definition, not a fallback added by this project.
+2. **Accurate Models breadth.** Prove rounding correctness of `roundBinary` parametrically
+   in the format, so the BF16, TF32, and FP16-output rows of Table 3 become proved families
+   on the vectors that already match. Resolve register items 1–4 from the paper and the
+   v0.5 source, not from hardware, recording the chosen reading; then implement the FP8
+   paths and the late-c boundary (the former F7) and the FP64 DMMA rounding proof. Map the
+   TF32 mma.sync K = 8 row.
+3. **F6, bounded extraction.** The paper's Algorithm 1 is an exact-dyadic reference with an
+   operation ledger; a bounded machine extractor is beyond its claims. Keep the proved
+   primitives and the coverage gate; continue only after items 1–2.
+4. **F4 tightening.** The application is beyond the papers; tighten its budget only when
+   the paper coverage above is complete.
+5. **F5, hardware.** Lowest priority and optional, as stated above.
 
 ## Master next steps, in order
 

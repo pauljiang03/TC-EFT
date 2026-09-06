@@ -84,7 +84,13 @@ intended rejections. Every encoded boundary and every error budget is compared w
 `Fraction` arithmetic, using the unpadded original bits for the ideal. Record:
 `data/regressions/dot-product-report.json`.
 
-## Three comparisons
+## Validation comparisons
+
+Accurate Models is the specification authority. Source-fidelity review, kernel
+proofs, independent software oracles, and regressions validate the formalization.
+Published-device replay is retained as supporting evidence and runs without GPU
+access. New GPU measurements are optional external validation of the source
+model's hardware correspondence, not an acceptance requirement for the Lean work.
 
 | Comparison | Evidence |
 | --- | --- |
@@ -196,15 +202,17 @@ Kernel regressions exercise all 256 gap encodings on six boundary/patterned
 magnitudes, the maximum 11-bit product, and a negative residual. The general
 primitive proofs do not establish a full extractor or correction-success family.
 
-## Targeted hardware preparation
+## Optional targeted hardware validation
 
 The 99 vectors in `data/hardware/inputs.json` cover multiple groups, later k
 positions, cancellation, ordering, signed zeros, and subnormals. `expected.json`
 contains unmeasured model expectations, independently checked during generation.
 `replay-self-test.json` records 12 synthetic replay checks and zero measured
-vectors. CUDA compilation and actual device measurements remain open.
+vectors. CUDA compilation and actual device measurements have not been performed;
+they are optional and do not block completion of the formalization.
 
-On a supported GPU host with `nvcc` and `cuobjdump`, run
+If external hardware validation is desired, on a supported GPU host with `nvcc`
+and `cuobjdump`, run
 `python3 hardware/run.py --profile A100 --out data/hardware/run-A100`, then
 `python3 scripts/replay_hardware.py data/hardware/run-A100/measurements.json`.
 Use `V100` or `H100` for those devices. Capture records include raw inputs/outputs,
@@ -236,3 +244,6 @@ and synthetic replay, and every standalone example. It publishes the reports and
 axiom listing from that same fresh run, preserving the historical A/B handoffs, and
 writes `data/regressions/clean-build.json`. With the pinned toolchain installed,
 no network access is needed.
+
+This entire software gate runs without a GPU. Hardware generation and synthetic
+replay test the prepared artifacts; actual device runs are outside the required gate.

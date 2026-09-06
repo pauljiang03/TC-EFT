@@ -5,6 +5,10 @@ exactly, converted once. A PTX or WMMA instruction can contain several groups, a
 product chains many instructions. This note records what the sources establish about how
 groups compose, what the Lean model does, and what remains.
 
+Accurate Models is the ground-truth specification. The required composition
+proofs follow its numerical choices and the pinned reference composition rule.
+Independently measuring real GPUs is optional external validation of those sources.
+
 ## What the sources establish
 
 1. **Instruction k versus N_FMA.** Accurate Models §2 defines N_FMA as the number of
@@ -36,12 +40,14 @@ groups compose, what the Lean model does, and what remains.
    on HMMA.16816: the 32 products split into two interleaved groups by alternating pairs, and
    c is added to the normalized product sum with RNE (§4.1.6, Fig. 5c). The paper's text
    describes two invocations; the MATLAB odd/even model instead aligns and adds the two
-   unnormalized group sums before normalization. A distinguishing vector is needed before
-   either is assigned to the hardware. FP64 DMMA has N_FMA = 1 and behaves as an IEEE FMA
+   unnormalized group sums before normalization. Reconcile this source discrepancy
+   before extending the formalization, with the paper as authority; a distinguishing
+   GPU vector would be optional external evidence. FP64 DMMA has N_FMA = 1 and behaves as an IEEE FMA
    chain `((c + p1) + p2) + …`, established by permuting operands (§4.1.2).
 6. **PTX specifies nothing here.** The PTX ISA states for these instructions that "the
    accumulation order, rounding, and handling of subnormal inputs is unspecified" (quoted in
-   Valpey et al., arXiv:2502.15999, §4). Grouping and order must come from measurement.
+   Valpey et al., arXiv:2502.15999, §4). This formalization takes grouping and order
+   from Accurate Models and its pinned reference; it does not require new measurements.
 7. **Earlier formal models.** Valpey et al. model an instruction as one accumulation of all k
    products in any order. The refinements in Accurate Models (N_FMA < k on Ampere/Ada,
    unnormalized products, exponent floors) show that abstraction is too coarse for those paths.
@@ -98,5 +104,6 @@ acceptance and an error bound can be certified without executing the model.
    elaborated to one instruction schedule per output cell, with a mapping theorem showing
    every `aᵢₗ·bₗⱼ` is used once with the right c. Reordering k or moving a group boundary is a
    different schedule; the DSL should make that a visible choice.
-3. **Measurement.** Run inputs like `ampere_instruction_order_matters` on the target GPUs and
-   record the results as `Conforms` evidence next to the descriptors.
+3. **Optional external measurement.** Inputs like `ampere_instruction_order_matters`
+   can be run on target GPUs and recorded as empirical conformance evidence. This
+   separate experiment is not required for the paper-based composition proofs.

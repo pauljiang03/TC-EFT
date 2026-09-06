@@ -131,7 +131,13 @@ dependency tests verify both paths' stated boundaries, separately from theorem a
   fragment. The checker runs finite schedules; `Program.repeat_vc_of_cycle` is one inductive
   rule with explicit premises.
 
-## Hardware and open obligations
+## Specification authority and optional hardware evidence
+
+Accurate Models v4 is the ground-truth specification for this project. The proof
+obligations concern faithful formalization of its semantics and the stated
+mathematical results. This choice of specification adds no Lean axiom asserting
+that a physical GPU conforms. New device measurements would separately assess
+the paper's hardware fidelity; they are optional and do not block completion.
 
 The profiles are interpretations of Accurate Models v4 and the v0.5 source. The
 correspondence between a profile and a device is empirical and outside the proofs. The
@@ -145,7 +151,9 @@ unmeasured model expectations; synthetic replay tests are not device measurement
 No GPU was used by this project, and the TC-EFT paper's historical 100-case V100
 experiment is not evidence for this implementation.
 
-Not proved: rounding correctness for any output format other than FP32, an efficient
-residual extractor, boundary operators other than the encoded FP32 boundary, and conformance
-of any BF16, TF32, FP8, FP16-output, or FP64 specification. No placeholder declaration stands
-in for these. See [PLAN.md](PLAN.md).
+Separate formal extensions remain: rounding correctness for output formats other
+than FP32, an efficient residual extractor, and additional boundary operators.
+Device conformance is not a required theorem for this paper-based formalization;
+any future hardware-transfer claim still takes it explicitly as a premise.
+No placeholder declaration stands in for the unfinished formal extensions.
+See [PLAN.md](PLAN.md).
