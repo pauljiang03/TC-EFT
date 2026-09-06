@@ -6,6 +6,12 @@ source of requirements and acceptance criteria; this file assigns ownership and 
 Nothing below is marked implemented. Both agents must read PLAN, including the rules against
 superficial fixes and the follow-up coverage measurements.
 
+Scope update, 6 September 2026: Accurate Models v4 is the ground-truth
+specification. Faithful Lean semantics, proofs, and software validation determine
+completion. New GPU measurements are optional external validation and are not
+required for either track or the combined artifact. This supersedes earlier
+measurement obligations; unperformed experiments remain labeled unmeasured.
+
 ## Division of work
 
 **Agent A: public domains, program certification, and a verified application.**
@@ -23,14 +29,14 @@ loop machinery. Run these two tracks concurrently; integrate their small API fix
 | F2: `tc_certify` | A | Kernel-checked acceptance and uncorrected error/tolerance theorem for a program |
 | F3: changing-state loops and input families | A | Symbolic-count invariant derived from input bounds |
 | F4: verified application | A | Ordered bounded FP16 dot product with a useful quantitative accuracy guarantee |
-| F5: targeted hardware evidence | B | Replayable harness and vectors; actual measurements only if GPU access exists |
+| F5: optional external hardware evidence | B | Retain prepared harness/vectors; new GPU measurements are optional and do not gate completion |
 | F6: bounded EFT extraction and coverage | B | Machine operations, refinement, success family, and reproducible cost/coverage checks |
 | F7: additional boundary operators/formats | Deferred | Neither track expands into this without an application-driven reason |
 | F8: final artifact and claim alignment | A integrates; B supplies evidence | Combined validation, accurate docs, and explicit prior-work comparison |
 
 F6 is a substantial proof and implementation task. Its ownership here does not turn
-extractor scaffolding or a coverage script into completion. F5 measurements remain open
-without actual GPU runs, even when the harness is ready.
+extractor scaffolding or a coverage script into completion. F5's unmeasured cases
+are optional external work, not unfinished requirements for this formalization.
 
 ## Shared contracts to preserve
 
@@ -177,7 +183,10 @@ extractor's desired component equality is not a refinement proof. Reconstructing
 entire ideal to test range, hiding exact correction under a new name, or wrapping the
 reference trace in a machine-looking structure does not satisfy F6.
 
-### B3. Prepare targeted hardware evidence (F5)
+### B3. Optional targeted hardware evidence (F5)
+
+The preparation below has been delivered. Under the updated scope, running it on
+real GPUs is optional and does not block the formalization or integration.
 
 Add a dedicated harness under `tensor-core/hardware/` with input/output records under
 `tensor-core/data/hardware/` and separate generation/replay scripts. Use the pinned source
@@ -189,9 +198,9 @@ paths. Reuse the instruction-order regression when constructing distinguishable 
 Store model expectations separately from measured outputs. Record device, instruction,
 compiler and settings, and raw operand/output bits for actual runs.
 
-Without GPU access, finish vector generation, harness preparation, replay, and instructions
-for running it; label every unmeasured case. Leave the measurement obligation open. Keep
-this independent of A's application and continue B2 without waiting for hardware access.
+Retain vector generation, harness preparation, replay, and run instructions, with
+every unmeasured case labeled. New device experiments are optional external
+validation. Continue the formalization and B2 without requiring hardware access.
 
 ## File ownership
 
@@ -279,10 +288,11 @@ its existing command list will not discover them automatically. Preserve all bas
 adversarial regressions and source hashes. Report current warning and theorem counts from
 the actual run, not the old baseline.
 
-The combined delivery is complete only for the F items whose implementation, theorem,
-discharged assumptions, and validation meet PLAN. Keep GPU measurements open when no GPU
-was run, and keep F6 open if only its API or coverage portion is finished. F7 remains
-deferred. A clean build alone does not change those statuses.
+The combined delivery is complete only for the required F items whose implementation,
+theorem, discharged assumptions, and software validation meet PLAN. F5 is optional:
+record absent GPU measurements as unmeasured, without blocking completion. Keep F6
+open if only its API or coverage portion is finished. F7 remains deferred. A clean
+build alone does not change those statuses.
 
 ## Agent A completion handoff — 6 September 2026
 

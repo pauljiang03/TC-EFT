@@ -316,10 +316,65 @@
     "original_plan_requirements_retained": true
   },
   "open": [
-    "F5 CUDA compilation and actual GPU measurements",
     "F6 full bounded EFT extraction/overlap/guard/consolidation and end-to-end refinement",
     "F6 useful success-family theorem and phase-cost evidence",
     "F7 deferred formats/operators",
     "F8 final submission Git revision"
-  ]
+  ],
+  "optional_external_validation": [
+    "F5 CUDA compilation and actual GPU measurements; prepared harness and vectors retained; no measurements performed"
+  ],
+  "scope_amendment": {
+    "recorded_at_utc": "2026-09-06T06:51:10.390212+00:00",
+    "authority": "Explicit user direction: Accurate Models is ground truth; GPU measurements are optional external validation, not a formalization completion requirement",
+    "required_scope": "Faithful source semantics, explicit source reconciliation, kernel-checked claimed results, and software validation",
+    "new_gpu_measurements_required": false,
+    "cuda_compilation_required": false,
+    "hardware_transfer_theorems": "Retain explicit Conforms premises; no hardware conformance asserted",
+    "code_and_validation_artifacts_unchanged": true,
+    "build_and_tests_rerun": false,
+    "original_scope_open_items": [
+      "F5 CUDA compilation and actual GPU measurements",
+      "F6 full bounded EFT extraction/overlap/guard/consolidation and end-to-end refinement",
+      "F6 useful success-family theorem and phase-cost evidence",
+      "F7 deferred formats/operators",
+      "F8 final submission Git revision"
+    ],
+    "historical_snapshot": "Top-level source_sha256 and source_manifest_sha256 retain the original validated snapshot; apply documentation changes below for the current source manifest",
+    "documentation_changes": {
+      "README.md": {
+        "before_sha256": "6f5884da81f04179fa70e0f705b41b6494f87308e72e865a614583a1bfab3e1c",
+        "after_sha256": "9bd25ae91d628ba2ecd40b475ae86edff267d791d465b76f164caec369601d47"
+      },
+      "split.md": {
+        "before_sha256": "70c23a189738dc51f68b047a8c9f43bf20aa09b5ad135b7ede35326b8af27179",
+        "after_sha256": "ac5cfed7e44b1f2cc583b2aff48bd7ce0624c97dc6ca847114fa05bde377ecea"
+      },
+      "merge.md": {
+        "before_sha256": "8713c63f2d47e6b45a93be2195b32cf2edd3902c1867fc14b7fb32c9dbe8bead",
+        "after_sha256": "69c72a0d3d5a6078f33990fcc6b841bbca7e375ef1c213562500f28d70fe02a7"
+      },
+      "tensor-core/docs/PLAN.md": {
+        "before_sha256": "f3b415c0d8321d9dae742f975f4bc2cca245f295c07516c17ea92c824f9fab57",
+        "after_sha256": "f84d4b251d8466dc47243abbfb23f9dfa6431aabadaba9c07fd90bb311a6bdeb"
+      },
+      "tensor-core/docs/SPECIFICATION.md": {
+        "before_sha256": "1fc7c0a31e0fd01fb4157e95f090a9f24b66f0ff258c5c2d753b0084e850ff85",
+        "after_sha256": "6e4e2678380c51c9c2d989f7142e259370bc6f66aadad2f5e2cf116a6ab5de1a"
+      },
+      "tensor-core/docs/ASSUMPTIONS.md": {
+        "before_sha256": "91487320899c0b64742401d40f4210c112e5ac9c10501b4d21b514adc9cc5b0f",
+        "after_sha256": "a034e572ac4f653a7214481f5f615619ebc2bdf8d6332d5a9ec63160212590cd"
+      },
+      "tensor-core/docs/VALIDATION.md": {
+        "before_sha256": "882b0012f271955fcc4d7726dd1e2d08252a542ef2e220bda1553460dc93fad2",
+        "after_sha256": "64c6f45a3fd23a559bb6b74f78f1d752aceb5ddb1da96f9191700d7a2f605cc6"
+      },
+      "tensor-core/docs/COMPOSITION.md": {
+        "before_sha256": "d8ef40d48e5e8c655153dabda947448c7cf5261dac3952a263ed82909d2ad6be",
+        "after_sha256": "3520e3dc8423191d9189b309af113a99e434a6618181bc4013a8259c29a23ee1"
+      }
+    },
+    "current_source_manifest_sha256": "521568625a8906ebd9aee3744a155ae81e7f4617ad73f4a719612cb70a6bb3aa"
+  }
 }

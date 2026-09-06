@@ -8,6 +8,21 @@ Fresh suite: [clean-build.json](tensor-core/data/regressions/clean-build.json).
 No Git branch merge or submission commit was created: the agents delivered source
 copies, and the integration preserves the existing working-tree changes.
 
+## Subsequent scope decision — 6 September 2026
+
+The user takes Accurate Models v4 as the ground-truth specification. Completion
+requires faithful Lean semantics, proofs of the stated results, and software
+validation. New GPU measurements are optional external validation of the paper's
+hardware fidelity and are not a blocker for this formalization or F8. This
+supersedes the earlier F5 measurement obligation recorded in the chronological
+notes and historical A/B handoffs below. No experiment is being marked performed.
+
+This update changes documentation and the merge record's scope metadata only.
+The Lean sources, tests, numerical results, and proof assumptions are unchanged;
+the previous successful validation remains evidence for that unchanged code.
+The merge report retains its original tested-snapshot hashes and records the
+subsequent documentation amendment separately.
+
 ## Sources and preserved baseline
 
 - Destination: `/Users/paul/Documents/tc-lean-mp`, branch `main`, initial HEAD
@@ -148,8 +163,8 @@ source manifest before taking the final integration snapshot.
    certification and symbolic-family analysis remain separate claims.
 6. Inspect bounded EFT dependencies and theorem assumptions. Split primitives,
    coverage evidence, or exact reference arithmetic do not alone complete F6.
-   Retain explicit hardware conformance premises and keep unmeasured GPU cases
-   open under F5.
+   Retain explicit hardware conformance premises in device-transfer theorems;
+   unmeasured GPU cases belong to optional F5 and do not block the formalization.
 7. Make every delivered proof reachable from `TensorCore.lean`, scan every new
    executable root, and include new checks/examples in the clean-build script.
 8. Recheck destination changes immediately before applying the merged result so
@@ -199,8 +214,9 @@ isolated counts and source hashes rather than being relabeled as combined eviden
 - **F3/F4:** complete for the stated fixed-input, signed bounded-dot family and
   symbolic repetition. Bounds are conservative; this is a reference-schedule
   guarantee with hardware conformance kept separate.
-- **F5:** harness/vector/replay preparation delivered. CUDA compilation and actual
-  GPU measurements remain open.
+- **F5:** optional external validation, outside formalization completion
+  requirements. Harness/vector/replay preparation is delivered; CUDA compilation
+  and actual GPU measurements are unperformed, not completion blockers.
 - **F6:** safe interface, coverage, and bounded primitive refinement delivered.
   Full encoded extraction, overlap/guard/consolidation, complete refinement, useful
   success-family proof, and full phase-cost evidence remain open.
