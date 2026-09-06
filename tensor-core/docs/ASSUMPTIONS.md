@@ -50,7 +50,9 @@ are part of the audit. `tc_inspect` and `tc_instruction` evaluate for diagnostic
   `staticCheck` decides these hypotheses on concrete operands and `staticCheck_sound` applies
   the theorem. The static budget is looser than the trace budget (on the regression schedule
   by about a factor of ten) because it bounds the alignment grid and the output quantum from
-  the scale alone; it never runs the model.
+  the scale alone; it never runs the model, but the current checker computes exact ideal
+  partial sums for the concrete operands. Symbolic input bounds and changing-state loop
+  invariants remain open; see the Fable handoff in [PLAN.md](PLAN.md).
 - `InstructionPath` fixes a contiguous increasing-k grouping and its source.
   `InstructionPath.run` rejects any operand list whose length is not `k`; nothing is padded
   or discarded. `Conforms path device` is a definition, not a theorem: it states that
@@ -72,7 +74,10 @@ are part of the audit. `tc_inspect` and `tc_instruction` evaluate for diagnostic
   then implied by the coefficient bound. `scalarPredicate` decides the hypotheses of
   Theorem IV.9, Lemma IV.10, and Corollary IV.11 on the actual components: the common grid,
   the coefficient bound, representability of `D`, `ε_o`, and `H`, and the range of the
-  component sum `H + Σ εᵢ`. It never evaluates the exact ideal. `tceft` returns a result only
+  component sum `H + Σ εᵢ`. It forms this sum in exact `Rat` arithmetic;
+  `retained_add_low` proves it equals the exact ideal. Avoiding a direct call to `exactDot`
+  does not eliminate exact reconstruction or implement a machine range check.
+  `tceft` returns a result only
   when the predicate holds (`tceft_isSome_iff`), and `tceft_correct` proves every result is
   the correctly rounded exact sum. The predicate is sufficient, not necessary: a rejected
   input is a failure of the procedure, and the exact-rational `corrected` reference is a

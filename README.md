@@ -40,7 +40,7 @@ Every theorem is checked by the Lean kernel. The complete contract → declarati
 | Contract for any product count and extra alignment bits, with a modular signed-word accumulator returning the same complete result | `fp16Fp32_contract`, `fp16Fp32_machine_eq` |
 | Exact accepted domain; floors at or below −126 inactive; padding thresholds that make alignment exact | `evalBlock_success_iff`, `canonical_eta_floor_inactive`, `canonical_source_padding_exact` |
 | Scalar EFT: naive FP32 summation is exact under the coefficient bound; the scalar EFT returns a result only when its predicate holds, and every result is the correctly rounded dot product (TC-EFT IV.3–IV.4, IV.7–IV.11) | `naiveSum32_exact`, `truncGrid_split`, `tceft_isSome_iff`, `tceft_correct` |
-| Non-monotonicity as a theorem over `K` and padding `p`: lowering the accumulator from `1` to `1 − 2^-24` raises the output exactly when `K ≥ 3·2^p` (TC-EFT III.4), and lowering it to `1 − j·2^-24` does so exactly for `1 ≤ j ≤ min(2^23, ⌊K/2^p⌋ − 2)`, with the output increase largest at `j = 1` (III.5) | `nonmonotone_perturbation`, `nonmonotone_encoded`, `nonmonotone_range_encoded` |
+| Non-monotonicity for the specified equal-product family: `K` products of value `2^-(24+p)`, raw scale at most `−1`, floor at most `−1`, and `K < 2^(24+p)`. Lowering c from `1` to `1 − 2^-24` raises the output iff `K ≥ 3·2^p` (III.4); for `c = 1 − j·2^-24`, witnesses are exactly `1 ≤ j ≤ min(2^23, ⌊K/2^p⌋ − 2)`, with the greatest witness output at `j = 1` (III.5). This does not characterize all inputs. | `nonmonotone_perturbation`, `nonmonotone_encoded`, `nonmonotone_range_encoded` |
 | Exact residual ledger over any finite chain through encoded FP32 boundaries; composed uncorrected error bound; machine equivalence through schedules | `runBlocks_residual_ledger`, `runBlocks_uncorrected_error`, `fp16Fp32_schedule_machine_eq` |
 | Ordered partition of a long dot product with proved ideal preservation and tail padding | `OrderedPartition.uncorrected_error`, `canonicalPartition_ideal` |
 | Input-derived error budget: a scale bound on the operands and bounded ideal partial sums give acceptance of a whole schedule and an error bound, decided by a certificate that never runs the model | `block_static_error_bound`, `runBlocks_static`, `staticCheck_sound` |
@@ -154,4 +154,4 @@ Full hashes and every numerical decision are in
 - [COMPOSITION](tensor-core/docs/COMPOSITION.md): how invocations compose inside instructions and across calls
 - [FEATURE_COVERAGE](tensor-core/docs/FEATURE_COVERAGE.md): feature matrix for the other tensor-core paths
 - [INVOCATION_CONTRACT](tensor-core/docs/INVOCATION_CONTRACT.md): target interface for the parameterized invocation
-- [PLAN](tensor-core/docs/PLAN.md): status, assessment, next steps, known issues
+- [PLAN / Fable handoff](tensor-core/docs/PLAN.md): verified status, prioritized fixes, acceptance criteria, and requirements against superficial fixes
