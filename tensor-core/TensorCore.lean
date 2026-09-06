@@ -8,6 +8,7 @@ import TensorCore.Regression.Programs
 import TensorCore.Regression.Features
 import TensorCore.Regression.DotProduct
 import TensorCore.Regression.EFT
+import TensorCore.Regression.ScalarEFT
 import TensorCore.Regression.Monotonicity
 import TensorCore.Regression.Flowback
 import TensorCore.Regression.CanonicalFormats

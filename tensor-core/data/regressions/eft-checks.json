@@ -20,7 +20,7 @@
         "Audit.lean"
       ],
       "exit_code": 0,
-      "audit": "tc_audit: 892 theorem roots (569 written in source, the rest generated)"
+      "audit": "tc_audit: 943 theorem roots (612 written in source, the rest generated)"
     },
     {
       "command": [
@@ -45,7 +45,7 @@
       "exit_code": 0
     }
   ],
-  "scanned_lean_sources": 91,
+  "scanned_lean_sources": 95,
   "bounded_scope": "11-bit significand multiplication and 24-bit magnitude splitting, with exact truncation/residual refinement",
   "incomplete": [
     "Encoded decoder and extraction pipeline",

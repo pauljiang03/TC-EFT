@@ -1162,84 +1162,84 @@
       "path": "family",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.16793583
+      "median_wall_ms_per_case": 0.17810582999999938
     },
     {
       "products": 1,
       "path": "concrete",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.1761625
+      "median_wall_ms_per_case": 0.18696124999999952
     },
     {
       "products": 1,
       "path": "model_with_trace_and_ideal",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.17507582999999993
+      "median_wall_ms_per_case": 0.19408583000000035
     },
     {
       "products": 16,
       "path": "family",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.18524666999999995
+      "median_wall_ms_per_case": 0.19561332999999959
     },
     {
       "products": 16,
       "path": "concrete",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.20516541
+      "median_wall_ms_per_case": 0.21240291999999994
     },
     {
       "products": 16,
       "path": "model_with_trace_and_ideal",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.22768875000000022
+      "median_wall_ms_per_case": 0.23681249999999987
     },
     {
       "products": 64,
       "path": "family",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.24646749999999826
+      "median_wall_ms_per_case": 0.2521008299999994
     },
     {
       "products": 64,
       "path": "concrete",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.3326137499999993
+      "median_wall_ms_per_case": 0.32470750000000104
     },
     {
       "products": 64,
       "path": "model_with_trace_and_ideal",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.40184624999999974
+      "median_wall_ms_per_case": 0.4154374999999999
     },
     {
       "products": 256,
       "path": "family",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.43342583000000046
+      "median_wall_ms_per_case": 0.4629124999999989
     },
     {
       "products": 256,
       "path": "concrete",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 0.7485391599999991
+      "median_wall_ms_per_case": 0.7499616699999989
     },
     {
       "products": 256,
       "path": "model_with_trace_and_ideal",
       "cases_per_process": 100,
       "measured_processes": 3,
-      "median_wall_ms_per_case": 1.1090679199999975
+      "median_wall_ms_per_case": 1.0824879199999993
     }
   ],
   "timing_scope": "Compiled CLI batches, including process startup, parsing and JSON; 1 warmup and 3 measured processes of 100 cases. Model path also computes its exact ideal and trace report. No extraction or GPU timing claim."

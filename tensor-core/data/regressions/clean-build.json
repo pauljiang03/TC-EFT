@@ -89,6 +89,12 @@
       "lake",
       "env",
       "lean",
+      "examples/ScalarEFT.lean"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
       "examples/SingleInvocation.lean"
     ],
     [
@@ -98,8 +104,8 @@
       "examples/Verify.lean"
     ]
   ],
-  "targets_built": 172,
-  "audit": "892 theorem roots audited (569 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 178,
+  "audit": "943 theorem roots audited (612 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [
@@ -286,7 +292,7 @@
     "prior_error_does_not_roll_back": true,
     "supplied_proof_compiles": true,
     "example_compiles": true,
-    "example_elaboration_wall_seconds": 0.563621,
+    "example_elaboration_wall_seconds": 0.554252,
     "executable_dependency_checks": 3,
     "dependency_negative_control": true,
     "concrete_path": "Exact ideal prefixes, no model execution or residual ledger",
@@ -330,84 +336,84 @@
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.16793583
+        "median_wall_ms_per_case": 0.17810582999999938
       },
       {
         "products": 1,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.1761625
+        "median_wall_ms_per_case": 0.18696124999999952
       },
       {
         "products": 1,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.17507582999999993
+        "median_wall_ms_per_case": 0.19408583000000035
       },
       {
         "products": 16,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.18524666999999995
+        "median_wall_ms_per_case": 0.19561332999999959
       },
       {
         "products": 16,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.20516541
+        "median_wall_ms_per_case": 0.21240291999999994
       },
       {
         "products": 16,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.22768875000000022
+        "median_wall_ms_per_case": 0.23681249999999987
       },
       {
         "products": 64,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.24646749999999826
+        "median_wall_ms_per_case": 0.2521008299999994
       },
       {
         "products": 64,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.3326137499999993
+        "median_wall_ms_per_case": 0.32470750000000104
       },
       {
         "products": 64,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.40184624999999974
+        "median_wall_ms_per_case": 0.4154374999999999
       },
       {
         "products": 256,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.43342583000000046
+        "median_wall_ms_per_case": 0.4629124999999989
       },
       {
         "products": 256,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.7485391599999991
+        "median_wall_ms_per_case": 0.7499616699999989
       },
       {
         "products": 256,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 1.1090679199999975
+        "median_wall_ms_per_case": 1.0824879199999993
       }
     ],
     "timing_scope": "Compiled CLI batches, including process startup, parsing and JSON; 1 warmup and 3 measured processes of 100 cases. Model path also computes its exact ideal and trace report. No extraction or GPU timing claim."
@@ -434,7 +440,7 @@
           "Audit.lean"
         ],
         "exit_code": 0,
-        "audit": "tc_audit: 892 theorem roots (569 written in source, the rest generated)"
+        "audit": "tc_audit: 943 theorem roots (612 written in source, the rest generated)"
       },
       {
         "command": [
@@ -459,7 +465,7 @@
         "exit_code": 0
       }
     ],
-    "scanned_lean_sources": 91,
+    "scanned_lean_sources": 95,
     "bounded_scope": "11-bit significand multiplication and 24-bit magnitude splitting, with exact truncation/residual refinement",
     "incomplete": [
       "Encoded decoder and extraction pipeline",

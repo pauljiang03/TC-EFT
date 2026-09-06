@@ -63,6 +63,10 @@ def main():
             assert 'TensorCore.EFMachine.splitMagnitude_low_residual' in p.stdout
             assert 'TensorCore.Regression.EFMachine.split_boundaries' in p.stdout
             assert 'TensorCore.scalarChecks_all' in p.stdout
+            assert 'TensorCore.naiveSum64_exact' in p.stdout
+            assert 'TensorCore.bitSpan_coefficient_bound' in p.stdout
+            assert 'TensorCore.evalBlock_scalarCorrectedIn_correct' in p.stdout
+            assert 'TensorCore.Regression.scalar64_double_rounding_incorrect' in p.stdout
         results.append(result)
     sources = [*(ROOT/'TensorCore').rglob('*.lean'), *(ROOT/'examples').glob('*.lean'),
                ROOT/'Main.lean', ROOT/'FeatureMain.lean']

@@ -103,8 +103,10 @@ preserves the initial bits; low-level `runBlocks []` is an unconditional no-op.
 
 The floating-point foundation proves finite binary decoding, encoding, and
 nearest-even and toward-zero rounding for every well-formed IEEE-style `Format`, including
-FP16, BF16, packed TF32, FP32, and FP64. FP32 also has representability and
-exact-summation results. Tensor-core proofs build on this foundation. The rounding
+FP16, BF16, packed TF32, FP32, and FP64. Exact scalar addition and common-grid
+summation are also proved for every well-formed format, including arbitrary input
+orderings and the paper's separate coefficient and absolute-range budgets.
+Tensor-core proofs build on this foundation. The rounding
 theorems quantify over every rational in the format's finite reference range;
 concrete examples use kernel reduction and are reported separately.
 
@@ -140,6 +142,7 @@ are [Foundations](tensor-core/TensorCore/Foundations),
 | Non-monotonicity family — TC-EFT III.4–III.5, Table III | `nonmonotone_perturbation`, `nonmonotone_encoded`, `nonmonotone_range_encoded`; family and thresholds below |
 | Low parts, overlap window, splitting and recovery — TC-EFT IV.1–IV.5 | `lowPart_bound`, `overlap_window_width`, `truncGrid_split`, `accumulator_eq_retained`, `overlap_eq_retained_sub_outputResidual`, `overlap_recovery` |
 | Scalar predicate and exact summation — TC-EFT IV.6–IV.11 | `scalarPredicate`, `fp32Add_exact`, `naiveSum32_exact`, `scalarCorrected_eq`, `scalarCorrected_correct`; sufficient component conditions below |
+| Format-generic scalar consolidation — TC-EFT IV.7–IV.11, Table IV | `binaryAdd_exact`, `naiveSumBinary_exact`, `naiveSumBinary_exact_perm`, `naiveSum64_exact`, `bitSpan_coefficient_bound`, `scalarCorrectedIn_correct`; correction in a well-formed format, direct final rounding to FP32 |
 | Two-branch reference correction — TC-EFT Algorithm 1, Table V | `BlockTrace.algorithm1`, `algorithm1_correct`, `algorithm1_bits_isSome_iff`, `referenceLedger`; branch choice remains visible |
 | Guarded scalar correction | `tceft_isSome_iff`, `tceft_correct`, `tceft_eq_corrected`; a result exists exactly when the sufficient predicate holds |
 | Bounded multiplication and splitting | `EFMachine.multiplySignificands_exact`, `EFMachine.splitMagnitude_reconstruct`, `EFMachine.splitMagnitude_coarse_truncGrid`, `EFMachine.splitMagnitude_low_residual` |
@@ -180,6 +183,26 @@ components, and a finite exact component sum. Extraction and the predicate still
 use exact `Rat` arithmetic, including reconstruction for the range check.
 `scalarCorrectedUnchecked` is diagnostic and can return incorrect bits outside the
 predicate; subnormal and broad finite-input counterexamples remain regressions.
+
+The separately named `scalarPredicateIn f` and `scalarCorrectedIn f` generalize
+consolidation to any well-formed IEEE-style correction format; use `f = fp64` for
+Table IV's precision 53 and minimum grid `2^-1074`. The generic predicate checks
+the paper's absolute residual range in place of a fixed grid upper bound. It
+retains representability checks for `D`, the overlap, and the retained sum, and
+requires the reconstructed ideal to fit FP32. Every accepted baseline FP32 case
+also passes the generic FP32 predicate and returns the same bits.
+
+Residual summation and overlap subtraction execute nearest-even operations in
+the correction format. The final sum is formed exactly and rounded **directly to
+FP32**, as Corollary IV.11 requires. An FP64 rounded addition followed by FP32
+conversion can double-round; the
+[scalar regressions](tensor-core/TensorCore/Regression/ScalarEFT.lean) exhibit this
+on encoded operands. This remains an exact-reference procedure, with no bounded
+final-rounding implementation claim. The
+[example](tensor-core/examples/ScalarEFT.lean) applies the correction and any-order
+summation contracts. `bitSpan_coefficient_bound` proves that the paper's
+`b − ℓ + 1 + ⌈log₂ n⌉ ≤ P` condition implies the strict coefficient budget;
+minimum-grid and absolute-range conditions remain separate.
 
 The bounded `EFMachine` primitives multiply two 11-bit significands into 24 bits
 and split a 24-bit magnitude using an 8-bit gap. Gaps at least 24 take a separate
@@ -291,22 +314,19 @@ This section lists only what remains. Current status and counts are in the gener
 [regression reports](tensor-core/data/regressions); the last full-suite result is
 [clean-build.json](tensor-core/data/regressions/clean-build.json).
 
-**TC-EFT.** Every numbered definition, lemma, theorem, and corollary of the paper is
-formalized. What remains:
+**TC-EFT.** The core FP32 results have kernel-checked counterparts, including error
+bounds, flowback, non-monotonicity, exact recovery, guarded scalar consolidation,
+and Algorithm 1 on a trace. Coverage is not yet a complete formalization of every
+paper statement in its full scope or of the paper's encoded algorithm interface.
+What remains:
 
-1. FP64 scalar consolidation: Table IV gives FP64 constants (precision 53, grid `2^-1074`,
-   coefficient sum below `2^53`), but Lemma IV.7, Theorem IV.8, and Corollary IV.11 are
-   proved for FP32 only. Generalize `naiveSum32_exact` and the scalar branch over
-   `Format.FiniteValue` using the format-generic rounding proofs.
-2. The bit-span sufficient condition `b − ℓ + 1 + ⌈log₂ n⌉ ≤ P` of Theorem IV.8, as a lemma
-   implying the coefficient-sum bound the predicate uses.
-3. Algorithm 1 over the paper's interface: operand encodings, the profile, and the device
+1. Algorithm 1 over the paper's interface: operand encodings, the profile, and the device
    output `D`, decoding and reconstructing the raw products itself (lines 1–17, including
    the all-zero-block return of `+0`), with a theorem that it agrees with `algorithm1` on
    the trace.
-4. Definition III.2 at the encoded level, `val(TC_θ(a, b, c'))`, as a corollary of
+2. Definition III.2 at the encoded level, `val(TC_θ(a, b, c'))`, as a corollary of
    `MonotoneInAccumulator`.
-5. Section V-B of the paper describes a validation suite (59 named cases; 800 deterministic
+3. Section V-B of the paper describes a validation suite (59 named cases; 800 deterministic
    blocks over eight profile and format combinations; 49,005 synthetic perturbations of the
    Section III-C family; 100 rounding cases at ties and boundaries; 1,600 finite blocks under
    seed 20260906) that this repository does not generate. Either add scripts that produce
@@ -366,7 +386,7 @@ predates this project.
 | [Flean — McKinsey](https://josephmckinsey.com/flean.html), 20 January 2025; [HOLFloat-Lean](https://github.com/opencompl/HOLFloat-Lean) | Earlier Lean floating-point formalization efforts. The Flean author describes an evolving theory; HOLFloat follows Harrison's floating-point treatment. These are additional prior efforts, without a completeness claim from this review. |
 | [Lean 4.33.0](https://lean-lang.org/doc/reference/latest/releases/v4.33.0/#float-is-no-longer-opaque), 10 August 2026 | Adds logical models behind `Float` and `Float32`, with arithmetic, comparisons, and conversions. The release explicitly distinguishes these models from a complete FP mathematics library. Our installed 4.33.1 includes scalar add/subtract/multiply/divide/square-root definitions; a bridge to our finite-range semantics still needs proof. |
 | [ARCH HDL — Zhao](https://arxiv.org/abs/2607.23715), 26 July 2026 | Reports Lean proofs of FP32 multiplication/FMA rounding and a bounded FMA refinement, alongside SMT/RTL verification for other operators. This is prior Lean verification of basic FP operations, with a different hardware target and split verification method. |
-| [Valpey, Li, Pai, Gopalakrishnan, NFM 2025](https://arxiv.org/abs/2502.15999), first submitted 21 February 2025 | SMT tensor-core models used to discriminate arithmetic behavior and compare two mixed-precision matrix-multiplication correction algorithms. Their counterexample refutes a universal accuracy ordering between those algorithms. Downstream analysis of tensor-core algorithms is therefore already established prior work. |
+| [Valpey, Li, Pai, Gopalakrishnan, NFM 2025](https://arxiv.org/abs/2502.15999), first submitted 21 February 2025 | Earlier SMT tensor-core models and correction-algorithm analysis. Their counterexample is relative to their numerical model. Accurate Models v4 corrects earlier characterizations; its Table 5 records missing denormalized-product and alignment-limit behavior in this work. It is historical formal-methods precedent, not this project's numerical authority. |
 | [Flocq — Boldo and Melquiond, 2011](https://guillaume.melquiond.fr/doc/11-arith20-article.pdf); [VCFloat2 — Appel and Kellison, CPP 2024](https://www.cs.princeton.edu/~appel/papers/vcfloat2.pdf) | Coq/Rocq precedents: a general FP theory and sound automated roundoff analysis, including interfaces for user-defined functions. They inform how local arithmetic contracts can support program-level error bounds. |
 | [TorchLean verification documentation](https://lean-dojo.github.io/TorchLean/blueprint/Verification-and-Certificates/Neural-Network-Verification/) | Lean neural-network verification with explicit finite-precision refinement obligations. Its distinction between real-valued analysis, encoded execution, and error transfer is relevant to a future integration; it supplies no implicit theorem about a vendor tensor-core schedule. |
 
@@ -377,6 +397,13 @@ Extending this to mixed scalar/tensor-core programs is a concrete research
 direction. A narrower priority claim, such as the first Lean mechanization of a
 particular paper's model, has not been established by this review. General FP,
 error-free transformations, and tensor-core correction analysis are not new here.
+
+[Accurate Models v4, Section 4.4 and Table 5](https://arxiv.org/html/2512.07004v4#S4.SS4)
+distinguishes the corrected numerical model from earlier descriptions, including
+the SMT work. Proofs about an earlier model do not establish agreement with the
+corrected specification. Here, Accurate Models remains the numerical authority;
+Lean checks consequences of our explicit definitions. Faithfulness to the paper
+and coverage of its complete statements require a separate source-to-code review.
 
 There is deliberate overlap with FLoPS in the standard representation and rounding
 mathematics. Our foundation uses executable rationals and IEEE-style finite
@@ -398,6 +425,15 @@ The isolated [checker](crosschecks/flops/check.py) uses the original
 without changing them or adding a Mathlib dependency to the main project. It checks
 the committed source pinned in [pins.json](crosschecks/flops/pins.json), independently
 of work in progress. Each project runs under its own pinned Lean version.
+
+The [saved report](crosschecks/flops/report.json), checked 6 September 2026,
+records **1,176 passing comparisons**: 49 exact rational inputs per format, each
+under all four modes, for FP16, BF16, packed TF32 (`tf19`), FP32, FP64, and E5M2.
+Cases cover both signs, zero, subnormal boundaries, even/odd ties, exponent carry,
+the largest finite value, non-dyadic fractions, and seeded inputs. All 2,352
+generated theorem roots passed the axiom audit; both deliberately wrong results
+were rejected. The checked numerical foundation files at `49a310c` are unchanged
+in the later review-fix commit `ed4b0fc`.
 
 For every case, our Lean proves the encoded result of `roundBinary` and its decoded
 value. FLoPS's Lean proves equality with its own rounding function and applies its
@@ -436,6 +472,24 @@ and an absolute error bound against the independently decoded original-input
 ideal. The bounded-dot and changing-state schedule theorems already provide
 instances. A consumer can use this contract without unfolding alignment or
 enumerating execution traces.
+
+This use does not require extracting an individual block's output from a running
+GPU. Intermediate accumulators can remain mathematical states in the proof.
+`runBlocks_uncorrected_error` composes local errors across encoded boundaries;
+`runBlocks_of_scale_bound` derives successful execution and a final error bound
+from operand scales, group counts, and accumulator headroom, without evaluating
+the intermediate outputs. Applying TC-EFT correction inside an opaque sequence
+and proving a bound on that sequence are separate tasks.
+
+For a specified matmul schedule, each output entry is an ordered sequence of such
+blocks. If its local errors have proved bounds `e[i,j,t]`, the target matrix
+corollary is `abs(D[i,j] - (A*B + C)[i,j]) ≤ sum_t e[i,j,t]`, followed by an
+entrywise or matrix-norm bound. Here `A`, `B`, and `C` denote decoded inputs;
+conversion from earlier values requires its own error accounting. Matrix indexing,
+tile/reduction order, padding, and any scalar epilogue must be specified and
+connected to these schedules. This matrix lifting is not yet implemented. The
+Accurate Models GEMM schedule is not an implicit specification of every CUDA
+library's choice of matmul kernel.
 
 For example, on the bounded-dot input family, `abs(d − S) ≤ 1/2048`. It follows
 mathematically that `d > 1/2048` certifies `S > 0`, and `d < −1/2048` certifies
