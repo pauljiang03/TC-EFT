@@ -116,8 +116,11 @@ def main():
                         'measurements')
     (ROOT / 'data/regressions/device-half-report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
-    ok = direct['bit_mismatches'] == 0 or staged['bit_mismatches'] == 0
-    return 0 if ok else 1
+    def reproduces(r):
+        return r['model_errors'] == 0 and r['bit_mismatches'] == 0
+    report['accepted'] = reproduces(direct) or reproduces(staged)
+    (ROOT / 'data/regressions/device-half-report.json').write_text(json.dumps(report, indent=2) + '\n')
+    return 0 if report['accepted'] else 1
 
 
 if __name__ == '__main__':

@@ -2,8 +2,9 @@ import TensorCore.Foundations.BinaryRounding
 import TensorCore.Theory.Format
 import TensorCore.Theory.Rounding
 
-/-! Finite values and constructed encodings of an arbitrary well-formed binary format
-(TC-EFT Definition II.1 for every format of Accurate Models Table 2). This generalizes the
+/-! Finite values and constructed encodings of an arbitrary well-formed IEEE-style `Format`
+(TC-EFT Definition II.1 for FP16, BF16, tf19, FP32, FP64, and E5M2; E4M3's finite-top-NaN
+encoding is a `ValueFormat` and is not covered). This generalizes the
 FP32 results of `Theory/Encoding.lean`: every finite decoded value is an integer
 coefficient of magnitude below `2^(p+1)` on the quantum `2^(e−p)` with `emin ≤ e ≤ emax`,
 and `encodeBinary` decodes to the value it was built from, with the coefficient's parity in

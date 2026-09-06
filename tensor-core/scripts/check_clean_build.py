@@ -54,7 +54,7 @@ generated = ['docs/axioms.txt', 'data/hardware/inputs.json', 'data/hardware/expe
 generated += ['data/regressions/' + name for name in [
     'program-report.json', 'feature-report.json', 'dot-product-report.json',
     'device-formats-report.json', 'device-report.json', 'validation-report.json',
-    'certificate-report.json', 'application-report.json', 'eft-checks.json',
+    'certificate-report.json', 'application-report.json', 'device-half-report.json', 'eft-checks.json',
     'eft-coverage.json', 'eft-coverage-cases.json']]
 for name in generated:
     shutil.copyfile(target / name, root / name)

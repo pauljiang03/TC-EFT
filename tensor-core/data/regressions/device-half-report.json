@@ -16,5 +16,6 @@
   },
   "rows_where_candidates_differ": 0,
   "resolution": "Both candidates reproduce every published row and agree on all of them; the rows contain no double-rounding case, so they do not decide the stage order. The reference source rounds once, directly to FP16 (frmode = rne); Regression.half_output_stage_order gives an input on which the candidates differ.",
-  "method": "Two descriptor evaluations per row with FP16 c from an independent converter; bitwise comparison with the FP16 device outputs; no new GPU measurements"
+  "method": "Two descriptor evaluations per row with FP16 c from an independent converter; bitwise comparison with the FP16 device outputs; no new GPU measurements",
+  "accepted": true
 }

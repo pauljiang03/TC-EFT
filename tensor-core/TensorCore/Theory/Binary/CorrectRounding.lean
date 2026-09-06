@@ -2,8 +2,11 @@ import TensorCore.Theory.Binary.ConversionBounds
 import TensorCore.Theory.CorrectRounding
 import TensorCore.Theory.Flowback
 
-/-! Correctness of `roundBinary` for every well-formed format (TC-EFT Definition II.2 for
-every format of Accurate Models Table 2): the converter returns an encoding whose value is
+/-! Correctness of `roundBinary` for every well-formed IEEE-style `Format` (TC-EFT
+Definition II.2 for FP16, BF16, tf19, FP32, FP64, and E5M2). E4M3 is a `ValueFormat` whose
+top exponent is finite except for its NaN pattern; its maximum `448` exceeds the `240` of the
+IEEE-style layout `⟨3, 4, 7⟩`, so it is outside this theorem. The converter returns an
+encoding whose value is
 the signed selected grid value; in nearest-even mode that value is nearest among the
 format's finite values with ties broken to an even low bit; in toward-zero mode it is the
 finite value of largest magnitude between zero and the input. The FP32 statements of

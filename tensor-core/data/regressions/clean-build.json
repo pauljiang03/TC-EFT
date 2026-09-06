@@ -99,7 +99,7 @@
     ]
   ],
   "targets_built": 172,
-  "audit": "891 theorem roots audited (568 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
+  "audit": "892 theorem roots audited (569 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [
@@ -286,7 +286,7 @@
     "prior_error_does_not_roll_back": true,
     "supplied_proof_compiles": true,
     "example_compiles": true,
-    "example_elaboration_wall_seconds": 0.503872,
+    "example_elaboration_wall_seconds": 0.563621,
     "executable_dependency_checks": 3,
     "dependency_negative_control": true,
     "concrete_path": "Exact ideal prefixes, no model execution or residual ledger",
@@ -330,84 +330,84 @@
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.16243625000000095
+        "median_wall_ms_per_case": 0.16793583
       },
       {
         "products": 1,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.1699958300000004
+        "median_wall_ms_per_case": 0.1761625
       },
       {
         "products": 1,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.17285582999999938
+        "median_wall_ms_per_case": 0.17507582999999993
       },
       {
         "products": 16,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.178851659999999
+        "median_wall_ms_per_case": 0.18524666999999995
       },
       {
         "products": 16,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.1991066600000002
+        "median_wall_ms_per_case": 0.20516541
       },
       {
         "products": 16,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.23318041999999983
+        "median_wall_ms_per_case": 0.22768875000000022
       },
       {
         "products": 64,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.2397729199999987
+        "median_wall_ms_per_case": 0.24646749999999826
       },
       {
         "products": 64,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.3398891599999998
+        "median_wall_ms_per_case": 0.3326137499999993
       },
       {
         "products": 64,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.43080291999999965
+        "median_wall_ms_per_case": 0.40184624999999974
       },
       {
         "products": 256,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.48684875000000183
+        "median_wall_ms_per_case": 0.43342583000000046
       },
       {
         "products": 256,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.8355483400000009
+        "median_wall_ms_per_case": 0.7485391599999991
       },
       {
         "products": 256,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 1.1681050000000015
+        "median_wall_ms_per_case": 1.1090679199999975
       }
     ],
     "timing_scope": "Compiled CLI batches, including process startup, parsing and JSON; 1 warmup and 3 measured processes of 100 cases. Model path also computes its exact ideal and trace report. No extraction or GPU timing claim."
@@ -434,7 +434,7 @@
           "Audit.lean"
         ],
         "exit_code": 0,
-        "audit": "tc_audit: 891 theorem roots (568 written in source, the rest generated)"
+        "audit": "tc_audit: 892 theorem roots (569 written in source, the rest generated)"
       },
       {
         "command": [

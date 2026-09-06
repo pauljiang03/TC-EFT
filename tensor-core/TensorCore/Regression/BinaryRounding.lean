@@ -61,6 +61,17 @@ theorem fp64_rounding_correct (x : Rat) (hr : absQ x ≤ fp64.maxFinite) :
   ⟨roundBinary_nearestEven_correct fp64 (by decide) x hr,
     roundBinary_towardZero_correct fp64 (by decide) x hr⟩
 
+/-- E4M3 is not an IEEE-style `Format`: its decoder accepts `448` (word `7e`) and `256`
+(`78`), while the IEEE-style layout `⟨3, 4, 7⟩` has maximum `240` and `roundBinary` on it
+rejects `448`. The generic rounding theorems do not cover E4M3. -/
+theorem e4m3_outside_generic_rounding :
+    (packedE4M3.decode 0x7e).map Decoded.value = some 448 ∧
+    (packedE4M3.decode 0x78).map Decoded.value = some 256 ∧
+    e4m3.layout.maxFinite = 240 ∧
+    roundBinary e4m3.layout .nearestEven 448 = none ∧
+    (roundBinary e4m3.layout .nearestEven 240).map BitVec.toNat = some 0x77 := by
+  decide +kernel
+
 /-- The FP32 instance of the generic theorem is the original FP32 theorem's statement. -/
 theorem fp32_generic_agrees (x : Rat) (hr : absQ x ≤ maxFinite32) :
     ∃ b, round32 .nearestEven x = some b ∧ NearestEven32 x b := by

@@ -272,6 +272,7 @@
 'TensorCore.Regression.constructed_partition_boundaries' depends on axioms: [Classical.choice, Quot.sound, propext]
 'TensorCore.Regression.constructed_partition_tail' depends on axioms: [Classical.choice, Quot.sound, propext]
 'TensorCore.Regression.cycle_execution' depends on axioms: [Classical.choice, Quot.sound, propext]
+'TensorCore.Regression.e4m3_outside_generic_rounding' depends on axioms: [Classical.choice, Quot.sound, propext]
 'TensorCore.Regression.empty_dot_finite_policy' depends on axioms: [Classical.choice, Quot.sound, propext]
 'TensorCore.Regression.empty_nonfinite_certificate_refused' depends on axioms: [Classical.choice, Quot.sound, propext]
 'TensorCore.Regression.extra_alignment_bit_matters' depends on axioms: [Classical.choice, Quot.sound, propext]

@@ -337,6 +337,93 @@ Order of work:
    the paper coverage above is complete.
 5. **F5, hardware.** Lowest priority and optional, as stated above.
 
+## Prior work: FLoPS, P3109 floating point in Lean (evaluated 6 September 2026)
+
+FLoPS (Chang, Park, Lim, Nagarakatte; arXiv 2602.15965, February 2026; Rutgers TR
+DCS-TR-762; `github.com/rutgers-apl/FLoPS`) is the nearest Lean floating-point
+formalization. Findings from the paper and the source:
+
+- **What it formalizes.** IEEE P3109, the draft standard for low-precision formats, as a
+  parametric family: bitwidth `K > 2`, precision `P > 0`, signed or unsigned, finite or
+  extended domain (`Flops/P3109/Defs.lean`). Values are Mathlib's closed extended reals; a
+  finite value is an integer pair `(fnum, exp)` with `to_real f = fnum * β ^ exp`, marked
+  `noncomputable` (`Flops/Core/Defs.lean`). It proves a three-way isomorphism between bit
+  patterns, the algebraic type, and the values; a projection operator (round to precision,
+  saturate, encode) for RD, RU, RZ, RNE, round-to-odd, and stochastic rounding with
+  faithfulness and monotonicity; FastTwoSum with exact error, faithful error, overflow
+  immunity, and exact overflow error under saturation; and ExtractScalar
+  (`Flops/AccSum/Scalar.lean`, `ExtractScalar_properties`: `p = q + p'`, `|q| ≤ 2^-M σ`,
+  `q ∈ eps·σ·ℤ`, `|p'| ≤ eps·σ`). It found errors in the P3109 draft. About fifteen
+  thousand lines on Mathlib.
+- **It is not IEEE 754.** The P3109 bias is `2^(W−1)` with `W = K − P` for signed formats;
+  a signed 32-bit, 24-bit-precision P3109 format has bias 128 where FP32 has 127, so the same
+  bit pattern denotes a different value. P3109 has one NaN pattern, infinities only in the
+  extended domain, and saturation policies; `emin`/`emax` are stated for the most
+  significant bit. FP16, BF16, TF32, FP32, and FP64 as the tensor-core paths use them are
+  therefore not instances of FLoPS's P3109 formats, and FLoPS provides no IEEE 754 bit-level
+  encoding. Its abstract `Core.Format` (precision, `dexp`, bias) is format-agnostic, but the
+  encoding and the special values are P3109's.
+- **No operations, no accumulation, no hardware.** Addition, multiplication, and FMA are not
+  mechanized as operations; only projections of exact results are. There is nothing on
+  multi-term accumulation, alignment to a shared grid, truncation, block FMA, tensor cores,
+  or device validation.
+
+Overlap with this project, and what could not be reused:
+
+- The overlap is the generic encoding and rounding layer: decoding, the finite-value
+  characterization, nearest-even and toward-zero correctness, and the encode-decode round
+  trip. That is 2,248 of 9,991 Lean lines here (`Foundations/{Encoding,Rounding,
+  BinaryRounding,Format}.lean`, `Theory/{Encoding,Rounding,ConversionBounds,
+  CorrectRounding,RoundTrip,Format}.lean`, `Theory/Binary/`). It was re-derived because
+  FLoPS's formats are P3109, its values are noncomputable reals, and it depends on Mathlib.
+  This project's method (kernel-decided regressions, executable oracles, replay of published
+  device rows through the definitions the theorems are about) needs computable `Rat`
+  semantics on Lean core.
+- Everything specific to tensor cores has no counterpart: the block FMA semantics, machine
+  refinement, residual and recovery identities, the n-term exact naive summation theorem,
+  the guarded scalar EFT, the non-monotonicity theorems, composition, instruction paths,
+  static budgets, the certificate frontend, and the device-vector evidence.
+
+How FLoPS can inform this project:
+
+1. **As a checklist, not a dependency.** Its projection properties (faithful, monotone,
+   round-trip bijection, all four directed modes) are the standard contract; this project
+   proves nearest-even and toward-zero for every IEEE-style `Format` and has only defined RD
+   and RU. Proving RD and RU (needed for the FP64 path's four directions) and packaging the
+   generic encode-decode results as one bijection on the finite domain are the two items to
+   take from it. Saturation is out of scope: the modeled paths reject or produce infinities.
+2. **As a design reference for bounded extraction (F6).** `ExtractScalar_properties` states
+   the conditions under which Veltkamp-style splitting by a power of two `σ` is exact in the
+   format itself. A scalar-FP32 realization of TC-EFT's component extraction would rest on
+   exactly those conditions; the theorem guides the design, not the Lean code.
+3. **Not as a mechanical cross-check.** No bridge exists between Mathlib reals and this
+   project's `Rat` semantics or between P3109 and IEEE encodings. Cross-validation of the
+   rounding layer is by independent oracles here, as already done.
+4. **In the prior-work paragraph.** Cite FLoPS as the nearest Lean formalization, with the
+   format-family, computability, and scope differences stated.
+
+## Review of `49a310c`, 6 September 2026
+
+The reviewer found no false proved arithmetic theorem and four issues. All four are fixed
+in the commit that adds this section:
+
+1. `scripts/check_device_half.py` accepted a run in which every row was rejected, because
+   its exit status ignored `model_errors`. Acceptance now requires zero model errors and zero
+   bit mismatches for a candidate, and the report records `accepted`.
+2. The rounding theorems' docstrings claimed every format of Accurate Models Table 2. The
+   theorems cover every well-formed IEEE-style `Format`; E4M3's finite-top-NaN encoding is a
+   `ValueFormat` with maximum 448 where the IEEE-style layout `⟨3, 4, 7⟩` stops at 240.
+   `Regression.e4m3_outside_generic_rounding` pins the boundary; the docstrings say so.
+3. The README lags the implementation (general rounding and FP64 rounding proofs are now
+   checked; RD/RU and the FP16 stage-order selection remain open). The README is being
+   rewritten by the documentation agent; this file records the state.
+4. `scripts/check_clean_build.py` did not export `device-half-report.json` from a fresh run,
+   leaving the caller-side report stale. It is now in the exported list.
+
+Reviewer's validation of `49a310c`: 172 build jobs, 891 audited theorem roots, 20 suite
+commands, and 24,692 additional rounding comparisons with zero mismatches; zero Lean
+warnings and two linker warnings.
+
 ## Master next steps, in order
 
 ### F1 — Resolve public API inconsistencies and finish claim alignment
