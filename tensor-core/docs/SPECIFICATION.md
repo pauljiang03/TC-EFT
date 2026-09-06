@@ -15,6 +15,13 @@ e9b19e9766974d64dad081ea1107bb6d54c6aff8a1fd0620ce9fb13dbd497b3e  tc-eft-correct
 
 Accurate Models v4 is the numerical authority. The v0.5 source resolves subnormal decoding
 and the composition rule of its GEMM driver. TC-EFT supplies the arithmetic contracts.
+Per the user's scope decision, Accurate Models is the ground-truth specification:
+completion requires fidelity to its semantics and kernel-checked proofs of the
+claimed results, without independently revalidating the paper on NVIDIA GPUs.
+The pinned reference source supplies implementation detail; any disagreement with
+the paper must be documented and reconciled explicitly. New GPU experiments are
+optional external validation, not a prerequisite for a model theorem. A theorem
+transferring a model result to a real device still keeps `Conforms` explicit.
 `vendor/SOURCES.json` hashes the vendored subset, including the V100 device vectors and
 their readers. MATLAB was read, not executed; nothing here claims equivalence with the full
 MATLAB GEMM implementation.
@@ -54,6 +61,15 @@ FP32, c joins the common alignment, and the output is one truncation.
 `hopperF16F32 = fp16Fp32Profile 16 2 (−133)`. Any floor at or below −126 is proved inert for
 FP16 operands (`canonical_eta_floor_inactive`).
 
+Aligned invocations accept `K = 0`, consistently with `evalBlock`: c still participates in
+alignment and output conversion. This does not imply passthrough for arbitrary floors or
+signed zero. Fused scalar specifications remain restricted to `K = 1`.
+`runCanonicalDot` requires positive group width and a finite initial accumulator even for an
+empty operand list; an empty finite run preserves the initial bits. The underlying
+`runBlocks` deliberately remains an empty-list no-op. `runCanonicalDotMachine` has the same
+public guard, and machine equivalence also retains the original low-level guarantee for
+finite initial inputs.
+
 `InvocationSpec` generalizes the description with an operand encoding (including padded
 TF32 storage), a c format, `CPlacement` (in the group, or added after the products through
 conversion stages), an aligned or fused accumulation, and ordered conversion stages.
@@ -68,6 +84,21 @@ only; the other formats it can describe are not claimed. The target feature univ
 bounded encoding for the proofs; its behavior outside the public domain is not an overflow
 specification. Corrected block and schedule theorems require the final exact sum to be in
 range as a separate premise from successful intermediate calls.
+
+## Scalar correction and bounded primitives
+
+`BlockTrace.scalarCorrected` and `BlockTrace.tceft` return a correction only when
+`scalarPredicate` holds. `scalarCorrectedUnchecked` is a diagnostic implementation
+that can return incorrect bits outside that predicate; both public guarded entries
+reject the preserved subnormal and broad V100 counterexamples. The exact `corrected`
+reference is a separate procedure, not a fallback of the guarded scalar branch.
+
+The predicate and extracted trace components still use exact arithmetic, including
+the final range check. `EFMachine.multiplySignificands` widens two 11-bit magnitudes
+to a 24-bit product; `splitMagnitude` splits a 24-bit magnitude using an 8-bit gap,
+with a separate branch for gaps at least 24. No-wrap and refinement proofs cover
+all these inputs and either sign in the specification interpretation. These are
+primitives, not an encoded-input extractor or a complete bounded correction API.
 
 ## Other paths, recorded and not instantiated
 

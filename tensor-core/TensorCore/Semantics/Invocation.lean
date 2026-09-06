@@ -27,7 +27,7 @@ structure InvocationSpec where
 def stagesValid (ss : List ConversionStage) : Bool := ss.all fun s => decide s.format.WellFormed
 
 def InvocationSpec.Valid (p : InvocationSpec) : Prop :=
-  p.input.valueFormat.layout.WellFormed ∧ p.cFormat.WellFormed ∧ 0 < p.products ∧
+  p.input.valueFormat.layout.WellFormed ∧ p.cFormat.WellFormed ∧
   stagesValid p.intermediate = true ∧ p.output.format.WellFormed ∧
   match p.accumulation with
   | .fused => p.products = 1

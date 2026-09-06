@@ -95,16 +95,36 @@ theorem canonicalPartition_ideal (K extra : Nat) (floor : Option Int) (hK : 0 < 
       idealProducts (fp16Fp32Profile K extra floor) xs := by
   rw [OrderedPartition.ideal, idealProducts_padFp16Pairs]
 
+/-- Public dot-product execution checks the initial encoding even for an empty input. -/
 def runCanonicalDot (K extra : Nat) (floor : Option Int) (hK : 0 < K)
     (xs : List (F16 × F16)) (c : F32) : Except ModelError (List BlockTrace) :=
-  (canonicalPartition K extra floor hK xs).run c
+  match decode32 c with
+  | none => .error .nonfiniteInput
+  | some _ => (canonicalPartition K extra floor hK xs).run c
+
+theorem runCanonicalDot_finite (K extra : Nat) (floor : Option Int) (hK : 0 < K)
+    (xs : List (F16 × F16)) (initial : Finite32) :
+    runCanonicalDot K extra floor hK xs initial.bits =
+      (canonicalPartition K extra floor hK xs).run initial.bits := by
+  simp only [runCanonicalDot, initial.valid]
+
+theorem runCanonicalDot_blocks (K extra : Nat) (floor : Option Int) (hK : 0 < K)
+    (xs : List (F16 × F16)) (c : F32) (ts : List BlockTrace)
+    (h : runCanonicalDot K extra floor hK xs c = .ok ts) :
+    runBlocks (fp16Fp32Profile K extra floor) c
+      (canonicalPartition K extra floor hK xs).inputs = .ok ts := by
+  unfold runCanonicalDot at h
+  split at h
+  · contradiction
+  · exact h
 
 theorem runCanonicalDot_count (K extra : Nat) (floor : Option Int) (hK : 0 < K)
     (xs : List (F16 × F16)) (c : F32) (ts : List BlockTrace)
     (h : runCanonicalDot K extra floor hK xs c = .ok ts) :
     ts.length = groupCount K xs.length := by
   have hl := runBlocks_length (fp16Fp32Profile K extra floor) c
-    (canonicalPartition K extra floor hK xs).inputs ts h
+    (canonicalPartition K extra floor hK xs).inputs ts
+    (runCanonicalDot_blocks K extra floor hK xs c ts h)
   simpa [OrderedPartition.inputs, canonicalPartition_count] using hl
 
 /-- The constructed schedule's error is relative to the unpadded original operands.
@@ -116,7 +136,8 @@ theorem runCanonicalDot_uncorrected_error (K extra : Nat) (floor : Option Int) (
     absQ (initial.value + products - (lastOutput initial ts).value) ≤
       sumQ (ts.map BlockTrace.errorBudget) :=
   (runBlocks_uncorrected_error (fp16Fp32Profile K extra floor) initial
-    (canonicalPartition K extra floor hK xs).inputs ts products h
+    (canonicalPartition K extra floor hK xs).inputs ts products
+    (runCanonicalDot_blocks K extra floor hK xs initial.bits ts h)
     (by rw [canonicalPartition_ideal, hi])).1
 
 theorem runCanonicalDot_uncorrected_error_strict (K extra : Nat) (floor : Option Int) (hK : 0 < K)
@@ -126,7 +147,8 @@ theorem runCanonicalDot_uncorrected_error_strict (K extra : Nat) (floor : Option
     absQ (initial.value + products - (lastOutput initial ts).value) <
       sumQ (ts.map BlockTrace.errorBudget) := by
   have hb := (runBlocks_uncorrected_error (fp16Fp32Profile K extra floor) initial
-    (canonicalPartition K extra floor hK xs).inputs ts products h
+    (canonicalPartition K extra floor hK xs).inputs ts products
+    (runCanonicalDot_blocks K extra floor hK xs initial.bits ts h)
     (by rw [canonicalPartition_ideal, hi])).2
   apply hb
   intro hempty
@@ -139,12 +161,34 @@ theorem runCanonicalDot_uncorrected_error_strict (K extra : Nat) (floor : Option
   simp only [Nat.zero_mul] at hpad
   omega
 
+/-- Machine accumulation with the same public finite-input policy as `runCanonicalDot`. -/
+def runCanonicalDotMachine (K extra w : Nat) (floor : Option Int) (hK : 0 < K)
+    (xs : List (F16 × F16)) (c : F32) : Except ModelError (List BlockTrace) :=
+  match decode32 c with
+  | none => .error .nonfiniteInput
+  | some _ => runBlocksMachine w (fp16Fp32Profile K extra floor) c
+      (canonicalPartition K extra floor hK xs).inputs
+
 theorem runCanonicalDot_machine_eq (K extra carryBits w : Nat) (floor : Option Int) (hK : 0 < K)
     (xs : List (F16 × F16)) (c : F32) (hc : K + 1 ≤ 2 ^ carryBits)
     (hw : 26 + extra + carryBits ≤ w) :
-    runBlocksMachine w (fp16Fp32Profile K extra floor) c
-      (canonicalPartition K extra floor hK xs).inputs = runCanonicalDot K extra floor hK xs c :=
-  fp16Fp32_schedule_machine_eq K extra carryBits w floor hc hw c
+    runCanonicalDotMachine K extra w floor hK xs c = runCanonicalDot K extra floor hK xs c := by
+  unfold runCanonicalDotMachine runCanonicalDot
+  cases decode32 c with
+  | none => rfl
+  | some d =>
+    exact fp16Fp32_schedule_machine_eq K extra carryBits w floor hc hw c
+      (canonicalPartition K extra floor hK xs).inputs
+
+/-- The underlying machine schedule still agrees on every finite initial encoding. -/
+theorem runCanonicalDot_machine_eq_of_finite (K extra carryBits w : Nat)
+    (floor : Option Int) (hK : 0 < K) (xs : List (F16 × F16)) (initial : Finite32)
+    (hc : K + 1 ≤ 2 ^ carryBits) (hw : 26 + extra + carryBits ≤ w) :
+    runBlocksMachine w (fp16Fp32Profile K extra floor) initial.bits
+      (canonicalPartition K extra floor hK xs).inputs =
+      runCanonicalDot K extra floor hK xs initial.bits := by
+  rw [runCanonicalDot_finite]
+  exact fp16Fp32_schedule_machine_eq K extra carryBits w floor hc hw initial.bits
     (canonicalPartition K extra floor hK xs).inputs
 
 end TensorCore

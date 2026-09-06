@@ -36,10 +36,66 @@
       "env",
       "lean",
       "examples/LongDotProduct.lean"
+    ],
+    [
+      "python3",
+      "scripts/check_certificates.py"
+    ],
+    [
+      "python3",
+      "scripts/check_application.py"
+    ],
+    [
+      "python3",
+      "scripts/validate.py"
+    ],
+    [
+      "python3",
+      "scripts/check_device.py"
+    ],
+    [
+      "python3",
+      "scripts/check_eft.py"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "examples/BoundedDot.lean"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "examples/Certify.lean"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "examples/EFTCoverage.lean"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "examples/EFTHardware.lean"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "examples/SingleInvocation.lean"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
+      "examples/Verify.lean"
     ]
   ],
-  "targets_built": 126,
-  "audit": "673 theorem roots audited (406 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 148,
+  "audit": "772 theorem roots audited (471 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [
@@ -64,11 +120,12 @@
   "feature_checks": {
     "scope": "Canonical FP16 products, FP32 c/output, unnormalized products, RTZ",
     "oracle": "Exact Fraction arithmetic; FP32 output found by binary search over encodings",
-    "configurations": 129,
-    "cases": 1985,
+    "configurations": 132,
+    "cases": 2033,
     "rejected": 15,
     "mismatches": 0,
     "K": [
+      0,
       1,
       3,
       4,
@@ -93,9 +150,9 @@
       257
     ],
     "exercised_losses": {
-      "alignment": 1378,
-      "output": 731,
-      "both": 526
+      "alignment": 1386,
+      "output": 739,
+      "both": 534
     },
     "published_device_comparisons": [
       {
@@ -146,8 +203,8 @@
     "other_formats": "Deferred by user; not part of this acceptance gate"
   },
   "dot_product_checks": {
-    "cases": 278,
-    "rejected": 4,
+    "cases": 280,
+    "rejected": 6,
     "mismatches": 0,
     "configurations": 25,
     "partial_tail_cases": 160,
@@ -196,5 +253,210 @@
   },
   "canonical_example": true,
   "long_dot_product_example": true,
-  "success": true
+  "success": true,
+  "certificate_checks": {
+    "success": true,
+    "rejection_cases": [
+      "tight_tolerance",
+      "negative_tolerance",
+      "insufficient_carry",
+      "initial_range",
+      "nonfinite_initial",
+      "oversized_initial",
+      "invalid_supplied_proof",
+      "nonfinite_operand"
+    ],
+    "rejections": 8,
+    "prior_error_does_not_roll_back": true,
+    "supplied_proof_compiles": true,
+    "example_compiles": true,
+    "example_elaboration_wall_seconds": 0.525845,
+    "executable_dependency_checks": 3,
+    "dependency_negative_control": true,
+    "concrete_path": "Exact ideal prefixes, no model execution or residual ledger",
+    "family_path": "Input decoding and magnitude/count checks, no exact prefixes",
+    "timing_scope": "Entire lake env lean examples/Certify.lean process, including imports and diagnostics"
+  },
+  "application_checks": {
+    "success": true,
+    "cases": 87,
+    "sizes": [
+      0,
+      1,
+      3,
+      4,
+      5,
+      16,
+      31,
+      64,
+      127,
+      256,
+      257,
+      512
+    ],
+    "mismatches": 0,
+    "family_accepted": 52,
+    "concrete_accepted": 69,
+    "accepted_nonzero_error_cases": 29,
+    "accepted_partial_tail_cases": 26,
+    "family_rejection_reasons": {
+      "length": 14,
+      "operands": 12,
+      "initial": 13
+    },
+    "outside_family_but_within_tolerance": 33,
+    "symbolic_example_compiles": true,
+    "ideal_from_unpadded_original_bits": true,
+    "new_gpu_measurements": false,
+    "timings": [
+      {
+        "products": 1,
+        "path": "family",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.17157583000000032
+      },
+      {
+        "products": 1,
+        "path": "concrete",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.1738087499999996
+      },
+      {
+        "products": 1,
+        "path": "model_with_trace_and_ideal",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.1817712500000002
+      },
+      {
+        "products": 16,
+        "path": "family",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.18193833000000104
+      },
+      {
+        "products": 16,
+        "path": "concrete",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.20432458000000042
+      },
+      {
+        "products": 16,
+        "path": "model_with_trace_and_ideal",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.2296891599999995
+      },
+      {
+        "products": 64,
+        "path": "family",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.23921791999999997
+      },
+      {
+        "products": 64,
+        "path": "concrete",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.3096791600000004
+      },
+      {
+        "products": 64,
+        "path": "model_with_trace_and_ideal",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.42499290999999945
+      },
+      {
+        "products": 256,
+        "path": "family",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.4558937499999982
+      },
+      {
+        "products": 256,
+        "path": "concrete",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 0.7822954199999986
+      },
+      {
+        "products": 256,
+        "path": "model_with_trace_and_ideal",
+        "cases_per_process": 100,
+        "measured_processes": 3,
+        "median_wall_ms_per_case": 1.0971241599999981
+      }
+    ],
+    "timing_scope": "Compiled CLI batches, including process startup, parsing and JSON; 1 warmup and 3 measured processes of 100 cases. Model path also computes its exact ideal and trace report. No extraction or GPU timing claim."
+  },
+  "eft_checks": {
+    "status": "passed",
+    "commands": [
+      {
+        "command": [
+          "lake",
+          "build"
+        ],
+        "exit_code": 0,
+        "warnings": [
+          "ld64.lld: warning: directory not found for option -L/usr/local/lib",
+          "ld64.lld: warning: directory not found for option -L/usr/local/lib"
+        ]
+      },
+      {
+        "command": [
+          "lake",
+          "env",
+          "lean",
+          "Audit.lean"
+        ],
+        "exit_code": 0,
+        "audit": "tc_audit: 772 theorem roots (471 written in source, the rest generated)"
+      },
+      {
+        "command": [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+          "scripts/check_eft_coverage.py"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+          "scripts/generate_hardware.py"
+        ],
+        "exit_code": 0
+      },
+      {
+        "command": [
+          "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+          "scripts/replay_hardware.py",
+          "--self-test"
+        ],
+        "exit_code": 0
+      }
+    ],
+    "scanned_lean_sources": 79,
+    "bounded_scope": "11-bit significand multiplication and 24-bit magnitude splitting, with exact truncation/residual refinement",
+    "incomplete": [
+      "Encoded decoder and extraction pipeline",
+      "Bounded overlap and guard",
+      "Bounded consolidation and end-to-end correctness",
+      "Useful input-family success theorem",
+      "Full extraction/guard/consolidation phase costs",
+      "CUDA compilation and actual GPU measurements"
+    ]
+  },
+  "independent_validation_passed": true,
+  "v100_device_replay_passed": true,
+  "all_standalone_examples": true,
+  "lean_warnings": 0,
+  "linker_warnings": 2
 }

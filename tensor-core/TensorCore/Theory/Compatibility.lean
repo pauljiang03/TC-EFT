@@ -66,10 +66,10 @@ theorem legacy_prepared_bits (p : Profile) (ps : List (Decoded × Decoded)) (c :
 
 set_option maxRecDepth 4096 in
 theorem legacy_invocation_bits {p : Profile} (x : BlockInput p) (F : Nat)
-    (hinput : p.input.WellFormed) (hproducts : 0 < p.products) (hF : p.alignFraction = F) :
+    (hinput : p.input.WellFormed) (hF : p.alignFraction = F) :
     invocationBits (x.toInvocation F) = (evalBlock x).toOption.map (fun t => t.output.bits) := by
   have hv : (p.toInvocation F).Valid := by
-    refine ⟨hinput, ?_, hproducts, rfl, ?_, trivial⟩ <;> change fp32.WellFormed <;> decide
+    refine ⟨hinput, ?_, rfl, ?_, trivial⟩ <;> change fp32.WellFormed <;> decide
   unfold invocationBits
   rw [evalInvocation, if_neg (by intro hn; exact hn hv)]
   simp only [BlockInput.toInvocation, Profile.toInvocation]
@@ -90,6 +90,6 @@ theorem legacy_invocation_bits {p : Profile} (x : BlockInput p) (F : Nat)
 
 theorem v100_invocation_bits (x : BlockInput v100F16F32) :
     invocationBits (x.toInvocation 23) = (evalV100 x).toOption.map (fun t => t.output.bits) :=
-  legacy_invocation_bits x 23 (by decide) (by decide) rfl
+  legacy_invocation_bits x 23 (by decide) rfl
 
 end TensorCore

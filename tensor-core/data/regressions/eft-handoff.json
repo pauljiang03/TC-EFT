@@ -1,0 +1,127 @@
+{
+  "track": "Agent B",
+  "ready_for_integration": true,
+  "baseline_revision": "95d5f62",
+  "source_checkout": "/tmp/tc-agent-b-uqbs96ku/repo",
+  "completed": [
+    "B1 safe scalar API: scalarCorrected now guards; scalarCorrectedUnchecked preserves diagnostic counterexamples; tceft baseline behavior preserved",
+    "B1 actual-Lean coverage gate with all eight guard diagnostics, independent original-input rounding oracle, seeded baseline, per-case records, additional bounded/tail/application cohorts",
+    "B2 bounded primitive milestone: 11-bit significand multiplication, 24-bit coarse/low splitting, no-wrap and shift proofs, exact truncation/residual refinement for either sign",
+    "B3 preparation: 99 unmeasured instruction vectors, separate Lean/oracle expectations, CUDA harness with source provenance, capture/replay tools and synthetic replay tests"
+  ],
+  "open": [
+    "F6 encoded-input extractor, bounded decoding/overlap/guard/consolidation and complete refinement to NearestEven32",
+    "F6 useful correction-success input family theorem; baseline predicate remains unchanged",
+    "F6 extraction/guard/consolidation cost measurements and alternative-algorithm comparison",
+    "F5 CUDA compilation and actual GPU measurements; no hardware conformance proof",
+    "F1 remaining public-domain integration and F8 combined documentation/validation belong to A/integrator"
+  ],
+  "theorem_contracts": {
+    "scalarCorrected_rejects": "If scalarPredicate=false, public scalarCorrected=none",
+    "scalarCorrected_eq": "If scalarPredicate=true, safe scalarCorrected equals nearest-even conversion of the existing exactDot",
+    "scalarChecks_all": "All named diagnostic checks equal exactly the unchanged scalarPredicate",
+    "multiplySignificands_exact": "For every pair of 11-bit unsigned magnitudes, 24-bit machine product.toNat is their natural-number product",
+    "splitMagnitude_coarse_truncGrid": "For either sign, any 24-bit magnitude, any 8-bit gap, and arbitrary specification scale, machine coarse denotes truncGrid at scale+gap",
+    "splitMagnitude_low_residual": "Same universally quantified inputs; machine low denotes original signed dyadic minus exact truncGrid",
+    "limitations": "These primitives do not take encoded dot-product inputs or an encoded D. Sign/scale interpretation is specification-side. No complete machine correction API is claimed."
+  },
+  "primitive_cost_model": {
+    "kind": "source-level BitVec operator counts only; not native performance or full extractor costs",
+    "multiply": "two unsigned widenings and one 24-bit multiplication",
+    "split_gap_below_24": "one unsigned 8-bit comparison, two 24-bit shifts and one 24-bit subtraction",
+    "split_gap_at_least_24": "one unsigned 8-bit comparison and component assignments; no shift"
+  },
+  "coverage": {
+    "cases": 21966,
+    "baseline_preserved": true,
+    "accepted_correction_mismatches": 0,
+    "broad_acceptance": [
+      73,
+      13,
+      0
+    ],
+    "published_acceptance": [
+      5000,
+      5000,
+      5000
+    ],
+    "near_one_acceptance": [
+      1000,
+      1000,
+      1000
+    ],
+    "source_report": "data/regressions/eft-coverage.json",
+    "application_scope": "one-block samples within small16 magnitude <1/16 and |c|<=1; not composed application coverage",
+    "support_investigation": "actual nonzero-low binary support yields broad budget passes 86/24/1 versus baseline 73/13/0; diagnostic only, no broadened predicate or success proof",
+    "new_kernel_counterexample": "finite_bits/V100/250: output and exact RN bf649af9; unchecked bf649afa; safe API none"
+  },
+  "validation": {
+    "fresh_agent_b_gate": "python3 scripts/check_eft.py --clean",
+    "fresh_report": "data/regressions/eft-checks.json",
+    "audit": "699 theorem roots, 423 written in source; only standard Lean axioms",
+    "build_jobs": 132,
+    "lean_warnings": 0,
+    "linker_warnings": 2,
+    "linker_warning": "ld64.lld: directory not found for option -L/usr/local/lib",
+    "additional_passed_commands": [
+      "python3 scripts/check_axioms.py",
+      "python3 scripts/validate.py",
+      "python3 scripts/check_features.py",
+      "python3 scripts/check_dot_products.py",
+      "python3 scripts/check_device.py",
+      "python3 scripts/check_device_formats.py",
+      "python3 scripts/check_programs.py",
+      "lake env lean examples/CanonicalInvocation.lean",
+      "lake env lean examples/LongDotProduct.lean"
+    ],
+    "cuda_unavailable_check": "hardware/run.py refuses without nvcc/cuobjdump and creates no measurement directory",
+    "combined_agent_a_validation": "not performed in this branch; integrator must rerun after combining A changes"
+  },
+  "integration_requests": [
+    "New primitive proofs/regressions are already reachable from TensorCore.lean via the existing import of Regression.EFT; no new executable target registration or root source-scan edit is required.",
+    "Add python3 scripts/check_eft.py to the shared clean-build command list; it includes the two new examples, scalar coverage and hardware generation/replay checks.",
+    "Update shared README/theorem map/assumptions/validation/PLAN facts: guarded helper, explicit Unchecked diagnostic, new regressions and primitive-only scope; keep F5 and F6 open.",
+    "Regenerate combined theorem counts and shared reports after A integration; 699 is B plus baseline, not the combined count.",
+    "Preserve user PLAN/split and concurrent Agent A files; only the file list here belongs to this delivery."
+  ],
+  "files": [
+    "TensorCore/Programs/EFT.lean",
+    "TensorCore/Regression/EFT.lean",
+    "TensorCore/Foundations/EFMachine/Split.lean",
+    "TensorCore/Theory/EFMachine/Split.lean",
+    "TensorCore/Regression/EFMachine/Split.lean",
+    "examples/EFTCoverage.lean",
+    "examples/EFTHardware.lean",
+    "scripts/check_eft.py",
+    "scripts/check_eft_coverage.py",
+    "scripts/generate_hardware.py",
+    "scripts/replay_hardware.py",
+    "hardware/wmma_fp16.cu",
+    "hardware/run.py",
+    "hardware/provenance.json",
+    "hardware/LICENCE",
+    "data/regressions/eft-coverage.json",
+    "data/regressions/eft-coverage-cases.json",
+    "data/regressions/eft-checks.json",
+    "data/hardware/inputs.json",
+    "data/hardware/expected.json",
+    "data/hardware/replay-self-test.json"
+  ],
+  "source_sha256": {
+    "TensorCore/Programs/EFT.lean": "d176ae7f7b059832e86e8cb62ca2749b71bf90f6c0e32823b66546661ab446be",
+    "TensorCore/Regression/EFT.lean": "dd7f6239e91f7aebd5e9efbf6655da207366728947a5b0c5ca088398a585b624",
+    "TensorCore/Foundations/EFMachine/Split.lean": "1f2c7315365f1a8fe25e22fc0bc0e77770d62cce9702abf7ddaab30907136786",
+    "TensorCore/Theory/EFMachine/Split.lean": "27e91c702e458869b607aaedfc31f34a48bd8ea30fbf147b022945192dc72337",
+    "TensorCore/Regression/EFMachine/Split.lean": "4a3a08026b785f5bd40fbec25e429bb7f46c8914edd3ed2c6b98f6ead839e3fd",
+    "examples/EFTCoverage.lean": "38f2ed380283542ebeffaf95513ef068e542f6cf3ed01a5f3587cc6f820cf69f",
+    "examples/EFTHardware.lean": "27f5cad48b87eab46872afabafe566855b7c4cff0d5b2b42749bb0147148141d",
+    "scripts/check_eft.py": "4711514bcf609b1b0f0885b0aae4ee3cf99c0da418606182b31d93f469f0d305",
+    "scripts/check_eft_coverage.py": "c4eb30b0e416170c9f883b57cca8981f67956fc7d2d58b987430712cb0e67bd0",
+    "scripts/generate_hardware.py": "00354f7ab294c6665e68b900da4a101c3e9c66e29a86a7c3c2047b3735596c56",
+    "scripts/replay_hardware.py": "f2f1ebc8dd5dffa229ce0de5cc3a3e366fa69523bf38a68623865edd043ccf10",
+    "hardware/wmma_fp16.cu": "48564ce85cb1a883f9b088620cd087969d50a0b21776581dc82973515bc41f83",
+    "hardware/run.py": "7870f150db1dc09b41ce3313874a4c637105c1118c29647fc2ff1512129e7b09",
+    "hardware/provenance.json": "8e1c6699cd76eefa08b5295e77abbd5cd3ec5f6083113299b98b15384d760f98",
+    "hardware/LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c"
+  }
+}

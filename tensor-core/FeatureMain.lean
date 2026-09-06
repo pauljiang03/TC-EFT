@@ -1,6 +1,7 @@
 import TensorCore.Semantics.Profiles
 import TensorCore.Semantics.Canonical
 import TensorCore.Programs.Partition
+import TensorCore.Applications.BoundedDot
 import Lean
 
 open TensorCore Lean
@@ -127,6 +128,32 @@ private def command (args : List String) : Option Json := do
     let floor ← if floorText = "none" then some none else floorText.toInt? |>.map some
     let ns ← words.mapM String.toNat?
     dotJson K E floor ns
+  | "certificate" :: kind :: words =>
+    let ns ← words.mapM String.toNat?
+    let c ← ns.getLast?
+    if c ≥ 2 ^ 32 then none else do
+      let ps ← parseFp16Pairs ns.dropLast
+      let bits : F32 := BitVec.ofNat 32 c
+      let groups := groupCount 4 ps.length
+      let budget := (groups : Rat) * staticBudget 5 23 1 3
+      if kind = "family" then
+        return Json.mkObj [
+          ("accepted", toJson (boundedDotCheck ps bits)),
+          ("lengthPass", toJson (decide (ps.length ≤ 256))),
+          ("operandsPass", toJson (ps.all fun (a, b) => small16 a && small16 b)),
+          ("initialPass", toJson (match value32 bits with
+            | none => false | some v => decide (absQ v ≤ 1))),
+          ("groups", toJson groups), ("budget", toJson (qText budget)),
+          ("tolerance", toJson (qText (1 / 2048)))]
+      else if kind = "concrete" then
+        let r := (boundedDot ps).certificateReport 1 3 bits (1 / 2048)
+        return Json.mkObj [
+          ("accepted", toJson (r.inputConditionsPass && r.tolerancePass)),
+          ("inputConditionsPass", toJson r.inputConditionsPass),
+          ("tolerancePass", toJson r.tolerancePass),
+          ("groups", toJson r.groups), ("budget", toJson (qText r.budget)),
+          ("tolerance", toJson (qText r.tolerance))]
+      else none
   | _ => none
 
 def main (args : List String) : IO Unit := do

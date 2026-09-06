@@ -1,10 +1,31 @@
 # Plan
 
-Latest update: 6 September 2026. This is the master handoff to **Fable**, following the
-code review of `d74ae0b` and the user's instruction to document the remaining issues and
-prevent superficial fixes. The ordered work below replaces the earlier boundary-first plan.
-This update changes documentation; the implementation work remains open unless explicitly
-marked complete.
+Latest update: 6 September 2026. This is the master handoff to **Fable**, incorporating the
+reviews of `d74ae0b` and `95d5f62` and the user's instruction to document the remaining issues
+and prevent superficial fixes. The latest review independently reconfirmed the open findings
+and added scalar-predicate coverage measurements. Agent A has now implemented and validated
+the public-domain, certification, changing-state loop, and bounded-dot application work.
+The historical reviews below remain as evidence; current F-item statuses distinguish the
+delivered A track, B's completed milestones, and the combined integration.
+
+## Specification authority and completion scope
+
+User decision, 6 September 2026: **take Accurate Models v4 as the ground-truth
+specification**. The required work is faithful translation of its semantics into
+Lean, explicit reconciliation with the pinned v0.5 reference where necessary,
+and kernel-checked proofs and software validation of the claimed results.
+TC-EFT remains the source of the correction and related arithmetic contracts.
+
+**New GPU measurements are optional external validation, not a completion gate.**
+They would test the paper's correspondence with physical devices, a separate
+objective. GPU access, CUDA compilation, and fresh device runs are not required
+to complete this formalization or F8. Existing published-vector replay and the
+prepared harness remain useful evidence and regression infrastructure.
+
+This scope decision supersedes earlier F5 measurement requirements in the review
+history, split, and handoffs. It does not mark unperformed experiments as passed,
+assert device conformance, or discharge the separate F6 implementation obligations.
+`Conforms` remains explicit only when a theorem makes a claim about an actual device.
 
 ## Fable handoff: do not take the "lazy route"
 
@@ -54,6 +75,109 @@ was solved. Keep unresolved items open when only a contract or description was c
   domain. The remaining findings concern API consistency, restricted contracts, practical
   implementation, coverage, and claims; they are not evidence of a kernel bypass.
 
+### Follow-up review — 6 September, `95d5f62`
+
+The arithmetic core is substantive and credible within its stated domain, and the current
+README mostly describes that domain accurately. The application layers remain incomplete:
+neither a bounded machine implementation of EFT extraction nor an end-to-end verified GPU
+application is delivered. This assessment does not identify a false proved arithmetic result.
+
+Reconfirmed, not newly discovered or fixed:
+
+- A fresh temporary source copy, without the existing `.lake` cache, built all **126 jobs**.
+  The axiom audit again checked **673 theorem roots / 406 written in source**, using only
+  standard Lean axioms. Both oracle suites, dot-product checks, all seven device/format
+  replays (**35,000 published rows**), frontend checks, and the standalone examples passed.
+  These are fresh software checks, not new hardware measurements. The warning counts above
+  belong to the earlier build and should not be copied into a new build report.
+- New kernel-checked probes reproduced all four F1 boundary cases: the zero-product
+  evaluator disagreement, empty-schedule NaN acceptance, the incorrect unchecked scalar
+  result, and the public/core rounding-domain difference. F1 is still open.
+- F2–F3 still have the concrete execution and exact-prefix limitations described below.
+  `Conforms` remains a hardware premise, and machine refinement covers accumulator addition
+  only. F5–F6 are still open. The documentation-only change at `95d5f62` did not implement
+  the earlier plan.
+
+New evidence: the review ran the actual Lean `evalBlock` and `scalarPredicate` on the
+published FP16 corpus and two additional input distributions:
+
+| Input cohort | V100 `(K=4, extra=0)` accepted | Ampere `(K=8, extra=1)` accepted | Hopper `(K=16, extra=2)` accepted |
+| --- | ---: | ---: | ---: |
+| Published FP16 rows | 5,000 / 5,000 | 5,000 / 5,000 | 5,000 / 5,000 |
+| Additional magnitudes in `[0.5, 2)` | 1,000 / 1,000 | 1,000 / 1,000 | 1,000 / 1,000 |
+| Uniform finite magnitude bit patterns, independent signs | 73 / 1,000 | 13 / 1,000 | 0 / 1,000 |
+
+All **21,000** inputs were accepted by the block model; the table counts scalar-predicate
+acceptance. On the published rows, passing correction changed the model output in **1,885**,
+**1,919**, and **2,093** cases respectively, so the passing corpus includes nontrivial
+corrections. On the broad finite-bit cohort, every predicate rejection failed the
+absolute low-coefficient-sum bound `< 2^24`; the other predicate checks passed.
+
+Sampling details for reproduction: use Python `random.Random(20260906)`, first the uniform
+finite-bit cohort, then the near-one cohort, without resetting the generator. Within each
+cohort, visit `(K, extra) = (4, 0), (8, 1), (16, 2)` in that order and generate 1,000 blocks
+per profile. Generate `2*K` interleaved operand words followed by one accumulator word.
+For each word, sample its magnitude first and its sign second with `randrange(2)`, shifted
+by 15 or 31 bits. Uniform magnitudes use `randrange(0x7c00)` for FP16 and
+`randrange(0x7f800000)` for FP32. Near-one magnitudes use `randrange(0x3800, 0x4000)` and
+`randrange(0x3f000000, 0x40000000)` respectively. The published cohort uses the existing
+exact FP32-word-to-FP16 conversion in `check_device.py`. Evaluate all three profiles with
+`floor = none`; the source floors are proved inactive for this family.
+
+These are **acceptance rates of a sufficient predicate**, not hardware error rates,
+estimates of real-workload prevalence, or general proofs of success or failure. In
+particular, zero accepted Hopper samples does not prove that all broad-range Hopper inputs
+fail. The results support useful coverage on the two narrower cohorts while exposing severe
+conservatism on the broad cohort. They do not justify either universal usefulness or a
+claim that the scalar procedure is vacuous. This was a one-off review probe, not an existing
+checked-in validation script; F6 must make coverage checks a reproducible acceptance gate.
+
+### Agent A implementation — 6 September
+
+- **A1 delivered:** aligned invocation compatibility now includes zero products; fused calls
+  still require one. The public dot wrapper rejects nonfinite initial c even on empty
+  input; finite empty behavior and low-level no-op semantics remain. The guarded machine
+  wrapper agrees for all inputs, and low-level equivalence remains available for finite c.
+  The public rounding range guard is preserved and explicitly documented.
+- **F2 delivered:** `Program.Accurate` expresses successful execution and raw error against
+  the independent ideal. `tc_certify` applies `Program.staticCertificate_sound` and checks
+  the requested tolerance. Concrete certificates still compute exact ideal prefixes.
+- **F3 delivered for the fixed-input fragment:** `runBlocks_of_scale_bound` bounds prefixes
+  by decoded operand scales and count, then preserves rounded-state range and accumulated
+  error using `runBlocks_static`. `Program.repeat_accurate_of_scales` quantifies over the
+  iteration count; neither successful execution nor an unchanged state is assumed.
+- **F4 delivered for a bounded ordered dot:** `boundedDot_accurate_of_bits` covers up to 256
+  signed FP16 pairs with magnitude bits below `0x2c00` and finite initial FP32 magnitude
+  at most 1. Its ordered AST matches the public partitioned run and preserves the unpadded
+  ideal. It derives absolute raw error at most `2^-11`; `boundedDotCheck_sound` checks only
+  membership in this input family. See [DSL.md](DSL.md) for the headroom derivation.
+- **Validation:** fresh source build, 142 jobs, 746 theorem roots / 454 written in source,
+  zero Lean warnings and two `ld64.lld` warnings for a missing `/usr/local/lib`. All oracle, device replay, frontend, certification,
+  application, and six standalone example checks pass. The dependency walk excludes model
+  execution and ledgers from concrete certification, and exact-prefix functions from family
+  membership checking; its negative control detects a deliberately contaminated definition.
+- **Remaining:** A has not implemented bounded EFT extraction. New GPU measurements
+  were not obtained and are now classified as optional external validation.
+  A's source-copy validation is historical track evidence. B's delivered milestones
+  and the combined validation are recorded separately below and in `/merge.md`.
+
+New criticisms to retain:
+
+- The application bound is conservative. On 256 near-boundary positive products it is 7
+  times the trace budget and 1,344 times actual error; exact cancellation makes a ratio to
+  error undefined. A tiny nonzero subnormal contribution can make the ratio much larger.
+  Do not present this as a sharp bound or a universal FP32-accuracy guarantee.
+- Among 87 selected size/regime cases, family membership accepts 52, while concrete prefix
+  checking accepts 69. Thirty-three inputs outside the family still meet the numerical
+  tolerance when executed. These are conservative rejections, not incorrect model runs.
+- The symbolic proof handles arbitrary signed bounded operand lists and symbolic counts,
+  but operands remain independent of rounded state. Automatic invariant inference,
+  adaptive loops, CUDA execution, matrix memory-layout correctness, and hardware conformance
+  are not delivered by this application theorem.
+- Timing reports cover complete compiled CLI batches, including parsing and diagnostics;
+  the model comparison also constructs traces and an exact ideal. The measured advantage
+  of family checking is not an isolated arithmetic speedup or a GPU performance result.
+
 ## Where things stand
 
 - V100 FP16 → FP32 executable model with exact traces. R1–R4, rounding boundaries, zero and
@@ -67,6 +191,8 @@ was solved. Keep unresolved items open when only a contract or description was c
   evaluator equal to the reference in every result including rejections
   (`fp16Fp32_machine_eq`), floors at or below −126 proved inert, and padding thresholds
   (`extra ≥ 156` for the source floors, `extra ≥ 253` in general) that make alignment exact.
+  The machine evaluator refines modular accumulator additions; decoding, multiplication,
+  alignment, and output conversion still use the exact reference machinery.
   V100, Ampere, and Hopper instances match the published FP16 vectors, 5,000 rows each.
 - Long dot products in a supplied order: ordered partitions with proved ideal preservation
   and tail padding, a composed uncorrected error bound, and machine equivalence through
@@ -77,7 +203,8 @@ was solved. Keep unresolved items open when only a contract or description was c
   into acceptance of the whole run and the error bound without executing the model.
 - Instruction paths: an `InstructionPath` fixes `k`, `N_FMA`, extra bits, floor, and its
   source; its schedule is the contiguous increasing-k grouping of the reference software,
-  and it runs on exactly `k` operands. Zero groups pass the accumulator through, so
+  and it runs on exactly `k` operands. Zero groups pass finite accumulators other than
+  `−0` through when the floor is at most −126, so, subject to those conditions,
   single-group inputs reproduce one group on the whole instruction
   (`single_group_output`), which is exactly what the published vectors test.
   `Conforms path device`, agreement on the model's accepted domain, is the explicit hardware
@@ -98,8 +225,8 @@ was solved. Keep unresolved items open when only a contract or description was c
   specification. The BF16 and TF32 descriptors match the published A100 and H100 vectors,
   5,000 rows each, but have no rounding-correctness proofs and are not claimed.
 - Two independent Python oracles, 35,000 replayed device rows across seven format/device
-  pairs, frontend tests, and an axiom audit generated from the environment: 673 theorem
-  constants (406 written in source), all on the standard three axioms.
+  pairs, frontend tests, and an axiom audit generated from the combined environment:
+  772 theorem constants (471 written in source), all on the standard three axioms.
 
 ## Assessment
 
@@ -130,16 +257,49 @@ operations and rounding. What this project adds is the mechanization: an executa
 block-FMA model whose general theorems (rounding, recovery, error bounds, machine
 refinement, EFT, non-monotonicity, composition) are checked by the kernel on the same
 definitions that the oracles and device vectors test. Claims of being first or finer than
-other formal models are not made; the comparison that matters is with the papers' own
-statements, and each theorem records the domain on which it reproduces them.
+other formal models are not made. Compare both with the source papers' statements and with
+prior tensor-core formalizations, including Valpey et al.,
+[An SMT Formalization of Mixed-Precision Matrix Multiplication](https://arxiv.org/abs/2502.15999)
+(NFM 2025). The comparison below identifies model fidelity, theorem scope, trust boundary,
+and verified applications; using Lean or counting declarations alone does not establish
+research novelty. Each theorem records the domain on which it reproduces a source result.
+
+### Comparison with the source papers and prior SMT work
+
+Accurate Models v4 and MATLAB v0.5 supply the numerical choices and published vectors;
+TC-EFT supplies the residual, scalar-consolidation, and non-monotonicity results. This
+implementation mechanizes their specified arithmetic; it does not originate those
+algorithms or rediscover the hardware profiles. The A contribution is an input-derived
+acceptance/accuracy theorem and its application to ordered programs with bounded inputs,
+checked against the same executable semantics.
+
+Valpey et al. use an SMT model, including a custom bit-vector accumulator, to generate
+hardware-discriminating inputs and analyze error-correcting mixed-precision algorithms.
+Their study covers Volta, Turing, and Ampere and already includes application analysis;
+therefore executable tensor-core formalization and analyzing corrected algorithms are not
+new simply because this repo does them in Lean. See their [§§4–6](https://arxiv.org/html/2502.15999v1).
+
+Here, the kernel checks general rational rounding proofs, parameterized group contracts,
+scalar consolidation, and symbolic schedule accuracy. The bounded-dot theorem quantifies
+across an input family and derives successful execution and tolerance, rather than only
+producing comparative witnesses. Its guarantee is about the chosen reference schedule;
+GPU fidelity remains empirical. No equivalence between this reference and the SMT model
+has been proved, and this repo does not reproduce their solver-based discovery workflow.
+These are concrete differences in proof scope and tooling, not a claim of overall
+superiority, firstness, or a new numerical error-analysis technique.
 
 ## Master next steps, in order
 
 ### F1 — Resolve public API inconsistencies and finish claim alignment
 
-Status: **open**. The README family qualification and trust report's exact-component wording
-are corrected in this handoff update; those documentation changes do not fix the code gaps.
-The following behaviors were reproduced with kernel-checked evaluations at the baseline:
+Status: **complete under the documented finite-range policy**. Aligned `K = 0`, finite-input
+public dot policy, machine-equivalence repair, and rounding-domain regression are
+retained. `scalarCorrected` now guards the unchanged sufficient predicate, just
+like `tceft`; `scalarCorrectedUnchecked` is explicitly diagnostic. Both wrong-answer
+counterexamples are preserved and rejected by the guarded API. Shared documentation
+states the same domains. The following records the original baseline failures,
+reconfirmed at `95d5f62`; their old API behavior is historical. The finite-range
+rounding restriction remains intentional. This API repair does not complete F6.
 
 - **Zero product count:** `evalBlock` under `fp16Fp32Profile 0 0 none`, with no pairs and
   `c = 0x3f800000`, succeeds and returns that value. `fp16Fp32Invocation 0 0 none` rejects
@@ -172,7 +332,10 @@ thresholds are summarized. Record which limitations remain intentionally outside
 
 ### F2 — Connect static certificates to the program language
 
-Status: **open**. Implement `tc_certify` using [StaticCertificate.lean](../TensorCore/Programs/StaticCertificate.lean).
+Status: **complete for concrete certificates**. `tc_certify` now applies
+`Program.staticCertificate_sound`; eight negative elaboration cases, rollback, supplied
+proofs, diagnostics, and executable dependency checks pass. This uses
+[StaticCertificate.lean](../TensorCore/Programs/StaticCertificate.lean).
 The generated theorem must establish **successful execution and an error bound for the
 uncorrected output** of the supplied program. Keep this distinct from `Program.Correct`,
 which describes execution plus exact-reference correction.
@@ -180,6 +343,9 @@ which describes execution plus exact-reference correction.
 Current `Program.VC` actually executes `pr.run` and checks the exact recovered sum. Its
 soundness theorem is valid, but automatic concrete checking is not symbolic analysis.
 Do not implement `tc_certify` by evaluating that VC and relabeling its result as static.
+`Program.Correct` also does not assert that the raw output meets an application tolerance.
+Diagnostics and examples must identify whether they establish exact-reference correction,
+an uncorrected error bound, or that the bound meets a requested tolerance.
 
 Acceptance: an inspectable AST-to-schedule bridge, sound generated theorem, useful diagnostics,
 and examples with meaningful acceptance/rejection checks. Verify that the certificate path
@@ -188,7 +354,11 @@ alone does not close F3 or constitute the verified application in F4.
 
 ### F3 — Prove bounds for changing-state loops and input families
 
-Status: **open**. `partialSumsCheck` currently computes every group's exact ideal contribution
+Status: **complete for bounded fixed-input families and symbolic repetition**.
+`runBlocks_of_scale_bound` and `Program.repeat_accurate_of_scales` derive changing-state
+acceptance/error from operand scales and total count. The application discharges their
+range and tolerance conditions; regressions demonstrate changing state and nonzero loss.
+The older concrete `partialSumsCheck` still computes every group's exact ideal contribution
 and every ideal partial sum on concrete inputs. Avoiding the hardware model is useful, but
 does not avoid exact input-dependent computation. The underlying `runBlocks_static` theorem
 is substantive and should be reused.
@@ -207,28 +377,45 @@ applicable. A rejected sufficient certificate means "not certified," not "incorr
 
 ### F4 — Deliver one verified application
 
-Status: **open**. Select the application before designing F2–F3 so it determines useful
-contracts. Start with a realistic dot product or transformation with an input-derived
-accuracy requirement. Add tile-level `mma`, matrix indexing, and a per-cell schedule mapping
+Status: **complete for the bounded ordered-dot schedule described above**. The
+input-derived theorem, AST/public-run/original-ideal bridges, 87-case oracle comparison,
+rejection analysis, and certification timing are delivered. It is a normalized row-column
+contribution, with absolute tolerance `2^-11`; no CUDA kernel or relative-error claim follows. Add tile-level `mma`, matrix indexing, and a per-cell schedule mapping
 theorem if the chosen application needs them; do not make matrix scaffolding an end in itself.
 
 Acceptance: an end-to-end theorem against an independently defined mathematical result,
 with discharged input conditions and a useful numerical guarantee. Evaluate multiple sizes
 and input regimes, bound tightness, certification time, and rejected cases. Explain what the
 proof enables beyond executing an exact oracle or replaying selected examples.
+For an accuracy requirement `tolerance`, derive the numerical budget from the input
+conditions and prove that it is at most `tolerance`; success of `tc_verify` alone does not
+discharge that requirement. This application, rather than additional theorem declarations,
+is the next substantive milestone for the program-verification claim.
 
-### F5 — Obtain targeted hardware evidence (prepare in parallel)
+### F5 — Optional external hardware validation
 
-Status: **open; measurements require GPU access**. Existing vectors populate only the first
-group, so they do not test the order of multiple nonzero groups. Prepare a harness based on
-the v0.5 archive, including `ampere_instruction_order_matters`, populated later groups,
-cancellation, signed zeros, and subnormal operands/accumulators. Cover each claimed path
-where the grouping question applies.
+Status: **optional; outside formalization completion requirements**. The dedicated harness,
+99 targeted vectors, independent model expectations, capture/replay tools, source
+provenance, and 12 synthetic replay checks are delivered. CUDA compilation and
+actual device runs have not occurred; see [VALIDATION.md](VALIDATION.md). No GPU
+access or new measurement is required while Accurate Models is the specification
+authority. Existing published vectors populate only the first group; the prepared
+corpus would extend empirical coverage to later groups, ordering, cancellation,
+signed zeros, and subnormals if external hardware validation is later pursued.
 
-Acceptance: actual GPU runs with device, instruction, compiler/settings, and raw input/output
+NVIDIA's [PTX WMMA specification](https://docs.nvidia.com/cuda/parallel-thread-execution/#warp-level-matrix-instructions-wmma-mma)
+leaves accumulation order, rounding, and subnormal handling unspecified for FP16 and
+BF16/TF32. The formalization takes those numerical choices from Accurate Models
+and the pinned reference, rather than attempting to derive them from PTX.
+The current 35,000-row replay cannot establish untested group ordering or boundary behavior,
+and the signed-word accumulator refinement is not a refinement of the complete hardware
+pipeline. Keep these limits visible in any end-to-end claim.
+
+If this optional experiment is pursued, its evidence requires actual GPU runs with
+device, instruction, compiler/settings, and raw input/output
 bits recorded and replayable. Clearly separate expected model results from measurements.
-Harness preparation can finish without a GPU; device validation cannot. Tests strengthen
-evidence but do not turn `Conforms` into a proved hardware fact.
+Unmeasured cases remain labeled unmeasured; they do not block F1–F4, F6, or F8.
+Tests strengthen external evidence but do not turn `Conforms` into a proved hardware fact.
 
 ### F6 — Implement and refine finite-precision EFT extraction
 
@@ -238,6 +425,16 @@ Status: **open; required for a practical correction-algorithm claim**. In
 Changing the expression did not remove exact reconstruction. Coarse parts, low parts,
 overlap, and the predicate are still calculated with exact arithmetic.
 
+B delivered a bounded primitive milestone: 11-bit significand multiplication and
+24-bit splitting with 8-bit gaps, proved free of wrap and refined to independent
+signed truncation/residual definitions. The reproducible 21,966-case coverage gate
+preserves the baseline and adds bounded/tail/application samples. Actual nonzero-low
+support gives diagnostic broad budget passes 86/24/1 versus 73/13/0; no broader
+predicate is implemented or claimed sound. Encoded extraction, bounded overlap,
+guard and consolidation, end-to-end refinement, a useful success family, and full
+phase costs remain open. See `data/regressions/eft-handoff.json` for the milestone
+contract and `eft-coverage.json` for current empirical results.
+
 Implement the extraction, overlap calculation, guard, and final correction using explicitly
 bounded machine operations, with proofs of representability, range, and refinement against
 the existing exact specification. Exact `Rat` values may remain on the specification side.
@@ -246,10 +443,29 @@ decide whether it succeeds. If a different cost model is proposed, state and eva
 explicitly instead of calling it a finite-precision implementation.
 
 Returning `none` when the predicate fails is a legitimate partial-procedure contract and
-already has passing examples. It does not itself implement extraction or establish useful
-coverage. Preserve this honest failure behavior and the subnormal counterexample; do not
-silently reintroduce exact fallback. Prove success for a useful input family and measure
-rejection frequency, operation cost, and accuracy against appropriate alternatives.
+has measured passing coverage in the follow-up review above. It does not itself implement
+extraction or establish a general acceptance guarantee. Preserve this honest failure
+behavior and the subnormal counterexample; do not silently reintroduce exact fallback.
+The paper's Algorithm 1 includes an exact fallback, while `tceft` implements the guarded
+scalar branch only. A separate exact-reference procedure must not be presented as that
+branch's finite-precision implementation.
+
+Coverage acceptance criteria added by the follow-up review:
+
+- Turn the three review cohorts into a reproducible check with recorded inputs or generator,
+  seed, model failures, predicate acceptance, rejection reasons, and corrected-output
+  comparisons. Existing block-oracle and device-output tests do not measure scalar coverage.
+- Preserve both the all-passing published/near-one evidence and the broad finite-bit
+  rejections. Add input regimes representative of the F4 application and prove success for
+  a parameterized useful family; selected passing examples cannot replace that proof.
+- Investigate whether choosing `supportExponent` from every raw term is unnecessarily
+  restrictive compared with the binary support of the actual nonzero low components.
+  Any broader predicate needs a soundness proof and adversarial checks. Do not merely relax
+  the coefficient bound, remove rejected samples, or call a rejected sufficient check an
+  incorrect arithmetic run.
+- Report extraction, guard, and consolidation costs separately, including all exact or
+  bounded integer work, and compare accuracy and operation cost with appropriate alternatives.
+  Acceptance percentages alone establish neither performance nor typical workload coverage.
 
 `block_residual_identity` holds for any supplied output `d`. It and
 `corrected_eq_round_exactDot` are algebraic infrastructure; neither can certify the accuracy
@@ -271,7 +487,15 @@ format-specific rounding or hardware obligations.
 
 ### F8 — Produce the reproducible submission artifact
 
-Status: **open**. Pin the final revision and align README, theorem map, assumptions, DSL,
+Status: **combined source artifact validated; final submission revision remains open**.
+Both final handoffs and the integrated source hashes are recorded. The fresh combined
+gate passed all 19 commands, including the certificate/application/EFT checks and
+eight standalone examples: 148 build jobs, 772 theorem roots / 471 written,
+zero Lean warnings, and two linker-path warnings. All generated reports come from
+the same fresh run. `data/regressions/merge-report.json` pins the tested sources;
+`/merge.md` records completion evidence and remaining limitations. This integration
+is in the working tree; a final submission Git revision has not been created.
+Align README, theorem map, assumptions, DSL,
 validation, and paper claims. Compare explicitly with prior tensor-core formalizations as
 well as the source numerical papers. Separate mathematical novelty, mechanization, and
 empirical evidence; do not use theorem counts or regression counts as substitutes.
@@ -281,6 +505,10 @@ checks; reproducible logs and source pins; accurate warning counts; and a clear 
 which application and extraction claims are actually delivered. New scalar/loop code needs
 the relevant adversarial cases, not merely a rerun of old block-oracle tests. Do not disable
 checks, remove regressions, or suppress warnings to manufacture a clean report.
+
+Device replay here uses the existing published data and runs without a GPU. New
+hardware measurements and CUDA compilation belong to optional F5 and are not
+submission requirements for this formalization of the source model.
 
 Deferred by decision: BF16, TF32, FP8, FP16 output, FP64 FMA, input conversion and flush
 policies, and late-c paths. The `InvocationSpec` scaffolding describes them and two of them

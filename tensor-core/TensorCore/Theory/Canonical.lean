@@ -5,10 +5,10 @@ import TensorCore.Theory.ErrorBounds
 namespace TensorCore
 
 theorem fp16Fp32_invocation_compatible (K extra : Nat) (floor : Option Int)
-    (hK : 0 < K) (x : BlockInput (fp16Fp32Profile K extra floor)) :
+    (x : BlockInput (fp16Fp32Profile K extra floor)) :
     invocationBits (x.toInvocation (23 + extra)) =
       (evalBlock x).toOption.map (fun t => t.output.bits) :=
-  legacy_invocation_bits x (23 + extra) (by change fp16.WellFormed; decide) hK rfl
+  legacy_invocation_bits x (23 + extra) (by change fp16.WellFormed; decide) rfl
 
 /-- One public contract for arbitrary canonical block size and extra alignment bits.
 It states uncorrected output/error behavior and a machine-width refinement. It does

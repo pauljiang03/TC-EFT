@@ -51,7 +51,7 @@ private partial def expandStmts (stmts : Array (TSyntax `tcStmt)) : TermElabM (T
 syntax "tc_verify" ident ":" term "from" term : command
 syntax "tc_verify" ident ":" term "from" term "using" term : command
 
-private partial def checkedInitial (initial : TSyntax `term) : CommandElabM (TSyntax `term) := do
+partial def checkedInitial (initial : TSyntax `term) : CommandElabM (TSyntax `term) := do
   match initial with
   | `(($inner:term)) => checkedInitial inner
   | `($n:num) => `(TensorCore.checkedF32 $n (by decide +kernel))

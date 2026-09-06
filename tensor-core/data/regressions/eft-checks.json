@@ -1,0 +1,58 @@
+{
+  "status": "passed",
+  "commands": [
+    {
+      "command": [
+        "lake",
+        "build"
+      ],
+      "exit_code": 0,
+      "warnings": [
+        "ld64.lld: warning: directory not found for option -L/usr/local/lib",
+        "ld64.lld: warning: directory not found for option -L/usr/local/lib"
+      ]
+    },
+    {
+      "command": [
+        "lake",
+        "env",
+        "lean",
+        "Audit.lean"
+      ],
+      "exit_code": 0,
+      "audit": "tc_audit: 772 theorem roots (471 written in source, the rest generated)"
+    },
+    {
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "scripts/check_eft_coverage.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "scripts/generate_hardware.py"
+      ],
+      "exit_code": 0
+    },
+    {
+      "command": [
+        "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
+        "scripts/replay_hardware.py",
+        "--self-test"
+      ],
+      "exit_code": 0
+    }
+  ],
+  "scanned_lean_sources": 79,
+  "bounded_scope": "11-bit significand multiplication and 24-bit magnitude splitting, with exact truncation/residual refinement",
+  "incomplete": [
+    "Encoded decoder and extraction pipeline",
+    "Bounded overlap and guard",
+    "Bounded consolidation and end-to-end correctness",
+    "Useful input-family success theorem",
+    "Full extraction/guard/consolidation phase costs",
+    "CUDA compilation and actual GPU measurements"
+  ]
+}

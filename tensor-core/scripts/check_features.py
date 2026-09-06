@@ -93,7 +93,7 @@ def main():
         assert hashlib.sha256((ROOT / 'vendor/matlab-tensor-core-v0.5' / name).read_bytes()).hexdigest() == expected, name
     cases = []
     # Include arbitrary, non-hardware block sizes and extra-bit counts.
-    configs = [(4, 0, None), (8, 1, -132), (16, 2, -133)]
+    configs = [(0, 0, None), (0, 2, -133), (0, 0, 4), (4, 0, None), (8, 1, -132), (16, 2, -133)]
     configs += [(k, e, f) for k in [1, 3, 7, 17, 37, 64]
                 for e in [0, 1, 2, 5, 9, 24] for f in [None, -132, 4]]
     # The proved conservative threshold, including its largest permitted floor.

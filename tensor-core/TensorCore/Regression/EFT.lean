@@ -1,4 +1,5 @@
 import TensorCore.Programs.EFT
+import TensorCore.Regression.EFMachine.Split
 import TensorCore.Regression.Cases
 
 namespace TensorCore.Regression
@@ -18,7 +19,7 @@ structure EftSnapshot where
 def eftSnapshot {p : Profile} (x : BlockInput p) : Except ModelError EftSnapshot := do
   let t ← evalBlock x
   return ⟨t.extractionExponent, t.lowParts, t.overlap, t.scalarPredicate,
-    t.scalarCorrected.map BitVec.toNat, t.tceft.map BitVec.toNat⟩
+    t.scalarCorrectedUnchecked.map BitVec.toNat, t.tceft.map BitVec.toNat⟩
 
 set_option maxRecDepth 16384
 set_option maxHeartbeats 4000000
@@ -75,5 +76,27 @@ theorem subnormal_accumulator_rejected :
       .ok (-23, false, some 0x3f800000, none) ∧
     ((snapshot subnormalAccumulator).map fun s => s.correctedBits) = .ok (some 0x3f800001) := by
   decide +kernel
+
+/-- Both public names enforce the guard on the subnormal counterexample. -/
+theorem scalar_public_subnormal_rejected :
+    ((evalBlock subnormalAccumulator).map fun t =>
+      (t.scalarCorrected, t.tceft)) = .ok (none, none) := by decide +kernel
+
+/-- A correction that changes the output remains available through the safe helper. -/
+theorem scalar_public_r3 :
+    ((evalBlock r3).map fun t => t.scalarCorrected.map BitVec.toNat) =
+      .ok (some 0x41080000) := by decide +kernel
+
+/-- Seed 20260906, finite-bit V100 sample 250: the unchecked branch changes an
+already correctly rounded model output to its neighbor. The guard must reject. -/
+def broadFiniteCounterexample : V100Input :=
+  ⟨[(0x210f, 0x4553), (0x5a5b, 0x9753), (0x9a0b, 0xd06e), (0xd68c, 0x1eb6)],
+    0x238ac5ec⟩
+
+theorem broad_finite_unchecked_incorrect :
+    ((evalBlock broadFiniteCounterexample).map fun t =>
+      (t.output.bits.toNat, t.scalarCorrectedUnchecked.map BitVec.toNat,
+        t.corrected.map BitVec.toNat, t.scalarCorrected)) =
+      .ok (3211041529, some 3211041530, some 3211041529, none) := by decide +kernel
 
 end TensorCore.Regression

@@ -56,8 +56,21 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Executable representability implies representability | `representable32_finite` | proved |
 | IV.9–IV.10: under the predicate the scalar branch computes `RN(S)` | `scalarCorrected_eq` | Predicate on the actual components; proved |
 | Corollary IV.11: the scalar branch is correctly rounded | `scalarCorrected_correct` | proved |
+| Public correction rejects failed predicates; diagnostic checks exactly reproduce the predicate | `scalarCorrected_rejects`, `scalarChecks_all` | Guarded `scalarCorrected` and `tceft`; `scalarCorrectedUnchecked` remains diagnostic only; proved |
 | Lemmas IV.3–IV.4: a coarse low part is its retained part on the alignment grid plus the alignment residual; `ε_o = Σ φ(εᵢ) − r_out` | `truncGrid_split`, `accumulator_eq_retained`, `overlap_eq_retained_sub_outputResidual` | Any trace; proved |
 | The scalar EFT returns a result exactly when its predicate holds; every result is correctly rounded and equals the exact-rational reference | `tceft_isSome_iff`, `tceft_correct`, `tceft_eq_corrected`, `evalBlock_tceft_correct` | proved |
+
+## Bounded EFT primitives
+
+| Contract | Declaration in `TensorCore.EFMachine` | Domain and status |
+| --- | --- | --- |
+| Widened significand multiplication has no wrap | `multiplySignificands_exact` | Every pair of 11-bit magnitudes; 24-bit result; proved |
+| Coarse quotient, low remainder, exact reconstruction, and residual bound | `splitMagnitude_coarse`, `splitMagnitude_low`, `splitMagnitude_reconstruct`, `splitMagnitude_low_lt` | Every 24-bit magnitude and 8-bit gap; proved |
+| Executed shifts stay below the word width | `splitMagnitude_shift_bound` | Gaps at least 24 use the separate no-shift branch; proved |
+| Machine components denote exact truncation and residual | `splitMagnitude_coarse_truncGrid`, `splitMagnitude_low_residual` | Either sign, every magnitude/gap, arbitrary specification scale; proved without a supplied component-equality premise |
+
+Encoded decoding/extraction, bounded overlap and guard, final consolidation,
+end-to-end correction refinement, and a useful success family remain open.
 
 ## Non-monotonicity (TC-EFT §III)
 
@@ -82,6 +95,12 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | A finite FP32 value below `2^(E+1)` has raw scale at most `E` | `finite32_scale_le` | `E ≥ −126`; proved |
 | Forward analysis of a schedule: scale-bounded groups and bounded ideal partial sums give acceptance of the whole run and error at most `m·budget` | `runBlocks_static` | Every accumulator input stays within scale `E`; proved |
 | Decidable certificate and its soundness | `groupScaleCheck_sound`, `partialSumsCheck_sound`, `staticCheck`, `staticCheck_sound` | `staticCheck = true` implies the schedule theorem; proved |
+| AST schedule budget establishes execution and requested raw-output accuracy | `Program.Accurate`, `Program.staticCertificate_sound`, `Program.certificateReport_passes` | Concrete certificate computes exact ideal prefixes; no model run or correction; proved |
+| All prefixes bounded from product scales, initial magnitude, and total count | `idealProducts_abs_le_of_scale`, `idealContributions_abs_le`, `runBlocks_of_scale_bound` | Scale/range headroom and shape hypotheses; no exact-prefix enumeration; proved |
+| Program and changing-state repetition inherit the input-scale bound | `Program.accurate_of_scales`, `Program.repeat_accurate_of_scales` | Symbolic count, per-body operand bounds, derived total budget below requested tolerance; proved |
+| Ordered padded dot AST has the public execution and unpadded ideal | `Program.inputs_ofGroups`, `boundedDot_run`, `boundedDot_ideal` | Original operand order and multiplicity retained; finite initial input for execution bridge; proved |
+| Bounded row-column dot has absolute raw error at most 2^-11 | `boundedDot_accurate`, `boundedDot_accurate_of_bits`, `boundedDotCheck_sound` | At most 256 signed FP16 pairs, each magnitude word below `0x2c00`, finite FP32 initial magnitude ≤ 1; proved |
+| Symbolic repetition for the same small-operand regime | `small_repeat_accurate` | At most 64 total groups, arbitrary signs and changing rounded state; proved |
 
 ## Generalized invocation evaluator
 
@@ -90,7 +109,8 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | General converter agrees with `round32` on FP32 | `roundBinary_fp32`, `roundBinary_range` | FP32 only; other formats have no correctness proof |
 | Ordered conversion stages telescope with retained losses | `conversionStage_output`, `runConversions_recovery`, `runConversions_events` | Any stage list; proved |
 | Successful evaluation certifies every stage; exact loss accounting | `evalInvocation_spec`, `evalInvocation_output`, `evalInvocation_recovery` | Any `InvocationSpec`; proved |
-| Agreement with the original evaluator, including rejection | `legacy_invocation_bits`, `v100_invocation_bits`, `fp16Fp32_invocation_compatible` | Any profile with a well-formed format and positive K; proved |
+| Agreement with the original evaluator, including rejection | `legacy_invocation_bits`, `v100_invocation_bits`, `fp16Fp32_invocation_compatible` | Any profile with a well-formed format, including K = 0; proved |
+| Guarded public dot execution and machine schedule agree | `runCanonicalDot_machine_eq`, `runCanonicalDot_machine_eq_of_finite` | Same finite-input policy on the public wrappers; low-level equality retained on finite initial inputs; proved |
 
 ## Round trip and instruction paths
 
@@ -134,6 +154,7 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Ampere, Hopper, and a non-hardware profile evaluate | `Regression.canonical_profile_results` |
 | Two-invocation cancellation and correction; partition order changes output | `Regression.two_block_cancellation`, `two_block_corrected`, `partition_original_order`, `partition_order_changes_output`, `partition_error_contract`, `constructed_partition_*` |
 | EFT on R2, R3, the paper's cancellation example, and two predicate rejections | `Regression.r2_eft`, `r3_eft`, `cancellation_eft`, `predicate_rejected`, `subnormal_accumulator_rejected` |
+| Bounded split boundaries for all 256 gap encodings; maximum product and negative residual | `Regression.EFMachine.split_boundaries`, `product_maximum`, `negative_residual` |
 | TC-EFT Table III witnesses, below-threshold monotone cases, III.5 ranges and extrema | `Regression.v100_nonmonotonicity_witness`, `table_iii_witnesses`, `below_threshold_monotone`, `range_witnesses`, `range_extrema_k5` |
 | Instruction paths: padded single group equals one group, two Ampere groups, one Hopper group, group order observable, wrong width rejected in both directions | `Regression.v100_instruction_single_group`, `ampere_instruction_two_groups`, `hopper_instruction_one_group`, `ampere_instruction_order_matters`, `instruction_wrong_width` |
 | Static certificate on an eight-group V100 schedule: accepted, applied, consistent with the executed run, and refused for a too-small scale or an infinite operand | `Regression.static_certificate_accepts`, `static_certificate_applied`, `static_certificate_consistent`, `static_certificate_rejects` |

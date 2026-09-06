@@ -56,6 +56,8 @@ def main():
     # Nonfinite original operands/initial c and a high-padding range rejection.
     cases += [(4, 0, None, [0x7c00, 0x3c00, 0]),
               (4, 0, None, [0x7f800000]),
+              (4, 0, None, [0x7fc00000]),
+              (4, 0, None, [0, 0, 0x7fc00000]),
               (1, 156, None, [0x3c00, 0x3c00, 0x7f7fffff]),
               # The first group's range failure precedes a later nonfinite operand.
               (1, 156, None, [0x3c00, 0x3c00, 0x7c00, 0x3c00, 0x7f7fffff])]

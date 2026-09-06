@@ -1,11 +1,12 @@
 {
   "scope": "Canonical FP16 products, FP32 c/output, unnormalized products, RTZ",
   "oracle": "Exact Fraction arithmetic; FP32 output found by binary search over encodings",
-  "configurations": 129,
-  "cases": 1985,
+  "configurations": 132,
+  "cases": 2033,
   "rejected": 15,
   "mismatches": 0,
   "K": [
+    0,
     1,
     3,
     4,
@@ -30,9 +31,9 @@
     257
   ],
   "exercised_losses": {
-    "alignment": 1378,
-    "output": 731,
-    "both": 526
+    "alignment": 1386,
+    "output": 739,
+    "both": 534
   },
   "published_device_comparisons": [
     {

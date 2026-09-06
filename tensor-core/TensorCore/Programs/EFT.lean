@@ -214,8 +214,8 @@ def BlockTrace.lowCoefficients (t : BlockTrace) : List Int :=
 /-- The hypotheses of Theorem IV.9, Lemma IV.10, and Corollary IV.11, decided on the
 actual components: a grid between `2^-149` and `2^104`, exact integer coefficients, an
 absolute coefficient sum below `2^24`, representable `D`, `ε_o`, and `H`, and a final sum
-`H + Σ εᵢ` in the finite range. The final sum is formed from the components, not from the
-original products. -/
+`H + Σ εᵢ` in the finite range. This remains an exact-reference check:
+`retained_add_low` proves that the range expression reconstructs the original ideal. -/
 def BlockTrace.scalarPredicate (t : BlockTrace) : Bool :=
   decide (-149 ≤ t.supportExponent) && decide (t.supportExponent ≤ 104) &&
   (t.lowParts == t.lowCoefficients.map fun (z : Int) => (z : Rat) * pow2 t.supportExponent) &&
@@ -224,17 +224,39 @@ def BlockTrace.scalarPredicate (t : BlockTrace) : Bool :=
   representable32 t.retainedSum &&
   decide (absQ (t.retainedSum + sumQ t.lowParts) ≤ maxFinite32)
 
-/-- Algorithm 1, scalar branch: naive FP32 summation of the low parts, `D ⊖ ε_o`, and
-one final nearest-even addition. Every operation is a correctly rounded FP32 addition. -/
-def BlockTrace.scalarCorrected (t : BlockTrace) : Option F32 :=
+/-- Named diagnostics for the unchanged baseline predicate. These exact-arithmetic
+checks are evidence about the specification, not bounded extraction operations. -/
+def BlockTrace.scalarChecks (t : BlockTrace) : List (String × Bool) :=
+  [("support_min", decide (-149 ≤ t.supportExponent)),
+   ("support_max", decide (t.supportExponent ≤ 104)),
+   ("integer_grid", t.lowParts == t.lowCoefficients.map fun (z : Int) =>
+      (z : Rat) * pow2 t.supportExponent),
+   ("coefficient_budget", decide (magnitudeSum t.lowCoefficients < 2 ^ 24)),
+   ("output_representable", representable32 t.output.value),
+   ("overlap_representable", representable32 t.overlap),
+   ("retained_representable", representable32 t.retainedSum),
+   ("final_range", decide (absQ (t.retainedSum + sumQ t.lowParts) ≤ maxFinite32))]
+
+/-- Diagnostic conjunction is exactly the public predicate, including every guard. -/
+theorem scalarChecks_all (t : BlockTrace) :
+    (t.scalarChecks.all fun c => c.2) = t.scalarPredicate := by
+  simp [BlockTrace.scalarChecks, BlockTrace.scalarPredicate, Bool.and_assoc]
+
+/-- Unchecked diagnostic implementation of Algorithm 1, scalar branch. This can return
+incorrect bits when `scalarPredicate` fails; use `scalarCorrected` or `tceft`. It performs
+naive FP32 summation of the low parts, `D ⊖ ε_o`, and one final nearest-even addition. Every operation is a correctly rounded FP32 addition. -/
+def BlockTrace.scalarCorrectedUnchecked (t : BlockTrace) : Option F32 :=
   (naiveSum32 t.lowParts).bind fun etot =>
     (fp32Add t.output.value (-t.overlap)).bind fun h =>
       round32 .nearestEven (h + etot)
 
+/-- Safe public scalar correction: reject unless the sufficient predicate holds. -/
+def BlockTrace.scalarCorrected (t : BlockTrace) : Option F32 :=
+  if t.scalarPredicate then t.scalarCorrectedUnchecked else none
+
 /-- The scalar EFT: the scalar branch when its predicate holds, and `none` otherwise. A
 failed predicate is a failure of this procedure, not a signal to compute something else. -/
-def BlockTrace.tceft (t : BlockTrace) : Option F32 :=
-  if t.scalarPredicate then t.scalarCorrected else none
+def BlockTrace.tceft (t : BlockTrace) : Option F32 := t.scalarCorrected
 
 theorem retained_add_low (t : BlockTrace) :
     t.retainedSum + sumQ t.lowParts = t.block.exactDot := by
@@ -244,8 +266,8 @@ theorem retained_add_low (t : BlockTrace) :
 
 /-- Theorem IV.9 and Lemma IV.10 applied: under the predicate, the scalar branch computes
 exactly `RN(S)`. -/
-theorem scalarCorrected_eq (t : BlockTrace) (h : t.scalarPredicate = true) :
-    t.scalarCorrected = round32 .nearestEven t.block.exactDot := by
+theorem scalarCorrectedUnchecked_eq (t : BlockTrace) (h : t.scalarPredicate = true) :
+    t.scalarCorrectedUnchecked = round32 .nearestEven t.block.exactDot := by
   unfold BlockTrace.scalarPredicate at h
   simp only [Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq] at h
   obtain ⟨⟨⟨⟨⟨⟨⟨h1, h2⟩, hgrid⟩, hmag⟩, _⟩, _⟩, hH⟩, _⟩ := h
@@ -257,12 +279,22 @@ theorem scalarCorrected_eq (t : BlockTrace) (h : t.scalarPredicate = true) :
       unfold BlockTrace.overlap; grind
     rw [hr]
     exact representable32_finite hH
-  unfold BlockTrace.scalarCorrected
+  unfold BlockTrace.scalarCorrectedUnchecked
   rw [hsum, hsub]
   simp only [Option.bind_some]
   congr 1
   have := overlap_recovery t
   grind
+
+/-- The guarded public helper preserves all previously justified successful results. -/
+theorem scalarCorrected_eq (t : BlockTrace) (h : t.scalarPredicate = true) :
+    t.scalarCorrected = round32 .nearestEven t.block.exactDot := by
+  unfold BlockTrace.scalarCorrected
+  rw [if_pos h, scalarCorrectedUnchecked_eq t h]
+
+/-- The public helper refuses the known-unsafe branch when its predicate fails. -/
+theorem scalarCorrected_rejects (t : BlockTrace) (h : t.scalarPredicate = false) :
+    t.scalarCorrected = none := by simp [BlockTrace.scalarCorrected, h]
 
 /-- Corollary IV.11: the scalar branch returns the correctly rounded exact dot product. -/
 theorem scalarCorrected_correct (t : BlockTrace) (h : t.scalarPredicate = true) :
@@ -277,10 +309,11 @@ theorem scalarCorrected_correct (t : BlockTrace) (h : t.scalarPredicate = true) 
 /-- Whenever the scalar EFT returns a result, it is the correctly rounded exact sum. -/
 theorem tceft_correct (t : BlockTrace) (b : F32) (h : t.tceft = some b) :
     NearestEven32 t.block.exactDot b := by
-  unfold BlockTrace.tceft at h
+  unfold BlockTrace.tceft BlockTrace.scalarCorrected at h
   split at h
   · rename_i hp
     obtain ⟨b', hb', hn⟩ := scalarCorrected_correct t hp
+    simp only [BlockTrace.scalarCorrected, if_pos hp] at hb'
     rw [hb'] at h
     cases Option.some.inj h
     exact hn
@@ -288,7 +321,7 @@ theorem tceft_correct (t : BlockTrace) (b : F32) (h : t.tceft = some b) :
 
 /-- The scalar EFT succeeds exactly when its predicate holds. -/
 theorem tceft_isSome_iff (t : BlockTrace) : (t.tceft).isSome = true ↔ t.scalarPredicate = true := by
-  unfold BlockTrace.tceft
+  unfold BlockTrace.tceft BlockTrace.scalarCorrected
   constructor
   · intro h
     split at h
@@ -297,14 +330,15 @@ theorem tceft_isSome_iff (t : BlockTrace) : (t.tceft).isSome = true ↔ t.scalar
   · intro hp
     rw [if_pos hp]
     obtain ⟨b, hb, _⟩ := scalarCorrected_correct t hp
+    simp only [BlockTrace.scalarCorrected, if_pos hp] at hb
     rw [hb]
     rfl
 
 /-- Under the predicate, the scalar EFT and the exact-rational reference return the same bits. -/
 theorem tceft_eq_corrected (t : BlockTrace) (h : t.scalarPredicate = true) :
     t.tceft = t.corrected := by
-  unfold BlockTrace.tceft
-  rw [if_pos h, scalarCorrected_eq t h, corrected_eq_round_exactDot]
+  unfold BlockTrace.tceft BlockTrace.scalarCorrected
+  rw [if_pos h, scalarCorrectedUnchecked_eq t h, corrected_eq_round_exactDot]
 
 /-- On a successful encoded-input evaluation, a scalar EFT result correctly rounds the
 independent ideal sum. -/

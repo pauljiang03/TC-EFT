@@ -1,6 +1,6 @@
 {
-  "cases": 278,
-  "rejected": 4,
+  "cases": 280,
+  "rejected": 6,
   "mismatches": 0,
   "configurations": 25,
   "partial_tail_cases": 160,

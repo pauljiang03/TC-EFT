@@ -3,8 +3,8 @@
 ## Proof checking
 
 `python3 scripts/check_axioms.py` runs `Audit.lean`, whose `tc_audit` command enumerates
-every theorem in the `TensorCore` namespace from the compiled environment (673 constants,
-406 written in source, the rest generated structural lemmas) and prints the axioms each
+every theorem in the `TensorCore` namespace from the compiled environment (772 constants,
+471 written in source, the rest generated structural lemmas) and prints the axioms each
 depends on. The command fails if any theorem uses an axiom outside `propext`,
 `Classical.choice`, and `Quot.sound`. The verbatim output is [axioms.txt](axioms.txt). The
 script also fails if any Lean source in the library, executables, or examples mentions
@@ -19,6 +19,13 @@ The `tc%{ }` elaborator builds ordinary `Program` terms. `tc_verify` applies
 `Program.vc_sound` to a kernel-checked proof of `Program.VC`, or to a user-supplied proof of
 the same proposition; only errors raised by that elaboration roll it back. Generated theorems
 are part of the audit. `tc_inspect` and `tc_instruction` evaluate for diagnostics only.
+
+`tc_certify` applies `Program.staticCertificate_sound` to a kernel-checked Boolean
+certificate. Its result includes successful execution and a tolerance bound on the raw
+output. `tc_certificate` prints the concrete certificate's input-condition and tolerance
+checks; it does not generate a proof or execute a correction. `boundedDotCheck_sound`
+instead applies a family theorem using only length and input magnitude checks. Executable
+dependency tests verify both paths' stated boundaries, separately from theorem auditing.
 
 ## Theorem domains
 
@@ -51,8 +58,17 @@ are part of the audit. `tc_inspect` and `tc_instruction` evaluate for diagnostic
   the theorem. The static budget is looser than the trace budget (on the regression schedule
   by about a factor of ten) because it bounds the alignment grid and the output quantum from
   the scale alone; it never runs the model, but the current checker computes exact ideal
-  partial sums for the concrete operands. Symbolic input bounds and changing-state loop
-  invariants remain open; see the Fable handoff in [PLAN.md](PLAN.md).
+  partial sums for the concrete operands. `Program.staticCertificate_sound` additionally
+  checks this budget against a requested tolerance and concludes `Program.Accurate`.
+- `runBlocks_of_scale_bound` derives the required prefix invariant from decoded product
+  scale `P`, total group count, and an initial magnitude bound. It does not evaluate exact
+  prefixes. `Program.repeat_accurate_of_scales` applies it to a symbolic count with changing
+  rounded state. `boundedDot_accurate_of_bits` discharges its conditions for up to 256 pairs
+  whose unsigned FP16 magnitude bits are below `0x2c00`, and finite initial magnitude at
+  most 1, obtaining raw absolute error at most `2^-11`. The ordered AST and public run agree
+  on finite initial inputs, and their ideal equals the direct unpadded-input sum.
+  `boundedDotCheck` only checks membership in this sufficient input family. No GPU
+  conformance, relative-error bound, or precision guarantee for larger operands follows.
 - `InstructionPath` fixes a contiguous increasing-k grouping and its source.
   `InstructionPath.run` rejects any operand list whose length is not `k`; nothing is padded
   or discarded. `Conforms path device` is a definition, not a theorem: it states that
@@ -77,6 +93,8 @@ are part of the audit. `tc_inspect` and `tc_instruction` evaluate for diagnostic
   component sum `H + Σ εᵢ`. It forms this sum in exact `Rat` arithmetic;
   `retained_add_low` proves it equals the exact ideal. Avoiding a direct call to `exactDot`
   does not eliminate exact reconstruction or implement a machine range check.
+  Both `scalarCorrected` and `tceft` check the predicate; the explicitly named
+  `scalarCorrectedUnchecked` is retained only for diagnostics and counterexamples.
   `tceft` returns a result only
   when the predicate holds (`tceft_isSome_iff`), and `tceft_correct` proves every result is
   the correctly rounded exact sum. The predicate is sufficient, not necessary: a rejected
@@ -85,8 +103,12 @@ are part of the audit. `tc_inspect` and `tc_instruction` evaluate for diagnostic
   `accumulator_eq_retained`, and `overlap_eq_retained_sub_outputResidual`: each coarse low
   part splits into its retained part on the alignment grid and the alignment residual, and
   `ε_o` is the retained low sum minus the output residual. The theorems concern the
-  left-to-right naive summation on values; no machine extraction of the residuals is
-  modeled.
+  left-to-right naive summation on values. The bounded `EFMachine` primitives prove
+  11-bit significand multiplication and 24-bit coarse/low splitting, including
+  no-wrap, shift bounds, and exact signed truncation/residual interpretation.
+  Their `Rat` interpretation belongs to the specification; executable primitives
+  use bitvectors. Encoded extraction, bounded overlap/guard/consolidation, and a
+  correction-success family are not yet implemented and proved.
 - `nonmonotone_perturbation` fixes `c = 1`, `c' = 1 − 2^-24`, and `K` equal products of
   value `2^-(24+p)` with raw scale at most `−1`, for any profile with `F = 23 + p` and a
   floor at most `−1`, and `K < 2^(24+p)`. It is a theorem about this family only; a profile
@@ -118,7 +140,9 @@ A100 and H100 BF16 and TF32, 5,000 rows each. Each row is one group with its pro
 positions `0..K−1`; by `single_group_output` that is one test of the whole instruction path
 under the increasing-k rule, but it never tests the order of two nonzero groups. The rows
 contain almost no zero or subnormal operands or c, and none reach the BF16/TF32 alignment
-floors. No GPU was used by this project, and the TC-EFT paper's historical 100-case V100
+floors. The separate `data/hardware/` corpus prepares 99 targeted vectors with
+unmeasured model expectations; synthetic replay tests are not device measurements.
+No GPU was used by this project, and the TC-EFT paper's historical 100-case V100
 experiment is not evidence for this implementation.
 
 Not proved: rounding correctness for any output format other than FP32, an efficient

@@ -73,13 +73,13 @@ integer division, and finds FP32 neighbors by binary search over the encodings. 
 `data/regressions/validation-report.json` and `expected-traces.json`.
 
 `python3 scripts/check_features.py` checks the parameterized evaluator with a second exact
-oracle over 129 configurations of product count, extra bits, and floor: 1,985 cases, 15
+oracle over 132 configurations of product count, extra bits, and floor: 2,033 cases, 15
 intended rejections, zero mismatches. It then replays the published V100, A100, and H100
 FP16 vectors and verifies the SHA-256 of every pinned source file. Record:
 `data/regressions/feature-report.json`.
 
-`python3 scripts/check_dot_products.py` checks constructed long dot products: 278 cases
-across 25 configurations, including 160 partial tails and 103 nonzero-error cases, with four
+`python3 scripts/check_dot_products.py` checks constructed long dot products: 280 cases
+across 25 configurations, including 160 partial tails and 103 nonzero-error cases, with six
 intended rejections. Every encoded boundary and every error budget is compared with
 `Fraction` arithmetic, using the unpadded original bits for the ideal. Record:
 `data/regressions/dot-product-report.json`.
@@ -137,6 +137,80 @@ later `tc_verify`, that `tc_instruction` prints the three pinned paths with thei
 counts, and that an unsourced path name is refused. Record:
 `data/regressions/program-report.json`.
 
+## Certification and bounded application
+
+`check_certificates.py` checks `tc_certify`/`tc_certificate`, an explicit supplied proof,
+eight failed certification commands, and preservation of a valid declaration after an
+unrelated earlier error. A failed generated theorem is absent from the environment.
+The compiled-definition dependency walk checks three executable entry points and rejects
+a deliberately model-dependent negative control. Proof bodies and constant types are
+excluded from that walk; proof trust is covered separately by the full axiom audit.
+
+`check_application.py` compares 87 cases at 12 lengths from 0 through 512, including
+partial tails, arbitrary signs, cancellation, subnormals, zeros, excessive initial magnitude,
+excessive operand magnitude, and nonfinite boundaries. Every ideal uses the unpadded
+original bits. There are zero mismatches, 52 family-certified cases (29 with nonzero error,
+26 with partial tails), and 69 concretely certified cases. Rejected family conditions occur
+14 times for length, 12 for operands, and 13 for initial c; reasons overlap. Thirty-three
+cases outside the family still meet the requested tolerance when run.
+
+At 256 positive near-boundary products, the family budget is `21/65536`, trace budget
+`3/65536`, and error `1/4194304`: ratios 7 and 1,344 respectively. The 256-product random
+small-input case has budget/error ratio about 1,988; cancellation can make actual error
+zero, in which case the ratio is reported as null. These are conservative absolute bounds.
+
+The report records timings for 1, 16, 64, and 256 products. Each measurement is the median
+of three compiled CLI processes of 100 repeated cases, after one warmup process. The
+family and concrete paths include input parsing and diagnostic JSON; the model path also
+computes an exact ideal and full trace report. These are whole-tool costs, not GPU
+timings or isolated arithmetic costs. Certificate example elaboration separately
+includes imports and diagnostic output. Durable records:
+`certificate-report.json`, `application-report.json`, and the independent rerun embedded
+in `clean-build.json`; timing variation between runs is expected.
+
+Kernel regressions additionally establish a symbolic changing-state repetition theorem,
+exhibit nonzero loss, and check small-operand boundaries, signed zeros, partial tails,
+excessive count, and nonfinite/too-large initial accumulators. Both new standalone examples
+are compiled by the clean-build check. The combined workspace build has 148 jobs and
+772 audited roots (471 written in source). The fresh combined run passes all 19
+commands and eight standalone examples, with zero Lean warnings and two
+`ld64.lld` warnings about missing `/usr/local/lib`. Full results are recorded in
+`clean-build.json`; the tested source fingerprint is in `merge-report.json`.
+
+## Guarded scalar coverage and bounded primitives
+
+`check_eft.py` builds and audits the imported EFT modules, runs the actual Lean
+scalar predicate against an independent original-input oracle, regenerates the
+hardware expectations, and checks synthetic replay behavior. The 21,966 cases in
+`eft-coverage.json` preserve the 21,000-case baseline: all 15,000 published and
+3,000 near-one cases pass; broad finite-bit acceptance is 73, 13, and 0 of 1,000
+for V100, A100, and H100 respectively. Accepted corrections have zero mismatches.
+Additional bounded, partial-tail, and application cohorts remain distinct; the
+application samples cover individual blocks, not composed correction behavior.
+
+Both guarded public entries reject the subnormal counterexample. A second kernel
+regression preserves broad V100 case 250: raw output and exact rounding are
+`bf649af9`, unchecked correction is `bf649afa`, and the guarded API returns `none`.
+The support-grid investigation is diagnostic only; no broader predicate is used.
+Kernel regressions exercise all 256 gap encodings on six boundary/patterned
+magnitudes, the maximum 11-bit product, and a negative residual. The general
+primitive proofs do not establish a full extractor or correction-success family.
+
+## Targeted hardware preparation
+
+The 99 vectors in `data/hardware/inputs.json` cover multiple groups, later k
+positions, cancellation, ordering, signed zeros, and subnormals. `expected.json`
+contains unmeasured model expectations, independently checked during generation.
+`replay-self-test.json` records 12 synthetic replay checks and zero measured
+vectors. CUDA compilation and actual device measurements remain open.
+
+On a supported GPU host with `nvcc` and `cuobjdump`, run
+`python3 hardware/run.py --profile A100 --out data/hardware/run-A100`, then
+`python3 scripts/replay_hardware.py data/hardware/run-A100/measurements.json`.
+Use `V100` or `H100` for those devices. Capture records include raw inputs/outputs,
+device/compiler information, binary/SASS hashes, and harness provenance. The
+original measurements and vendored sources remain unchanged.
+
 ## Reproducibility
 
 ```sh
@@ -149,10 +223,16 @@ python3 scripts/check_dot_products.py
 python3 scripts/check_device.py
 python3 scripts/check_device_formats.py
 python3 scripts/check_programs.py
+python3 scripts/check_certificates.py
+python3 scripts/check_application.py
+python3 scripts/check_eft.py
 python3 scripts/check_clean_build.py
 ```
 
 `check_clean_build.py` copies the source without `.lake`, builds it, and runs the audit, the
-program checks, the canonical and dot-product suites, the format evidence, and the standalone
-examples. It writes `data/regressions/clean-build.json`. With the pinned toolchain installed,
+program and certificate checks, both independent oracles, the canonical and dot-product
+suites, all device/format replays, the application and EFT checks, hardware generation
+and synthetic replay, and every standalone example. It publishes the reports and
+axiom listing from that same fresh run, preserving the historical A/B handoffs, and
+writes `data/regressions/clean-build.json`. With the pinned toolchain installed,
 no network access is needed.
