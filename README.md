@@ -356,11 +356,52 @@ the FLoPS comparison below identifies. Saturation, stochastic rounding, and roun
 are outside the modeled paths. E4M3's finite-top-NaN encoding is a `ValueFormat` outside
 the generic converter; the FP8 rows need no rounding of E4M3 values, only decoding.
 
+**Composition to a full matrix multiplication.** The k-chain semantics, its exact ledger,
+its corrected result, and its input-derived error bounds exist; the matrix layer does not.
+In order:
+
+1. Matrix lifting: a `gemm` operation over decoded `A`, `B`, `C` and a stated schedule that
+   elaborates one ordered k-chain per output entry, with a mapping theorem that every
+   product `a[i,l]·b[l,j]` is used once with the intended `c`. The reference schedule is
+   `GEMM.m`'s increasing-k grouping. Corollaries: entrywise
+   `abs(D[i,j] − (A·B + C)[i,j]) ≤ Σ_t e[i,j,t]` from `runBlocks_uncorrected_error` or
+   `runBlocks_of_scale_bound`, a matrix-norm bound, and correctly rounded entries from
+   `correctedSchedule_correct`.
+2. First full-matmul target: one pinned CUTLASS FP16-input, FP32-accumulator kernel with a
+   sequential K-loop, no split-K, zero initial accumulators, and an identity epilogue, as
+   described under "Reasoning about computations that use tensor cores". Connect its operand
+   indexing, tail padding, and instruction boundaries to the block semantics, prove the scale
+   and headroom invariant, and lift the bounds. General GEMM then needs explicit contracts for
+   `alpha`, `beta`, input and output conversions, and the placement of `C`.
+3. A decision API: from `abs(d − S) ≤ E`, the theorem that `d > E` certifies `S > 0` and
+   `d < −E` certifies `S < 0`, on the bounded-dot family first.
+4. The composition rule with an encoded scalar function `f`: from `abs(d − S) ≤ E`, a
+   Lipschitz bound `L` for `f` on a proved interval, and `abs(z − f(d)) ≤ δ` for the encoded
+   implementation, conclude `abs(z − f(S)) ≤ δ + L·E`. This needs the scalar operation
+   contracts the foundation does not yet have.
+5. Certified schedule and precision changes: conditions under which regrouping, moving `C`,
+   residual scaling, or scalar consolidation preserves an answer or meets a tolerance.
+
+**Research questions, after the matrix lifting.** Explain and bound the multi-word GEMM
+accuracy reversal of Accurate Models v4, Section 5, with an explicit input family and the
+scope of a final-rounding remedy; re-evaluate the Valpey et al. correction-algorithm witness
+under the corrected semantics and kernel-check any surviving counterexample. Both are
+described in the section below.
+
+**Claim alignment.** A statement-by-statement review mapping each numbered result of both
+papers to its Lean declaration and hypotheses, recording where the formal statement is
+narrower than the paper's. This replaces the former theorem map and is the last step before
+any submission.
+
+**Extensions already recorded.** Bounded finite-precision extraction with a success family
+and explicit costs; tightening of the application bound; hardware experiments, which remain
+optional.
+
 **Order of work.** The TC-EFT items above; the FP8 rows with the archive vectors; the
-late-`c` path; the directed rounding proofs. Bounded finite-precision extraction and
-tightening of the application bound follow as extensions. Hardware experiments remain
-optional. Accurate Models' discovery algorithms and mismatch-rate tables describe
-empirical methods, not formalization targets.
+late-`c` path; the directed rounding proofs and the bijection; the matrix lifting and the
+first CUTLASS target; the decision API and composition rule; then the research questions,
+bounded extraction, and application tightening. Accurate Models' discovery algorithms and
+mismatch-rate tables describe empirical methods, not formalization targets.
 
 **Rules that apply to every item.** Preserve the independent original-input ideal and the
 adversarial regressions. Derive success and error guarantees from input assumptions or
@@ -491,6 +532,35 @@ connected to these schedules. This matrix lifting is not yet implemented. The
 Accurate Models GEMM schedule is not an implicit specification of every CUDA
 library's choice of matmul kernel.
 
+**Public schedules.** Sources checked 6 September 2026 distinguish three layers:
+
+| Layer | What is available for a formal model |
+| --- | --- |
+| [CUTLASS/CuTe kernel source](https://docs.nvidia.com/cutlass/latest/media/docs/cpp/gemm_api_3x.html) | A chosen configuration exposes the tile and operand mappings, K-loop, MMA calls, synchronization, and epilogue. This supplies a concrete arithmetic dependency graph to translate into Lean. |
+| [PTX instruction contract](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html) | Specifies instruction shapes and execution requirements, but leaves accumulation order, rounding, and subnormal handling unspecified for the relevant low-precision MMA paths. Accurate Models supplies our numerical specification inside each instruction. |
+| [cuBLAS/cuBLASLt API](https://docs.nvidia.com/cuda/cublas/) | Exposes algorithm selection and options such as split-K count and reduction scheme, rather than a complete, stable arithmetic graph for every call. A library name or GEMM shape alone does not identify the schedule. |
+
+The proof needs arithmetic dependencies and rounding boundaries, not cycle-by-cycle
+GPU scheduling. Properly synchronized workers producing disjoint output tiles may
+execute in any order without changing those entries' arithmetic. Split-K and atomic
+updates to a shared output require a specified reduction order, or a bound proved
+for every permitted order. A composition can be a dependency graph with shared
+values, rather than a single reduction tree. Public source makes the graph
+inspectable; correspondence with the compiled instructions remains a separate
+obligation, not something established by reading the source alone.
+
+**First full-matmul target, proposed.** Choose one CUTLASS FP16-input/FP32-accumulator
+kernel with a sequential K-loop, no split-K, zero initial accumulators, and an
+identity epilogue. Pin its source revision, architecture, tile configuration,
+compiler, and flags. Connect each output entry's operand indexing, tail padding,
+and instruction boundaries to the existing block semantics; prove the scale and
+headroom invariant; then lift the local error bounds to entrywise and matrix-norm
+bounds. General GEMM adds explicit contracts for `alpha`, `beta`, input/output
+conversions, and the actual placement of `C`: adding it in an epilogue cannot be
+silently replaced by using it as the initial tensor-core accumulator. No kernel
+has yet been selected or connected to Lean, and no GPU access is needed to develop
+these theorems about the specified program and numerical model.
+
 For example, on the bounded-dot input family, `abs(d − S) ≤ 1/2048`. It follows
 mathematically that `d > 1/2048` certifies `S > 0`, and `d < −1/2048` certifies
 `S < 0`. This would support a margin-certified dot-product decision; a dedicated
@@ -519,12 +589,40 @@ Shared-grid tensor-core truncation retains its own local contract throughout.
 | Schedule or precision changes | Explicit grouping, scale-sensitive semantics, non-monotonicity regressions | Prove equivalence under stated conditions or prove both implementations meet a tolerance; real-algebraic equality alone is insufficient |
 | Stable decisions or iteration | Certified absolute error and changing-state bounds | A decision margin, or an invariant with amplification/contraction bounds; adaptive operands need a richer AST |
 
-After the current paper-coverage work, a focused extension would connect finite
-FP32 scalar contracts to encoded tensor-core boundaries and demonstrate one
-matrix or decision theorem. Existing Lean FP libraries are candidates for reuse;
-their domains, zero policies, rounding modes, and proof dependencies must match
-through explicit bridge theorems. No additional GPU evidence is required for
-these results about the paper's model.
+**Promising research questions.** These are proposed extensions, not established
+results or priority claims:
+
+- **Explain and bound the multi-word GEMM accuracy reversal.**
+  [Accurate Models v4, Section 5](https://arxiv.org/html/2512.07004v4#S5)
+  reports lower error for V100 in some FP16 multi-word experiments despite newer
+  models having more alignment bits. It suggests an interaction with final
+  toward-zero rounding, observes improvement in a modified B200 model using final
+  nearest rounding, and leaves further analysis open. A useful result would give
+  an explicit input family and conditions for the reversal, then prove a remedy's
+  scope. The reported errors use MATLAB binary64 GEMM as reference; our theorem
+  should state its independent exact-input ideal. Changing final rounding is a
+  hypothetical model variant, not an assumed hardware option or a universal fix.
+- **Recheck algorithm comparisons under the corrected semantics.**
+  [Valpey et al., Section 6](https://arxiv.org/html/2502.15999v1#S6)
+  encoded Markidis and Ootomo–Yokota correction schemes and found inputs where the
+  former gives lower absolute error for one output entry, against a binary64
+  dot-product reference. This refutes universal accuracy dominance within their
+  model and input domain; it is not an average-accuracy or performance result.
+  Re-evaluate the witness under Accurate Models, kernel-check any surviving
+  counterexample, and seek a general family or sufficient accuracy conditions.
+  Corrections to the earlier model do not by themselves invalidate every witness.
+- **Certify useful schedule or precision choices.** Prove conditions under which
+  regrouping, moving `C`, residual scaling, or scalar consolidation preserves an
+  answer or meets a tolerance. TC-EFT Algorithm 1 already supplies a guard/fallback
+  correction design; practical extensions need bounded operations, a useful
+  success family, and a cost argument. A separate tolerance policy could accept
+  an uncorrected matmul using its proved error bound. Neither policy follows from
+  exact real-algebraic equivalence alone.
+
+These extensions follow the current paper-coverage work. Existing Lean FP libraries
+are candidates for reuse; their domains, zero policies, rounding modes, and proof
+dependencies must match through explicit bridge theorems. No additional GPU
+evidence is required for results about the paper's model.
 
 ## Source pins and layout
 
