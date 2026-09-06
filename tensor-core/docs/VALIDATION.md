@@ -39,6 +39,13 @@ Non-monotonicity: `K = 8` Ampere products `2^-12 · 2^-13` and `K = 16` Hopper p
 to `3f7fffff` (TC-EFT Table III); `K = 2` on V100 and `K = 11` on Hopper, below the
 `3·2^p` thresholds, stay at `3f800000`.
 
+Instruction paths: R3's four products padded with twelve zero pairs give `4107ffff` on the
+whole V100 k = 16 path, the same as the single group; sixteen ones give `41800000` on both
+the two-group Ampere path and the one-group Hopper path; on the Ampere path, cancelling the
+accumulator `1` in the first group and adding `2^-24` in the second returns `33800000`, while
+the reverse order returns `0` for the same exact dot product; and fifteen pairs on a k = 16
+path are rejected.
+
 The converter proof is separate from these cases: `round32_nearestEven_correct` holds for all
 rational inputs with magnitude at most `maxFinite32`.
 
@@ -110,7 +117,10 @@ correctly rounded sum differs from the device output.
 `python3 scripts/check_programs.py` compiles `examples/Verify.lean`, checks the displayed
 AST, source sites, results, and theorem dependencies, then compiles ten invalid examples
 separately. Each must fail and the failed verification names must be absent from the
-environment. Record: `data/regressions/program-report.json`.
+environment. It also checks that an unrelated earlier error in a file does not roll back a
+later `tc_verify`, that `tc_instruction` prints the three pinned paths with their group
+counts, and that an unsourced path name is refused. Record:
+`data/regressions/program-report.json`.
 
 ## Reproducibility
 

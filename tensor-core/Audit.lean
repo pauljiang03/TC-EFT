@@ -1,206 +1,31 @@
+import Lean
 import TensorCore
 
-#print axioms TensorCore.rawProduct_value
-#print axioms TensorCore.sum_coefficients
-#print axioms TensorCore.alignment_value
-#print axioms TensorCore.alignment_residual
-#print axioms TensorCore.terms_value
-#print axioms TensorCore.accumulator_value
-#print axioms TensorCore.block_residual_identity
-#print axioms TensorCore.returned_residual_identity
-#print axioms TensorCore.evalBlock_residual_identity
-#print axioms TensorCore.corrected_eq_round_exactDot
-#print axioms TensorCore.fold_residual_ledger
-#print axioms TensorCore.encoded_trace_ledger
-#print axioms TensorCore.runBlocks_chain
-#print axioms TensorCore.runBlocks_residual_ledger
-#print axioms TensorCore.Regression.r1_equal_product_values
-#print axioms TensorCore.Regression.r1_factorization_changes_output
-#print axioms TensorCore.Regression.r1a_trace
-#print axioms TensorCore.Regression.r1b_trace
-#print axioms TensorCore.Regression.r2_trace
-#print axioms TensorCore.Regression.r2_correction_unchanged
-#print axioms TensorCore.Regression.r3_trace
-#print axioms TensorCore.Regression.r4_binade_asymmetry
-#print axioms TensorCore.Regression.r4_midpoint_distances
-#print axioms TensorCore.Regression.r4_cancellation
-#print axioms TensorCore.Regression.r4_signed_truncation
-#print axioms TensorCore.Regression.r4_even_tie
-#print axioms TensorCore.Regression.r4_odd_tie
-#print axioms TensorCore.Regression.r4_binade_carry
-#print axioms TensorCore.Regression.r4_subnormal_boundary
-#print axioms TensorCore.Regression.r4_zero_tie
-#print axioms TensorCore.Regression.r4_negative_zero
-#print axioms TensorCore.Regression.zero_block
-#print axioms TensorCore.Regression.subnormal_multiplicand
-#print axioms TensorCore.Regression.subnormal_accumulator
-#print axioms TensorCore.Regression.nonfinite_rejected
-#print axioms TensorCore.Regression.out_of_range_rejected
-#print axioms TensorCore.Regression.wrong_shape_rejected
-#print axioms TensorCore.Regression.v100_nonmonotonicity_witness
-#print axioms TensorCore.Regression.two_block_cancellation
-#print axioms TensorCore.Regression.two_block_corrected
-#print axioms TensorCore.decode32_finite
-#print axioms TensorCore.value32_finite
-#print axioms TensorCore.encode32_toNat
-#print axioms TensorCore.encode32_value
-#print axioms TensorCore.encode32_quantum
-#print axioms TensorCore.rneInt_nearest
-#print axioms TensorCore.rneInt_tie_even
-#print axioms TensorCore.magnitudeExponent_spec
-#print axioms TensorCore.convExp_bounds
-#print axioms TensorCore.convCoeff_bounds
-#print axioms TensorCore.carry_spec
-#print axioms TensorCore.round32_nonzero_spec
-#print axioms TensorCore.round32_nearestEven_correct
-#print axioms TensorCore.finalRound_correct
-#print axioms TensorCore.output_residual_bound
-#print axioms TensorCore.block_alignment_bound
-#print axioms TensorCore.block_error_bound
-#print axioms TensorCore.evalBlock_error_bound
-#print axioms TensorCore.corrected_correct
-#print axioms TensorCore.evalBlock_corrected_correct
-#print axioms TensorCore.correctedSchedule_correct
-#print axioms TensorCore.runBlocks_corrected_correct
-#print axioms TensorCore.runBlocks_idealContributions
-#print axioms TensorCore.Program.recovery
-#print axioms TensorCore.Program.vc_sound
-#print axioms TensorCore.runLocated_erases
-#print axioms TensorCore.Program.report_accepts_iff
-#print axioms TensorCore.runBlocks_append
-#print axioms TensorCore.runBlocks_repeat_invariant
-#print axioms TensorCore.Program.repeat_vc_of_cycle
-#print axioms TensorCore.Regression.cancellation_program_inputs
-#print axioms TensorCore.Regression.cancellation_program_correct
-#print axioms TensorCore.Regression.cancellation_program_report
-#print axioms TensorCore.Regression.repeated_program_correct
-#print axioms TensorCore.Regression.repeated_program_report
-#print axioms TensorCore.Regression.nested_program_order
-#print axioms TensorCore.Regression.rejected_program_vc
-#print axioms TensorCore.Regression.rejected_program_location
-#print axioms TensorCore.Regression.final_range_rejected
-#print axioms TensorCore.Regression.zero_iterations_correct
-#print axioms TensorCore.Regression.nonfinite_initial_rejected
-#print axioms TensorCore.Regression.symbolic_cycle_correct
-#print axioms TensorCore.Regression.symbolic_syntax_inputs
+/-! Axiom audit generated from the environment: every theorem in the `TensorCore` namespace,
+including generated regression theorems, is listed with the axioms its proof depends on.
+The command fails if any theorem uses an axiom other than `propext`, `Classical.choice`,
+and `Quot.sound`. `scripts/check_axioms.py` parses this output. -/
 
-#print axioms TensorCore.packedIEEE_decode
-#print axioms TensorCore.padded_decode_requires_zero
-#print axioms TensorCore.operand_decode_bounded
-#print axioms TensorCore.roundBinary_fp32
-#print axioms TensorCore.roundBinary_range
-#print axioms TensorCore.conversionStage_output
-#print axioms TensorCore.runConversions_recovery
-#print axioms TensorCore.runConversions_events
-#print axioms TensorCore.evalInvocation_spec
-#print axioms TensorCore.evalInvocation_recovery
-#print axioms TensorCore.evalInvocation_output
-#print axioms TensorCore.legacy_invocation_bits
-#print axioms TensorCore.v100_invocation_bits
-#print axioms TensorCore.alignmentScale_none
-#print axioms TensorCore.eta_term
-#print axioms TensorCore.rawMul_bounded
-#print axioms TensorCore.aligned_term_coefficient_bound
-#print axioms TensorCore.prepare_terms_bounded
-#print axioms TensorCore.machineAccumulate_eq
-#print axioms TensorCore.machineAccumulate_exact
-#print axioms TensorCore.machineAccumulate_prefix_exact
-#print axioms TensorCore.coefficient_width_sufficient
-#print axioms TensorCore.evalBlock_machineAccumulator
-#print axioms TensorCore.evalV100_machineAccumulator
-#print axioms TensorCore.fp16Fp32_invocation_compatible
-#print axioms TensorCore.fp16Fp32_contract
-#print axioms TensorCore.ampere_machineAccumulator
-#print axioms TensorCore.hopper_machineAccumulator
-#print axioms TensorCore.Regression.extra_alignment_bit_matters
-#print axioms TensorCore.Regression.canonical_profile_results
-#print axioms TensorCore.Regression.signed_capacity_prefix
-#print axioms TensorCore.evalBlock_coefficient_capacity
-#print axioms TensorCore.evalBlock_machinePrefix
-#print axioms TensorCore.prepareProducts_origin
-#print axioms TensorCore.prepare_fp16_terms_lower
-#print axioms TensorCore.canonical_eta_floor_inactive
-#print axioms TensorCore.truncGrid_exact_of_grid
-#print axioms TensorCore.exact_alignment_accumulator
-#print axioms TensorCore.evalBlock_exact_alignment
-#print axioms TensorCore.round32_finite_exists
-#print axioms TensorCore.evalPrepared_total
-#print axioms TensorCore.evalBlock_success_iff
-#print axioms TensorCore.Regression.padding_range_boundary
-#print axioms TensorCore.prepare_coefficient_capacity
-#print axioms TensorCore.evalPreparedMachine_eq
-#print axioms TensorCore.evalBlockMachine_eq
-#print axioms TensorCore.fp16Fp32_machine_eq
-#print axioms TensorCore.v100_machine_eq
-#print axioms TensorCore.ampere_machine_eq
-#print axioms TensorCore.hopper_machine_eq
-#print axioms TensorCore.Regression.machine_width_changes_result
-#print axioms TensorCore.classifyNat_metadata
-#print axioms TensorCore.prepare_fp16_term_metadata
-#print axioms TensorCore.alignmentScale_upper
-#print axioms TensorCore.canonical_padding_exact
-#print axioms TensorCore.canonical_padding_accumulator
-#print axioms TensorCore.canonical_padding_output
-#print axioms TensorCore.canonical_padding_success_iff
-#print axioms TensorCore.runBlocks_uncorrected_error
-#print axioms TensorCore.Program.uncorrected_error
-#print axioms TensorCore.idealContributions_flatten
-#print axioms TensorCore.OrderedPartition.input_count
-#print axioms TensorCore.OrderedPartition.ideal
-#print axioms TensorCore.OrderedPartition.uncorrected_error
-#print axioms TensorCore.runBlocksMachine_eq
-#print axioms TensorCore.fp16Fp32_schedule_machine_eq
-#print axioms TensorCore.Regression.partition_original_order
-#print axioms TensorCore.Regression.partition_order_changes_output
-#print axioms TensorCore.Regression.partition_error_contract
-#print axioms TensorCore.eta_upper
-#print axioms TensorCore.prepare_fp16_products_metadata
-#print axioms TensorCore.canonical_source_padding_exact
-#print axioms TensorCore.canonical_source_padding_accumulator
-#print axioms TensorCore.canonical_source_padding_output
-#print axioms TensorCore.canonical_source_padding_success_iff
-#print axioms TensorCore.Regression.source_padding_boundary
-#print axioms TensorCore.partitionExact_count
-#print axioms TensorCore.padded_length
-#print axioms TensorCore.tailPadding_lt
-#print axioms TensorCore.canonicalPartition_count
-#print axioms TensorCore.idealProducts_padFp16Pairs
-#print axioms TensorCore.canonicalPartition_ideal
-#print axioms TensorCore.runCanonicalDot_count
-#print axioms TensorCore.runCanonicalDot_uncorrected_error
-#print axioms TensorCore.runCanonicalDot_uncorrected_error_strict
-#print axioms TensorCore.runCanonicalDot_machine_eq
-#print axioms TensorCore.Regression.constructed_partition_tail
-#print axioms TensorCore.Regression.constructed_partition_boundaries
+open Lean Elab Command
 
-#print axioms TensorCore.finiteValue32_abs_le
-#print axioms TensorCore.round32_exact_of_finite
-#print axioms TensorCore.fp32Add_exact
-#print axioms TensorCore.grid_finiteValue32
-#print axioms TensorCore.naiveSum32_exact
-#print axioms TensorCore.lowPart_bound
-#print axioms TensorCore.overlap_recovery
-#print axioms TensorCore.representable32_finite
-#print axioms TensorCore.scalarCorrected_eq
-#print axioms TensorCore.scalarCorrected_correct
-#print axioms TensorCore.tceft_eq_corrected
-#print axioms TensorCore.tceft_correct
-#print axioms TensorCore.evalBlock_tceft_correct
-#print axioms TensorCore.Regression.r2_eft
-#print axioms TensorCore.Regression.r3_eft
-#print axioms TensorCore.Regression.cancellation_eft
-#print axioms TensorCore.Regression.predicate_fallback
+elab "tc_audit" : command => do
+  let env ← getEnv
+  let allowed : List Name := [``propext, ``Classical.choice, ``Quot.sound]
+  let names := env.constants.fold (init := (#[] : Array Name)) fun acc n ci =>
+    if ci.isTheorem && n.getRoot == `TensorCore && !n.isInternal then acc.push n else acc
+  let names := names.qsort fun a b => a.toString < b.toString
+  let mut bad : Array Name := #[]
+  let mut written : Nat := 0
+  for n in names do
+    let axioms ← liftCoreM (collectAxioms n)
+    let axioms := axioms.qsort fun a b => a.toString < b.toString
+    logInfo m!"'{n}' depends on axioms: {axioms.toList}"
+    if axioms.any fun a => !allowed.contains a then
+      bad := bad.push n
+    if (← liftCoreM (findDeclarationRanges? n)).isSome then
+      written := written + 1
+  logInfo m!"tc_audit: {names.size} theorem roots ({written} written in source, the rest generated)"
+  unless bad.isEmpty do
+    throwError m!"tc_audit: theorems with nonstandard axioms: {bad.toList}"
 
-#print axioms TensorCore.truncCoeff_of_grid
-#print axioms TensorCore.magnitudeExponent_eq_of_bounds
-#print axioms TensorCore.construction_eta
-#print axioms TensorCore.construction_accumulator_one
-#print axioms TensorCore.construction_accumulator_below
-#print axioms TensorCore.nonmonotone_perturbation
-#print axioms TensorCore.prepareProducts_replicate
-#print axioms TensorCore.nonmonotone_encoded
-#print axioms TensorCore.nonmonotone_v100_family
-#print axioms TensorCore.nonmonotone_ampere_family
-#print axioms TensorCore.nonmonotone_hopper_family
-#print axioms TensorCore.Regression.table_iii_witnesses
-#print axioms TensorCore.Regression.below_threshold_monotone
+tc_audit

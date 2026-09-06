@@ -70,6 +70,13 @@ source site and a zero-based invocation index, which distinguishes repeated exec
 statement. `runLocated_erases` proves diagnostics cannot change execution, and
 `Program.report_accepts_iff` proves report success agrees with `Program.VC`.
 
+`tc_instruction "ampere-wmma-k16"` prints a pinned instruction path (`Programs/Instruction.lean`):
+its inner dimension, products per group, extra alignment bits, floor, groups per instruction,
+and the source of those parameters. The pinned names are `v100-wmma-k16`, `ampere-wmma-k16`,
+and `hopper-wmma-k16`; any other name is refused, because naming a path gives it no
+semantics. The theorems about a path (`single_group_output`, `conforms_uncorrected_error`)
+take hardware conformance as an explicit premise.
+
 Lean 4.33.1 ships `mvcgen`/`vcgen` with Hoare-style specification databases and loop
 invariant support. This fragment applies the schedule theorems directly instead of adding a
 general verification-condition framework; that decision should be revisited when scalar state

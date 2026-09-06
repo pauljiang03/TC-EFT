@@ -13,6 +13,9 @@
     "invalid_supplied_proof"
   ],
   "rejections": 10,
+  "prior_error_does_not_roll_back": true,
+  "instruction_paths_described": 3,
+  "unsourced_instruction_refused": true,
   "success": true,
   "method": "Lean elaboration and kernel proof generation; failures checked in separate compilations"
 }

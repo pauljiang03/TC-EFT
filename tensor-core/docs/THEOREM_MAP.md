@@ -77,6 +77,21 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Successful evaluation certifies every stage; exact loss accounting | `evalInvocation_spec`, `evalInvocation_output`, `evalInvocation_recovery` | Any `InvocationSpec`; proved |
 | Agreement with the original evaluator, including rejection | `legacy_invocation_bits`, `v100_invocation_bits`, `fp16Fp32_invocation_compatible` | Any profile with a well-formed format and positive K; proved |
 
+## Round trip and instruction paths
+
+| Contract | Declaration | Domain and status |
+| --- | --- | --- |
+| Field decomposition of a finite FP32 encoding | `decode32_fields` | Zero, subnormal, and normal cases; proved |
+| The converter returns the canonical encoding of any nonzero representable value | `round32_canonical` | Both modes; proved |
+| Converting a nonzero finite value returns its own bits | `value32_round32` | Both modes; proved |
+| Nonzero finite values have unique encodings | `value32_injective` | proved |
+| Zero-value encodings other than `−0` are `+0` | `zero_value_bits` | proved |
+| Contiguous grouping of an instruction's operands | `chunks_flatten`, `chunks_first_group`, `chunks_replicate`, `InstructionPath.schedule_flatten` | `N_FMA ∣ k`; proved |
+| A group of zero products passes its accumulator through | `zero_products_eta`, `zero_products_passthrough`, `runBlocks_zero_groups` | Finite accumulator other than `−0`; floors at most −126; proved |
+| Under conformance, a device result is the model's last group output and obeys the composed error bound | `conforms_uncorrected_error` | `Conforms path device` as an explicit premise; proved |
+| Single-group inputs reproduce the first group's output on the whole instruction | `single_group_output` | First group's output not `−0`; proved |
+| Pinned paths | `v100Wmma16` (4 × 4), `ampereWmma16` (2 × 8), `hopperWmma16` (1 × 16) | Descriptors with sources; `tc_instruction` refuses other names |
+
 ## Schedules, long dot products, and programs
 
 | Contract | Declaration | Domain and status |
@@ -104,6 +119,7 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Two-invocation cancellation and correction; partition order changes output | `Regression.two_block_cancellation`, `two_block_corrected`, `partition_original_order`, `partition_order_changes_output`, `partition_error_contract`, `constructed_partition_*` |
 | EFT on R2, R3, the paper's cancellation example, and a predicate failure | `Regression.r2_eft`, `r3_eft`, `cancellation_eft`, `predicate_fallback` |
 | TC-EFT Table III witnesses and below-threshold monotone cases | `Regression.v100_nonmonotonicity_witness`, `table_iii_witnesses`, `below_threshold_monotone` |
+| Instruction paths: padded single group equals one group, two Ampere groups, one Hopper group, group order observable, wrong width rejected | `Regression.v100_instruction_single_group`, `ampere_instruction_two_groups`, `hopper_instruction_one_group`, `ampere_instruction_order_matters`, `instruction_wrong_width` |
 | Generated DSL correctness and intended elaboration | `Regression.cancellation_program_correct`, `repeated_program_correct`, `zero_iterations_correct`, `symbolic_cycle_correct`, `nested_program_order`, `rejected_program_location`, `final_range_rejected` |
 
 Next targets are listed in [PLAN.md](PLAN.md); no placeholder declaration stands in for them.

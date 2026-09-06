@@ -60,10 +60,12 @@ private partial def checkedInitial (initial : TSyntax `term) : CommandElabM (TSy
 private def verifyCommand (name : TSyntax `ident) (program initial proof : TSyntax `term) :
     CommandElabM Unit := do
   let savedEnv ← getEnv
+  let before := (← get).messages.toList.length
   elabCommand (← `(set_option Elab.async false in
     theorem $name : TensorCore.Program.Correct $program $initial :=
       TensorCore.Program.vc_sound $program $initial $proof))
-  if ← MonadLog.hasErrors then
+  let fresh := (← get).messages.toList.drop before
+  if fresh.any (·.severity == MessageSeverity.error) then
     setEnv savedEnv
     logErrorAt name "Verification incomplete; no new verification theorem was registered. Use tc_inspect for numerical diagnostics, or supply a proof of Program.VC with 'using'."
   else

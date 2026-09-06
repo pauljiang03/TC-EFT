@@ -38,8 +38,8 @@
       "examples/LongDotProduct.lean"
     ]
   ],
-  "targets_built": 110,
-  "audit": "201 theorem roots audited; only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 118,
+  "audit": "606 theorem roots audited (343 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [
@@ -55,6 +55,9 @@
       "invalid_supplied_proof"
     ],
     "rejections": 10,
+    "prior_error_does_not_roll_back": true,
+    "instruction_paths_described": 3,
+    "unsourced_instruction_refused": true,
     "success": true,
     "method": "Lean elaboration and kernel proof generation; failures checked in separate compilations"
   },

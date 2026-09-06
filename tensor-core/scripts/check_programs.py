@@ -65,8 +65,35 @@ for name, (source, expected) in cases.items():
     for marker in expected:
         assert marker.lower() in output.lower(), (name, marker, output)
 
+# An unrelated earlier error must not roll back a valid verification later in the file.
+path = scratch / 'prior_error.lean'
+path.write_text(header + f'example : (1 : Nat) = 2 := by decide\n'
+                f'def p : Program v100F16F32 := tc%{{ block "ok" {one}; }}\n'
+                f'tc_verify still_registered : p from 0\n#check still_registered\n')
+code, output = run(path)
+(scratch / 'prior_error.log').write_text(output)
+assert code != 0 and 'still_registered : ' in output and 'Verification incomplete' not in output, output
+
+# Pinned instruction paths print their parameters; an unsourced name is refused.
+path = scratch / 'instruction_paths.lean'
+path.write_text('import TensorCore.Meta.Instruction\ntc_instruction "v100-wmma-k16"\n'
+                'tc_instruction "ampere-wmma-k16"\ntc_instruction "hopper-wmma-k16"\n')
+code, output = run(path)
+(scratch / 'instruction_paths.log').write_text(output)
+assert code == 0, output
+for expected in ['HMMA.844', 'N_FMA = 4', 'groups per instruction = 4',
+                 'HMMA.1688', 'N_FMA = 8', 'groups per instruction = 2',
+                 'HMMA.16816', 'N_FMA = 16', 'groups per instruction = 1']:
+    assert expected in output, (expected, output)
+path = scratch / 'unsourced_instruction.lean'
+path.write_text('import TensorCore.Meta.Instruction\ntc_instruction "turing-wmma-k16"\n')
+code, output = run(path)
+(scratch / 'unsourced_instruction.log').write_text(output)
+assert code != 0 and 'unsourced instruction path' in output, output
+
 report = {'example_compiles': True, 'rejection_cases': list(cases),
-          'rejections': len(cases), 'success': True,
+          'rejections': len(cases), 'prior_error_does_not_roll_back': True,
+          'instruction_paths_described': 3, 'unsourced_instruction_refused': True, 'success': True,
           'method': 'Lean elaboration and kernel proof generation; failures checked in separate compilations'}
 (root / 'data/regressions/program-report.json').write_text(json.dumps(report, indent=2) + '\n')
 print(json.dumps(report, indent=2))

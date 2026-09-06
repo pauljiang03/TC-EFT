@@ -3,8 +3,7 @@
 The model's unit is one normalization group: K products and c, aligned once, summed
 exactly, converted once. A PTX or WMMA instruction can contain several groups, and a long dot
 product chains many instructions. This note records what the sources establish about how
-groups compose, what the Lean model does today, and how to model composition through
-metaprogramming.
+groups compose, what the Lean model does, and what remains.
 
 ## What the sources establish
 
@@ -47,51 +46,49 @@ metaprogramming.
    products in any order. The refinements in Accurate Models (N_FMA < k on Ampere/Ada,
    unnormalized products, exponent floors) show that abstraction is too coarse for those paths.
 
-## What the Lean model does today
+## What the Lean model does
 
-`runBlocks` follows the supplied list of groups; each group's output bits are decoded as
-the next c. `runBlocks_residual_ledger` proves `c0 + Σ Pj = dm + Σ ej` for any finite list,
-with every local residual `ej` kept exactly. `runBlocks_uncorrected_error` bounds the final
-uncorrected error by the sum of the traces' local budgets, and `fp16Fp32_schedule_machine_eq`
+`runBlocks` follows a supplied list of groups; each group's output bits are decoded as the
+next c. `runBlocks_residual_ledger` proves `c0 + Σ Pj = dm + Σ ej` for any finite list, with
+every local residual `ej` kept exactly; `runBlocks_uncorrected_error` bounds the final
+uncorrected error by the sum of the traces' local budgets; `fp16Fp32_schedule_machine_eq`
 carries the modular-accumulator equivalence through every encoded boundary. `Program` adds
-sequencing and bounded repetition; `runBlocks_append` and `runBlocks_repeat_invariant` are
-the composition rules.
+sequencing and bounded repetition. `OrderedPartition` and `canonicalPartition` turn a long
+operand list into contiguous fixed-size groups in increasing k, padding only a partial tail
+with zero pairs, with the original ideal preserved by proof; `runCanonicalDot` executes it.
 
-`OrderedPartition` and `canonicalPartition` turn a long list of original operand pairs into
-contiguous fixed-size groups in increasing k, padding only a partial tail with zero pairs,
-with the original ideal preserved by proof. When the schedule is that partition, this is
-exactly the GEMM.m rule, and `runCanonicalDot` executes it with proved group count, error
-bound, and machine equivalence. Nothing in the model infers a hardware order; the order is an
-input, and `Regression.partition_order_changes_output` shows that reversing two groups can
-change the bits while the ideal is unchanged.
+`InstructionPath` (`Programs/Instruction.lean`) pins one instruction: name, `k`, `N_FMA`,
+extra alignment bits, floor, and the source of those parameters, with `N_FMA ∣ k`. Its
+schedule is `k / N_FMA` contiguous groups in increasing k (`chunks`), and `output` is the last
+group's FP32 bits. Three paths are pinned: `v100Wmma16` (four groups of four),
+`ampereWmma16` (two of eight), and `hopperWmma16` (one of sixteen). The command
+`tc_instruction "ampere-wmma-k16"` prints a pinned path and refuses any other name.
 
-## Modeling composition with metaprogramming
+Hardware enters only as a premise. `Conforms path device` says a device function agrees
+with `path.output` on every k-wide input; `conforms_uncorrected_error` then gives, for that
+device, the model's last-group output and the composed error bound against the
+original-input ideal. No theorem asserts `Conforms` for any real GPU.
 
-Three layers, each ordinary Lean data with an evaluator. Elaborators build the data and apply
-existing theorems; they never define a second semantics.
+Two facts make the published vectors meaningful for whole instructions.
+`zero_products_passthrough` proves a group of zero products returns its accumulator input
+unchanged (for any finite input other than `−0`, using the decoder/encoder round trip and
+floor inactivity), and `single_group_output` proves that an input with nonzero products only
+in the first group yields that group's output from the whole instruction. So each published
+row is one test of the instruction path under the increasing-k rule. What the rows do not
+test is the order of two nonzero groups; `Regression.ampere_instruction_order_matters` is a
+k = 16 Ampere input whose two group orders give different bits (`33800000` versus `0`) for the
+same exact dot product, and is the template for a distinguishing GPU measurement.
 
-1. **Boundary operators as data.** A schedule is a list of invocation descriptions with a
-   boundary between consecutive groups: `encoded fmt mode` (decode the actual encoding, the
-   only operator today), `unnormalizedSum mode` (align two group sums with a stated rounding,
-   the MATLAB odd/even operator), and `scalarAdd fmt mode` (the late-c step). Each operator
-   gets its own loss lemma. The ledger theorem is generic over the boundary list;
-   `fold_residual_ledger` already has that shape.
-2. **Instruction descriptors.** An `InstructionPath` records architecture, opcode or API,
-   shape, formats, and a partition of the k indices into ordered groups such as
-   `contiguous 4` or `interleavedPairs 2`. A command `tc_instruction` produces the descriptor
-   and the derived schedule for a given k, and refuses paths whose grouping has no source.
-   A theorem `instruction_schedule_sound` states that running the derived schedule equals
-   running the flattened group list. Because ordering is empirical, a descriptor carries an
-   evidence record, and every theorem about a real instruction takes `Conforms path` as an
-   explicit premise rather than an axiom.
-3. **Programs and matrices.** Extend `Program` with `mma path A B C` at tile granularity.
-   The elaborator produces one schedule per output cell, the mapping theorem shows every
-   `aᵢₗ·bₗⱼ` is used once with the right c, and the per-cell ledger and error contracts then
-   apply unchanged. Reordering k or moving a group boundary is a different schedule; the DSL
-   should make that a visible choice, and equivalence proofs or checked counterexamples
-   (R1 is one) decide when two schedules agree.
+## What remains
 
-What would settle the open ordering questions: vectors that place nonzero products in
-different k positions of one instruction, with a c chosen so that group order changes the
-truncation (the interleaving test in §4.1.6 is the template), run on the target GPU and
-recorded as `Conforms` evidence next to the descriptor.
+1. **Boundary operators beyond the encoded boundary.** The Fig. 5c path combines two
+   interleaved groups and adds c late with RNE. Model boundaries as data (encoded conversion,
+   unnormalized combination, scalar addition) with a loss lemma each, a ledger generic over
+   the boundary list, and an `interleavedPairs` grouping. Assign it to hardware only after the
+   FP8 output-precision question in FEATURE_COVERAGE.md is settled.
+2. **Programs and matrices.** Extend `Program` with `mma path A B C` at tile granularity,
+   elaborated to one instruction schedule per output cell, with a mapping theorem showing
+   every `aᵢₗ·bₗⱼ` is used once with the right c. Reordering k or moving a group boundary is a
+   different schedule; the DSL should make that a visible choice.
+3. **Measurement.** Run inputs like `ampere_instruction_order_matters` on the target GPUs and
+   record the results as `Conforms` evidence next to the descriptors.

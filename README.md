@@ -43,6 +43,8 @@ Every theorem is checked by the Lean kernel. The complete contract → declarati
 | Non-monotonicity as a theorem over `K` and padding `p`: lowering the accumulator from `1` to `1 − 2^-24` raises the output exactly when `K ≥ 3·2^p` (TC-EFT III.4) | `nonmonotone_perturbation`, `nonmonotone_encoded` |
 | Exact residual ledger over any finite chain through encoded FP32 boundaries; composed uncorrected error bound; machine equivalence through schedules | `runBlocks_residual_ledger`, `runBlocks_uncorrected_error`, `fp16Fp32_schedule_machine_eq` |
 | Ordered partition of a long dot product with proved ideal preservation and tail padding | `OrderedPartition.uncorrected_error`, `canonicalPartition_ideal` |
+| Decoder/encoder round trip: converting a nonzero finite value returns its own bits; nonzero values have unique encodings | `value32_round32`, `value32_injective` |
+| Instruction paths: contiguous increasing-k grouping, zero groups pass the accumulator through, single-group inputs reproduce one group, and the composed error bound holds for any device that conforms | `single_group_output`, `conforms_uncorrected_error` |
 | Program checker soundness | `Program.vc_sound` |
 | R1–R4, Table III, EFT examples, rounding boundaries, rejections | `Regression.*` |
 
@@ -62,10 +64,13 @@ evaluator (`decide +kernel`).
 - `scripts/check_device_formats.py`: the published A100 and H100 BF16 and TF32 vectors
   match the deferred-format descriptors, 5,000 rows each. Evidence only; no proofs for those
   formats are claimed.
-- `scripts/check_programs.py`: the DSL example compiles and ten malformed programs are rejected.
-- `scripts/check_axioms.py`: 201 theorem roots depend only on `propext`, `Classical.choice`,
-  and `Quot.sound`; the sources contain no `sorry`, `axiom`, `native_decide`, or compiled
-  reflection.
+- `scripts/check_programs.py`: the DSL example compiles, ten malformed programs are rejected,
+  an unrelated earlier error does not roll back a later verification, the three pinned
+  instruction paths print their parameters, and an unsourced path name is refused.
+- `scripts/check_axioms.py`: every theorem in the `TensorCore` namespace, enumerated from the
+  compiled environment (606 constants, 343 written in source, the rest generated structural
+  lemmas), depends only on `propext`, `Classical.choice`, and `Quot.sound`; no Lean source
+  contains `sorry`, `axiom`, `native_decide`, or compiled reflection.
 
 ## Build and check
 
@@ -100,8 +105,8 @@ tensor-core/
                            refinement, parameterized contract, padding, floor inactivity,
                            scalar summation, non-monotonicity
   TensorCore/Programs      schedules, exact ledger, error budgets, ordered partitions, program AST,
-                           checker, Algorithm 1 (EFT)
-  TensorCore/Meta          tc%{ } syntax, tc_verify, tc_inspect
+                           checker, Algorithm 1 (EFT), instruction paths and conformance
+  TensorCore/Meta          tc%{ } syntax, tc_verify, tc_inspect, tc_instruction
   TensorCore/Regression    kernel-checked witnesses
   examples/                runnable examples
   scripts/                 audit and validation
@@ -121,9 +126,10 @@ tensor-core/
   than saturated; no overflow policy is claimed.
 - The scalar EFT is proved for the paper's left-to-right naive summation on values; a
   machine implementation of the residual extraction is not modeled.
-- Schedules execute the supplied order and feed each FP32 output to the next call. How an
-  instruction groups its k dimension is an empirical question; see
-  [docs/COMPOSITION.md](tensor-core/docs/COMPOSITION.md).
+- Schedules execute the supplied order and feed each FP32 output to the next call. An
+  instruction path fixes the contiguous increasing-k grouping the reference software uses;
+  theorems about a real device take conformance to that path as an explicit premise, and no
+  proof asserts it. See [docs/COMPOSITION.md](tensor-core/docs/COMPOSITION.md).
 - Device agreement is evidence, not a theorem. No GPU was run for this project.
 
 ## Sources
