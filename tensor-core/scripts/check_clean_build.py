@@ -21,7 +21,8 @@ commands += [['python3', 'scripts/check_certificates.py'],
              ['python3', 'scripts/check_application.py'],
              ['python3', 'scripts/validate.py'],
              ['python3', 'scripts/check_device.py'],
-             ['python3', 'scripts/check_eft.py']]
+             ['python3', 'scripts/check_eft.py'],
+             ['python3', 'scripts/check_device_half.py']]
 commands += [['lake', 'env', 'lean', str(p.relative_to(root))]
              for p in sorted((root / 'examples').glob('*.lean'))
              if p.name not in {'CanonicalInvocation.lean', 'LongDotProduct.lean'}]
