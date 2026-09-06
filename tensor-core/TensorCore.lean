@@ -10,4 +10,5 @@ import TensorCore.Regression.DotProduct
 import TensorCore.Regression.EFT
 import TensorCore.Regression.Monotonicity
 import TensorCore.Regression.Instruction
+import TensorCore.Regression.StaticBudget
 import TensorCore.Meta.Instruction

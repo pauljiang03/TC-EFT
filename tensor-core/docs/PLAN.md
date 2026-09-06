@@ -21,6 +21,10 @@ instruction-path layer, and the fixes from the second review landed.
 - Long dot products in a supplied order: ordered partitions with proved ideal preservation
   and tail padding, a composed uncorrected error bound, and machine equivalence through
   every encoded boundary.
+- Input-derived error budgets: `staticBudget` bounds one block from a scale bound on its
+  operands, `runBlocks_static` carries it through a schedule by a forward analysis of the
+  ideal partial sums, and `staticCheck_sound` turns a decidable certificate on the operands
+  into acceptance of the whole run and the error bound without executing the model.
 - Instruction paths: an `InstructionPath` fixes `k`, `N_FMA`, extra bits, floor, and its
   source; its schedule is the contiguous increasing-k grouping of the reference software,
   and it runs on exactly `k` operands. Zero groups pass the accumulator through, so
@@ -44,8 +48,8 @@ instruction-path layer, and the fixes from the second review landed.
   specification. The BF16 and TF32 descriptors match the published A100 and H100 vectors,
   5,000 rows each, but have no rounding-correctness proofs and are not claimed.
 - Two independent Python oracles, 35,000 replayed device rows across seven format/device
-  pairs, frontend tests, and an axiom audit generated from the environment: 636 theorem
-  constants (372 written in source), all on the standard three axioms.
+  pairs, frontend tests, and an axiom audit generated from the environment: 673 theorem
+  constants (406 written in source), all on the standard three axioms.
 
 ## Assessment
 
@@ -61,6 +65,8 @@ Substantive results:
 5. The parameterized contract, the machine refinement of the complete result, and the
    composition results for long dot products and instruction paths, with hardware
    conformance kept as a premise rather than smuggled into a definition.
+6. The static certificate: acceptance and an error bound for a schedule decided on the
+   operands and the ideal partial sums, with soundness proved against the executable model.
 
 Bookkeeping, not results: the residual identity, definitional bridges, and regression
 evaluations. Nothing here is a proof about hardware; every device claim is test evidence.
@@ -84,9 +90,10 @@ statements, and each theorem records the domain on which it reproduces them.
    loss lemma each and a ledger generic over the boundary list, then an `interleavedPairs`
    grouping. Do not assign the FP8 path to hardware until its output-precision question in
    FEATURE_COVERAGE.md is settled.
-2. **Input-derived error budgets.** Replace the trace-dependent budgets in
-   `runBlocks_uncorrected_error` with budgets from operand bounds or loop invariants, then
-   changing-state loops in `Program`.
+2. **Static budgets in the program language.** Connect `staticCheck` to `Program`: a
+   `tc_certify` command that certifies acceptance and the static bound from the AST, then
+   loop invariants for changing-state repetition so the partial-sum condition need not be
+   enumerated.
 3. **Evidence for grouping.** The published vectors only fill k positions `0..K−1`, so
    `Conforms` is untested for the second Ampere group. Vectors with nonzero products in
    later positions, on a real GPU, would test it; the harness in the v0.5 archive is the

@@ -3,8 +3,8 @@
 ## Proof checking
 
 `python3 scripts/check_axioms.py` runs `Audit.lean`, whose `tc_audit` command enumerates
-every theorem in the `TensorCore` namespace from the compiled environment (636 constants,
-372 written in source, the rest generated structural lemmas) and prints the axioms each
+every theorem in the `TensorCore` namespace from the compiled environment (673 constants,
+406 written in source, the rest generated structural lemmas) and prints the axioms each
 depends on. The command fails if any theorem uses an axiom outside `propext`,
 `Classical.choice`, and `Quot.sound`. The verbatim output is [axioms.txt](axioms.txt). The
 script also fails if any Lean source in the library, executables, or examples mentions
@@ -37,9 +37,20 @@ are part of the audit. `tc_inspect` and `tc_instruction` evaluate for diagnostic
   an aligned accumulator within `maxFinite32`.
 - `runBlocks_residual_ledger` covers every successful finite list of invocations, with each
   next c decoded from the actual returned bits. `runBlocks_uncorrected_error` bounds the
-  final uncorrected error by the sum of the traces' local budgets; the budgets depend on the
-  actual traces, not on a static input analysis. `OrderedPartition` is a supplied contiguous
-  grouping; nothing infers a hardware grouping or justifies permuting groups.
+  final uncorrected error by the sum of the traces' local budgets, which depend on the
+  actual traces. `OrderedPartition` is a supplied contiguous grouping; nothing infers a
+  hardware grouping or justifies permuting groups.
+- `staticBudget n F E L` is the input-derived alternative: for terms whose nonzero raw
+  scales are at most `E`, a floor at most `E`, and `n ≤ 2^L`, `block_static_error_bound`
+  bounds one block's uncorrected error by `n·2^(E−F) + 2^(max(E+1+L, −126) − 23)`, and
+  `prepared_static_success` accepts the block when `E + 2 + L ≤ 127`. `runBlocks_static`
+  carries this through a schedule: if every group is scale-bounded and every ideal partial
+  sum plus the accumulated budget stays below `2^(E+1)`, every accumulator input keeps scale
+  `E`, the run is accepted, and the final error is at most the group count times the budget.
+  `staticCheck` decides these hypotheses on concrete operands and `staticCheck_sound` applies
+  the theorem. The static budget is looser than the trace budget (on the regression schedule
+  by about a factor of ten) because it bounds the alignment grid and the output quantum from
+  the scale alone; it never runs the model.
 - `InstructionPath` fixes a contiguous increasing-k grouping and its source.
   `InstructionPath.run` rejects any operand list whose length is not `k`; nothing is padded
   or discarded. `Conforms path device` is a definition, not a theorem: it states that

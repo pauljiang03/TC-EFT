@@ -72,6 +72,17 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | Theorem III.5: with `c_j = 1 − j·2^-24`, the output rises iff `(j + 2)·2^p ≤ K`; output `1 + 2^-23·⌊(K − j·2^p)/2^(p+1)⌋` when `j·2^p ≤ K`; maximum at `j = 1` | `construction_accumulator_range`, `nonmonotone_range`, `nonmonotone_range_iff` | `1 ≤ j ≤ 2^23`, same family as III.4; proved |
 | Encoded form: `c_j` has bits `3f800000 − j` | `decode32_below`, `nonmonotone_range_encoded`, `nonmonotone_range_v100_family`, `nonmonotone_range_ampere_family`, `nonmonotone_range_hopper_family` | proved |
 
+## Static budgets (input-derived)
+
+| Contract | Declaration | Domain and status |
+| --- | --- | --- |
+| Exponent and conversion grid of a magnitude below `2^(e+1)` | `magnitudeExponent_le_of_lt`, `convExp_le_of_lt`, `rtz_residual_lt` | Any positive rational; proved |
+| Term, accumulator, and alignment bounds from a scale bound `E` | `term_abs_lt`, `accumulator_abs_lt`, `accumulator_lt_pow2`, `quantumExponent_le`, `alignment_static_bound` | Bounded terms with nonzero raw scales at most `E`, floor at most `E`; proved |
+| Budget `n·2^(E−F) + 2^(max(E+1+L, −126) − 23)` bounds one block; the block is accepted when `E + 2 + L ≤ 127` | `staticBudget`, `block_static_error_bound`, `prepared_static_success`, `evalBlock_static` | `n ≤ 2^L` terms; no trace consulted; proved |
+| A finite FP32 value below `2^(E+1)` has raw scale at most `E` | `finite32_scale_le` | `E ≥ −126`; proved |
+| Forward analysis of a schedule: scale-bounded groups and bounded ideal partial sums give acceptance of the whole run and error at most `m·budget` | `runBlocks_static` | Every accumulator input stays within scale `E`; proved |
+| Decidable certificate and its soundness | `groupScaleCheck_sound`, `partialSumsCheck_sound`, `staticCheck`, `staticCheck_sound` | `staticCheck = true` implies the schedule theorem; proved |
+
 ## Generalized invocation evaluator
 
 | Contract | Declaration | Domain and status |
@@ -125,6 +136,7 @@ All names are under `TensorCore` or `TensorCore.Regression`.
 | EFT on R2, R3, the paper's cancellation example, and two predicate rejections | `Regression.r2_eft`, `r3_eft`, `cancellation_eft`, `predicate_rejected`, `subnormal_accumulator_rejected` |
 | TC-EFT Table III witnesses, below-threshold monotone cases, III.5 ranges and extrema | `Regression.v100_nonmonotonicity_witness`, `table_iii_witnesses`, `below_threshold_monotone`, `range_witnesses`, `range_extrema_k5` |
 | Instruction paths: padded single group equals one group, two Ampere groups, one Hopper group, group order observable, wrong width rejected in both directions | `Regression.v100_instruction_single_group`, `ampere_instruction_two_groups`, `hopper_instruction_one_group`, `ampere_instruction_order_matters`, `instruction_wrong_width` |
+| Static certificate on an eight-group V100 schedule: accepted, applied, consistent with the executed run, and refused for a too-small scale or an infinite operand | `Regression.static_certificate_accepts`, `static_certificate_applied`, `static_certificate_consistent`, `static_certificate_rejects` |
 | Generated DSL correctness and intended elaboration | `Regression.cancellation_program_correct`, `repeated_program_correct`, `zero_iterations_correct`, `symbolic_cycle_correct`, `nested_program_order`, `rejected_program_location`, `final_range_rejected` |
 
 Next targets are listed in [PLAN.md](PLAN.md); no placeholder declaration stands in for them.

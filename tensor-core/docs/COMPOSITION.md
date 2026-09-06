@@ -80,6 +80,13 @@ test is the order of two nonzero groups; `Regression.ampere_instruction_order_ma
 k = 16 Ampere input whose two group orders give different bits (`33800000` versus `0`) for the
 same exact dot product, and is the template for a distinguishing GPU measurement.
 
+Error budgets come in two forms. The trace budget `BlockTrace.errorBudget` is exact
+bookkeeping on the executed trace. The static budget `staticBudget` (`Theory/StaticBudget.lean`)
+is derived from a scale bound on the operands alone; `runBlocks_static` carries it through a
+schedule by a forward analysis of the ideal partial sums, and `staticCheck_sound`
+(`Programs/StaticCertificate.lean`) applies it from a decidable check on the operands, so
+acceptance and an error bound can be certified without executing the model.
+
 ## What remains
 
 1. **Boundary operators beyond the encoded boundary.** The Fig. 5c path combines two

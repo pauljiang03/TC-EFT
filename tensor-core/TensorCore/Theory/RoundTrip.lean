@@ -154,11 +154,11 @@ theorem value32_round32 (mode : RoundingMode) (b : F32) (v : Rat)
       rw [encode32_toNat _ _ _ (by omega) (by omega) (by omega) (by omega)]
       cases hs : (b.toNat / 2147483648 != 0)
       · have : b.toNat / 2147483648 = 0 := by simpa using hs
-        simp only [Bool.false_eq_true, eq_self_iff_true, ↓reduceIte, Nat.reducePow, Int.reducePow]
+        simp only [Bool.false_eq_true, ↓reduceIte, Nat.reducePow, Int.reducePow]
         rw [if_pos (by omega)]
         omega
       · have : b.toNat / 2147483648 ≠ 0 := by simpa using hs
-        simp only [Bool.false_eq_true, eq_self_iff_true, ↓reduceIte, Nat.reducePow, Int.reducePow]
+        simp only [↓reduceIte, Nat.reducePow, Int.reducePow]
         rw [if_pos (by omega)]
         omega
     · -- Normal.
@@ -178,11 +178,11 @@ theorem value32_round32 (mode : RoundingMode) (b : F32) (v : Rat)
       rw [encode32_toNat _ _ _ (by omega) (by omega) (by omega) (by omega)]
       cases hs : (b.toNat / 2147483648 != 0)
       · have : b.toNat / 2147483648 = 0 := by simpa using hs
-        simp only [Bool.false_eq_true, eq_self_iff_true, ↓reduceIte, Nat.reducePow, Int.reducePow]
+        simp only [Bool.false_eq_true, ↓reduceIte, Nat.reducePow, Int.reducePow]
         rw [if_neg (by omega)]
         omega
       · have : b.toNat / 2147483648 ≠ 0 := by simpa using hs
-        simp only [Bool.false_eq_true, eq_self_iff_true, ↓reduceIte, Nat.reducePow, Int.reducePow]
+        simp only [↓reduceIte, Nat.reducePow, Int.reducePow]
         rw [if_neg (by omega)]
         omega
 

@@ -55,6 +55,12 @@ pairs, seventeen pairs, and sixteen pairs followed by an infinity are all reject
 operand is padded or discarded; an infinity in the sixteenth position is rejected by the
 last group.
 
+Static certificate: eight V100 groups of four products `(1 − 2^-11)(1 + 2^-10)` from
+`c = 1` pass `staticCheck` at scale `E = 5`, `L = 3`; the applied theorem gives acceptance
+and the bound `168·2^-18`. The executed run returns `42040ff5` with error `7·2^-18` against
+the ideal and a trace budget of `541·2^-23`. The certificate refuses `E = 4`, which the
+partial sums exceed, and a group with an infinite operand.
+
 The converter proof is separate from these cases: `round32_nearestEven_correct` holds for all
 rational inputs with magnitude at most `maxFinite32`.
 
