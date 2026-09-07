@@ -36,3 +36,6 @@ import TensorCore.Regression.BoundedEFT
 import TensorCore.Regression.FoundationCompletion
 import TensorCore.Regression.CutlassWmma
 import TensorCore.Cli.Gemm
+import TensorCore.Regression.GemmAnalysis
+import TensorCore.Regression.PipelineAnalysis
+import TensorCore.Regression.GemmFamily

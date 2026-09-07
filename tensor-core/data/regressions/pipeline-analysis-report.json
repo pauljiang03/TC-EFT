@@ -1,0 +1,44 @@
+{
+  "status": "passed",
+  "seed": 20260908,
+  "scaled_requests": 163,
+  "checked_output_cells": 283,
+  "unavailable_cells": 18,
+  "input_conversion_rejections": 9,
+  "family_requests": 18,
+  "sampled_family_output_cells": 1080,
+  "certificate_cases": 13,
+  "kernel_replay": true,
+  "input_only_dependency_audit": true,
+  "negative_controls": [
+    "transitive_input_only_audit",
+    "alpha-scale_rejected_by_kernel",
+    "sum-scale_rejected_by_kernel",
+    "missing-group_rejected_by_kernel",
+    "source-value_rejected_by_kernel",
+    "family-cap_rejected_by_kernel",
+    "family-carry_rejected_by_kernel",
+    "tolerance_rejected_by_kernel",
+    "mixed_inconclusive_export_refused",
+    "invalid_family_ranges_rejected"
+  ],
+  "elapsed_seconds": 14.301,
+  "source_sha256": {
+    "TensorCore/Programs/ScalarAnalysis.lean": "444bb6104ddd9fedfcdb291c4ab2c24adb126f5710ae7ad374b749900ce8a6f1",
+    "TensorCore/Programs/ScaledGemmAnalysis.lean": "fede20386fd54b9bbeef0c91681d6cec2fb5dee2f97f3f02a173e72781e61d5a",
+    "TensorCore/Programs/ConvertedGemmAnalysis.lean": "5dc0bb9c8fcaaa2acc0a81cc62b50fd7221a7d944ba0f9b2fd7816af06150671",
+    "TensorCore/Programs/GemmFamily.lean": "f76e608e7e53babb50e62b20d17d999310d2bcff0eff99eb87d1980568e5d622",
+    "TensorCore/Theory/Binary/MagnitudeScale.lean": "c758b4722443aeaa9cccd46aab91eedb6bf43f6e69b48dda905ff3c3a0d27974",
+    "TensorCore/Cli/PipelineAnalysis.lean": "2aba569d68506738516bfd94473d7baee3b8897cc1d4dd645b975562ed83d1ce",
+    "TensorCore/Regression/PipelineAnalysis.lean": "b6773ed79e7dc1eb224ff7f656432def427688e1f0dbb820b2424b9c411c3484",
+    "TensorCore/Regression/GemmFamily.lean": "d954da70f01b256861e9d113c0c34098f7a4d09a92e50f78233fa313f70cc0f6",
+    "scripts/analyze.py": "ece53a658c2b53a843fb97ce4d6a57540db46dc1e642041c07acf428ee132881",
+    "scripts/analysis_certificate.py": "7f46846fec29577e7c986430b18d7ed575934fbc6c239c9f9fc9f5a5b39eb066",
+    "scripts/check_pipeline_analysis.py": "f4c3a84e2159abfc418964aaed6428859e4b3599e6b465e2e5bf7baaf59feb51"
+  },
+  "limitations": [
+    "Family samples test the implementation; the Lean theorem quantifies over all family members.",
+    "Input families currently cover uniform finite raw FP16/FP32 magnitude bounds.",
+    "Scaled analysis can be conservative under cancellation or exact nonzero scalar stages."
+  ]
+}

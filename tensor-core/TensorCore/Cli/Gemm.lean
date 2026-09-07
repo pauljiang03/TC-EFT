@@ -1,4 +1,5 @@
 import TensorCore.Programs.GemmTightInputBounds
+import TensorCore.Cli.PipelineAnalysis
 import Lean
 
 namespace TensorCore.Cli.Gemm
@@ -57,9 +58,18 @@ def evaluate (input : Json) : Except String Json := do
   let m ← input.getObjValAs? Nat "m"
   let n ← input.getObjValAs? Nat "n"
   let k ← input.getObjValAs? Nat "k"
-  let C ← words 32 m n (← input.getObjValAs? (Array Nat) "c")
   let operation ← input.getObjValAs? String "operation"
+  if operation == "analyze_family" then
+    let a ← PipelineAnalysis.rational input "a_bound"
+    let b ← PipelineAnalysis.rational input "b_bound"
+    let c ← PipelineAnalysis.rational input "c_bound"
+    return PipelineAnalysis.familyReport architecture m n k ⟨a, b, c⟩ (← Analysis.tolerance input)
+  let C ← words 32 m n (← input.getObjValAs? (Array Nat) "c")
   match operation with
+  | "analyze" =>
+    let A ← words 16 m k (← input.getObjValAs? (Array Nat) "a")
+    let B ← words 16 k n (← input.getObjValAs? (Array Nat) "b")
+    return Analysis.report architecture A B C (← Analysis.tolerance input)
   | "raw" =>
     let A ← words 16 m k (← input.getObjValAs? (Array Nat) "a")
     let B ← words 16 k n (← input.getObjValAs? (Array Nat) "b")
@@ -79,7 +89,7 @@ def evaluate (input : Json) : Except String Json := do
     return Json.mkObj [("accepted", toJson (gemmCheck architecture cfg A B C)),
       ("entry_bound", toJson (ratText bound)),
       ("matrix_bound", toJson (ratText ((m : Rat) * (n : Rat) * bound)))]
-  | "scaled" | "certify_scaled" =>
+  | "scaled" | "certify_scaled" | "analyze_scaled" =>
     let source ← format (← input.getObjValAs? String "input_format")
     let target ← format (← input.getObjValAs? String "output_format")
     let im ← mode (← input.getObjValAs? String "input_mode")
@@ -90,9 +100,11 @@ def evaluate (input : Json) : Except String Json := do
     let beta ← scalar input "beta"
     let a ← words source.width m k (← input.getObjValAs? (Array Nat) "a")
     let b ← words source.width k n (← input.getObjValAs? (Array Nat) "b")
+    let cfg : GemmEpilogue := ⟨mm, am, ⟨target, om⟩⟩
+    if operation == "analyze_scaled" then
+      return PipelineAnalysis.report source im architecture cfg alpha beta a b C (← Analysis.tolerance input)
     match convertGemmInput source im a, convertGemmInput source im b with
     | some A, some B =>
-      let cfg : GemmEpilogue := ⟨mm, am, ⟨target, om⟩⟩
       if operation == "certify_scaled" then
         let E ← input.getObjValAs? Int "accumulator_scale"
         let P ← input.getObjValAs? Int "product_scale"
@@ -130,7 +142,7 @@ def evaluate (input : Json) : Except String Json := do
     | _, _ =>
       return Json.mkObj (("input_conversion_rejected", toJson true) ::
         if operation == "certify_scaled" then [("accepted", toJson false)] else [])
-  | _ => .error "Expected operation raw, certify, scaled, or certify_scaled"
+  | _ => .error "Expected operation raw, certify, scaled, certify_scaled, analyze, analyze_scaled, or analyze_family"
 
 
 end TensorCore.Cli.Gemm

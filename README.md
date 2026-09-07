@@ -30,6 +30,8 @@ The raw example computes `1*2+0`. Its output has `value: "2/1"` and
 | `./tc build` | Build proofs and native executables |
 | `./tc gemm FILE` | Run or certify one GEMM request per JSONL line |
 | `./tc gemm -` | Read GEMM requests from standard input |
+| `./tc analyze FILE --abs-tol T` | Infer raw, scaled, or family bounds and check an absolute tolerance |
+| `./tc verify FILE.lean` | Replay an exported analysis certificate through Lean's kernel |
 | `./tc schema` | Print the GEMM input JSON Schema |
 | `./tc trace HEX...` | Trace four V100 products and an accumulator |
 | `./tc eft FILE` | Correct encoded blocks using bounded EFT |
@@ -130,9 +132,14 @@ array lengths equal `m*k`, `k*n`, and `m*n`.
 | `certify` | Input-only certificate for raw GEMM; requires the raw bound fields |
 | `scaled` | Input conversion followed by the scalar pipeline below |
 | `certify_scaled` | Input-only certificate for the scaled pipeline and original source values |
+| `analyze` | Automatic raw FP16 GEMM analysis |
+| `analyze_scaled` | Automatic source-relative scaled analysis |
+| `analyze_family` | Quantified raw analysis using `a_bound`, `b_bound`, and `c_bound` |
 
-All operations require `operation`, `model`, `m`, `n`, `k`, `a`, `b`, and `c`.
-Models are `v100`, `ampere`, and `hopper`. Scaled operations also require:
+All operations require `operation`, `model`, `m`, `n`, and `k`. Concrete requests
+require encoded arrays `a`, `b`, and `c`; family requests use rational bounds
+instead. Automatic analyses require rational `absolute_tolerance`. Models are
+`v100`, `ampere`, and `hopper`. Scaled operations also require:
 
 | Fields | Values |
 | --- | --- |
@@ -153,8 +160,8 @@ The multiplications and addition are separate rounded operations. Choose
 `output_format: "fp32"` for the primary scope. Even with alpha and beta equal
 to one, this pipeline can differ from raw GEMM because C enters at a different stage.
 
-Certificates require `accumulator_scale`, `product_scale`, `carry_bits`, and
-`initial_bound`. Scaled certificates additionally require `alpha_scale`,
+The `certify` and `certify_scaled` operations require `accumulator_scale`, `product_scale`, `carry_bits`, and
+`initial_bound`. The latter additionally requires `alpha_scale`,
 `beta_scale`, `sum_scale`, and `output_scale`. These are sufficient scale and
 headroom assumptions, checked against the inputs. Start with the supplied
 certificate cases; the [GEMM reference](#wmma-gemm-simulation) gives the contracts.
@@ -174,6 +181,134 @@ Matrix bounds use the sum of absolute entry errors. Rejected scaled cells are
 `null`; raw cells contain an `error`. A numerical rejection is a valid result and
 does not set a process error. Invalid requests stop at the first bad line, return
 exit code 2, and emit a JSON diagnostic to stderr. Earlier output lines remain valid.
+
+## Automatic GEMM analysis
+
+Infer sufficient bounds for V100, Ampere, or Hopper without supplied scale or
+headroom parameters. The same launcher accepts concrete raw GEMM, complete
+scaled GEMM, and families of finite raw inputs.
+
+```sh
+./tc analyze tensor-core/data/examples/gemm.analysis.jsonl --abs-tol 1e-5
+./tc analyze tensor-core/data/examples/gemm.scaled-analysis.jsonl --abs-tol 0.01
+./tc analyze tensor-core/data/examples/gemm.family.jsonl --abs-tol 0.01
+```
+
+All three editable batches certify every request at these tolerances. The CLI
+accepts nonnegative exact decimal or rational tolerances. Native JSON uses
+`absolute_tolerance: "1/100"`; the launcher supplies it from `--abs-tol`.
+
+| Status | Meaning |
+| --- | --- |
+| `certified` | Successful model execution and the requested absolute error bound are established for every entry |
+| `inconclusive`, `bounds_valid: true` | Proved bounds exceed the requested tolerance |
+| `inconclusive`, `bounds_valid: false` | Sufficient finite-input or magnitude conditions were not established |
+
+An inconclusive result does not establish execution failure or excessive actual
+error. Bounds measure absolute entry error; `matrix_bound` bounds the sum of
+absolute entry errors, not the induced matrix norm.
+
+### Concrete matrices
+
+Raw analysis bounds `AB+C` on encoded FP16 A/B and FP32 C. Scaled analysis bounds
+`alpha*AB+beta*C` decoded from the **original source words**, including conversion
+to FP16 and every separately rounded scalar stage. Source and output conversions
+support FP16, BF16, FP32, FP64, and all four rounding modes. Tensor-core products
+remain FP16. Choose FP32 output for the primary scope.
+
+Results contain per-entry `error_bound`, `magnitude_bound`, and inferred
+`witness` data. Raw bounds separate alignment and output rounding. Scaled bounds
+also separate `input_conversion_bound`, `alpha_rounding_bound`,
+`beta_rounding_bound`, `add_rounding_bound`, and `output_rounding_bound`. Tensor
+and input-conversion losses already include their `abs(alpha)` factor. Zero
+stages have zero error; a final FP32-to-FP32 conversion has zero error in every
+mode. Other exact nonzero scalar operations can still receive a positive budget.
+
+The analyzer decodes and converts inputs, checks product grid divisibility, and
+propagates unsigned magnitude bounds through the actual ordered groups. It does
+not execute GEMM, execute its epilogue, or compute signed ideal dot products.
+Empty raw reductions preserve finite C bits with zero error. Empty scaled
+reductions still execute the epilogue. Whole-input conversion remains required
+even when a scaled output dimension is zero. Finite rejection and zero conventions
+are unchanged.
+
+### Input families
+
+A family fixes the dimensions and independently bounds every encoded entry:
+`abs(Aij) <= a_bound`, `abs(Bij) <= b_bound`, and `abs(Cij) <= c_bound`. A/B range
+over finite FP16 words and C over finite FP32 words, including subnormals and
+both signed-zero encodings. The theorem quantifies over these encoded matrices;
+it does not quantify over arbitrary real inputs. No concrete arrays are needed.
+
+```json
+{"operation":"analyze_family","model":"hopper","m":2,"n":3,"k":17,"a_bound":"1/1","b_bound":"1/1","c_bound":"1/1","absolute_tolerance":"1/100"}
+```
+
+Family results give a uniform `entry_bound`, `matrix_bound`, and inferred static
+witness. Bounds use the existing static theory with operand scales derived from
+the declared ranges, including the subnormal scale floor. The checker validates
+carry and accumulator headroom for every family member. Inference searches the
+supported accumulator scales; its conditions are sufficient, not necessary.
+It never enumerates matrices or floating-point words. Family bounds can be more
+conservative than concrete analysis, which inspects individual products.
+Per-entry constraints, grid constraints, and scaled families remain planned.
+
+### Export and review
+
+```sh
+mkdir -p tmp
+./tc analyze tensor-core/data/examples/gemm.scaled-analysis.jsonl --abs-tol 0.01 --emit tmp/Scaled.lean
+./tc verify tmp/Scaled.lean
+./tc analyze tensor-core/data/examples/gemm.family.jsonl --abs-tol 0.01 --emit tmp/Family.lean
+./tc verify tmp/Family.lean
+```
+
+`--emit` writes a new certificate only when every request is certified; existing
+files are preserved. Export refusal exits with code 1; invalid input uses code 2.
+A batch may mix raw, scaled, and family requests. Certificates contain the input
+words or family bounds, witnesses, tolerance, and public accuracy theorem.
+`verify` checks the canonical format and toolchain/source fingerprint, then
+replays the checker with `decide +kernel`. Native JSON results use compiled Lean;
+individual kernel replay is established only after verification succeeds.
+Regenerate certificates after theory changes. Appended Lean commands are rejected.
+
+| Contract | Main proof entry point |
+| --- | --- |
+| Concrete raw accuracy and independent output | [GemmAnalysis.lean](tensor-core/TensorCore/Programs/GemmAnalysis.lean) |
+| Scalar range, mode-sensitive error, exact FP32 output | [ScalarAnalysis.lean](tensor-core/TensorCore/Programs/ScalarAnalysis.lean) |
+| Raw-to-epilogue propagation | [ScaledGemmAnalysis.lean](tensor-core/TensorCore/Programs/ScaledGemmAnalysis.lean) |
+| Original-source accuracy, matrix bounds, independent output | [ConvertedGemmAnalysis.lean](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean) |
+| Quantified raw families, matrix bounds, independent output | [GemmFamily.lean](tensor-core/TensorCore/Programs/GemmFamily.lean) |
+| Small proof examples | [PipelineAnalysis.lean](tensor-core/examples/PipelineAnalysis.lean) |
+
+`analyzeGemmCell_complete` proves raw inference succeeds for finite inputs when
+`abs(C) + sum(abs(A[l]*B[l])) <= maxFinite32`. This completeness statement does
+not extend to every successfully executing scaled pipeline or family.
+[GroupAnalysis.lean](tensor-core/TensorCore/Programs/GroupAnalysis.lean) proves the
+local comparison with the previous static budget under explicit scale caps;
+[Local.lean](tensor-core/TensorCore/Theory/ProgramBounds/Local.lean) supplies the
+magnitude, divisibility, and rounding arguments.
+
+On the supplied 17-product raw workload, bounds improve on valid legacy
+certificates using the exact product scale, minimum carry bits, and minimum
+accumulator scale permitted by C:
+
+| Model | Legacy bound | Inferred bound | Reduction factor |
+| --- | --- | --- | --- |
+| V100 | `21/1048576` | `33/8388608` | 5.09 |
+| Ampere | `73/4194304` | `3/4194304` | 24.33 |
+| Hopper | `273/16777216` | `5/16777216` | 54.60 |
+
+These are checked examples, not universal improvement factors. The
+[raw report](tensor-core/data/regressions/analysis-report.json) and
+[scaled/family report](tensor-core/data/regressions/pipeline-analysis-report.json)
+record independent rational comparisons, kernel replay, altered-certificate
+rejections, and transitive audits excluding GEMM execution and ideal-product
+computation. Sampled family tests supplement the universally quantified Lean proof.
+
+Unsigned magnitude bounds can be conservative under cancellation. Configuration
+selection and broader paper evaluation remain open. Globally correctly rounded
+GEMM and physical GPU guarantees remain outside this analysis.
 
 ## Bounded EFT interface
 
@@ -214,6 +349,8 @@ publication. Progress goes to stderr; the final report is JSON on stdout.
 | Editable reviewer cases | [reviewer-report.json](tensor-core/data/regressions/reviewer-report.json) |
 | Independent specification | [paper-spec-report.json](tensor-core/data/regressions/paper-spec-report.json) |
 | GEMM stages and error certificates | [gemm-extensions-report.json](tensor-core/data/regressions/gemm-extensions-report.json) |
+| Automatic raw analysis and certificate replay | [analysis-report.json](tensor-core/data/regressions/analysis-report.json) |
+| Scaled and quantified-family analysis | [pipeline-analysis-report.json](tensor-core/data/regressions/pipeline-analysis-report.json) |
 | Bounded EFT | [bounded-eft-report.json](tensor-core/data/regressions/bounded-eft-report.json) |
 | Claim assessment | [claim-review.json](tensor-core/data/regressions/claim-review.json) |
 | Complete axiom listing | [axioms.txt](tensor-core/docs/axioms.txt) |
@@ -234,17 +371,24 @@ README.md is the single maintained plan and status document. Current review scop
 FP32-output arithmetic and FP16 GEMM; FP8 is deferred. The implementation includes
 four-mode finite rounding, signed encoding bijections, selected tensor-core
 contracts, bounded EFT, Eq.20 and extraction grids, complete scaled-GEMM
-equivalence, and tighter original-input error certificates.
+equivalence, tighter original-input error certificates, automatic raw and scaled
+GEMM analysis, and quantified raw input families with kernel-replayable certificates.
 
 | Priority | Status | Next step |
 | --- | --- | --- |
 | Reviewer workflow | Implemented | Use the launcher, editable cases, schema, and claim map |
 | Human claim review | Pending | Inspect definitions and assumptions; record author sign-off |
 | Source reproducibility | Implemented | Use a fixed Git revision and compare the clean validation hashes |
+| Automatic raw GEMM analysis | Implemented | Review inferred local bounds, completeness domain, and exported Lean certificates |
+| Automatic scaled analysis | Implemented | Review source-relative budgets, every scalar stage, and kernel exports |
+| Input-family analysis | Implemented for uniform raw ranges | Review quantified finite FP16/FP32 membership and static headroom |
+| Richer input families | Open | Add per-entry ranges, grid constraints, and scaled/source families |
+| Certified configuration selection | Next | Compare supported candidate models or schedules against a requested tolerance; certify the selected result |
+| Full-paper evaluation | Open | Compare related methods, bound tightness, certification rates, and generation/replay costs |
 | Native BF16/TF32 GEMM | Open | Add matrix interfaces, schedules, operand mappings, and certificate instances |
 | CUTLASS execution | Open | Compile the pinned fixture and compare on V100 |
 | CUTLASS generalization | Optional | Model residue-first partial K, other epilogues, and split-K |
-| Sharper error bounds | Optional | Tighten raw tensor-core budgets, exact scalar stages, and range caps; add induced norms |
+| Further error bounds | Optional | Track cancellation and accumulator grid invariants; tighten scalar stages and add induced norms |
 | General scalar arithmetic | Outside current scope | Encoded subtraction, multiplication, division, square root, and generic FMA APIs |
 | Globally corrected GEMM | Outside current scope | Prove a complete residual ledger, capacity, and one final rounding |
 | Adaptive programs | Outside current scope | Add state, branches, invariants, and decision/composition certificates |
@@ -989,8 +1133,9 @@ its four nearest-even scalar budgets halve. The CLI preserves the old fields and
 adds `tight_entry_bound`, `tight_matrix_bound`, `tight_source_entry_bounds`, and
 `tight_source_matrix_bound`. Source certificates are null when the check rejects;
 input-conversion failure retains the rejection-only response. Bounds remain
-sufficient and conservative; induced norms and tighter raw tensor-core budgets
-are separate extensions.
+sufficient and conservative. The separate [automatic analysis](#automatic-gemm-analysis)
+supplies finer group budgets through the complete source-conversion and scaled
+pipeline. Induced matrix norms remain an extension.
 
 Run the certificate and scaled example, or its independent checker:
 

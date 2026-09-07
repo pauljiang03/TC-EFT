@@ -1,0 +1,3 @@
+{"operation":"scaled","model":"v100","m":1,"n":1,"k":1,"a":[1065357312],"b":[1065357312],"c":[0],"alpha":1065353216,"beta":0,"input_format":"fp32","output_format":"fp32","input_mode":"rne","multiply_mode":"rne","add_mode":"rne","output_mode":"rne"}
+{"operation":"scaled","model":"ampere","m":1,"n":1,"k":1,"a":[1065357312],"b":[1065357312],"c":[0],"alpha":1065353216,"beta":0,"input_format":"fp32","output_format":"fp32","input_mode":"rne","multiply_mode":"rne","add_mode":"rne","output_mode":"rne"}
+{"operation":"scaled","model":"hopper","m":1,"n":1,"k":1,"a":[1065357312],"b":[1065357312],"c":[0],"alpha":1065353216,"beta":0,"input_format":"fp32","output_format":"fp32","input_mode":"rne","multiply_mode":"rne","add_mode":"rne","output_mode":"rne"}

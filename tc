@@ -84,6 +84,12 @@ def parser():
     gemm = commands.add_parser("gemm", help="Execute or certify GEMM requests as JSON Lines",
                                description="Read one GEMM request per line; write one JSON result per request.")
     gemm.add_argument("input", metavar="FILE", help="JSONL input file, or - for standard input")
+    analyze = commands.add_parser("analyze", help="Infer GEMM bounds and check an absolute error tolerance")
+    analyze.add_argument("input", metavar="FILE", help="Raw, scaled, or family GEMM JSONL requests; - reads standard input")
+    analyze.add_argument("--abs-tol", required=True, help="Nonnegative exact decimal or rational tolerance")
+    analyze.add_argument("--emit", metavar="FILE.lean", help="Write a new Lean certificate for certified requests")
+    verify = commands.add_parser("verify", help="Check an exported analysis certificate through Lean's kernel")
+    verify.add_argument("input", metavar="FILE.lean", help="Certificate produced by analyze --emit")
     commands.add_parser("schema", help="Print the GEMM input JSON Schema")
     trace = commands.add_parser("trace", help="Print a V100 four-product block trace")
     trace.add_argument("words", nargs=9, metavar="HEX", help="a0 b0 a1 b1 a2 b2 a3 b3 c, without 0x")
@@ -107,6 +113,12 @@ def main():
     if args.command == "gemm":
         path = "-" if args.input == "-" else input_file(args.input)
         return executable("tc_gemm", [path])
+    if args.command in {"analyze", "verify"}:
+        path = "-" if args.input == "-" and args.command == "analyze" else input_file(args.input)
+        options = ["--verify"] if args.command == "verify" else ["--abs-tol", args.abs_tol]
+        if args.command == "analyze" and args.emit:
+            options += ["--emit", str(Path(args.emit).expanduser().resolve())]
+        return run([sys.executable, "scripts/analyze.py", path, *options])
     if args.command == "trace":
         return executable("tc_trace", args.words)
     if args.command == "eft":

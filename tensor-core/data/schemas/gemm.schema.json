@@ -1,17 +1,14 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Tensor Core Arithmetic GEMM request",
-  "description": "One object per JSONL line. Matrices use flat row-major unsigned encoded words. Lengths must equal m*k, k*n, and m*n; the executable checks these dependent dimensions. Scaled operations convert A and B to FP16 before tensor-core execution. FP64 words require an integer-preserving JSON parser. Extra fields are ignored.",
+  "description": "One object per JSONL line. Matrices use flat row-major unsigned encoded words. Lengths must equal m*k, k*n, and m*n; the executable checks these dependent dimensions. Scaled operations convert A and B to FP16 before tensor-core execution. FP64 words require an integer-preserving JSON parser. Extra fields are ignored. Family analysis uses uniform rational magnitude caps instead of encoded arrays and quantifies over all finite matrices of the declared shapes.",
   "type": "object",
   "required": [
     "operation",
     "model",
     "m",
     "n",
-    "k",
-    "a",
-    "b",
-    "c"
+    "k"
   ],
   "properties": {
     "name": {
@@ -23,7 +20,10 @@
         "raw",
         "certify",
         "scaled",
-        "certify_scaled"
+        "certify_scaled",
+        "analyze",
+        "analyze_scaled",
+        "analyze_family"
       ]
     },
     "model": {
@@ -151,6 +151,26 @@
     "carry_bits": {
       "type": "integer",
       "minimum": 0
+    },
+    "absolute_tolerance": {
+      "type": "string",
+      "pattern": "^[0-9]+/[1-9][0-9]*$",
+      "description": "Nonnegative exact rational tolerance for automatic raw, scaled, or family analysis. The analyzer frontend also accepts exact decimals."
+    },
+    "a_bound": {
+      "type": "string",
+      "pattern": "^[0-9]+/[1-9][0-9]*$",
+      "description": "Uniform absolute magnitude cap for every finite encoded matrix entry in a raw GEMM family. The analyzer frontend also accepts exact decimal strings."
+    },
+    "b_bound": {
+      "type": "string",
+      "pattern": "^[0-9]+/[1-9][0-9]*$",
+      "description": "Uniform absolute magnitude cap for every finite encoded matrix entry in a raw GEMM family. The analyzer frontend also accepts exact decimal strings."
+    },
+    "c_bound": {
+      "type": "string",
+      "pattern": "^[0-9]+/[1-9][0-9]*$",
+      "description": "Uniform absolute magnitude cap for every finite encoded matrix entry in a raw GEMM family. The analyzer frontend also accepts exact decimal strings."
     }
   },
   "allOf": [
@@ -160,7 +180,8 @@
           "operation": {
             "enum": [
               "raw",
-              "certify"
+              "certify",
+              "analyze"
             ]
           }
         }
@@ -192,7 +213,8 @@
           "operation": {
             "enum": [
               "scaled",
-              "certify_scaled"
+              "certify_scaled",
+              "analyze_scaled"
             ]
           }
         }
@@ -256,7 +278,8 @@
           "operation": {
             "enum": [
               "scaled",
-              "certify_scaled"
+              "certify_scaled",
+              "analyze_scaled"
             ]
           },
           "input_format": {
@@ -294,7 +317,8 @@
           "operation": {
             "enum": [
               "scaled",
-              "certify_scaled"
+              "certify_scaled",
+              "analyze_scaled"
             ]
           },
           "input_format": {
@@ -332,7 +356,8 @@
           "operation": {
             "enum": [
               "scaled",
-              "certify_scaled"
+              "certify_scaled",
+              "analyze_scaled"
             ]
           },
           "input_format": {
@@ -370,7 +395,8 @@
           "operation": {
             "enum": [
               "scaled",
-              "certify_scaled"
+              "certify_scaled",
+              "analyze_scaled"
             ]
           },
           "input_format": {
@@ -397,6 +423,47 @@
             }
           }
         }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "analyze",
+              "analyze_scaled",
+              "analyze_family"
+            ]
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "absolute_tolerance"
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "const": "analyze_family"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "a_bound",
+          "b_bound",
+          "c_bound"
+        ]
+      },
+      "else": {
+        "required": [
+          "a",
+          "b",
+          "c"
+        ]
       }
     }
   ],
