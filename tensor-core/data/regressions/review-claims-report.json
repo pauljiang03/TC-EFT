@@ -1,0 +1,279 @@
+{
+  "status": "passed",
+  "claims": {
+    "C01": {
+      "declarations": [
+        [
+          "TensorCore.roundBinary_correct",
+          "tensor-core/TensorCore/Theory/Binary/RoundingContract.lean"
+        ],
+        [
+          "TensorCore.roundBinary_isSome_iff",
+          "tensor-core/TensorCore/Theory/Binary/RoundingContract.lean"
+        ]
+      ]
+    },
+    "C02": {
+      "declarations": [
+        [
+          "TensorCore.signedFiniteBinaryBijection",
+          "tensor-core/TensorCore/Theory/Binary/SignedBijection.lean"
+        ],
+        [
+          "TensorCore.roundBinary_zero",
+          "tensor-core/TensorCore/Theory/Binary/RoundingContract.lean"
+        ]
+      ]
+    },
+    "C03": {
+      "declarations": [
+        [
+          "TensorCore.binary64Fma_correct",
+          "tensor-core/TensorCore/Theory/Binary/RoundingContract.lean"
+        ],
+        [
+          "TensorCore.binary64Fma_success",
+          "tensor-core/TensorCore/Theory/Binary/RoundingContract.lean"
+        ]
+      ]
+    },
+    "C04": {
+      "declarations": [
+        [
+          "TensorCore.profile_contract",
+          "tensor-core/TensorCore/Theory/CanonicalFormats.lean"
+        ],
+        [
+          "TensorCore.PaperSpec.supported_eq_paper",
+          "tensor-core/TensorCore/PaperSpec/Supported.lean"
+        ]
+      ]
+    },
+    "C05": {
+      "declarations": [
+        [
+          "TensorCore.evalBlock_error_bound",
+          "tensor-core/TensorCore/Theory/ErrorBounds.lean"
+        ],
+        [
+          "TensorCore.runBlocks_residual_ledger",
+          "tensor-core/TensorCore/Programs/Composition.lean"
+        ],
+        [
+          "TensorCore.nonmonotone_range_encoded",
+          "tensor-core/TensorCore/Theory/MonotonicityRange.lean"
+        ]
+      ]
+    },
+    "C06": {
+      "declarations": [
+        [
+          "TensorCore.EFMachine.algorithm1_success",
+          "tensor-core/TensorCore/Theory/EFMachine/Correctness.lean"
+        ],
+        [
+          "TensorCore.EFMachine.algorithm1_range_iff",
+          "tensor-core/TensorCore/Theory/EFMachine/Correctness.lean"
+        ],
+        [
+          "TensorCore.EFMachine.algorithm1_agrees",
+          "tensor-core/TensorCore/Theory/EFMachine/Refinement.lean"
+        ]
+      ]
+    },
+    "C07": {
+      "declarations": [
+        [
+          "TensorCore.ExtractionGrid.eq20_exact_sum",
+          "tensor-core/TensorCore/Programs/ExtractionGrid.lean"
+        ],
+        [
+          "TensorCore.ExtractionGrid.eq20_scalarPredicate",
+          "tensor-core/TensorCore/Programs/ExtractionGrid.lean"
+        ],
+        [
+          "TensorCore.ExtractionGrid.recovery",
+          "tensor-core/TensorCore/Programs/ExtractionGrid.lean"
+        ]
+      ]
+    },
+    "C08": {
+      "declarations": [
+        [
+          "TensorCore.evalInvocation_recovery",
+          "tensor-core/TensorCore/Theory/Invocation.lean"
+        ],
+        [
+          "TensorCore.Program.repeat_accurate_of_scales",
+          "tensor-core/TensorCore/Theory/ProgramBounds/Loops.lean"
+        ]
+      ]
+    },
+    "C09": {
+      "declarations": [
+        [
+          "TensorCore.PaperSpec.gemm_eq_paper",
+          "tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean"
+        ],
+        [
+          "TensorCore.PaperSpec.gemm_rejected_iff_paper",
+          "tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean"
+        ]
+      ]
+    },
+    "C10": {
+      "declarations": [
+        [
+          "TensorCore.PaperSpec.nativeGemm_eq_paper",
+          "tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean"
+        ],
+        [
+          "TensorCore.nativeAnalysisCheck_sound",
+          "tensor-core/TensorCore/Programs/NativeGemm.lean"
+        ]
+      ]
+    },
+    "C11": {
+      "declarations": [
+        [
+          "TensorCore.PaperSpec.convertedGemm_eq_independent",
+          "tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean"
+        ],
+        [
+          "TensorCore.PaperSpec.scaledGemm_eq_independent",
+          "tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean"
+        ]
+      ]
+    },
+    "C12": {
+      "declarations": [
+        [
+          "TensorCore.gemmAnalysisCheck_sound",
+          "tensor-core/TensorCore/Programs/GemmAnalysis.lean"
+        ],
+        [
+          "TensorCore.convertedAnalysisCheck_paper",
+          "tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean"
+        ],
+        [
+          "TensorCore.analyzeConvertedGemm_matrix_error",
+          "tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean"
+        ]
+      ]
+    },
+    "C13": {
+      "declarations": [
+        [
+          "TensorCore.scaledGemmTightError_le",
+          "tensor-core/TensorCore/Programs/GemmTightBounds.lean"
+        ],
+        [
+          "TensorCore.gemmInputPairTightError_le",
+          "tensor-core/TensorCore/Programs/GemmTightInputBounds.lean"
+        ],
+        [
+          "TensorCore.checkFiniteMultiply_sound",
+          "tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean"
+        ],
+        [
+          "TensorCore.checkFiniteAdd_sound",
+          "tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean"
+        ]
+      ]
+    },
+    "C14": {
+      "declarations": [
+        [
+          "TensorCore.familyCheck_sound",
+          "tensor-core/TensorCore/Programs/GemmFamily.lean"
+        ],
+        [
+          "TensorCore.entryFamilyCheck_sound",
+          "tensor-core/TensorCore/Programs/EntryFamily.lean"
+        ],
+        [
+          "TensorCore.entryFamilyCheck_matrix_error",
+          "tensor-core/TensorCore/Programs/EntryFamily.lean"
+        ]
+      ]
+    },
+    "C15": {
+      "declarations": [
+        [
+          "TensorCore.selectGemm_sound",
+          "tensor-core/TensorCore/Programs/GemmSelection.lean"
+        ],
+        [
+          "TensorCore.selectGemm_none",
+          "tensor-core/TensorCore/Programs/GemmSelection.lean"
+        ],
+        [
+          "TensorCore.selectGemmCost_sound",
+          "tensor-core/TensorCore/Programs/CostSelection.lean"
+        ]
+      ]
+    },
+    "C16": {
+      "declarations": [
+        [
+          "TensorCore.CutlassWmma.project_eq_gemm",
+          "tensor-core/TensorCore/Kernels/CutlassWmma.lean"
+        ],
+        [
+          "TensorCore.CutlassWmma.project_check_sound",
+          "tensor-core/TensorCore/Kernels/CutlassWmma.lean"
+        ]
+      ]
+    }
+  },
+  "declaration_count": 40,
+  "kernel_checked_witnesses": [
+    "TensorCore.Regression.ReviewClaims.tiny_ideal",
+    "TensorCore.Regression.ReviewClaims.tiny_outputs",
+    "TensorCore.Regression.ReviewClaims.positive_error_separates_models",
+    "TensorCore.Regression.ReviewClaims.cheaper_model_is_inaccurate",
+    "TensorCore.Regression.ReviewClaims.chosen_accuracy_and_minimum",
+    "TensorCore.Regression.ReviewClaims.native_positive_error",
+    "TensorCore.Regression.ReviewClaims.native_error_value",
+    "TensorCore.Regression.ReviewClaims.native_accuracy",
+    "TensorCore.Regression.ReviewClaims.family_member",
+    "TensorCore.Regression.ReviewClaims.second_family_member",
+    "TensorCore.Regression.ReviewClaims.family_members_distinct",
+    "TensorCore.Regression.ReviewClaims.family_members_accurate"
+  ],
+  "local_readme_links_checked": 102,
+  "human_sign_off": false,
+  "novelty_assessed": false,
+  "external_paper_review_repeated": false,
+  "source_sha256": {
+    "README.md": "2b58a3eb1b1a838710bf541520fd60c10b423ad623f6999cba3b62e5f717df17",
+    "tensor-core/TensorCore/Kernels/CutlassWmma.lean": "36dff40c9f9bc114355694653ecf9b98345f37a32b7f34125fac5320d352cec5",
+    "tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean": "1e6c41601b5cb8fca65309a17190d79d0b7d07bc14942a6ba0c4bf31dbf2b87a",
+    "tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean": "c27b86373cc9302496a7eca303a749cc5c8073309daa789809ae319237234ff1",
+    "tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean": "9cfd4549001dd07bee883de259ccbe5dd8b8fb9522b925bb1145b73f6349f244",
+    "tensor-core/TensorCore/PaperSpec/Supported.lean": "2a09e252d187cfc1741b6afabed2f8039fd66b6648181853fd4a935e20dbf7dc",
+    "tensor-core/TensorCore/Programs/Composition.lean": "12543aadbc47e89ac1861cfa620c01ec2061a297aacf18fc04c6a7ca68143576",
+    "tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean": "5dc0bb9c8fcaaa2acc0a81cc62b50fd7221a7d944ba0f9b2fd7816af06150671",
+    "tensor-core/TensorCore/Programs/CostSelection.lean": "3d89e26db5393466d621d6e453132480e9a746d8d868487fea17aa0ad558c5be",
+    "tensor-core/TensorCore/Programs/EntryFamily.lean": "3254e2cb8ba45989238aea6a4e2903d25b3c8b50f7532dbff4bd9b9decc9023d",
+    "tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean": "711b5e04654ae9a4d6344b864296455cc3e30c3ad8c0bd7ae5ee080855e9ea0b",
+    "tensor-core/TensorCore/Programs/ExtractionGrid.lean": "26217649cbf13d719be8bcff9c020e8027427cff5077cb2c2a1e9c2585d8c344",
+    "tensor-core/TensorCore/Programs/GemmAnalysis.lean": "402e298340b681db2ff26c8cf70ef5cdfd99e8d51274089ce90f964f0cdf3f9b",
+    "tensor-core/TensorCore/Programs/GemmFamily.lean": "f76e608e7e53babb50e62b20d17d999310d2bcff0eff99eb87d1980568e5d622",
+    "tensor-core/TensorCore/Programs/GemmSelection.lean": "69eb637985b6ece35032643332dccf48cb86bd136061ff1a688d6b80d0c6d29f",
+    "tensor-core/TensorCore/Programs/GemmTightBounds.lean": "f36c80339b4db362e05d2bb0d407a568a18afcf6f1fac1542c65cd29c0363546",
+    "tensor-core/TensorCore/Programs/GemmTightInputBounds.lean": "0c4bc220e027aac595ac2e82f73b3569e0154ab3fabda32df72b156cb2e9cb54",
+    "tensor-core/TensorCore/Programs/NativeGemm.lean": "eafe2c03fb8462346c61a359c03775cd5a337b80d864790bbd594db510f57dc2",
+    "tensor-core/TensorCore/Regression/ReviewClaims.lean": "87bd4181593decfe6e556cd761e39a8d7190b20b39bb4d70f93b9193c6c53bea",
+    "tensor-core/TensorCore/Theory/Binary/RoundingContract.lean": "d5b2a85cbc4b8f540ab2f717aece9ab2d14aacefb005abb6ac3fc729a3fa8964",
+    "tensor-core/TensorCore/Theory/Binary/SignedBijection.lean": "4a8011c04bcaae9a6f93afae9b5edc03e83a7cbd6cab076f987d6a1ecf447983",
+    "tensor-core/TensorCore/Theory/CanonicalFormats.lean": "005817987be1dabe91d7661abdb1523dc66040f983a9b598c1a508241416b902",
+    "tensor-core/TensorCore/Theory/EFMachine/Correctness.lean": "c5c2d28b5c15ddef7105fbd6e3f23826294f87fb42c0688391f21b557e644db7",
+    "tensor-core/TensorCore/Theory/EFMachine/Refinement.lean": "aafa822bb4af68537cc90a78cc4278f6f9bb0d6392864993d93e1aad140d9745",
+    "tensor-core/TensorCore/Theory/ErrorBounds.lean": "18f83e90c4ef52bde8e661c996669bd0dbf599e143de56edcc1b7c21016614fc",
+    "tensor-core/TensorCore/Theory/Invocation.lean": "e9a85764b1abda3e9b62a69d2b86af529e6907acfd7ba7e82bb453873db254d6",
+    "tensor-core/TensorCore/Theory/MonotonicityRange.lean": "eebcaaa026d526348240d46b18dd8bf8736614cb4d03e561192b94f3551b010b",
+    "tensor-core/TensorCore/Theory/ProgramBounds/Loops.lean": "768939084f32b173c1f54164315bb820e1fb76430118a32315873819aa3e3dbb",
+    "tensor-core/scripts/check_review_claims.py": "64b1e5aa9c74d40cc8e795bd86dabec4483bc806323618e911adf27333dcee42"
+  }
+}

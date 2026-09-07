@@ -54,8 +54,8 @@
   "cases_sha256": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
   "output_sha256": "d8168f655c2d1fb8fd1a6ea79f3caa8981ed1ce8c901c19fed6c132a80f104b3",
   "timing": {
-    "lean_seconds": 15.043,
-    "total_seconds": 19.298
+    "lean_seconds": 15.507,
+    "total_seconds": 22.626
   },
   "historical_v100_experiments": {
     "reported": 100,

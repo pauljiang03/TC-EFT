@@ -4,7 +4,7 @@ Executable tensor-core models, bounded error-free transformations, and certified
 GEMM in Lean 4. Exact arithmetic, kernel-checked proofs, and independent numerical
 oracles share one reproducible command-line workflow.
 
-[Quick start](#quick-start) · [Scope](#scope) · [Review](#reviewer-walkthrough) ·
+[Quick start](#quick-start) · [Scope](#scope) · [Review](#reviewer-walkthrough) · [Claims](#main-claims-to-review) ·
 [JSON interface](#gemm-json-interface) · [Selection](#certified-configuration-selection) · [Validation](#validation-and-trust) ·
 [Plan](#assessment-and-todo) · [Reference](#technical-reference)
 
@@ -88,8 +88,21 @@ GEMM are outside these contracts.
    and [scalar](tensor-core/TensorCore/PaperSpec/Scalar.lean) definitions, then the
    [raw](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean) and
    [complete scaled](tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean)
-   equivalence statements. Check assumptions against the [claim map](#paper-claim-review).
-4. Run `./tc audit` and `./tc check`. Review the generated reports below.
+   equivalence statements. Use the [main claims](#main-claims-to-review) as your review checklist;
+   the detailed [paper map](#paper-claim-review) records source correspondence.
+4. Exercise native inputs, quantified families, and a replayable cost decision:
+
+   ```sh
+   ./tc gemm tensor-core/data/examples/gemm.native.jsonl
+   ./tc analyze tensor-core/data/examples/gemm.entry-family.jsonl --abs-tol 0.001
+   ./tc select tensor-core/data/examples/gemm.cost-selection.jsonl --abs-tol 0.001 --emit tmp/cost.lean
+   ./tc verify tmp/cost.lean
+   ```
+
+   Expect five native results equal to one, a certified family, and selected index
+   `2` (Hopper TF32 MMA, supplied cost `1`). Inspect the certificate's fixed inputs,
+   candidates, costs, tolerance, and `decision0`, `selection0`, and `accuracy0` theorems.
+5. Run `./tc audit` and `./tc check`. Review the generated reports below.
 
 | Case | What to inspect |
 | --- | --- |
@@ -114,6 +127,77 @@ returns `bits: 1073741824` through the scalar branch. Proof examples for
 [GEMM specification](tensor-core/examples/GemmSpecification.lean), and
 [Eq.20 and extraction](tensor-core/examples/FoundationCompletion.lean) are checked
 by the full suite. Independent human review remains pending.
+
+## Main claims to review
+
+This is the current artifact claim checklist. Each row names the public statements
+and the scope you should verify by reading their definitions and hypotheses.
+The [paper map](#paper-claim-review) separately records correspondence to manuscript
+sections. A successful build checks proofs of these statements; author review must
+still establish that the statements express the intended claims.
+
+| Claim | Proved scope and assumptions | Public declarations |
+| --- | --- | --- |
+| C01. Finite rounding | Every well-formed IEEE-style binary format, all four modes, rational inputs within maximum finite magnitude. Out-of-range inputs are rejected even when a directed finite result could exist. | [`TensorCore.roundBinary_correct`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean), [`TensorCore.roundBinary_isSome_iff`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean) |
+| C02. Encoding and signed zero | Bijection between finite encoded words and a representable rational value paired with a sign bit. Nonzero signs agree with the value; zero has two representations. Arithmetic exact zero remains +0. | [`TensorCore.signedFiniteBinaryBijection`](tensor-core/TensorCore/Theory/Binary/SignedBijection.lean), [`TensorCore.roundBinary_zero`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean) |
+| C03. FP64 fused arithmetic | One exact product plus accumulator, one final rounding in each direction; finite decoded inputs and an in-range exact fused result give success. No intermediate product range restriction. | [`TensorCore.binary64Fma_correct`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean), [`TensorCore.binary64Fma_success`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean) |
+| C04. Tensor-core arithmetic | The selected FP16/BF16/TF32 profiles model raw subnormal scales, alignment, floors, signed truncation, and final conversion. Fixed-width refinement has explicit width/carry assumptions. | [`TensorCore.profile_contract`](tensor-core/TensorCore/Theory/CanonicalFormats.lean), [`TensorCore.PaperSpec.supported_eq_paper`](tensor-core/TensorCore/PaperSpec/Supported.lean) |
+| C05. Error, recovery, and order | Local error includes final conversion; exact residual recovery composes across encoded accumulators. Nonmonotonicity is proved for the specified realizable input family. Accepted traces and the stated range/profile premises remain explicit. | [`TensorCore.evalBlock_error_bound`](tensor-core/TensorCore/Theory/ErrorBounds.lean), [`TensorCore.runBlocks_residual_ledger`](tensor-core/TensorCore/Programs/Composition.lean), [`TensorCore.nonmonotone_range_encoded`](tensor-core/TensorCore/Theory/MonotonicityRange.lean) |
+| C06. Bounded EFT | All eight paths, shape-correct finite inputs and any finite supplied output D. A fixed 576-bit workspace computes the correctly rounded FP32 ideal when that ideal is in range; refinement preserves result bits. | [`TensorCore.EFMachine.algorithm1_success`](tensor-core/TensorCore/Theory/EFMachine/Correctness.lean), [`TensorCore.EFMachine.algorithm1_range_iff`](tensor-core/TensorCore/Theory/EFMachine/Correctness.lean), [`TensorCore.EFMachine.algorithm1_agrees`](tensor-core/TensorCore/Theory/EFMachine/Refinement.lean) |
+| C07. Eq.20 and extraction | Every permitted coarse extraction grid; Eq.20 supplies the coefficient budget for exact scalar summation. Minimum grid, finite magnitude, and guarded component representability remain hypotheses. | [`TensorCore.ExtractionGrid.eq20_exact_sum`](tensor-core/TensorCore/Programs/ExtractionGrid.lean), [`TensorCore.ExtractionGrid.eq20_scalarPredicate`](tensor-core/TensorCore/Programs/ExtractionGrid.lean), [`TensorCore.ExtractionGrid.recovery`](tensor-core/TensorCore/Programs/ExtractionGrid.lean) |
+| C08. Program composition | Typed invocations expose exact loss/recovery; ordered programs and bounded repetitions have sufficient scale and headroom contracts. Adaptive branching is outside this API. | [`TensorCore.evalInvocation_recovery`](tensor-core/TensorCore/Theory/Invocation.lean), [`TensorCore.Program.repeat_accurate_of_scales`](tensor-core/TensorCore/Theory/ProgramBounds/Loops.lean) |
+| C09. Raw FP16 GEMM | Arbitrary dimensions, three logical WMMA schedules, padding/cropping, every encoded group boundary, and rejection agree with the separately defined matrix specification. | [`TensorCore.PaperSpec.gemm_eq_paper`](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean), [`TensorCore.PaperSpec.gemm_rejected_iff_paper`](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean) |
+| C10. Native BF16/TF32 GEMM | Raw `AB+C`, five schedules, finite FP32 C/output, BF16 or packed TF32 operands. Universal independent equivalence and input-derived accuracy; native scaled/source integration remains open. | [`TensorCore.PaperSpec.nativeGemm_eq_paper`](tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean), [`TensorCore.nativeAnalysisCheck_sound`](tensor-core/TensorCore/Programs/NativeGemm.lean) |
+| C11. Complete scaled FP16 GEMM | Source conversion to FP16, tensor-core product, separately rounded FP32 alpha/beta products and addition, then output conversion. Independent equivalence includes every stage and rejection without assuming execution success. | [`TensorCore.PaperSpec.convertedGemm_eq_independent`](tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean), [`TensorCore.PaperSpec.scaledGemm_eq_independent`](tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean) |
+| C12. Input-derived error certificates | Acceptance proves successful execution and error relative to original decoded inputs, including conversion perturbations and scalar stages. Per-entry bounds sum to a matrix absolute-entry-sum bound. Inference is conservative. | [`TensorCore.gemmAnalysisCheck_sound`](tensor-core/TensorCore/Programs/GemmAnalysis.lean), [`TensorCore.convertedAnalysisCheck_paper`](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean), [`TensorCore.analyzeConvertedGemm_matrix_error`](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean) |
+| C13. Tighter bounds | Tighter scalar/input budgets are proved no larger than the earlier budgets. Finite multiplication by ±1 and addition with a zero-magnitude operand receive zero rounding error in every mode. | [`TensorCore.scaledGemmTightError_le`](tensor-core/TensorCore/Programs/GemmTightBounds.lean), [`TensorCore.gemmInputPairTightError_le`](tensor-core/TensorCore/Programs/GemmTightInputBounds.lean), [`TensorCore.checkFiniteMultiply_sound`](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean), [`TensorCore.checkFiniteAdd_sound`](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean) |
+| C14. Quantified families | One accepted witness covers every finite FP16 A/B and FP32 C matrix satisfying uniform or per-entry magnitude caps. Per-entry analysis uses row/column maxima; zero caps permit both zero encodings. | [`TensorCore.familyCheck_sound`](tensor-core/TensorCore/Programs/GemmFamily.lean), [`TensorCore.entryFamilyCheck_sound`](tensor-core/TensorCore/Programs/EntryFamily.lean), [`TensorCore.entryFamilyCheck_matrix_error`](tensor-core/TensorCore/Programs/EntryFamily.lean) |
+| C15. Certified decisions | Selection proves accuracy and either earliest certified preference or minimum supplied rational cost among certified candidates. Refusal means no candidate was certified. Native precision is fixed per workload. | [`TensorCore.selectGemm_sound`](tensor-core/TensorCore/Programs/GemmSelection.lean), [`TensorCore.selectGemm_none`](tensor-core/TensorCore/Programs/GemmSelection.lean), [`TensorCore.selectGemmCost_sound`](tensor-core/TensorCore/Programs/CostSelection.lean) |
+| C16. Pinned CUTLASS connection | The reviewed arithmetic projection agrees with FP16 GEMM and inherits its accuracy checker. The selected K is divisible by 16; C++ execution, memory, compilation, and GPU correspondence are separate obligations. | [`TensorCore.CutlassWmma.project_eq_gemm`](tensor-core/TensorCore/Kernels/CutlassWmma.lean), [`TensorCore.CutlassWmma.project_check_sound`](tensor-core/TensorCore/Kernels/CutlassWmma.lean) |
+
+### Substance and nonvacuity
+
+The main results quantify over formats, input words, matrix dimensions, or family
+members. Accuracy predicates require defined ideals and successful execution;
+they do not simply assume the error bound. Independent-specification definitions
+have a dependency audit separating them from implementation arithmetic.
+
+The kernel-checked [review witnesses](tensor-core/TensorCore/Regression/ReviewClaims.lean)
+give concrete checks on these obligations. For `C=1` and seventeen products
+`2^-12 * 2^-12`, V100 loses `17/2^24`, while Ampere and Hopper lose `1/2^24`.
+At tolerance `10^-6`, the cheapest V100 candidate is proved inaccurate; the
+selected Hopper candidate has positive error within tolerance and minimum cost
+among certified candidates. Nine analogous native products give positive error
+on all five BF16/TF32 schedules. Two distinct nonzero members of the per-entry
+family are proved to belong and inherit its accuracy theorem. Empty dimensions
+still have the usual vacuous per-entry guarantees; these witnesses use nonempty
+matrices. CLI family caps are nonnegative; arbitrary negative Lean caps can
+describe an empty family.
+
+Existing [semantic controls](tensor-core/TensorCore/PaperSpec/NegativeControls.lean)
+distinguish premature normalization, IEEE-style alignment, missing floors,
+reversed groups, and zero sign. The
+[source-loss regression](tensor-core/TensorCore/Regression/GemmInputConversion.lean)
+shows why a bound on converted inputs alone does not establish a source-relative
+claim. These are useful separating examples, not exhaustive proofs of specification
+adequacy. The generic minimum-cost lemma and exact scalar cases are standard
+mathematics; substantive artifact claims concern their proved connection to the
+tensor-core model and quantified GEMM guarantees. Novelty requires a separate
+related-work assessment and application evaluation.
+
+### Review sign-off
+
+Author sign-off remains pending. Check C01–C16 against the linked definitions,
+especially finite rejection, zero conventions, group order, original-input ideals,
+success obligations, and family membership. Inspect exported certificates with
+`./tc verify`; a CLI JSON result alone has not undergone individual kernel replay.
+The kernel checks mathematical Lean declarations. The Python driver, parser,
+compiled executable, and hardware are separate validation boundaries.
+
+The clean suite checks the declaration links in this checklist and publishes a
+[current review-check report](tensor-core/data/regressions/review-claims-report.json).
+This records reproducible checks, not human sign-off or paper novelty. Review the
+[remaining work](#assessment-and-todo) before making a broader artifact claim.
 
 ## GEMM JSON interface
 
@@ -260,6 +344,17 @@ The independent matrix specification agrees on every encoded group output and
 rejection for all dimensions and input words. The trace-cover theorem preserves
 all groups when they are regrouped into instructions. These are logical schedules;
 GPU lane mappings, compilation, and performance are separate obligations.
+
+**What native scaled GEMM would add.** With BF16 or TF32 multiplication, the
+scaled pipeline would compute `P = TC(A,B,+0)`, then separate FP32 operations
+`U = round(alpha*P)`, `V = round(beta*C)`, and `D = round(U+V)`. Here alpha, beta,
+C, and D are FP32. Each `round` uses the selected scalar rounding mode; the
+tensor-core product retains its model's own arithmetic. C enters after the
+tensor-core reduction, so even `alpha=beta=1` can differ from raw `TC(A,B,C)`.
+This native scaled pipeline is **not implemented yet**. The existing complete
+scaled pipeline multiplies FP16 inputs, including when source BF16/FP32/FP64
+values are first converted to FP16. Original-source conversion bounds for native
+BF16/TF32 would be a further part of that extension.
 
 ### Input families
 
@@ -508,7 +603,8 @@ publication. Progress goes to stderr; the final report is JSON on stdout.
 | Configuration decisions and initial evaluation | [selection-report.json](tensor-core/data/regressions/selection-report.json) |
 | Native paths, richer families, and supplied costs | [decision-extensions-report.json](tensor-core/data/regressions/decision-extensions-report.json) |
 | Bounded EFT | [bounded-eft-report.json](tensor-core/data/regressions/bounded-eft-report.json) |
-| Claim assessment | [claim-review.json](tensor-core/data/regressions/claim-review.json) |
+| Current claim links and nonvacuity witnesses | [review-claims-report.json](tensor-core/data/regressions/review-claims-report.json) |
+| Historical paper-source assessment | [claim-review.json](tensor-core/data/regressions/claim-review.json) |
 | Complete axiom listing | [axioms.txt](tensor-core/docs/axioms.txt) |
 | Pinned CUTLASS source checks | [cutlass-report.json](tensor-core/data/regressions/cutlass-report.json) |
 
@@ -534,7 +630,7 @@ kernel-replayable accuracy, preference, and supplied-cost certificates.
 
 | Priority | Status | Next step |
 | --- | --- | --- |
-| Reviewer workflow | Implemented | Use the launcher, editable cases, schema, and claim map |
+| Reviewer workflow | Implemented | Follow the walkthrough, C01–C16 claim checklist, nonvacuity witnesses, schemas, and replay commands |
 | Human claim review | Pending | Inspect definitions and assumptions; record author sign-off |
 | Source reproducibility | Implemented | Use a fixed Git revision and compare the clean validation hashes |
 | Automatic raw GEMM analysis | Implemented | Review inferred local bounds, completeness domain, and exported Lean certificates |
@@ -555,7 +651,8 @@ kernel-replayable accuracy, preference, and supplied-cost certificates.
 | Adaptive programs | Outside current scope | Add state, branches, invariants, and decision/composition certificates |
 | FP16 tensor-core outputs and FP8 | Deferred | Resolve specification ambiguities and complete remaining paths |
 
-The [claim map](#paper-claim-review) records exact proved scope. The
+The [main claims](#main-claims-to-review) record current artifact scope; the
+[paper map](#paper-claim-review) records manuscript correspondence. The
 [coverage review](#remaining-paper-coverage) retains unresolved paper/source
 questions. Neither full paper coverage nor universal physical GPU conformance is claimed.
 
@@ -1402,25 +1499,31 @@ still be finite testing, not a universal GPU theorem.
 <details>
 <summary>Expand reference</summary>
 
-Agent-assisted review begun 6 September and updated 7 September 2026 against the two pinned PDFs in
+The historical agent-assisted source review was begun 6 September and updated
+7 September 2026 against the two pinned PDFs in
 [Source pins and layout](#source-pins-and-layout), externally obtained manuscripts and figures,
 the vendored MATLAB definitions, and the Lean statements below. This reviews
 mathematical scope and transcription; it is not author sign-off, a novelty review,
 or independent physical validation. No arithmetic behavior was changed to resolve
 a paper ambiguity. The claim map is maintained here; the
 [review record](tensor-core/data/regressions/claim-review.json) pins the reviewed
-sources and records declaration checks.
+sources and records declaration checks at that time. Its hashes describe that
+snapshot, not subsequent native-GEMM and decision-tool additions. The current
+[artifact checklist](#main-claims-to-review) and clean-suite report cover those
+additions. This final artifact check does not repeat the external manuscript review.
 
 **Supported artifact claim:** finite-domain formalization of the selected
 FP16/BF16/TF32-to-FP32 tensor-core paths; their stated error, flowback, recovery,
 and guarded correction contracts; bounded EFT refinement; and arbitrary-size
 matrices under the explicit FP16 WMMA/scalar schedule, with original-source error
-certificates. Independent-specification equivalence covers the eight block paths,
-ordered group lists, three raw FP16 WMMA matrix profiles, and the complete
-independently specified scalar/input-conversion pipeline. Eq.20 and arbitrary
-permitted extraction grids are exposed. One pinned CUTLASS arithmetic projection
-is connected with the explicit trust boundary above. Neither paper is claimed
-fully formalized.
+certificates. Raw native BF16/TF32 GEMM has five logical schedules with input-derived
+bounds. Independent-specification equivalence covers the eight block paths,
+ordered group lists, three raw FP16 WMMA matrix profiles, five native matrix
+schedules, and the complete FP16 scalar/input-conversion pipeline. Automatic
+analysis, uniform and per-entry families, and preference/minimum-supplied-cost
+selection expose kernel-replayable accuracy certificates. Eq.20 and all permitted
+extraction grids are exposed. One pinned CUTLASS arithmetic projection is connected
+with the explicit trust boundary above. Neither paper is claimed fully formalized.
 
 | TC-EFT location | Lean correspondence and review conclusion |
 | --- | --- |
@@ -1495,6 +1598,11 @@ contracts; they do not resolve the FP16/FP8 paper ambiguities.
 | `scripts/check_application.py` | Bounded-dot family, boundary cases, independent ideal, accuracy, and certificate cost |
 | `scripts/check_gemm.py` | WMMA matrix indexing, tile padding, every encoded boundary, independent matrix ideal, per-entry error bounds, and parser rejection checks |
 | `scripts/check_gemm_extensions.py` | Raw, scaled, and original-source matrix certificates and dependency audit; all four rounding directions, every encoded stage, both original and tighter scalar/input-conversion budgets, alpha amplification, source matrix bounds, and rejection/mutation controls |
+| `scripts/check_analysis.py` | Automatic raw input-only inference, sufficient completeness domain, independent error oracle, certificate export/replay, and tampering controls |
+| `scripts/check_pipeline_analysis.py` | Source-relative scaled analysis and quantified uniform families, input-only dependency audits, independent oracles, and kernel replay |
+| `scripts/check_selection.py` | Fixed-workload preference decisions, tolerance sweeps, rejection cases, conservative refusals, and certificate replay/mutations |
+| `scripts/check_decision_extensions.py` | Five native schedules, tightened exact scalar stages, per-entry families, minimum supplied cost, oracle comparison, boundary and tampering controls |
+| `scripts/check_review_claims.py` | Current C01–C16 declaration/source links, README file links, and explicit kernel-checked nonvacuity witnesses; no automatic semantic or novelty sign-off |
 | `scripts/check_eft.py` | Seeded scalar acceptance/rejection coverage, accepted-correction comparisons, bounded primitives, and synthetic hardware replay |
 | `scripts/check_paper_eft.py` | Pinned TC-EFT §V-B generators, original named cases and seeds, encoded Algorithm 1, synthetic perturbations, rounding boundaries, excluded draws, and executable dependency checks |
 | `scripts/check_bounded_eft.py` | Complete fixed-width EFT, all eight paths, saved paper blocks and arbitrary finite supplied outputs, independent integer rounding oracle, compiled dependency audit, proof audit, and rejection controls |

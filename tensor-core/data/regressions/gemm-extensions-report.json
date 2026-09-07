@@ -163,6 +163,7 @@
     "TensorCore/Regression/PipelineAnalysis.lean": "b6773ed79e7dc1eb224ff7f656432def427688e1f0dbb820b2424b9c411c3484",
     "TensorCore/Regression/Programs.lean": "e414497fb849a0f00f9170371259e248e7dbc85cf7d7fe921932baeabe1157cf",
     "TensorCore/Regression/PublicDomains.lean": "535c005d31a5c3e2ec46e7a11c119c5ce108fa7baf1dc942927176fee8bf8942",
+    "TensorCore/Regression/ReviewClaims.lean": "87bd4181593decfe6e556cd761e39a8d7190b20b39bb4d70f93b9193c6c53bea",
     "TensorCore/Regression/ScalarEFT.lean": "4262cebae2f03f425fcb31e342a36c8c587a46cfcf834ae6e840706471824ae6",
     "TensorCore/Regression/StaticBudget.lean": "9cfc5c57127dc881493dfa059b416e48ee976847a507fad90f889833c36b2a7d",
     "TensorCore/Semantics/Accumulator.lean": "b9b01ca497ed882f708e84de18430a8ce63acd52a3b3649bedfe408ed189e7d1",
@@ -231,13 +232,13 @@
     "TensorCore/Theory/ScalarSum.lean": "c522e990242ef70168d45b7d85bc42fa13664a510c6011d91117da469cc441dc",
     "TensorCore/Theory/StageResiduals.lean": "77555637e237771e874d1bbd278aa28b749d153ebf1baf95d609db1396223fb7",
     "TensorCore/Theory/StaticBudget.lean": "442b0981461f5c9b846308dd6d1b380ca60959d9e7371d59224dd11721c52bd3",
-    "TensorCore.lean": "0b24318ed65378d230edd193c19c334766cf8aaac84ac070b265b28eec9d5d3d",
+    "TensorCore.lean": "5e8e4dae3db092b2208b4c6038352f2de073a0c293e35421fb0d1127d7298b90",
     "examples/GemmExtensions.lean": "154a89b1378c3354ad101bc3667437a035d229e3a160e7c8f7583fef87b28057",
     "scripts/check_gemm.py": "f949761812d4b36a6b22859ac1868fda8a203d707484ca3333d2b01d1e572f9b",
     "scripts/check_features.py": "ac24baa73a45a5754c8087b6b5cde67b908e421811d4b89bcba9cad2dee995e3",
     "scripts/check_gemm_extensions.py": "60561b7a17c79f43fcee518251bf07c39ffedd9764a5f20eb6064042fa23a7f7"
   },
-  "elapsed_seconds": 402.543,
+  "elapsed_seconds": 395.587,
   "limitations": [
     "Independent implementation of the same numerical specification; no new GPU data.",
     "Scalar exact zeros canonicalize to +0; finite reference domain.",
