@@ -1,0 +1,1 @@
+{"operation":"select","policy":"minimum_cost","workload":{"operation":"native","precision":"tf32","m":1,"n":1,"k":1,"a":[130048],"b":[130048],"c":[0]},"candidates":[{"model":"ampere"},{"model":"hopper"},{"model":"hopper_mma"}],"costs":["3","2","1"]}

@@ -62,7 +62,7 @@ commands += [['python3', 'scripts/check_axioms_regression.py']]
 commands += [['python3', 'scripts/check_reviewer.py'], ['python3', 'scripts/check_cutlass.py']]
 commands += [['python3', 'scripts/check_tool.py']]
 commands += [['python3', 'scripts/check_analysis.py'], ['python3', 'scripts/check_pipeline_analysis.py']]
-commands += [['python3', 'scripts/check_selection.py']]
+commands += [['python3', 'scripts/check_selection.py'], ['python3', 'scripts/check_decision_extensions.py']]
 # Enumerate the copied examples so concurrent workspace edits do not change this run.
 commands += [['lake', 'env', 'lean', str(p.relative_to(target))]
              for p in sorted((target / 'examples').glob('*.lean'))
@@ -94,6 +94,7 @@ report.update(certificate_checks=json.loads(logs[8]), application_checks=json.lo
               tool_checks=json.loads((target / 'data/regressions/tool-report.json').read_text()),
               analysis_checks=json.loads((target / 'data/regressions/analysis-report.json').read_text()),
               pipeline_analysis_checks=json.loads((target / 'data/regressions/pipeline-analysis-report.json').read_text()),
+              decision_extension_checks=json.loads((target / 'data/regressions/decision-extensions-report.json').read_text()),
               selection_checks=json.loads((target / 'data/regressions/selection-report.json').read_text()),
               cutlass_checks=json.loads((target / 'data/regressions/cutlass-report.json').read_text()),
               independent_validation_passed=True, v100_device_replay_passed=True,
@@ -121,7 +122,7 @@ generated += ['data/regressions/' + name for name in [
     'eft-paper-cases.json', 'eft-paper-original.json', 'eft-paper-second-pass.json', 'paper-spec-report.json',
     'device-fp8-report.json', 'gemm-report.json', 'gemm-extensions-report.json', 'bounded-eft-report.json',
     'reviewer-report.json', 'cutlass-report.json', 'tool-report.json', 'analysis-report.json', 'pipeline-analysis-report.json',
-    'selection-report.json']]
+    'selection-report.json', 'decision-extensions-report.json']]
 for name in generated:
     shutil.copyfile(target / name, root / name)
 (root / 'data/regressions/clean-build.json').write_text(json.dumps(report, indent=2) + '\n')

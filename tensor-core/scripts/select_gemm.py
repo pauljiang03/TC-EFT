@@ -8,7 +8,7 @@ from pathlib import Path
 import subprocess
 import sys
 
-from analyze import PROJECT, theory_hash
+from analyze import PROJECT, theory_hash, normalize_entry_caps, normalize_rational
 from analysis_certificate import certificate_text
 
 
@@ -44,6 +44,11 @@ def select(path, tolerance, emit):
                 if value < 0:
                     raise ValueError(f"Line {number}: {key} must be nonnegative")
                 workload[key] = f"{value.numerator}/{value.denominator}"
+        normalize_entry_caps(workload)
+        if "costs" in q:
+            if type(q["costs"]) is not list:
+                raise ValueError("Expected a cost array")
+            q["costs"] = [normalize_rational(value) for value in q["costs"]]
         requests.append(q)
     proc = subprocess.run([str(PROJECT / ".lake/build/bin/tc_gemm"), "-"], cwd=PROJECT,
                           input="".join(json.dumps(q) + "\n" for q in requests),
@@ -63,6 +68,9 @@ def select(path, tolerance, emit):
         cases = [dict(kind="selection", workload=q["workload"], candidates=q["candidates"],
                       tolerance=q["absolute_tolerance"], selected_index=r["selected_index"])
                  for q, r in zip(requests, results)]
+        for case, q in zip(cases, requests):
+            if q.get("policy") == "minimum_cost":
+                case.update(policy="minimum_cost", costs=q["costs"])
         content = certificate_text(dict(theory_sha256=before, cases=cases))
         with emit.open("x") as stream:
             stream.write(content)

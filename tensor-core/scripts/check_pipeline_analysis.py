@@ -184,6 +184,8 @@ def main():
         controls.append("transitive_input_only_audit")
         exported_requests = [q for q, r in zip(requests, results)
                              if q["name"] == "source-formats-modes" and q["input_format"] == "fp64" and q["input_mode"] in {"rne", "rdn"} and r["accepted"]]
+        exported_requests = [{**q, "alpha": 0x3fc00000, "beta": 0x3f800000, "c": [0x3f800000]}
+                             for q in exported_requests]
         exported_requests += [q for q in families if q["name"] == "unit"]
         exported_requests += [q for q in requests if q["name"] == "signed-zero"]
         exported_requests.append(json.loads((ROOT / "data/examples/gemm.analysis.jsonl").read_text().splitlines()[0]))
@@ -223,7 +225,7 @@ def main():
         for path in ["gemm.scaled-analysis.jsonl", "gemm.family.jsonl"]:
             output = run([TOOL, "analyze", ROOT / "data/examples" / path, "--abs-tol", "0.01"])
             assert all(json.loads(line)["accepted"] for line in output.stdout.splitlines())
-    sources = [ROOT / name for name in ["TensorCore/Programs/ScalarAnalysis.lean",
+    sources = [ROOT / name for name in ["TensorCore/Programs/ScalarAnalysis.lean", "TensorCore/Programs/ExactScalarAnalysis.lean",
                "TensorCore/Programs/ScaledGemmAnalysis.lean", "TensorCore/Programs/ConvertedGemmAnalysis.lean",
                "TensorCore/Programs/GemmFamily.lean", "TensorCore/Theory/Binary/MagnitudeScale.lean",
                "TensorCore/Cli/PipelineAnalysis.lean", "TensorCore/Regression/PipelineAnalysis.lean",

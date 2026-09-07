@@ -86,7 +86,7 @@ def certificate_text(manifest):
         raise ValueError("A certificate must contain at least one request")
     lines = [HEADER + json.dumps(manifest, sort_keys=True, separators=(",", ":")),
              "import TensorCore.Programs.ConvertedGemmAnalysis", "import TensorCore.Programs.GemmFamily",
-             "import TensorCore.Programs.GemmSelection", "",
+             "import TensorCore.Programs.CostSelection", "",
              "namespace TensorCore.Certificate", "", "set_option maxRecDepth 32768",
              "set_option maxHeartbeats 64000000", ""]
     for index, case in enumerate(manifest["cases"]):

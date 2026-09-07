@@ -22,19 +22,20 @@
     "mixed_inconclusive_export_refused",
     "invalid_family_ranges_rejected"
   ],
-  "elapsed_seconds": 11.745,
+  "elapsed_seconds": 12.554,
   "source_sha256": {
     "TensorCore/Programs/ScalarAnalysis.lean": "444bb6104ddd9fedfcdb291c4ab2c24adb126f5710ae7ad374b749900ce8a6f1",
-    "TensorCore/Programs/ScaledGemmAnalysis.lean": "fede20386fd54b9bbeef0c91681d6cec2fb5dee2f97f3f02a173e72781e61d5a",
+    "TensorCore/Programs/ExactScalarAnalysis.lean": "711b5e04654ae9a4d6344b864296455cc3e30c3ad8c0bd7ae5ee080855e9ea0b",
+    "TensorCore/Programs/ScaledGemmAnalysis.lean": "e8bb51b14eff94a3038345bc8791647ad212648715d200239c32d076bbc205eb",
     "TensorCore/Programs/ConvertedGemmAnalysis.lean": "5dc0bb9c8fcaaa2acc0a81cc62b50fd7221a7d944ba0f9b2fd7816af06150671",
     "TensorCore/Programs/GemmFamily.lean": "f76e608e7e53babb50e62b20d17d999310d2bcff0eff99eb87d1980568e5d622",
     "TensorCore/Theory/Binary/MagnitudeScale.lean": "c758b4722443aeaa9cccd46aab91eedb6bf43f6e69b48dda905ff3c3a0d27974",
     "TensorCore/Cli/PipelineAnalysis.lean": "2aba569d68506738516bfd94473d7baee3b8897cc1d4dd645b975562ed83d1ce",
     "TensorCore/Regression/PipelineAnalysis.lean": "b6773ed79e7dc1eb224ff7f656432def427688e1f0dbb820b2424b9c411c3484",
     "TensorCore/Regression/GemmFamily.lean": "d954da70f01b256861e9d113c0c34098f7a4d09a92e50f78233fa313f70cc0f6",
-    "scripts/analyze.py": "2c267986aa7fcd873fd3b10ece0d60db8f7d11490b78071c7c7e69bdc41ef598",
-    "scripts/analysis_certificate.py": "a987071ae0e2cf7eebf4781b7e51e89247cff8e6fc4604f3e3aebb37286a9eaf",
-    "scripts/check_pipeline_analysis.py": "f4c3a84e2159abfc418964aaed6428859e4b3599e6b465e2e5bf7baaf59feb51"
+    "scripts/analyze.py": "71b19857bc6c051dc790384a3792ff9743b76bdb15a23cbc82f38bdda27cbcfd",
+    "scripts/analysis_certificate.py": "910d5b9e20ddb46dce508e07c0cca096c318b9ed225193c7e3e9f142dc61b715",
+    "scripts/check_pipeline_analysis.py": "1604e4a59a5c1aa1813abeb1941cfc4519acc100db177ad430b7b45691ed6cfb"
   },
   "limitations": [
     "Family samples test the implementation; the Lean theorem quantifies over all family members.",

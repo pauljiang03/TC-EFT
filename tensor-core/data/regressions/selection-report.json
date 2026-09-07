@@ -25,14 +25,14 @@
     },
     "scaled": {
       "requests": 104,
-      "selected": 63,
-      "later_candidate_selected": 10,
+      "selected": 67,
+      "later_candidate_selected": 2,
       "candidate_analyses": 1248,
-      "certified_candidates": 708,
+      "certified_candidates": 796,
       "oracle_successful_candidates": 1056,
       "oracle_within_tolerance": 936,
-      "within_tolerance_but_uncertified": 228,
-      "inconclusive": 41
+      "within_tolerance_but_uncertified": 140,
+      "inconclusive": 37
     },
     "family": {
       "requests": 18,
@@ -43,12 +43,12 @@
       "selected": 9
     }
   },
-  "native_selection_batch_seconds": 1.634,
-  "native_analysis_batch_seconds": 1.23,
+  "native_selection_batch_seconds": 1.587,
+  "native_analysis_batch_seconds": 1.16,
   "certificate_cases": 7,
-  "certificate_bytes": 12755,
-  "certificate_render_seconds": 0.0035,
-  "kernel_replay_seconds": 1.195,
+  "certificate_bytes": 13007,
+  "certificate_render_seconds": 0.0037,
+  "kernel_replay_seconds": 1.365,
   "kernel_replay": true,
   "input_only_dependency_audit": true,
   "negative_controls": [
@@ -79,7 +79,7 @@
       "k": 64,
       "candidates": 3,
       "selected_index": 1,
-      "native_process_seconds": 0.0209
+      "native_process_seconds": 0.022
     },
     {
       "m": 4,
@@ -87,7 +87,7 @@
       "k": 64,
       "candidates": 3,
       "selected_index": 1,
-      "native_process_seconds": 0.062
+      "native_process_seconds": 0.0648
     },
     {
       "m": 16,
@@ -95,20 +95,20 @@
       "k": 64,
       "candidates": 3,
       "selected_index": 1,
-      "native_process_seconds": 0.7294
+      "native_process_seconds": 0.6947
     }
   ],
-  "elapsed_seconds": 20.836,
+  "elapsed_seconds": 23.546,
   "source_sha256": {
-    "TensorCore/Programs/GemmSelection.lean": "44431ee5a2be96eba33e2941f2a81cd9de1fdcf30da3a5917d7c2ba32b563ba5",
-    "TensorCore/Cli/GemmSelection.lean": "66a64d796f2e372bd69b8f3b90651a014dbc5604ed15cefcec31aab71a560633",
+    "TensorCore/Programs/GemmSelection.lean": "69eb637985b6ece35032643332dccf48cb86bd136061ff1a688d6b80d0c6d29f",
+    "TensorCore/Cli/GemmSelection.lean": "ffb366905dc71ce19e5124f05bf90915d034f0f11f5b6ecc9e82d6c7d74424cf",
     "TensorCore/Cli/GemmInput.lean": "1d44cd6edc46530351621bc0e0e7732b850ff6b9adbd752e78387765b564d497",
     "TensorCore/Regression/GemmSelection.lean": "bc2dba2f81d712d3ade2e134586fecd0e598eabb25d1e298e08f4edf56c127e6",
-    "scripts/select_gemm.py": "fcadf5a4e949f8076347b1f4cac5c571034d0d2b08b98356dc526e98f78d85dc",
-    "scripts/selection_certificate.py": "f23a1fbe3b55c930d418e31e165d46a6ce23c9360acee59b3e3d1fd8f66f3981",
+    "scripts/select_gemm.py": "a26aafe9831b3a1f3c98fecc0f866bdff2a34e2f4fbfa63ae72db099a728f549",
+    "scripts/selection_certificate.py": "26084d10aa8599e75ee97a18bf9da0546b3fcd82b1495deb253a07558571740b",
     "scripts/check_selection.py": "126a14e9cc2256d00ab11f4b812fd9c7c03e1a21af1c78f5fecfe34d2a53353b",
     "data/examples/gemm.selection.jsonl": "2d5d5e9ffb1be640fff871b83965dc76dacc9a1db9925808fa29942cda175e80",
-    "data/schemas/selection.schema.json": "61975b429081df1eba07877df9035e5167653eb8bd52cb69579611c773f2a092"
+    "data/schemas/selection.schema.json": "7b0196acbcaf89ca4740c07736d0c629a0c36c5a03abcf90a10f16bbb5ad4027"
   },
   "limitations": [
     "Deterministic synthetic and boundary workloads, not a representative application benchmark.",

@@ -1,0 +1,5 @@
+{"operation":"native","precision":"bf16","model":"ampere","m":1,"n":1,"k":1,"a":[16256],"b":[16256],"c":[0]}
+{"operation":"native","precision":"bf16","model":"hopper","m":1,"n":1,"k":1,"a":[16256],"b":[16256],"c":[0]}
+{"operation":"native","precision":"tf32","model":"ampere","m":1,"n":1,"k":1,"a":[130048],"b":[130048],"c":[0]}
+{"operation":"native","precision":"tf32","model":"hopper","m":1,"n":1,"k":1,"a":[130048],"b":[130048],"c":[0]}
+{"operation":"native","precision":"tf32","model":"hopper_mma","m":1,"n":1,"k":1,"a":[130048],"b":[130048],"c":[0]}

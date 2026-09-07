@@ -1,4 +1,5 @@
-import TensorCore.Programs.GemmSelection
+import TensorCore.Programs.CostSelection
+import TensorCore.Cli.ExtendedAnalysis
 import TensorCore.Cli.GemmInput
 import TensorCore.Cli.PipelineAnalysis
 
@@ -17,10 +18,12 @@ def candidate (kind : String) (input : Json) : Except String GemmCandidate := do
     return ⟨← model (← input.getObjValAs? String "model"),
       ← mode (← input.getObjValAs? String "input_mode"),
       ← mode (← input.getObjValAs? String "multiply_mode"),
-      ← mode (← input.getObjValAs? String "add_mode")⟩
+      ← mode (← input.getObjValAs? String "add_mode"), false⟩
   else
     allowedKeys input ["model"]
-    return { model := ← model (← input.getObjValAs? String "model") }
+    let name ← input.getObjValAs? String "model"
+    if kind == "native" && name == "hopper_mma" then return { model := .hopper, nativeMma := true }
+    return { model := ← model name }
 
 def problem (input : Json) (m n k : Nat) : Except String (GemmProblem m n k) := do
   let kind ← input.getObjValAs? String "operation"
@@ -29,6 +32,15 @@ def problem (input : Json) (m n k : Nat) : Except String (GemmProblem m n k) := 
     allowedKeys input (base ++ ["a_bound", "b_bound", "c_bound"])
     return .family ⟨← PipelineAnalysis.rational input "a_bound",
       ← PipelineAnalysis.rational input "b_bound", ← PipelineAnalysis.rational input "c_bound"⟩
+  else if kind == "entry_family" then
+    allowedKeys input (base ++ ["a_bounds", "b_bounds", "c_bounds"])
+    return .entryFamily (← ExtendedAnalysis.entryFamily input m n k)
+  else if kind == "native" then
+    allowedKeys input (base ++ ["precision", "a", "b", "c"])
+    let p ← ExtendedAnalysis.precision (← input.getObjValAs? String "precision")
+    return .native p (← words p.format.width m k (← input.getObjValAs? (Array Nat) "a"))
+      (← words p.format.width k n (← input.getObjValAs? (Array Nat) "b"))
+      (← words 32 m n (← input.getObjValAs? (Array Nat) "c"))
   else if kind == "raw" then
     allowedKeys input (base ++ ["a", "b", "c"])
     return .raw (← words 16 m k (← input.getObjValAs? (Array Nat) "a"))
@@ -43,7 +55,7 @@ def problem (input : Json) (m n k : Nat) : Except String (GemmProblem m n k) := 
       (← words source.width m k (← input.getObjValAs? (Array Nat) "a"))
       (← words source.width k n (← input.getObjValAs? (Array Nat) "b"))
       (← words 32 m n (← input.getObjValAs? (Array Nat) "c"))
-  else throw "Expected selection workload operation raw, scaled, or family"
+  else throw "Expected selection workload operation raw, scaled, family, entry_family, or native"
 
 def analysis (p : GemmProblem m n k) (c : GemmCandidate) (tol : Rat) : Json :=
   match p with
@@ -51,16 +63,20 @@ def analysis (p : GemmProblem m n k) (c : GemmCandidate) (tol : Rat) : Json :=
   | .scaled source alpha beta A B C =>
     PipelineAnalysis.report source c.inputMode c.model c.epilogue alpha beta A B C tol
   | .family f => PipelineAnalysis.familyReport c.model m n k f tol
+  | .entryFamily f => ExtendedAnalysis.entryReport c.model f tol
+  | .native precision A B C => match c.nativeModel precision with
+    | some model => ExtendedAnalysis.nativeReport model A B C tol
+    | none => Json.mkObj [("accepted", toJson false), ("reason", toJson "unsupported_native_model")]
 
 def executionRequest (workload config : Json) : Except String Json := do
   let kind ← workload.getObjValAs? String "operation"
   let fields := (← workload.getObj?).toList.filter fun (key, _) => key != "operation"
   let fields := fields ++ (← config.getObj?).toList
-  return Json.mkObj (("operation", toJson (if kind == "family" then "analyze_family" else kind)) ::
+  return Json.mkObj (("operation", toJson (if kind == "family" then "analyze_family" else if kind == "entry_family" then "analyze_entry_family" else kind)) ::
     fields ++ if kind == "scaled" then [("output_mode", toJson "rne")] else [])
 
 def evaluate (input : Json) : Except String Json := do
-  allowedKeys input ["operation", "name", "workload", "candidates", "absolute_tolerance"]
+  allowedKeys input ["operation", "name", "workload", "candidates", "absolute_tolerance", "policy", "costs"]
   if (input.getObjVal? "name").isOk then
     let _ ← input.getObjValAs? String "name"
     pure ()
@@ -74,20 +90,36 @@ def evaluate (input : Json) : Except String Json := do
   if configs.isEmpty then throw "Selection requires at least one candidate"
   let candidates ← configs.toList.mapM (candidate kind)
   let tol ← Analysis.tolerance input
-  let selected := selectGemm p candidates tol
+  if kind == "native" then
+    let precision ← ExtendedAnalysis.precision (← workload.getObjValAs? String "precision")
+    for c in candidates do
+      if (c.nativeModel precision).isNone then throw "Unsupported native candidate"
+  let policy ← if (input.getObjVal? "policy").isOk then input.getObjValAs? String "policy" else pure "preference"
+  if policy != "preference" && policy != "minimum_cost" then throw "Policy must be preference or minimum_cost"
+  let costs ← if policy == "minimum_cost" then do
+      let values ← input.getObjValAs? (Array String) "costs"
+      if values.size != configs.size then throw "One cost is required per candidate"
+      values.toList.mapM fun value => Analysis.tolerance (Json.mkObj [("absolute_tolerance", toJson value)])
+    else do
+      if (input.getObjVal? "costs").isOk then throw "Costs require minimum_cost policy"
+      pure []
+  let costed := (candidates.zip costs).zipIdx.map fun ((c, cost), i) => (⟨c, cost, i⟩ : CostedCandidate)
+  let chosenCost := selectGemmCost p costed tol
+  let selected := if policy == "minimum_cost" then chosenCost.map (·.index) else selectGemm p candidates tol
   let reports := candidates.map fun c => analysis p c tol
   let request ← match selected with
     | none => pure Json.null
     | some i => do
       let request ← executionRequest workload configs[i]!
       let fields := (← request.getObj?).toList
-      pure (Json.mkObj (fields ++ if kind == "family" then
+      pure (Json.mkObj (fields ++ if kind == "family" || kind == "entry_family" then
         [("absolute_tolerance", toJson (Analysis.ratText tol))] else []))
   return Json.mkObj [
     ("status", toJson (if selected.isSome then "selected" else "inconclusive")),
     ("accepted", toJson selected.isSome),
     ("name", (input.getObjVal? "name").toOption.getD Json.null),
-    ("policy", toJson "first_certified_in_preference_order"),
+    ("policy", toJson (if policy == "minimum_cost" then "minimum_supplied_cost_among_certified" else "first_certified_in_preference_order")),
+    ("selected_cost", if policy == "minimum_cost" then toJson (chosenCost.map fun c => Analysis.ratText c.cost) else Json.null),
     ("reason", toJson (if selected.isSome then "tolerance_met" else "no_candidate_certified")),
     ("absolute_tolerance", toJson (Analysis.ratText tol)),
     ("selected_index", toJson selected),

@@ -8,6 +8,6 @@
     "data/examples/gemm.expected.json": "304401e03c8e30d9f8954ecec007a0c39f3c223591f186b433ef8f289b86d7b5",
     "scripts/check_reviewer.py": "ea7cc1be7b36cfccdce072746181dfb51ca062ea444a9b4b86797dee1edeef6d",
     "GemmMain.lean": "b0e7f4cb31d5be76810103940cf55e63c9c9412fd14d4d959d3989282bae96ec",
-    "TensorCore/Cli/Gemm.lean": "8844aee57ce08645c722f1f08eddc7dcd51d60159af8791f3706ee88728c943e"
+    "TensorCore/Cli/Gemm.lean": "54087c793f8f37789187f25b34e8917a71e593af928cc574f3c1fa61c935bd9c"
   }
 }

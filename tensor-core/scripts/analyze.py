@@ -34,7 +34,7 @@ def verify(path):
         raise ValueError("Certificate is not in the canonical data-and-proof format")
     if manifest["theory_sha256"] != theory_hash():
         raise ValueError("Certificate theory hash differs from this checkout")
-    build = subprocess.run(["lake", "build", "TensorCore.Programs.GemmSelection"], cwd=PROJECT,
+    build = subprocess.run(["lake", "build", "TensorCore.Programs.CostSelection"], cwd=PROJECT,
                            stdout=sys.stderr)
     if build.returncode:
         return build.returncode
@@ -56,6 +56,23 @@ def verify(path):
     return 0
 
 
+def normalize_rational(value):
+    if type(value) is not str:
+        raise ValueError("Expected an exact decimal or rational string")
+    q = Fraction(value)
+    if q < 0:
+        raise ValueError("Expected a nonnegative rational")
+    return f"{q.numerator}/{q.denominator}"
+
+
+def normalize_entry_caps(request):
+    if request.get("operation") in {"entry_family", "analyze_entry_family"}:
+        for key in ("a_bounds", "b_bounds", "c_bounds"):
+            if type(request.get(key)) is not list:
+                raise ValueError("Expected entry cap arrays")
+            request[key] = [normalize_rational(value) for value in request[key]]
+
+
 def analyze(path, tolerance, emit):
     tol = Fraction(tolerance)
     if tol < 0:
@@ -75,9 +92,10 @@ def analyze(path, tolerance, emit):
             continue
         request = json.loads(line)
         operations = {"raw": "analyze", "analyze": "analyze", "scaled": "analyze_scaled",
-                      "analyze_scaled": "analyze_scaled", "family": "analyze_family", "analyze_family": "analyze_family"}
+                      "analyze_scaled": "analyze_scaled", "family": "analyze_family", "analyze_family": "analyze_family", "native": "analyze_native", "analyze_native": "analyze_native",
+                      "entry_family": "analyze_entry_family", "analyze_entry_family": "analyze_entry_family"}
         if not isinstance(request, dict) or request.get("operation", "raw") not in operations:
-            raise ValueError(f"Line {number}: expected raw, scaled, or family analysis")
+            raise ValueError(f"Line {number}: expected raw, scaled, native, family, or entry_family analysis")
         request = {**request, "operation": operations[request.get("operation", "raw")],
                    "absolute_tolerance": f"{tol.numerator}/{tol.denominator}"}
         if request["operation"] == "analyze_family":
@@ -88,6 +106,7 @@ def analyze(path, tolerance, emit):
                 if value < 0:
                     raise ValueError(f"Line {number}: {key} must be nonnegative")
                 request[key] = f"{value.numerator}/{value.denominator}"
+        normalize_entry_caps(request)
         requests.append(request)
     proc = subprocess.run([str(PROJECT / ".lake/build/bin/tc_gemm"), "-"], cwd=PROJECT,
                           input="".join(json.dumps(q) + "\n" for q in requests),
@@ -106,6 +125,14 @@ def analyze(path, tolerance, emit):
             return 1
         cases = []
         for request, result in zip(requests, results):
+            if request["operation"] in {"analyze_native", "analyze_entry_family"}:
+                native = request["operation"] == "analyze_native"
+                fields = {"m", "n", "k"} | ({"precision", "a", "b", "c"} if native else {"a_bounds", "b_bounds", "c_bounds"})
+                workload = {key: request[key] for key in fields}
+                workload["operation"] = "native" if native else "entry_family"
+                cases.append(dict(kind="selection", workload=workload, candidates=[{"model": request["model"]}],
+                                  tolerance=request["absolute_tolerance"], selected_index=0))
+                continue
             fields = {"model", "m", "n", "k"}
             if request["operation"] == "analyze_family":
                 fields |= {"a_bound", "b_bound", "c_bound"}

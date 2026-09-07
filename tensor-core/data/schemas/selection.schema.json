@@ -275,6 +275,152 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation",
+            "m",
+            "n",
+            "k",
+            "a",
+            "b",
+            "c",
+            "precision"
+          ],
+          "properties": {
+            "operation": {
+              "const": "native"
+            },
+            "m": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "n": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "k": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "a": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 524287
+              }
+            },
+            "b": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 524287
+              }
+            },
+            "c": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              }
+            },
+            "precision": {
+              "enum": [
+                "bf16",
+                "tf32"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "required": [
+                  "precision"
+                ],
+                "properties": {
+                  "precision": {
+                    "const": "bf16"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "a": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    }
+                  },
+                  "b": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation",
+            "m",
+            "n",
+            "k",
+            "a_bounds",
+            "b_bounds",
+            "c_bounds"
+          ],
+          "properties": {
+            "operation": {
+              "const": "entry_family"
+            },
+            "m": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "n": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "k": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "a_bounds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[0-9]+/[1-9][0-9]*$"
+              }
+            },
+            "b_bounds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[0-9]+/[1-9][0-9]*$"
+              }
+            },
+            "c_bounds": {
+              "type": "array",
+              "items": {
+                "type": "string",
+                "pattern": "^[0-9]+/[1-9][0-9]*$"
+              }
+            }
+          },
+          "additionalProperties": false
         }
       ]
     },
@@ -293,7 +439,8 @@
                 "enum": [
                   "v100",
                   "ampere",
-                  "hopper"
+                  "hopper",
+                  "hopper_mma"
                 ]
               }
             },
@@ -351,12 +498,27 @@
     },
     "name": {
       "type": "string"
+    },
+    "policy": {
+      "enum": [
+        "preference",
+        "minimum_cost"
+      ]
+    },
+    "costs": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]+/[1-9][0-9]*$"
+      },
+      "description": "One nonnegative total cost per candidate in the same order."
     }
   },
   "additionalProperties": false,
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Certified GEMM configuration selection",
-  "description": "One fixed workload and candidates in preference order. The first certified candidate is selected. Output is FP32. Models denote distinct architecture semantics. No performance ranking is inferred. The CLI --abs-tol supplies the tolerance and accepts exact decimal strings.",
+  "description": "One fixed FP32-output workload. Select the first certified candidate by default, or a minimum supplied cost among certified candidates. The executable checks shapes, candidate compatibility, and equal cost/candidate lengths. No measured performance ranking is inferred.",
   "allOf": [
     {
       "if": {
@@ -420,25 +582,115 @@
         }
       },
       "else": {
-        "properties": {
-          "candidates": {
-            "items": {
-              "type": "object",
-              "required": [
-                "model"
-              ],
+        "if": {
+          "properties": {
+            "workload": {
               "properties": {
-                "model": {
-                  "enum": [
-                    "v100",
-                    "ampere",
-                    "hopper"
-                  ]
+                "operation": {
+                  "const": "native"
                 }
-              },
-              "additionalProperties": false
+              }
             }
           }
+        },
+        "then": {
+          "properties": {
+            "candidates": {
+              "items": {
+                "type": "object",
+                "required": [
+                  "model"
+                ],
+                "properties": {
+                  "model": {
+                    "enum": [
+                      "ampere",
+                      "hopper",
+                      "hopper_mma"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "workload": {
+                    "properties": {
+                      "precision": {
+                        "const": "bf16"
+                      }
+                    }
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "candidates": {
+                    "items": {
+                      "properties": {
+                        "model": {
+                          "enum": [
+                            "ampere",
+                            "hopper"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "else": {
+          "properties": {
+            "candidates": {
+              "items": {
+                "type": "object",
+                "required": [
+                  "model"
+                ],
+                "properties": {
+                  "model": {
+                    "enum": [
+                      "v100",
+                      "ampere",
+                      "hopper"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "required": [
+          "policy"
+        ],
+        "properties": {
+          "policy": {
+            "const": "minimum_cost"
+          }
+        }
+      },
+      "then": {
+        "required": [
+          "costs"
+        ]
+      },
+      "else": {
+        "not": {
+          "required": [
+            "costs"
+          ]
         }
       }
     }

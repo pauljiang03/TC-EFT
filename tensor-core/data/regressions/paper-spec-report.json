@@ -62,6 +62,8 @@
     "TensorCore/PaperSpec/GemmComposition.lean": "14496c19851727fdf025e3516d2a56f1f1d20942c3d1a933ac1b772563c32842",
     "TensorCore/PaperSpec/GemmEquivalence.lean": "1e6c41601b5cb8fca65309a17190d79d0b7d07bc14942a6ba0c4bf31dbf2b87a",
     "TensorCore/PaperSpec/Matrix.lean": "57012e22a250009681d212b72e7bc5e06b2f19eea2fc50ba6ee73ac0faecb76b",
+    "TensorCore/PaperSpec/NativeGemmEquivalence.lean": "c27b86373cc9302496a7eca303a749cc5c8073309daa789809ae319237234ff1",
+    "TensorCore/PaperSpec/NativeMatrix.lean": "cc6e53f028b9aadc0270f2a2fc7a1d637172519ad386966b8ab09fd074d3d411",
     "TensorCore/PaperSpec/NegativeControls.lean": "a72d006fd5d55771bc707276501f61cb7158ba866181e2073a19327851365225",
     "TensorCore/PaperSpec/Profiles.lean": "97a42a1e089a07cbe4170b2fd0b7fced6e4afd456a72287f652f85d97ea90a1a",
     "TensorCore/PaperSpec/Rounding.lean": "ac66295f242405899af075dffcacc980ed946d282e697c81be9cfcc8e99882a5",

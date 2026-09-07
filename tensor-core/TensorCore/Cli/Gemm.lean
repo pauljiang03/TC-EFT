@@ -33,6 +33,8 @@ def scaledCellJson : Option (ScaledGemmCell cfg) → Json
 def evaluate (input : Json) : Except String Json := do
   if (← input.getObjValAs? String "operation") == "select" then
     return ← Selection.evaluate input
+  if ["native", "analyze_native", "analyze_entry_family"].contains (← input.getObjValAs? String "operation") then
+    return ← ExtendedAnalysis.evaluate input
   let architecture ← model (← input.getObjValAs? String "model")
   let m ← input.getObjValAs? Nat "m"
   let n ← input.getObjValAs? Nat "n"

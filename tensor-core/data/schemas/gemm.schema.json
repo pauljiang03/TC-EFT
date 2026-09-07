@@ -1,7 +1,7 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Tensor Core Arithmetic GEMM request",
-  "description": "One object per JSONL line. Matrices use flat row-major unsigned encoded words. Lengths must equal m*k, k*n, and m*n; the executable checks these dependent dimensions. Scaled operations convert A and B to FP16 before tensor-core execution. FP64 words require an integer-preserving JSON parser. Extra fields are ignored. Family analysis uses uniform rational magnitude caps instead of encoded arrays and quantifies over all finite matrices of the declared shapes.",
+  "description": "One object per JSONL line. Matrices use flat row-major unsigned encoded words. Lengths must equal m*k, k*n, and m*n; the executable checks these dependent dimensions. Scaled operations convert A and B to FP16 before tensor-core execution. FP64 words require an integer-preserving JSON parser. Extra fields are ignored. Family analysis uses uniform rational magnitude caps instead of encoded arrays and quantifies over all finite matrices of the declared shapes. Native operations multiply BF16 or packed TF32 inputs directly. Entry families use one nonnegative rational magnitude cap per entry.",
   "type": "object",
   "required": [
     "operation",
@@ -23,14 +23,18 @@
         "certify_scaled",
         "analyze",
         "analyze_scaled",
-        "analyze_family"
+        "analyze_family",
+        "native",
+        "analyze_native",
+        "analyze_entry_family"
       ]
     },
     "model": {
       "enum": [
         "v100",
         "ampere",
-        "hopper"
+        "hopper",
+        "hopper_mma"
       ]
     },
     "m": {
@@ -171,6 +175,34 @@
       "type": "string",
       "pattern": "^[0-9]+/[1-9][0-9]*$",
       "description": "Uniform absolute magnitude cap for every finite encoded matrix entry in a raw GEMM family. The analyzer frontend also accepts exact decimal strings."
+    },
+    "precision": {
+      "enum": [
+        "bf16",
+        "tf32"
+      ],
+      "description": "Native encoded inputs: BF16 16-bit words or packed TF32 19-bit words, not FP32 register words."
+    },
+    "a_bounds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]+/[1-9][0-9]*$"
+      }
+    },
+    "b_bounds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]+/[1-9][0-9]*$"
+      }
+    },
+    "c_bounds": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "pattern": "^[0-9]+/[1-9][0-9]*$"
+      }
     }
   },
   "allOf": [
@@ -432,7 +464,9 @@
             "enum": [
               "analyze",
               "analyze_scaled",
-              "analyze_family"
+              "analyze_family",
+              "analyze_native",
+              "analyze_entry_family"
             ]
           }
         }
@@ -459,11 +493,136 @@
         ]
       },
       "else": {
+        "if": {
+          "properties": {
+            "operation": {
+              "const": "analyze_entry_family"
+            }
+          }
+        },
+        "then": {
+          "required": [
+            "a_bounds",
+            "b_bounds",
+            "c_bounds"
+          ]
+        },
+        "else": {
+          "required": [
+            "a",
+            "b",
+            "c"
+          ]
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "operation": {
+            "enum": [
+              "native",
+              "analyze_native"
+            ]
+          }
+        }
+      },
+      "then": {
         "required": [
-          "a",
-          "b",
-          "c"
+          "precision"
+        ],
+        "properties": {
+          "model": {
+            "enum": [
+              "ampere",
+              "hopper",
+              "hopper_mma"
+            ]
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "required": [
+                "precision"
+              ],
+              "properties": {
+                "precision": {
+                  "const": "bf16"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "a": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535
+                  }
+                },
+                "b": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 65535
+                  }
+                },
+                "model": {
+                  "enum": [
+                    "ampere",
+                    "hopper"
+                  ]
+                }
+              }
+            }
+          },
+          {
+            "if": {
+              "required": [
+                "precision"
+              ],
+              "properties": {
+                "precision": {
+                  "const": "tf32"
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "a": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 524287
+                  }
+                },
+                "b": {
+                  "type": "array",
+                  "items": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 524287
+                  }
+                }
+              }
+            }
+          }
         ]
+      },
+      "else": {
+        "properties": {
+          "model": {
+            "enum": [
+              "v100",
+              "ampere",
+              "hopper"
+            ]
+          }
+        }
       }
     }
   ],

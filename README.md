@@ -30,8 +30,8 @@ The raw example computes `1*2+0`. Its output has `value: "2/1"` and
 | `./tc build` | Build proofs and native executables |
 | `./tc gemm FILE` | Run or certify one GEMM request per JSONL line |
 | `./tc gemm -` | Read GEMM requests from standard input |
-| `./tc analyze FILE --abs-tol T` | Infer raw, scaled, or family bounds and check an absolute tolerance |
-| `./tc select FILE --abs-tol T` | Select the first certified configuration in preference order |
+| `./tc analyze FILE --abs-tol T` | Infer concrete or family bounds and check an absolute tolerance |
+| `./tc select FILE --abs-tol T` | Select by preference or minimum supplied cost among certified configurations |
 | `./tc verify FILE.lean` | Replay an exported analysis certificate through Lean's kernel |
 | `./tc schema` | Print the GEMM input JSON Schema |
 | `./tc schema select` | Print the configuration-selection JSON Schema |
@@ -54,14 +54,16 @@ and correction contracts. Pinned source discrepancies remain explicit.
 | Input arithmetic | Block proofs and independent equivalence | Native GEMM with FP32 output |
 | --- | --- | --- |
 | FP16 | Complete for the selected V100, Ampere, and Hopper families | Complete under three explicit WMMA schedules |
-| BF16 | Complete for the selected Ampere and Hopper families | Matrix integration remains open |
-| TF32 | Complete for Ampere and Hopper WMMA/MMA paths | Matrix integration remains open |
+| BF16 | Complete for the selected Ampere and Hopper families | Raw `AB+C`, analysis, and selection under two WMMA schedules |
+| TF32 | Complete for Ampere and Hopper WMMA/MMA paths | Raw `AB+C`, analysis, and selection under three schedules |
 | FP8 | Separate candidate models and partial coverage | Outside the primary scope |
 
 FP16 GEMM supports arbitrary dimensions, ordered encoded accumulators, input
 conversion, raw `AB+C`, separately rounded `alpha*AB+beta*C`, and source-relative
 error certificates. Converting BF16 or FP32 source matrices to FP16 does not
-provide native BF16 or TF32 multiplication.
+provide native BF16 or TF32 multiplication. The separate `native` operation uses
+encoded BF16 or packed TF32 directly. Native scaled epilogues and source-to-native
+conversion certificates remain extensions.
 
 **Domain.** Nonfinite operands and conversions beyond the destination's maximum
 finite magnitude are rejected. Exact arithmetic zero produces +0; negative
@@ -137,11 +139,15 @@ array lengths equal `m*k`, `k*n`, and `m*n`.
 | `analyze` | Automatic raw FP16 GEMM analysis |
 | `analyze_scaled` | Automatic source-relative scaled analysis |
 | `analyze_family` | Quantified raw analysis using `a_bound`, `b_bound`, and `c_bound` |
+| `analyze_entry_family` | Quantified raw FP16 analysis using row-major `a_bounds`, `b_bounds`, and `c_bounds` arrays |
+| `native` | Native BF16/TF32 `AB+C` with FP32 C and output; requires `precision` |
+| `analyze_native` | Automatic bounds for the same encoded native inputs |
 
 All operations require `operation`, `model`, `m`, `n`, and `k`. Concrete requests
 require encoded arrays `a`, `b`, and `c`; family requests use rational bounds
 instead. Automatic analyses require rational `absolute_tolerance`. Models are
-`v100`, `ampere`, and `hopper`. Scaled operations also require:
+`v100`, `ampere`, and `hopper` for FP16. Native BF16 supports `ampere` and
+`hopper`; native TF32 also supports `hopper_mma`. Scaled operations also require:
 
 | Fields | Values |
 | --- | --- |
@@ -186,9 +192,9 @@ exit code 2, and emit a JSON diagnostic to stderr. Earlier output lines remain v
 
 ## Automatic GEMM analysis
 
-Infer sufficient bounds for V100, Ampere, or Hopper without supplied scale or
-headroom parameters. The same launcher accepts concrete raw GEMM, complete
-scaled GEMM, and families of finite raw inputs.
+Infer sufficient bounds without supplied scale or headroom parameters. The same
+launcher accepts concrete FP16, native BF16/TF32, complete scaled FP16 GEMM, and
+families of finite raw FP16 inputs.
 
 ```sh
 ./tc analyze tensor-core/data/examples/gemm.analysis.jsonl --abs-tol 1e-5
@@ -224,7 +230,9 @@ also separate `input_conversion_bound`, `alpha_rounding_bound`,
 `beta_rounding_bound`, `add_rounding_bound`, and `output_rounding_bound`. Tensor
 and input-conversion losses already include their `abs(alpha)` factor. Zero
 stages have zero error; a final FP32-to-FP32 conversion has zero error in every
-mode. Other exact nonzero scalar operations can still receive a positive budget.
+mode. Multiplication of a finite FP32 value by +1 or -1 and addition with a
+zero-magnitude operand also receive zero error in every mode. Other exact scalar
+operations can still receive a positive budget.
 
 The analyzer decodes and converts inputs, checks product grid divisibility, and
 propagates unsigned magnitude bounds through the actual ordered groups. It does
@@ -233,6 +241,25 @@ Empty raw reductions preserve finite C bits with zero error. Empty scaled
 reductions still execute the epilogue. Whole-input conversion remains required
 even when a scaled output dimension is zero. Finite rejection and zero conventions
 are unchanged.
+
+### Native BF16 and TF32
+
+```sh
+./tc gemm tensor-core/data/examples/gemm.native.jsonl
+./tc analyze tensor-core/data/examples/gemm.native.jsonl --abs-tol 0.001
+```
+
+The five cases return FP32 one. BF16 operands use 16-bit encodings; TF32 operands
+use packed 19-bit encodings (`0x1fc00` represents one). FP32 register words must
+be converted explicitly before submission. No low bits are silently discarded.
+BF16 uses increasing K=16 WMMA slices. TF32 uses K=8 slices, with four-product
+WMMA groups or eight-product Hopper MMA groups. Output tiles are 16x16 for WMMA
+and 16x8 for the selected MMA path. Tail inputs are padded with +0.
+
+The independent matrix specification agrees on every encoded group output and
+rejection for all dimensions and input words. The trace-cover theorem preserves
+all groups when they are regrouped into instructions. These are logical schedules;
+GPU lane mappings, compilation, and performance are separate obligations.
 
 ### Input families
 
@@ -253,7 +280,21 @@ carry and accumulator headroom for every family member. Inference searches the
 supported accumulator scales; its conditions are sufficient, not necessary.
 It never enumerates matrices or floating-point words. Family bounds can be more
 conservative than concrete analysis, which inspects individual products.
-Per-entry constraints, grid constraints, and scaled families remain planned.
+For per-entry caps, use `analyze_entry_family` with rational arrays `a_bounds`,
+`b_bounds`, and `c_bounds`, sized like the corresponding matrices. A zero cap
+requires a decoded zero and permits both signed-zero encodings. The theorem
+quantifies over every finite encoded matrix satisfying every cap.
+
+```sh
+./tc analyze tensor-core/data/examples/gemm.entry-family.jsonl --abs-tol 0.001
+```
+
+Each output uses its A row maximum, B column maximum, and own C cap. Results
+provide `entry_bounds`, their summed `matrix_bound`, and one witness per output.
+The supplied example reduces the summed bound from about 0.002083 to 0.000521.
+This reduction is an example, not a universal factor. The current checker does
+not exploit every internal zero or grid relation. Grid constraints, stronger
+sparsity bounds, and scaled/source families remain planned.
 
 ### Export and review
 
@@ -267,8 +308,10 @@ mkdir -p tmp
 
 `--emit` writes a new certificate only when every request is certified; existing
 files are preserved. Export refusal exits with code 1; invalid input uses code 2.
-A batch may mix raw, scaled, and family requests. Certificates contain the input
-words or family bounds, witnesses, tolerance, and public accuracy theorem.
+A batch may mix raw, scaled, native, and family requests. Certificates contain
+the input words or family bounds, tolerance, and public accuracy theorem. Native
+and per-entry family exports re-infer witnesses in Lean through a single-candidate
+decision; other analysis exports carry explicit witnesses.
 `verify` checks the canonical format and toolchain/source fingerprint, then
 replays the checker with `decide +kernel`. Native JSON results use compiled Lean;
 individual kernel replay is established only after verification succeeds.
@@ -281,11 +324,17 @@ Regenerate certificates after theory changes. Appended Lean commands are rejecte
 | Raw-to-epilogue propagation | [ScaledGemmAnalysis.lean](tensor-core/TensorCore/Programs/ScaledGemmAnalysis.lean) |
 | Original-source accuracy, matrix bounds, independent output | [ConvertedGemmAnalysis.lean](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean) |
 | Quantified raw families, matrix bounds, independent output | [GemmFamily.lean](tensor-core/TensorCore/Programs/GemmFamily.lean) |
-| Small proof examples | [PipelineAnalysis.lean](tensor-core/examples/PipelineAnalysis.lean) |
+| Exact identity scalar stages | [ExactScalarAnalysis.lean](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean) |
+| Native matrix analysis and completeness | [NativeGemm.lean](tensor-core/TensorCore/Programs/NativeGemm.lean) |
+| Native independent equivalence | [NativeGemmEquivalence.lean](tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean) |
+| Per-entry quantified families | [EntryFamily.lean](tensor-core/TensorCore/Programs/EntryFamily.lean) |
+| Small proof examples | [PipelineAnalysis.lean](tensor-core/examples/PipelineAnalysis.lean), [DecisionExtensions.lean](tensor-core/examples/DecisionExtensions.lean) |
 
 `analyzeGemmCell_complete` proves raw inference succeeds for finite inputs when
 `abs(C) + sum(abs(A[l]*B[l])) <= maxFinite32`. This completeness statement does
 not extend to every successfully executing scaled pipeline or family.
+`analyzeNativeCell_complete` gives the corresponding unsigned-mass condition
+for native BF16/TF32 reductions.
 [GroupAnalysis.lean](tensor-core/TensorCore/Programs/GroupAnalysis.lean) proves the
 local comparison with the previous static budget under explicit scale caps;
 [Local.lean](tensor-core/TensorCore/Theory/ProgramBounds/Local.lean) supplies the
@@ -315,8 +364,10 @@ guarantees remain outside this analysis.
 ## Certified configuration selection
 
 Supply one workload, candidates in preference order, and an absolute tolerance.
-The tool selects the first candidate whose inferred bound certifies every output
-entry. It reports every candidate's analysis and returns the selected request.
+By default, the tool selects the first candidate whose inferred bound certifies
+every output entry. The `minimum_cost` policy selects a candidate with minimum
+supplied cost among those certified. Both policies report every analysis and
+return the selected request.
 
 ```sh
 ./tc select tensor-core/data/examples/gemm.selection.jsonl --abs-tol 1e-6
@@ -341,27 +392,45 @@ dimensions, original words or family bounds, and mathematical target.
 | --- | --- | --- |
 | `raw` | `m`, `n`, `k`, encoded `a`, `b`, `c` | `model` |
 | `family` | `m`, `n`, `k`, rational `a_bound`, `b_bound`, `c_bound` | `model` |
+| `entry_family` | Dimensions and rational `a_bounds`, `b_bounds`, `c_bounds` arrays | `model` |
+| `native` | Dimensions, `precision: "bf16"` or `"tf32"`, encoded `a`, `b`, `c` | `model` |
 | `scaled` | `m`, `n`, `k`, encoded `a`, `b`, `c`, `input_format`, `output_format: "fp32"`, encoded FP32 `alpha`, `beta` | `model`, `input_mode`, `multiply_mode`, `add_mode` |
 
 Scaled candidates must specify all three rounding modes. Final conversion to
 FP32 is exact and uses nearest-even in the returned request. Raw and family
 candidates contain only a model. Unknown fields, invalid candidates, empty
 candidate lists, and shape errors are rejected, including invalid entries after
-an acceptable candidate. Duplicate candidates are allowed; the earlier one wins.
+an acceptable candidate. Duplicate candidates are allowed. Preference order breaks
+equal-cost ties.
 
 | Result | Meaning |
 | --- | --- |
 | `status: "selected"` | A candidate is certified at the requested tolerance |
 | `selected_index`, `selected_candidate` | Position and configuration in the supplied list |
-| `selected_request` | Raw/scaled execution request, or family analysis request, accepted by `./tc gemm` |
+| `selected_request` | Concrete execution request or family analysis request, accepted by `./tc gemm` |
+| `selected_cost` | Exact supplied cost under `minimum_cost`; otherwise null |
 | `candidates[i].analysis` | Bounds, witnesses, and acceptance for that candidate |
 | `status: "inconclusive"`, `selected_index: null` | No candidate was certified; actual accuracy and feasibility remain undecided |
 
-Models denote different architecture semantics. Order them using your own
-availability or preference information. The tool does not infer GPU speed,
-hardware availability, or optimal cost. On one architecture, scaled requests
-can compare supported conversion and scalar rounding modes. Tensor-core
-multiplicands remain FP16, with the existing fixed WMMA schedules.
+Models denote different architecture semantics. Supply candidates appropriate to
+your available hardware. Scaled FP16 requests can compare conversion and scalar
+rounding modes. Native requests compare the supported schedules for one fixed
+input precision.
+
+For cost optimization, add `"policy": "minimum_cost"` and a `costs` array with
+one nonnegative rational total cost per candidate. Costs use your chosen units;
+the tool does not infer GPU timings. The launcher accepts exact decimal strings.
+
+```sh
+./tc select tensor-core/data/examples/gemm.cost-selection.jsonl --abs-tol 0.001 --emit tmp/Cost.lean
+./tc verify tmp/Cost.lean
+```
+
+The example selects Hopper TF32 MMA at supplied cost one. The
+[cost theorem](tensor-core/TensorCore/Programs/CostSelection.lean) proves accuracy,
+list membership, and cost no greater than any analyzer-certified candidate.
+A cheaper candidate may be accurate but uncertified. Optimality over all accurate
+configurations, learned cost models, and hardware speedups are not claimed.
 
 The [selection theorem](tensor-core/TensorCore/Programs/GemmSelection.lean)
 proves that the selected index belongs to the candidate list, its execution meets
@@ -373,7 +442,8 @@ equivalence applies to each selected model.
 
 Export includes the fixed workload, full ordered candidate list, tolerance, and
 selected index. Kernel replay recomputes inference and selection through the
-selected prefix, then derives the accuracy and preference theorems. It does not
+selected prefix for preference, or all candidates for cost, then derives the
+accuracy and selection theorems. Cost exports include the complete cost array. It does not
 trust JSON acceptance flags or supplied rejection witnesses. Export requires a
 selection for every request and preserves existing files, using the same exit
 codes and source fingerprint checks as `analyze`. See the small
@@ -381,11 +451,16 @@ codes and source fingerprint checks as `analyze`. See the small
 
 The initial [evaluation](tensor-core/data/regressions/selection-report.json)
 covers 236 decision requests, 1,644 candidate analyses, and 2,874 independent
-rational output checks. Later candidates certify 21 requests whose first
+rational output checks. Later candidates certify 13 requests whose first
 candidate is uncertified. The report records conservative refusals, certificate
 replay, and CPU costs. These counts describe this fixed suite, not an estimated
 success rate for applications. Family sampling remains in the
 [family report](tensor-core/data/regressions/pipeline-analysis-report.json).
+The [extension evaluation](tensor-core/data/regressions/decision-extensions-report.json)
+adds 95 native requests, 1,765 successful output checks, 2,936 encoded boundaries,
+91 cost decisions, and 128 sampled family cells. Kernel regressions cover every
+native path, tails, negatives, subnormals, signed zero, finite boundaries, and
+cost ties. Altered decision data is rejected by kernel replay.
 This is an initial artifact evaluation. Representative applications, comparisons
 with related tools, and hardware performance measurements remain open.
 
@@ -431,6 +506,7 @@ publication. Progress goes to stderr; the final report is JSON on stdout.
 | Automatic raw analysis and certificate replay | [analysis-report.json](tensor-core/data/regressions/analysis-report.json) |
 | Scaled and quantified-family analysis | [pipeline-analysis-report.json](tensor-core/data/regressions/pipeline-analysis-report.json) |
 | Configuration decisions and initial evaluation | [selection-report.json](tensor-core/data/regressions/selection-report.json) |
+| Native paths, richer families, and supplied costs | [decision-extensions-report.json](tensor-core/data/regressions/decision-extensions-report.json) |
 | Bounded EFT | [bounded-eft-report.json](tensor-core/data/regressions/bounded-eft-report.json) |
 | Claim assessment | [claim-review.json](tensor-core/data/regressions/claim-review.json) |
 | Complete axiom listing | [axioms.txt](tensor-core/docs/axioms.txt) |
@@ -448,12 +524,13 @@ separate from correctness and GPU performance claims.
 ## Assessment and TODO
 
 README.md is the single maintained plan and status document. Current review scope:
-FP32-output arithmetic and FP16 GEMM; FP8 is deferred. The implementation includes
+FP32-output arithmetic, complete scaled FP16 GEMM, and raw native BF16/TF32 GEMM;
+FP8 is deferred. The implementation includes
 four-mode finite rounding, signed encoding bijections, selected tensor-core
 contracts, bounded EFT, Eq.20 and extraction grids, complete scaled-GEMM
 equivalence, tighter original-input error certificates, automatic raw and scaled
 GEMM analysis, quantified raw input families, and configuration selection with
-kernel-replayable accuracy and preference certificates.
+kernel-replayable accuracy, preference, and supplied-cost certificates.
 
 | Priority | Status | Next step |
 | --- | --- | --- |
@@ -462,16 +539,17 @@ kernel-replayable accuracy and preference certificates.
 | Source reproducibility | Implemented | Use a fixed Git revision and compare the clean validation hashes |
 | Automatic raw GEMM analysis | Implemented | Review inferred local bounds, completeness domain, and exported Lean certificates |
 | Automatic scaled analysis | Implemented | Review source-relative budgets, every scalar stage, and kernel exports |
-| Input-family analysis | Implemented for uniform raw ranges | Review quantified finite FP16/FP32 membership and static headroom |
-| Richer input families | Open | Add per-entry ranges, grid constraints, and scaled/source families |
-| Certified configuration selection | Implemented | Review preference-order selection across models and scaled rounding modes, with kernel replay |
+| Input-family analysis | Implemented for uniform and per-entry raw ranges | Review quantified finite FP16/FP32 membership, local caps, and static headroom |
+| Further family precision | Open | Exploit internal sparsity and grid constraints; add scaled/source and native families |
+| Certified configuration selection | Implemented | Review preference and minimum supplied cost among certified models, with kernel replay |
 | Decision-tool evaluation | Initial suite implemented | Inspect synthetic and boundary cases, conservative refusals, and CPU/replay costs |
 | Full-paper evaluation | Next | Add representative application workloads and related-method comparisons; establish useful certification rates and scaling |
-| Selection generalization | Open | Add richer families and supported schedules; introduce an explicit cost model before claiming cost optimization |
-| Native BF16/TF32 GEMM | Open | Add matrix interfaces, schedules, operand mappings, and certificate instances |
+| Cost-model validation | Open | Supply measured or justified costs; compare decisions against representative applications |
+| Native BF16/TF32 raw GEMM | Implemented | Review five schedules, independent equivalence, encoded input domains, and certificates |
+| Native scaled/source integration | Open | Add native epilogues and original-source conversion bounds; enable comparisons across input precisions |
 | CUTLASS execution | Open | Compile the pinned fixture and compare on V100 |
 | CUTLASS generalization | Optional | Model residue-first partial K, other epilogues, and split-K |
-| Further error bounds | Optional | Track cancellation and accumulator grid invariants; tighten scalar stages and add induced norms |
+| Further error bounds | Optional | Track cancellation and accumulator grids; extend exact scalar cases beyond ±1 and zero addition; add induced norms |
 | General scalar arithmetic | Outside current scope | Encoded subtraction, multiplication, division, square root, and generic FMA APIs |
 | Globally corrected GEMM | Outside current scope | Prove a complete residual ledger, capacity, and one final rounding |
 | Adaptive programs | Outside current scope | Add state, branches, invariants, and decision/composition certificates |

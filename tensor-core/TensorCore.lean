@@ -40,3 +40,4 @@ import TensorCore.Regression.GemmAnalysis
 import TensorCore.Regression.PipelineAnalysis
 import TensorCore.Regression.GemmFamily
 import TensorCore.Regression.GemmSelection
+import TensorCore.Regression.DecisionExtensions

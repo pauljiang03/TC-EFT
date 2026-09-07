@@ -1,5 +1,5 @@
 import TensorCore.Programs.GemmAnalysis
-import TensorCore.Programs.ScalarAnalysis
+import TensorCore.Programs.ExactScalarAnalysis
 
 namespace TensorCore
 
@@ -32,9 +32,9 @@ def PipelineBound.error (b : PipelineBound) : Rat :=
 
 def checkEpilogue (cfg : GemmEpilogue) (a b c : Rat) (raw : AnalysisBound)
     (w : EpilogueWitness) : Option PipelineBound := do
-  let ad ← checkScalar cfg.multiplyStage (absQ a * raw.magnitude) w.alphaScale
-  let bd ← checkScalar cfg.multiplyStage (absQ b * absQ c) w.betaScale
-  let sd ← checkScalar cfg.addStage (ad.magnitude + bd.magnitude) w.sumScale
+  let ad ← checkFiniteMultiply cfg.multiplyMode a raw.magnitude w.alphaScale
+  let bd ← checkFiniteMultiply cfg.multiplyMode b (absQ c) w.betaScale
+  let sd ← checkFiniteAdd cfg.addMode ad.magnitude bd.magnitude w.sumScale
   let out ← checkOutput cfg.output sd.magnitude w.outputScale
   return ⟨out.magnitude, absQ a * raw.alignment, absQ a * raw.rounding,
     ad.error, bd.error, sd.error, out.error, 0⟩
@@ -44,10 +44,11 @@ def inferEpilogue (cfg : GemmEpilogue) (a b c : Rat) (raw : AnalysisBound) : Epi
   let B := absQ b * absQ c
   let ae := scalarScale fp32 A
   let be := scalarScale fp32 B
-  let S := (scalarBound cfg.multiplyStage A ae).magnitude +
-    (scalarBound cfg.multiplyStage B be).magnitude
+  let ad := (checkFiniteMultiply cfg.multiplyMode a raw.magnitude ae).getD ⟨A, 0⟩
+  let bd := (checkFiniteMultiply cfg.multiplyMode b (absQ c) be).getD ⟨B, 0⟩
+  let S := ad.magnitude + bd.magnitude
   let se := scalarScale fp32 S
-  let O := (scalarBound cfg.addStage S se).magnitude
+  let O := ((checkFiniteAdd cfg.addMode ad.magnitude bd.magnitude se).getD ⟨S, 0⟩).magnitude
   ⟨ae, be, se, scalarScale cfg.output.format O⟩
 
 theorem checkEpilogue_sound (cfg : GemmEpilogue) (alpha beta c : F32) (a b cv : Rat)
@@ -64,20 +65,19 @@ theorem checkEpilogue_sound (cfg : GemmEpilogue) (alpha beta c : F32) (a b cv : 
   obtain ⟨ac, hac, _, hav⟩ := finite32_of_value32 alpha a ha
   obtain ⟨bc, hbc, _, hbv⟩ := finite32_of_value32 beta b hb
   obtain ⟨cc, hcc, _, hcv⟩ := finite32_of_value32 c cv hc
-  obtain ⟨adatum, hat, hatm, hate⟩ := checkScalar_sound _ _ _ ad had
-    (ac.value * product.output.value) (by
-      rw [gemmAbs_mul, hav]
-      exact Rat.mul_le_mul_of_nonneg_left hm (absQ_nonneg a))
-  obtain ⟨bt, hbt, hbtm, hbte⟩ := checkScalar_sound _ _ _ bd hbd
-    (bc.value * cc.value) (by rw [gemmAbs_mul, hbv, hcv]; exact Rat.le_refl)
-  obtain ⟨st, hst, hstm, hste⟩ := checkScalar_sound _ _ _ sd hsd (adatum.value + bt.value)
-    (by have := absQ_add_le adatum.value bt.value; grind)
+  obtain ⟨adatum, hat, hatm, hate⟩ := checkFiniteMultiply_sound _ _ _ _ ad had
+    product.output.value (classifyNat_finiteValue fp32 (by decide) _ _ product.output.valid) hm
+  obtain ⟨bt, hbt, hbtm, hbte⟩ := checkFiniteMultiply_sound _ _ _ _ bd hbd
+    cc.value (classifyNat_finiteValue fp32 (by decide) _ _ cc.valid) (by rw [hcv]; exact Rat.le_refl)
+  rw [← hav] at hat hate
+  rw [← hbv] at hbt hbte
+  obtain ⟨st, hst, hstm, hste⟩ := checkFiniteAdd_sound _ _ _ _ sd hsd adatum bt hatm hbtm
   obtain ⟨ot, hot, hotm, hote⟩ := checkOutput_sound _ _ _ out hout st hstm
   change cfg.output.convert st.value = some ot at hot
   change absQ (st.value - ot.value) ≤ out.error at hote
   let t : ScaledGemmCell cfg := ⟨product, ac, bc, cc, adatum, bt, st, ot⟩
   refine ⟨t, ?_, hotm, ?_⟩
-  · simp [gemmEpilogue, hac, hbc, hcc, hat, hbt, hst, hot, t]
+  · simp [gemmEpilogue, GemmEpilogue.multiplyStage, GemmEpilogue.addStage, hac, hbc, hcc, hat, hbt, hst, hot, t]
   · have hs : t.scalarError ≤ ad.error + bd.error + sd.error + out.error := by
       change absQ (ac.value * product.output.value - adatum.value) +
         absQ (bc.value * cc.value - bt.value) + absQ (adatum.value + bt.value - st.value) +
