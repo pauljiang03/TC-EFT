@@ -32,7 +32,7 @@
   ],
   "input_sha256": "b4b3dd8afebed92eff562650d11fd2e6ea2330a88a20192084780f8c95fda8ac",
   "output_sha256": "2618a5d29fb1c166e3ebed926dda392f6a0206147a31d57e4ef3742560d3f605",
-  "elapsed_seconds": 5.523,
+  "elapsed_seconds": 6.179,
   "limitations": [
     "Executable comparisons, not additional universal proofs.",
     "Matrix-level instruction semantics; no CUDA memory/lane refinement.",

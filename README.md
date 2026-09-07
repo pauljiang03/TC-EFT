@@ -225,7 +225,6 @@ the explicit finite-domain definitions. Python checks and archived vectors provi
 test evidence. CUTLASS is a reviewed source arithmetic projection; CUDA compilation,
 V100 execution, memory transport, and compiler correspondence remain unvalidated.
 
-Historical `*-validation.json` files retain their original scope and source hashes.
 The latest clean report determines current build evidence. CPU benchmarks remain
 separate from correctness and GPU performance claims.
 
@@ -259,8 +258,8 @@ questions. Neither full paper coverage nor universal physical GPU conformance is
 
 | Source | Pin |
 | --- | --- |
-| Accurate Models | [arXiv:2512.07004v4](2512.07004v4.pdf) |
-| TC-EFT | [Corrected manuscript](tc-eft-corrected.pdf) |
+| Accurate Models | [arXiv:2512.07004v4](https://arxiv.org/abs/2512.07004v4) |
+| TC-EFT | Corrected manuscript; [validation source provenance](tensor-core/vendor/tc-eft-validation/SOURCES.json) |
 | MATLAB Tensor Core v0.5 | `bbcf00a273868172494eaacaa8d6128ab0fb8704`; [source manifest](tensor-core/vendor/SOURCES.json) |
 | CUTLASS v3.5.1 | `f7b19de32c5d1f3cedfc735c2849f12b537522ee`; [configuration and hashes](tensor-core/kernels/cutlass/pin.json) |
 
@@ -286,12 +285,13 @@ tensor-core/
   scripts/                 Independent oracles and validation gates
   kernels/cutlass/         Optional CUDA fixture and pinned headers
   vendor/                  Pinned upstream source and data
-crosschecks/               Optional external Lean comparisons
 tmp/                       Ignored local experiments and output
 ```
 
-Upstream source and licenses are preserved unchanged. Build caches, local probes,
-and generated compiler output stay in ignored `.lake/` and `tmp/` directories.
+Bundled upstream files supply numerical fixtures, source contracts, and validation
+generators; their source and licenses remain unchanged. Research PDFs, external
+comparison projects, and historical handoff reports are excluded. Build caches and
+local experiments stay in ignored `.lake/` and `tmp/` directories.
 
 ## Technical reference
 
@@ -1097,7 +1097,7 @@ still be finite testing, not a universal GPU theorem.
 <summary>Expand reference</summary>
 
 Agent-assisted review begun 6 September and updated 7 September 2026 against the two pinned PDFs in
-[Source pins and layout](#source-pins-and-layout), their rendered figures/tables,
+[Source pins and layout](#source-pins-and-layout), externally obtained manuscripts and figures,
 the vendored MATLAB definitions, and the Lean statements below. This reviews
 mathematical scope and transcription; it is not author sign-off, a novelty review,
 or independent physical validation. No arithmetic behavior was changed to resolve
@@ -1275,238 +1275,5 @@ the FP16 stage order above; the native FP8 output precision (`GEMM.m` reduces th
 width by `neab` when `neab < 0`, which for FP16 output would leave zero fraction bits;
 L40S FP32 rows already prove that the normalized precision reduction matters);
 and the Blackwell FP16-output wrapper.
-
-</details>
-
-### Related work and research positioning
-
-<details>
-<summary>Expand reference</summary>
-
-Literature checked 6 September 2026, using primary papers, official repositories,
-and release documentation. Except for the isolated FLoPS check below, this is a
-scope comparison without an independent build or proof-dependency audit of the
-external projects. **This is not the first
-floating-point theory in Lean**, and formal tensor-core algorithm analysis also
-predates this project.
-
-| Prior work | Established scope and relevance |
-| --- | --- |
-| [FLoPS : Chang, Park, Lim, Nagarakatte](https://arxiv.org/abs/2602.15965), first submitted 17 February 2026, revised 17 May | Lean formalization of P3109 formats, representations, rounding, and numerical algorithms including FastTwoSum and ExtractScalar. Its mathematical treatment of low-precision arithmetic is direct prior art for a general Lean FP theory. Its P3109 semantics should not be substituted for tensor-core shared-grid accumulation. |
-| [FloatSpec](https://github.com/Beneficial-AI-Foundation/FloatSpec) | Ongoing Lean port of Flocq, with executable reference operations and specification layers. Its own progress report identifies unproved theorems and error-analysis stubs. Useful architecture and candidate lemmas; importing a module is not evidence that all its dependencies are proved. |
-| [Flean : McKinsey](https://josephmckinsey.com/flean.html), 20 January 2025; [HOLFloat-Lean](https://github.com/opencompl/HOLFloat-Lean) | Earlier Lean floating-point formalization efforts. The Flean author describes an evolving theory; HOLFloat follows Harrison's floating-point treatment. These are additional prior efforts, without a completeness claim from this review. |
-| [Lean 4.33.0](https://lean-lang.org/doc/reference/latest/releases/v4.33.0/#float-is-no-longer-opaque), 10 August 2026 | Adds logical models behind `Float` and `Float32`, with arithmetic, comparisons, and conversions. The release explicitly distinguishes these models from a complete FP mathematics library. Our installed 4.33.1 includes scalar add/subtract/multiply/divide/square-root definitions; a bridge to our finite-range semantics still needs proof. |
-| [ARCH HDL : Zhao](https://arxiv.org/abs/2607.23715), 26 July 2026 | Reports Lean proofs of FP32 multiplication/FMA rounding and a bounded FMA refinement, alongside SMT/RTL verification for other operators. This is prior Lean verification of basic FP operations, with a different hardware target and split verification method. |
-| [Valpey, Li, Pai, Gopalakrishnan, NFM 2025](https://arxiv.org/abs/2502.15999), first submitted 21 February 2025 | Earlier SMT tensor-core models and correction-algorithm analysis. Their counterexample is relative to their numerical model. Accurate Models v4 corrects earlier characterizations; its Table 5 records missing denormalized-product and alignment-limit behavior in this work. It is historical formal-methods precedent, not this project's numerical authority. |
-| [Flocq : Boldo and Melquiond, 2011](https://guillaume.melquiond.fr/doc/11-arith20-article.pdf); [VCFloat2 : Appel and Kellison, CPP 2024](https://www.cs.princeton.edu/~appel/papers/vcfloat2.pdf) | Coq/Rocq precedents: a general FP theory and sound automated roundoff analysis, including interfaces for user-defined functions. They inform how local arithmetic contracts can support program-level error bounds. |
-| [TorchLean verification documentation](https://lean-dojo.github.io/TorchLean/blueprint/Verification-and-Certificates/Neural-Network-Verification/) | Lean neural-network verification with explicit finite-precision refinement obligations. Its distinction between real-valued analysis, encoded execution, and error transfer is relevant to a future integration; it supplies no implicit theorem about a vendor tensor-core schedule. |
-
-The supported description of this project's contribution is an executable Lean
-formalization of the specified tensor-core arithmetic, with parametric proofs,
-encoded-boundary composition, complete bounded EFT, and kernel-checked raw/scaled
-matrix accuracy certificates. Mixed scalar/tensor-core execution already exists in
-the explicit scaled-GEMM pipeline; general adaptive programs remain a research
-direction. A narrower priority claim, such as the first Lean mechanization of a
-particular paper's model, has not been established by this review. General FP,
-error-free transformations, and tensor-core correction analysis are not new here.
-
-[Accurate Models v4, Section 4.4 and Table 5](https://arxiv.org/html/2512.07004v4#S4.SS4)
-distinguishes the corrected numerical model from earlier descriptions, including
-the SMT work. Proofs about an earlier model do not establish agreement with the
-corrected specification. Here, Accurate Models remains the numerical authority;
-Lean checks consequences of our explicit definitions. Faithfulness to the paper
-and coverage of its complete statements require a separate source-to-code review.
-
-There is deliberate overlap with FLoPS in the standard representation and rounding
-mathematics. Our foundation uses executable rationals and IEEE-style finite
-encodings on Lean core; FLoPS's abstract layer uses Mathlib reals, and its separate
-encoding layer targets P3109. P3109 encodings cannot serve as IEEE bit-pattern
-oracles. The tensor-core shared-grid accumulator, machine refinement, recovery,
-composition, and accuracy certificates require their own semantics and proofs.
-
-FLoPS's `ExtractScalar_properties` is also a useful reference for alternative bounded
-scalar extractors: its exact split and residual bound have explicit representability,
-power-of-two scale, and input-size hypotheses. Reusing that theorem would require
-a general representation bridge. This project's generic directed-rounding proofs
-and finite encode/decode bijections are now proved independently of that bridge.
-
-</details>
-
-### Independent Lean check against FLoPS
-
-<details>
-<summary>Expand reference</summary>
-
-The isolated [checker](crosschecks/flops/check.py) uses the original
-[FLoPS Core rounding definitions and theorems](https://github.com/rutgers-apl/FLoPS/blob/95081ac643663da507115abe23ebd5701433587f/Flops/Core/RoundOp.lean),
-without changing them or adding a Mathlib dependency to the main project. It checks
-the committed source pinned in [pins.json](crosschecks/flops/pins.json), independently
-of work in progress. Each project runs under its own pinned Lean version.
-
-The [saved report](crosschecks/flops/report.json), checked 6 September 2026,
-records **1,176 passing comparisons**: 49 exact rational inputs per format, each
-under all four modes, for FP16, BF16, packed TF32 (`tf19`), FP32, FP64, and E5M2.
-Cases cover both signs, zero, subnormal boundaries, even/odd ties, exponent carry,
-the largest finite value, non-dyadic fractions, and seeded inputs. All 2,352
-generated theorem roots passed the axiom audit; both deliberately wrong results
-were rejected. The checked numerical foundation files at `49a310c` are unchanged
-in the later review-fix commit `ed4b0fc`.
-
-For every case, our Lean proves the encoded result of `roundBinary` and its decoded
-value. FLoPS's Lean proves equality with its own rounding function and applies its
-nearest-even, toward-zero, round-down, or round-up correctness theorem. Python only
-proposes exact rational inputs and result witnesses; Lean checks those proposals.
-The translation uses precision `fractionBits + 1` and minimum coefficient exponent
-`1 - bias - fractionBits` (−149 for FP32). It uses the format-agnostic abstract core,
-not P3109 bit encodings.
-
-Run from the repository root with Python 3.9+, Git, curl, and elan installed:
-
-```sh
-elan toolchain install leanprover/lean4:v4.33.1
-elan toolchain install leanprover/lean4:v4.28.0
-python3 crosschecks/flops/check.py
-```
-
-The first run downloads pinned FLoPS/Mathlib sources and the Mathlib proof cache.
-Sources, generated Lean proofs, fixtures, logs, and the current report stay under
-ignored `tmp/flops-crosscheck/`. `--formats fp32` runs only the FP32 subset. The
-checker verifies the FLoPS archive hash and original source contents, audits every
-generated theorem for the standard Lean axioms, and requires deliberately wrong
-results to fail on both sides.
-
-This is concrete cross-validation, not a theorem of equivalence for all inputs.
-FLoPS's abstract core has no upper exponent bound and does not distinguish signed
-zeros, so the comparison is of finite values within our accepted range. Overflow,
-NaNs, infinities, E4M3 encodings, separate scalar-operation/error-bound contracts,
-and tensor-core shared-grid truncation are outside this check. The tensor-core
-specification remains Accurate Models; this check requires no GPU.
-
-</details>
-
-### Reasoning about computations that use tensor cores
-
-<details>
-<summary>Expand reference</summary>
-
-The existing downstream interface is `Program.Accurate`: successful execution
-and an absolute error bound against the independently decoded original-input
-ideal. The bounded-dot and changing-state schedule theorems already provide
-instances. A consumer can use this contract without unfolding alignment or
-enumerating execution traces.
-
-This use does not require extracting an individual block's output from a running
-GPU. Intermediate accumulators can remain mathematical states in the proof.
-`runBlocks_uncorrected_error` composes local errors across encoded boundaries;
-`runBlocks_of_scale_bound` derives successful execution and a final error bound
-from operand scales, group counts, and accumulator headroom, without evaluating
-the intermediate outputs. Applying TC-EFT correction inside an opaque sequence
-and proving a bound on that sequence are separate tasks.
-
-For a specified matmul schedule, each output entry is an ordered sequence of such
-blocks. The matrix corollary is
-`abs(D[i,j] - (A*B + C)[i,j]) ≤ sum_t e[i,j,t]`, where `e[i,j,t]` bounds each local
-error. Here `A`, `B`, and `C` denote decoded inputs;
-conversion from earlier values requires its own error accounting. Matrix indexing,
-tile/reduction order, padding, and any scalar epilogue must be specified and
-connected to these schedules. The WMMA simulator supplies this mapping, the
-entrywise bound, and input-derived acceptance/error certificates for encoded FP16
-`A`, `B` and FP32 `C`. It also supplies an entrywise 1-norm corollary and a separate
-scaled pipeline with input-derived certificates through input conversion, every scalar
-stage, and output conversion, relative to the decoded source-format matrices.
-The Accurate Models GEMM
-schedule is not an implicit specification of every CUDA library's matmul kernel.
-
-**Public schedules.** Sources checked 6 September 2026 distinguish three layers:
-
-| Layer | What is available for a formal model |
-| --- | --- |
-| [CUTLASS/CuTe kernel source](https://docs.nvidia.com/cutlass/latest/media/docs/cpp/gemm_api_3x.html) | A chosen configuration exposes the tile and operand mappings, K-loop, MMA calls, synchronization, and epilogue. This supplies a concrete arithmetic dependency graph to translate into Lean. |
-| [PTX instruction contract](https://docs.nvidia.com/cuda/parallel-thread-execution/index.html) | Specifies instruction shapes and execution requirements, but leaves accumulation order, rounding, and subnormal handling unspecified for the relevant low-precision MMA paths. Accurate Models supplies our numerical specification inside each instruction. |
-| [cuBLAS/cuBLASLt API](https://docs.nvidia.com/cuda/cublas/) | Exposes algorithm selection and options such as split-K count and reduction scheme, rather than a complete, stable arithmetic graph for every call. A library name or GEMM shape alone does not identify the schedule. |
-
-The proof needs arithmetic dependencies and rounding boundaries, not cycle-by-cycle
-GPU scheduling. Properly synchronized workers producing disjoint output tiles may
-execute in any order without changing those entries' arithmetic. Split-K and atomic
-updates to a shared output require a specified reduction order, or a bound proved
-for every permitted order. A composition can be a dependency graph with shared
-values, rather than a single reduction tree. Public source makes the graph
-inspectable; correspondence with the compiled instructions remains a separate
-obligation, not something established by reading the source alone.
-
-**First source projection, completed with restrictions.** The
-[pinned CUTLASS connection](#pinned-cutlass-connection) uses Sm70 WMMA, sequential
-full K tiles, zero initial accumulators, and an identity epilogue. Its reviewed
-arithmetic projection agrees with the existing matrix model. Partial-K handling,
-compiler/flags validation, memory/lane transport and physical execution remain
-explicit obligations. General `alpha`, `beta`, conversions, or a fused epilogue
-must be connected in their actual source order; the current configuration has
-no such stages. Matrix acceptance/error theorems are available for the matching
-raw schedule, subject to their input-derived checks.
-
-For example, on the bounded-dot input family, `abs(d − S) ≤ 1/2048`. It follows
-mathematically that `d > 1/2048` certifies `S > 0`, and `d < −1/2048` certifies
-`S < 0`. This would support a margin-certified dot-product decision; a dedicated
-decision API and theorem have not yet been added. Input conversion error is
-separate if `S` is intended to describe real inputs before FP16 encoding.
-
-For composition with a scalar function `f`, the target rule is:
-
-```text
-abs(d − S) ≤ E
-abs(f(x) − f(y)) ≤ L * abs(x − y) on a proved input interval
-abs(z − f(d)) ≤ δ for the encoded scalar implementation
-----------------------------------------------------------------
-abs(z − f(S)) ≤ δ + L * E
-```
-
-Both `d` and `S` must lie in that interval, and every operation must satisfy its
-range conditions. This proposed rule explains why downstream errors are not
-always just a sum: later multiplication or division can amplify earlier error.
-Shared-grid tensor-core truncation retains its own local contract throughout.
-
-| Proposed application | Existing foundation | Additional obligation |
-| --- | --- | --- |
-| Matrix multiplication or a linear layer | WMMA simulation, proved indexing, input-derived raw/scaled-matrix certificates against original source-format inputs, entrywise 1-norm bounds, and separately rounded scaling/conversions | Tighter raw tensor-core budgets, induced norms, and compiled-kernel/memory correspondence |
-| Mixed scalar/tensor-core correction | Complete bounded EFT, encoded scalar operations, universal bit refinement, input-derived success families, and operation budgets | Compose correction with the selected instruction schedule; optimized machine lowering and performance evidence |
-| Schedule or precision changes | Explicit grouping, scale-sensitive semantics, non-monotonicity regressions | Prove equivalence under stated conditions or prove both implementations meet a tolerance; real-algebraic equality alone is insufficient |
-| Stable decisions or iteration | Certified absolute error and changing-state bounds | A decision margin, or an invariant with amplification/contraction bounds; adaptive operands need a richer AST |
-
-**Promising research questions.** These are proposed extensions, not established
-results or priority claims:
-
-- **Explain and bound the multi-word GEMM accuracy reversal.**
-  [Accurate Models v4, Section 5](https://arxiv.org/html/2512.07004v4#S5)
-  reports lower error for V100 in some FP16 multi-word experiments despite newer
-  models having more alignment bits. It suggests an interaction with final
-  toward-zero rounding, observes improvement in a modified B200 model using final
-  nearest rounding, and leaves further analysis open. A useful result would give
-  an explicit input family and conditions for the reversal, then prove a remedy's
-  scope. The reported errors use MATLAB binary64 GEMM as reference; our theorem
-  should state its independent exact-input ideal. Changing final rounding is a
-  hypothetical model variant, not an assumed hardware option or a universal fix.
-- **Recheck algorithm comparisons under the corrected semantics.**
-  [Valpey et al., Section 6](https://arxiv.org/html/2502.15999v1#S6)
-  encoded Markidis and Ootomo–Yokota correction schemes and found inputs where the
-  former gives lower absolute error for one output entry, against a binary64
-  dot-product reference. This refutes universal accuracy dominance within their
-  model and input domain; it is not an average-accuracy or performance result.
-  Re-evaluate the witness under Accurate Models, kernel-check any surviving
-  counterexample, and seek a general family or sufficient accuracy conditions.
-  Corrections to the earlier model do not by themselves invalidate every witness.
-- **Certify useful schedule or precision choices.** Prove conditions under which
-  regrouping, moving `C`, residual scaling, or scalar consolidation preserves an
-  answer or meets a tolerance. TC-EFT Algorithm 1 already supplies a guard/fallback
-  correction design, now with bounded operations, input-derived success families,
-  and source-level cost budgets. Optimized schedule choices still need refinement
-  and performance evidence. A separate tolerance policy could accept
-  an uncorrected matmul using its proved error bound. Neither policy follows from
-  exact real-algebraic equivalence alone.
-
-These extensions can follow the scoped artifact release unless its claims require
-them. Complete paper coverage retains the obligations listed above. Existing Lean FP libraries
-are candidates for reuse; their domains, zero policies, rounding modes, and proof
-dependencies must match through explicit bridge theorems. No additional GPU
-evidence is required for results about the paper's model.
 
 </details>

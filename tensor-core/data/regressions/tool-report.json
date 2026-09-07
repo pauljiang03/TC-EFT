@@ -11,7 +11,7 @@
   "readme_local_links": true,
   "source_sha256": {
     "tc": "0345bfdf0925ff2923b454d145aa73fe375c45d3498e94e5b2d209a6e24a0e02",
-    "README.md": "842e460433fb2535fc4f20e1cd59570f3ad4a9885abafdf37b1fc748add36148",
+    "README.md": "ce06caabb246cd1b710dc4a37efe22457f2952f6d9b142f7781284a39fb5295c",
     "tensor-core/GemmMain.lean": "b0e7f4cb31d5be76810103940cf55e63c9c9412fd14d4d959d3989282bae96ec",
     "tensor-core/TensorCore/Cli/Gemm.lean": "b98167726a358c96c8d1b9e5a54a7f05f6cfa7df7434591f8220cc76e0a43a00",
     "tensor-core/lakefile.toml": "789ef9d9cacca28e67008e75165b9dedabd5825ccdc0d74cfe631c2080a4a145",

@@ -27,10 +27,8 @@ def source_manifest(directory):
 def repository_manifest(directory):
     result = {'tensor-core/' + name: digest
               for name, digest in source_manifest(directory / 'tensor-core').items()}
-    for name in ['tc', 'README.md', '.gitignore', '2512.07004v4.pdf', 'tc-eft-corrected.pdf']:
+    for name in ['tc', 'README.md', '.gitignore']:
         result[name] = hashlib.sha256((directory / name).read_bytes()).hexdigest()
-    result.update({'crosschecks/' + name: digest
-                   for name, digest in source_manifest(directory / 'crosschecks').items()})
     return result
 
 
@@ -107,7 +105,7 @@ if not report['snapshot_stable'] or not report['workspace_matches_snapshot']:
     report['publication_skipped'] = True
     (root / 'tmp/clean-build-unpublished.json').write_text(json.dumps(report, indent=2) + '\n')
     raise SystemExit(f'Source changed during validation; reports not published. Validated copy retained: {target}')
-# Publish reports from the same fresh source run; handoff manifests remain historical.
+# Publish reports from the same fresh source run.
 generated = ['docs/axioms.txt', 'data/hardware/inputs.json', 'data/hardware/expected.json',
              'data/hardware/replay-self-test.json']
 generated += ['data/regressions/' + name for name in [

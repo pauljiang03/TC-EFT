@@ -4,7 +4,7 @@
   "date": "2026-09-07",
   "human_author_signoff": "pending",
   "full_formalization_of_either_paper": false,
-  "readme_claim_section_sha256": "1182f88418277a9cd9603eeba17da55eef1b28021f2f50e6ff13ffee6fd40487",
+  "readme_claim_section_sha256": "595c221e632f9b60b0f564a57419006a371f4ad1bba25c2529d2e646021debbe",
   "paper_sha256": {
     "tc-eft-corrected.pdf": "e9b19e9766974d64dad081ea1107bb6d54c6aff8a1fd0620ce9fb13dbd497b3e",
     "2512.07004v4.pdf": "20c0594f2f91b8df7618e6d6bd00a04ee0b7bf557a5ce19d08927241f78fdee4"
@@ -233,7 +233,8 @@
     "Tighter original-source GEMM certificates with unchanged acceptance",
     "Pinned CUTLASS v3.5.1 arithmetic projection and input-only accuracy bridge"
   ],
-  "previous_readme_claim_section_sha256": "6b0b14a75a1b967580f089ce42e7b55988c7b51f5dd323ddfd9c6bd89a4f61ed",
+  "previous_readme_claim_section_sha256": "1182f88418277a9cd9603eeba17da55eef1b28021f2f50e6ff13ffee6fd40487",
   "readme_claim_hash_scope": "UTF-8 text after the ### Paper claim review heading and before the next ### heading, including the details wrapper",
-  "formatting_review": "The paper claim tables and reviewed arithmetic sources are unchanged; README navigation and presentation were reorganized."
+  "formatting_review": "Claim tables and reviewed arithmetic sources are unchanged. Reference PDFs and external comparisons are excluded from the distribution.",
+  "paper_files_bundled": false
 }

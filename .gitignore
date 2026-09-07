@@ -2,3 +2,5 @@ tmp/
 .lake/
 .DS_Store
 __pycache__/
+/*.pdf
+/crosschecks/

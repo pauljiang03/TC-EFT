@@ -1,7 +1,0 @@
-{
-  "tc_commit": "49a310c2a9ede045bc38cb3dd8df3551eaa72718",
-  "flops_commit": "95081ac643663da507115abe23ebd5701433587f",
-  "flops_archive_sha256": "2cee20fdc32ccbf09e1bea85e512291131c2c521d207ba056d1ef73a39f71ab6",
-  "tc_lean": "leanprover/lean4:v4.33.1",
-  "flops_lean": "leanprover/lean4:v4.28.0"
-}

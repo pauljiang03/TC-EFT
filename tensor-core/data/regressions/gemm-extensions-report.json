@@ -212,7 +212,7 @@
     "scripts/check_features.py": "ac24baa73a45a5754c8087b6b5cde67b908e421811d4b89bcba9cad2dee995e3",
     "scripts/check_gemm_extensions.py": "60561b7a17c79f43fcee518251bf07c39ffedd9764a5f20eb6064042fa23a7f7"
   },
-  "elapsed_seconds": 381.667,
+  "elapsed_seconds": 380.647,
   "limitations": [
     "Independent implementation of the same numerical specification; no new GPU data.",
     "Scalar exact zeros canonicalize to +0; finite reference domain.",
