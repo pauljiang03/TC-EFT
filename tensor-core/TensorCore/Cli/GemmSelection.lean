@@ -1,5 +1,5 @@
 import TensorCore.Programs.CostSelection
-import TensorCore.Cli.ExtendedAnalysis
+import TensorCore.Cli.NativePipeline
 import TensorCore.Cli.GemmInput
 import TensorCore.Cli.PipelineAnalysis
 
@@ -13,17 +13,15 @@ def allowedKeys (input : Json) (allowed : List String) : Except String Unit := d
     if !allowed.contains key then throw s!"Unexpected selection field: {key}"
 
 def candidate (kind : String) (input : Json) : Except String GemmCandidate := do
-  if kind == "scaled" then
-    allowedKeys input ["model", "input_mode", "multiply_mode", "add_mode"]
-    return ⟨← model (← input.getObjValAs? String "model"),
-      ← mode (← input.getObjValAs? String "input_mode"),
-      ← mode (← input.getObjValAs? String "multiply_mode"),
-      ← mode (← input.getObjValAs? String "add_mode"), false⟩
-  else
-    allowedKeys input ["model"]
-    let name ← input.getObjValAs? String "model"
-    if kind == "native" && name == "hopper_mma" then return { model := .hopper, nativeMma := true }
-    return { model := ← model name }
+  let scaled := kind == "scaled" || kind == "native_scaled"
+  let native := kind == "native" || kind == "native_scaled"
+  allowedKeys input (["model"] ++ if scaled then ["input_mode", "multiply_mode", "add_mode"] else [])
+  let name ← input.getObjValAs? String "model"
+  let architecture ← if native && name == "hopper_mma" then pure WmmaGemmModel.hopper else model name
+  let im ← if scaled then mode (← input.getObjValAs? String "input_mode") else pure .nearestEven
+  let mm ← if scaled then mode (← input.getObjValAs? String "multiply_mode") else pure .nearestEven
+  let am ← if scaled then mode (← input.getObjValAs? String "add_mode") else pure .nearestEven
+  return ⟨architecture, im, mm, am, native && name == "hopper_mma"⟩
 
 def problem (input : Json) (m n k : Nat) : Except String (GemmProblem m n k) := do
   let kind ← input.getObjValAs? String "operation"
@@ -41,6 +39,16 @@ def problem (input : Json) (m n k : Nat) : Except String (GemmProblem m n k) := 
     return .native p (← words p.format.width m k (← input.getObjValAs? (Array Nat) "a"))
       (← words p.format.width k n (← input.getObjValAs? (Array Nat) "b"))
       (← words 32 m n (← input.getObjValAs? (Array Nat) "c"))
+  else if kind == "native_scaled" then
+    allowedKeys input (base ++ ["precision", "a", "b", "c", "input_format", "output_format", "output_mode", "alpha", "beta"])
+    if (← input.getObjValAs? String "output_format") != "fp32" then throw "Native selection requires FP32 output"
+    let precision ← ExtendedAnalysis.precision (← input.getObjValAs? String "precision")
+    let source ← NativePipeline.sourceFormat (← input.getObjValAs? String "input_format")
+    return .nativeScaled precision source (← mode (← input.getObjValAs? String "output_mode"))
+      (← scalar input "alpha") (← scalar input "beta")
+      (← words source.width m k (← input.getObjValAs? (Array Nat) "a"))
+      (← words source.width k n (← input.getObjValAs? (Array Nat) "b"))
+      (← words 32 m n (← input.getObjValAs? (Array Nat) "c"))
   else if kind == "raw" then
     allowedKeys input (base ++ ["a", "b", "c"])
     return .raw (← words 16 m k (← input.getObjValAs? (Array Nat) "a"))
@@ -55,7 +63,7 @@ def problem (input : Json) (m n k : Nat) : Except String (GemmProblem m n k) := 
       (← words source.width m k (← input.getObjValAs? (Array Nat) "a"))
       (← words source.width k n (← input.getObjValAs? (Array Nat) "b"))
       (← words 32 m n (← input.getObjValAs? (Array Nat) "c"))
-  else throw "Expected selection workload operation raw, scaled, family, entry_family, or native"
+  else throw "Expected selection workload operation raw, scaled, family, entry_family, native, or native_scaled"
 
 def analysis (p : GemmProblem m n k) (c : GemmCandidate) (tol : Rat) : Json :=
   match p with
@@ -66,6 +74,9 @@ def analysis (p : GemmProblem m n k) (c : GemmCandidate) (tol : Rat) : Json :=
   | .entryFamily f => ExtendedAnalysis.entryReport c.model f tol
   | .native precision A B C => match c.nativeModel precision with
     | some model => ExtendedAnalysis.nativeReport model A B C tol
+    | none => Json.mkObj [("accepted", toJson false), ("reason", toJson "unsupported_native_model")]
+  | .nativeScaled precision source outputMode alpha beta A B C => match c.nativeModel precision with
+    | some model => NativePipeline.report source c.inputMode model (c.nativeEpilogue outputMode) alpha beta A B C tol
     | none => Json.mkObj [("accepted", toJson false), ("reason", toJson "unsupported_native_model")]
 
 def executionRequest (workload config : Json) : Except String Json := do
@@ -90,7 +101,7 @@ def evaluate (input : Json) : Except String Json := do
   if configs.isEmpty then throw "Selection requires at least one candidate"
   let candidates ← configs.toList.mapM (candidate kind)
   let tol ← Analysis.tolerance input
-  if kind == "native" then
+  if kind == "native" || kind == "native_scaled" then
     let precision ← ExtendedAnalysis.precision (← workload.getObjValAs? String "precision")
     for c in candidates do
       if (c.nativeModel precision).isNone then throw "Unsupported native candidate"

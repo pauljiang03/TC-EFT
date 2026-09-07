@@ -1,10 +1,11 @@
 import Lean
 import TensorCore.PaperSpec.NegativeControls
 import TensorCore.Regression.FoundationCompletion
+import TensorCore.PaperSpec.NativeScaledGemmEquivalence
 
 /-! A compiled-dependency audit of the independently defined specification.
 It examines declaration types and bodies (including propositions and proofs),
-and permits only the five specification modules and Lean's standard library.
+and permits only the listed specification modules and Lean's standard library.
 The bridge modules are deliberately outside this allowlist. -/
 
 open Lean Elab Command
@@ -13,7 +14,8 @@ namespace TensorCore.PaperSpec.Audit
 
 def specificationModules : List Name :=
   [`TensorCore.PaperSpec.Definition, `TensorCore.PaperSpec.Profiles,
-    `TensorCore.PaperSpec.Schedule, `TensorCore.PaperSpec.Matrix, `TensorCore.PaperSpec.Scalar]
+    `TensorCore.PaperSpec.Schedule, `TensorCore.PaperSpec.Matrix, `TensorCore.PaperSpec.Scalar,
+    `TensorCore.PaperSpec.NativeMatrix, `TensorCore.PaperSpec.NativeScaledMatrix]
 
 def moduleOf (env : Environment) (n : Name) : Option Name := do
   let idx ← env.getModuleIdxFor? n

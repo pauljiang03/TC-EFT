@@ -63,7 +63,7 @@ commands += [['python3', 'scripts/check_reviewer.py'], ['python3', 'scripts/chec
 commands += [['python3', 'scripts/check_tool.py']]
 commands += [['python3', 'scripts/check_analysis.py'], ['python3', 'scripts/check_pipeline_analysis.py']]
 commands += [['python3', 'scripts/check_selection.py'], ['python3', 'scripts/check_decision_extensions.py']]
-commands += [['python3', 'scripts/check_review_claims.py']]
+commands += [['python3', 'scripts/check_native_scaled.py'], ['python3', 'scripts/check_review_claims.py']]
 # Enumerate the copied examples so concurrent workspace edits do not change this run.
 commands += [['lake', 'env', 'lean', str(p.relative_to(target))]
              for p in sorted((target / 'examples').glob('*.lean'))
@@ -92,6 +92,7 @@ report.update(certificate_checks=json.loads(logs[8]), application_checks=json.lo
               gemm_checks=json.loads((target / 'data/regressions/gemm-report.json').read_text()),
               gemm_extension_checks=json.loads((target / 'data/regressions/gemm-extensions-report.json').read_text()),
               reviewer_checks=json.loads((target / 'data/regressions/reviewer-report.json').read_text()),
+              native_scaled_checks=json.loads((target / 'data/regressions/native-scaled-report.json').read_text()),
               review_claim_checks=json.loads((target / 'data/regressions/review-claims-report.json').read_text()),
               tool_checks=json.loads((target / 'data/regressions/tool-report.json').read_text()),
               analysis_checks=json.loads((target / 'data/regressions/analysis-report.json').read_text()),
@@ -124,7 +125,7 @@ generated += ['data/regressions/' + name for name in [
     'eft-paper-cases.json', 'eft-paper-original.json', 'eft-paper-second-pass.json', 'paper-spec-report.json',
     'device-fp8-report.json', 'gemm-report.json', 'gemm-extensions-report.json', 'bounded-eft-report.json',
     'reviewer-report.json', 'cutlass-report.json', 'tool-report.json', 'analysis-report.json', 'pipeline-analysis-report.json',
-    'selection-report.json', 'decision-extensions-report.json', 'review-claims-report.json']]
+    'selection-report.json', 'decision-extensions-report.json', 'review-claims-report.json', 'native-scaled-report.json']]
 for name in generated:
     shutil.copyfile(target / name, root / name)
 (root / 'data/regressions/clean-build.json').write_text(json.dumps(report, indent=2) + '\n')

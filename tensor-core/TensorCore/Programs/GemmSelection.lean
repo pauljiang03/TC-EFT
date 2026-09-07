@@ -1,6 +1,6 @@
 import TensorCore.Programs.ConvertedGemmAnalysis
 import TensorCore.Programs.EntryFamily
-import TensorCore.Programs.NativeGemm
+import TensorCore.Programs.NativeConvertedAnalysis
 
 namespace TensorCore
 
@@ -14,6 +14,9 @@ structure GemmCandidate where
 
 def GemmCandidate.epilogue (c : GemmCandidate) : GemmEpilogue :=
   ⟨c.multiplyMode, c.addMode, ⟨fp32, .nearestEven⟩⟩
+
+def GemmCandidate.nativeEpilogue (c : GemmCandidate) (outputMode : BinaryRoundingMode) : GemmEpilogue :=
+  ⟨c.multiplyMode, c.addMode, ⟨fp32, outputMode⟩⟩
 
 def GemmCandidate.nativeModel (c : GemmCandidate) (p : NativePrecision) : Option (NativeGemmModel p) :=
   match p, c.model, c.nativeMma with
@@ -31,6 +34,9 @@ inductive GemmProblem (m n k : Nat) where
   | entryFamily (bounds : EntryFamily m n k)
   | native (precision : NativePrecision) (A : DenseMatrix (NativeWord precision) m k)
       (B : DenseMatrix (NativeWord precision) k n) (C : DenseMatrix F32 m n)
+  | nativeScaled (precision : NativePrecision) (source : Format) (outputMode : BinaryRoundingMode) (alpha beta : F32)
+      (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
+      (C : DenseMatrix F32 m n)
 
 def GemmProblem.Accurate (p : GemmProblem m n k) (c : GemmCandidate) (tol : Rat) : Prop :=
   match p with
@@ -40,10 +46,13 @@ def GemmProblem.Accurate (p : GemmProblem m n k) (c : GemmCandidate) (tol : Rat)
   | .family f => GemmFamilyAccurate c.model f m n k tol
   | .entryFamily f => EntryFamilyAccurate c.model f tol
   | .native precision A B C => ∃ model, c.nativeModel precision = some model ∧ NativeGemmAccurate model A B C tol
+  | .nativeScaled precision source outputMode alpha beta A B C => ∃ model,
+    c.nativeModel precision = some model ∧
+    NativeConvertedGemmAccurate source c.inputMode model (c.nativeEpilogue outputMode) alpha beta A B C tol
 
 def GemmProblem.Witness : GemmProblem m n k → Type
   | .raw .. => DenseMatrix (List GroupWitness) m n
-  | .scaled .. => DenseMatrix ScaledWitness m n
+  | .scaled .. | .nativeScaled .. => DenseMatrix ScaledWitness m n
   | .family .. => GemmBoundConfig
   | .entryFamily .. => DenseMatrix GemmBoundConfig m n
   | .native .. => DenseMatrix (List GroupWitness) m n
@@ -68,6 +77,12 @@ def GemmProblem.infer (p : GemmProblem m n k) (c : GemmCandidate) : Option p.Wit
     if cells.toArray.all (fun row => row.toArray.all Option.isSome) then
       some (cells.map fun row => row.map fun a => (a.map (·.witness)).getD [])
     else none
+  | .nativeScaled precision source outputMode alpha beta A B C => do
+    let model ← c.nativeModel precision
+    let cells ← analyzeNativeConvertedGemm source c.inputMode model (c.nativeEpilogue outputMode) alpha beta A B C
+    if cells.toArray.all (fun row => row.toArray.all Option.isSome) then
+      some (cells.map fun row => row.map fun a => (a.map (·.witness)).getD ⟨[], ⟨0, 0, 0, 0⟩⟩)
+    else none
 
 def GemmProblem.check (p : GemmProblem m n k) (c : GemmCandidate) (w : p.Witness)
     (tol : Rat) : Bool :=
@@ -79,6 +94,9 @@ def GemmProblem.check (p : GemmProblem m n k) (c : GemmCandidate) (w : p.Witness
   | .entryFamily f => entryFamilyCheck c.model f w tol
   | .native precision A B C =>
     ((c.nativeModel precision).map fun model => nativeAnalysisCheck model A B C w tol).getD false
+  | .nativeScaled precision source outputMode alpha beta A B C =>
+    ((c.nativeModel precision).map fun model =>
+      nativeConvertedAnalysisCheck source c.inputMode model (c.nativeEpilogue outputMode) alpha beta A B C w tol).getD false
 
 theorem GemmProblem.check_sound (p : GemmProblem m n k) (c : GemmCandidate) (w : p.Witness)
     (tol : Rat) (h : p.check c w tol = true) : p.Accurate c tol := by
@@ -92,6 +110,11 @@ theorem GemmProblem.check_sound (p : GemmProblem m n k) (c : GemmCandidate) (w :
     cases hm : c.nativeModel precision with
     | none => simp [check, hm] at h
     | some model => exact ⟨model, hm, nativeAnalysisCheck_sound model A B C w tol (by simpa [check, hm] using h)⟩
+  | nativeScaled precision source outputMode alpha beta A B C =>
+    cases hm : c.nativeModel precision with
+    | none => simp [check, hm] at h
+    | some model => exact ⟨model, hm, nativeConvertedAnalysisCheck_sound source c.inputMode model
+        (c.nativeEpilogue outputMode) alpha beta A B C w tol (by simpa [check, hm] using h)⟩
 
 def candidateCertified (p : GemmProblem m n k) (tol : Rat) (c : GemmCandidate) : Bool :=
   ((p.infer c).map fun w => p.check c w tol).getD false

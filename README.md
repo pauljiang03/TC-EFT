@@ -54,16 +54,17 @@ and correction contracts. Pinned source discrepancies remain explicit.
 | Input arithmetic | Block proofs and independent equivalence | Native GEMM with FP32 output |
 | --- | --- | --- |
 | FP16 | Complete for the selected V100, Ampere, and Hopper families | Complete under three explicit WMMA schedules |
-| BF16 | Complete for the selected Ampere and Hopper families | Raw `AB+C`, analysis, and selection under two WMMA schedules |
-| TF32 | Complete for Ampere and Hopper WMMA/MMA paths | Raw `AB+C`, analysis, and selection under three schedules |
+| BF16 | Complete for the selected Ampere and Hopper families | Raw and scaled GEMM, source-relative analysis, and selection under two WMMA schedules |
+| TF32 | Complete for Ampere and Hopper WMMA/MMA paths | Raw and scaled GEMM, source-relative analysis, and selection under three schedules |
 | FP8 | Separate candidate models and partial coverage | Outside the primary scope |
 
 FP16 GEMM supports arbitrary dimensions, ordered encoded accumulators, input
 conversion, raw `AB+C`, separately rounded `alpha*AB+beta*C`, and source-relative
 error certificates. Converting BF16 or FP32 source matrices to FP16 does not
 provide native BF16 or TF32 multiplication. The separate `native` operation uses
-encoded BF16 or packed TF32 directly. Native scaled epilogues and source-to-native
-conversion certificates remain extensions.
+encoded BF16 or packed TF32 directly. `native_scaled` converts the declared source
+format to BF16 or TF32, then applies the complete FP32 scalar epilogue. Both paths
+have independent-specification equivalence and source-relative error certificates.
 
 **Domain.** Nonfinite operands and conversions beyond the destination's maximum
 finite magnitude are rejected. Exact arithmetic zero produces +0; negative
@@ -94,12 +95,14 @@ GEMM are outside these contracts.
 
    ```sh
    ./tc gemm tensor-core/data/examples/gemm.native.jsonl
+   ./tc gemm tensor-core/data/examples/gemm.native-scaled.jsonl
    ./tc analyze tensor-core/data/examples/gemm.entry-family.jsonl --abs-tol 0.001
    ./tc select tensor-core/data/examples/gemm.cost-selection.jsonl --abs-tol 0.001 --emit tmp/cost.lean
    ./tc verify tmp/cost.lean
    ```
 
-   Expect five native results equal to one, a certified family, and selected index
+   Expect five raw native results equal to one, five scaled native results equal
+   to five, a certified family, and selected index
    `2` (Hopper TF32 MMA, supplied cost `1`). Inspect the certificate's fixed inputs,
    candidates, costs, tolerance, and `decision0`, `selection0`, and `accuracy0` theorems.
 5. Run `./tc audit` and `./tc check`. Review the generated reports below.
@@ -147,7 +150,7 @@ still establish that the statements express the intended claims.
 | C07. Eq.20 and extraction | Every permitted coarse extraction grid; Eq.20 supplies the coefficient budget for exact scalar summation. Minimum grid, finite magnitude, and guarded component representability remain hypotheses. | [`TensorCore.ExtractionGrid.eq20_exact_sum`](tensor-core/TensorCore/Programs/ExtractionGrid.lean), [`TensorCore.ExtractionGrid.eq20_scalarPredicate`](tensor-core/TensorCore/Programs/ExtractionGrid.lean), [`TensorCore.ExtractionGrid.recovery`](tensor-core/TensorCore/Programs/ExtractionGrid.lean) |
 | C08. Program composition | Typed invocations expose exact loss/recovery; ordered programs and bounded repetitions have sufficient scale and headroom contracts. Adaptive branching is outside this API. | [`TensorCore.evalInvocation_recovery`](tensor-core/TensorCore/Theory/Invocation.lean), [`TensorCore.Program.repeat_accurate_of_scales`](tensor-core/TensorCore/Theory/ProgramBounds/Loops.lean) |
 | C09. Raw FP16 GEMM | Arbitrary dimensions, three logical WMMA schedules, padding/cropping, every encoded group boundary, and rejection agree with the separately defined matrix specification. | [`TensorCore.PaperSpec.gemm_eq_paper`](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean), [`TensorCore.PaperSpec.gemm_rejected_iff_paper`](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean) |
-| C10. Native BF16/TF32 GEMM | Raw `AB+C`, five schedules, finite FP32 C/output, BF16 or packed TF32 operands. Universal independent equivalence and input-derived accuracy; native scaled/source integration remains open. | [`TensorCore.PaperSpec.nativeGemm_eq_paper`](tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean), [`TensorCore.nativeAnalysisCheck_sound`](tensor-core/TensorCore/Programs/NativeGemm.lean) |
+| C10. Native BF16/TF32 GEMM | Raw `AB+C` and complete source-converted `alpha*AB+beta*C`, five schedules, FP32 C/output. All four conversion/scalar modes; independent equivalence includes every stage and rejection. Accepted input-only checks imply successful execution and error against original source values. | [`TensorCore.PaperSpec.nativeGemm_eq_paper`](tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean), [`TensorCore.nativeAnalysisCheck_sound`](tensor-core/TensorCore/Programs/NativeGemm.lean), [`TensorCore.PaperSpec.nativeConvertedGemm_eq_independent`](tensor-core/TensorCore/PaperSpec/NativeScaledGemmEquivalence.lean), [`TensorCore.nativeConvertedAnalysisCheck_paper`](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean), [`TensorCore.analyzeNativeConvertedGemm_matrix_error`](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean) |
 | C11. Complete scaled FP16 GEMM | Source conversion to FP16, tensor-core product, separately rounded FP32 alpha/beta products and addition, then output conversion. Independent equivalence includes every stage and rejection without assuming execution success. | [`TensorCore.PaperSpec.convertedGemm_eq_independent`](tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean), [`TensorCore.PaperSpec.scaledGemm_eq_independent`](tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean) |
 | C12. Input-derived error certificates | Acceptance proves successful execution and error relative to original decoded inputs, including conversion perturbations and scalar stages. Per-entry bounds sum to a matrix absolute-entry-sum bound. Inference is conservative. | [`TensorCore.gemmAnalysisCheck_sound`](tensor-core/TensorCore/Programs/GemmAnalysis.lean), [`TensorCore.convertedAnalysisCheck_paper`](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean), [`TensorCore.analyzeConvertedGemm_matrix_error`](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean) |
 | C13. Tighter bounds | Tighter scalar/input budgets are proved no larger than the earlier budgets. Finite multiplication by ±1 and addition with a zero-magnitude operand receive zero rounding error in every mode. | [`TensorCore.scaledGemmTightError_le`](tensor-core/TensorCore/Programs/GemmTightBounds.lean), [`TensorCore.gemmInputPairTightError_le`](tensor-core/TensorCore/Programs/GemmTightInputBounds.lean), [`TensorCore.checkFiniteMultiply_sound`](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean), [`TensorCore.checkFiniteAdd_sound`](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean) |
@@ -171,7 +174,9 @@ among certified candidates. Nine analogous native products give positive error
 on all five BF16/TF32 schedules. Two distinct nonzero members of the per-entry
 family are proved to belong and inherit its accuracy theorem. Empty dimensions
 still have the usual vacuous per-entry guarantees; these witnesses use nonempty
-matrices. CLI family caps are nonnegative; arbitrary negative Lean caps can
+matrices. The [native scaled witnesses](tensor-core/TensorCore/Regression/NativeScaledGemm.lean)
+also distinguish raw and scaled stage order, prove values beyond FP16 range, and
+show that original-source conversion loss changes selection. CLI family caps are nonnegative; arbitrary negative Lean caps can
 describe an empty family.
 
 Existing [semantic controls](tensor-core/TensorCore/PaperSpec/NegativeControls.lean)
@@ -226,6 +231,8 @@ array lengths equal `m*k`, `k*n`, and `m*n`.
 | `analyze_entry_family` | Quantified raw FP16 analysis using row-major `a_bounds`, `b_bounds`, and `c_bounds` arrays |
 | `native` | Native BF16/TF32 `AB+C` with FP32 C and output; requires `precision` |
 | `analyze_native` | Automatic bounds for the same encoded native inputs |
+| `native_scaled` | Source conversion to `precision`, followed by `alpha*AB+beta*C` with FP32 output |
+| `analyze_native_scaled` | Automatic source-relative bounds for the complete native scaled pipeline |
 
 All operations require `operation`, `model`, `m`, `n`, and `k`. Concrete requests
 require encoded arrays `a`, `b`, and `c`; family requests use rational bounds
@@ -238,6 +245,12 @@ instead. Automatic analyses require rational `absolute_tolerance`. Models are
 | `input_format`, `output_format` | `fp16`, `bf16`, `fp32`, or `fp64` |
 | `input_mode`, `multiply_mode`, `add_mode`, `output_mode` | `rne`, `rtz`, `rdn`, or `rup` |
 | `alpha`, `beta` | Encoded FP32 words |
+
+For `native_scaled` and `analyze_native_scaled`, also specify `precision: "bf16"`
+or `"tf32"`. These operations require `output_format: "fp32"` and additionally
+accept `input_format: "tf32"` for packed 19-bit source words. All four rounding
+fields remain explicit. Use `input_format: "fp32"` when supplying FP32 words that
+should be rounded to TF32; the conversion is included in the source error bound.
 
 ```text
 A16, B16 = convert inputs to FP16
@@ -269,15 +282,15 @@ certificate cases; the [GEMM reference](#wmma-gemm-simulation) gives the contrac
 | `input_conversion_rejected: true` | A source matrix could not be converted |
 
 Fields depend on the operation. Rationals use `"numerator/denominator"` strings.
-Matrix bounds use the sum of absolute entry errors. Rejected scaled cells are
-`null`; raw cells contain an `error`. A numerical rejection is a valid result and
+Matrix bounds use the sum of absolute entry errors. Rejected native and scaled
+cells are `null`; raw FP16 cells contain an `error`. A numerical rejection is a valid result and
 does not set a process error. Invalid requests stop at the first bad line, return
 exit code 2, and emit a JSON diagnostic to stderr. Earlier output lines remain valid.
 
 ## Automatic GEMM analysis
 
 Infer sufficient bounds without supplied scale or headroom parameters. The same
-launcher accepts concrete FP16, native BF16/TF32, complete scaled FP16 GEMM, and
+launcher accepts raw and complete scaled FP16/BF16/TF32 GEMM, and
 families of finite raw FP16 inputs.
 
 ```sh
@@ -302,11 +315,13 @@ absolute entry errors, not the induced matrix norm.
 
 ### Concrete matrices
 
-Raw analysis bounds `AB+C` on encoded FP16 A/B and FP32 C. Scaled analysis bounds
+`analyze` bounds `AB+C` on encoded FP16 A/B and FP32 C. `analyze_scaled` bounds
 `alpha*AB+beta*C` decoded from the **original source words**, including conversion
-to FP16 and every separately rounded scalar stage. Source and output conversions
-support FP16, BF16, FP32, FP64, and all four rounding modes. Tensor-core products
-remain FP16. Choose FP32 output for the primary scope.
+to FP16 and every separately rounded scalar stage. Its source and output conversions
+support FP16, BF16, FP32, FP64, and all four rounding modes. Choose FP32 output for
+the primary scope. `analyze_native` and `analyze_native_scaled` provide the
+corresponding raw and scaled analysis with BF16 or TF32 tensor-core products.
+Native scaled analysis also accepts packed TF32 source words and uses FP32 output.
 
 Results contain per-entry `error_bound`, `magnitude_bound`, and inferred
 `witness` data. Raw bounds separate alignment and output rounding. Scaled bounds
@@ -345,16 +360,36 @@ rejection for all dimensions and input words. The trace-cover theorem preserves
 all groups when they are regrouped into instructions. These are logical schedules;
 GPU lane mappings, compilation, and performance are separate obligations.
 
-**What native scaled GEMM would add.** With BF16 or TF32 multiplication, the
-scaled pipeline would compute `P = TC(A,B,+0)`, then separate FP32 operations
-`U = round(alpha*P)`, `V = round(beta*C)`, and `D = round(U+V)`. Here alpha, beta,
-C, and D are FP32. Each `round` uses the selected scalar rounding mode; the
-tensor-core product retains its model's own arithmetic. C enters after the
-tensor-core reduction, so even `alpha=beta=1` can differ from raw `TC(A,B,C)`.
-This native scaled pipeline is **not implemented yet**. The existing complete
-scaled pipeline multiplies FP16 inputs, including when source BF16/FP32/FP64
-values are first converted to FP16. Original-source conversion bounds for native
-BF16/TF32 would be a further part of that extension.
+**Native scaled GEMM.** `native_scaled` computes `P = TC(A,B,+0)` after
+converting the declared source words to the selected native precision. It then
+executes separate FP32 operations `U = round(alpha*P)`, `V = round(beta*C)`,
+and `D = round(U+V)`, followed by the explicit FP32 output conversion. Alpha,
+beta, C, and D are FP32. Each scalar stage uses its declared rounding mode;
+the tensor-core product retains its model's arithmetic. C enters after the
+reduction, so even `alpha=beta=1` can differ from raw `TC(A,B,C)`.
+
+```sh
+./tc gemm tensor-core/data/examples/gemm.native-scaled.jsonl
+./tc analyze tensor-core/data/examples/gemm.native-scaled.jsonl --abs-tol 0.001 --emit tmp/NativeScaled.lean
+./tc verify tmp/NativeScaled.lean
+```
+
+The five examples compute `2*(1*3)-1 = 5`. Inspect `converted_a`, `converted_b`,
+`product_bits`, `instructions`, `stages`, and final `bits`. `ideal` uses converted
+inputs; `source_ideal` uses the original words. Analysis bounds refer to the
+original source ideal and include both input perturbations, their product effect,
+amplification by `abs(alpha)`, and every scalar stage. The matrix bound sums
+per-entry bounds. Analysis performs conversion and unsigned bound propagation;
+it does not execute GEMM or compute either signed ideal.
+
+The Lean [native pipeline](tensor-core/TensorCore/Programs/NativeScaledGemm.lean),
+[source analysis](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean), and
+[independent equivalence](tensor-core/TensorCore/PaperSpec/NativeScaledGemmEquivalence.lean)
+cover arbitrary dimensions and all five schedules. Conversion rejection remains
+whole-matrix rejection, even for unused source entries when an output dimension
+is zero. A failed scalar intermediate remains rejection even if later cancellation
+would put the final ideal in range. No FMA contraction or EFT is implicit. Native
+precision refers to the arithmetic format, not execution on physical GPU hardware.
 
 ### Input families
 
@@ -403,7 +438,7 @@ mkdir -p tmp
 
 `--emit` writes a new certificate only when every request is certified; existing
 files are preserved. Export refusal exits with code 1; invalid input uses code 2.
-A batch may mix raw, scaled, native, and family requests. Certificates contain
+A batch may mix raw, scaled, native, native_scaled, and family requests. Certificates contain
 the input words or family bounds, tolerance, and public accuracy theorem. Native
 and per-entry family exports re-infer witnesses in Lean through a single-candidate
 decision; other analysis exports carry explicit witnesses.
@@ -421,7 +456,9 @@ Regenerate certificates after theory changes. Appended Lean commands are rejecte
 | Quantified raw families, matrix bounds, independent output | [GemmFamily.lean](tensor-core/TensorCore/Programs/GemmFamily.lean) |
 | Exact identity scalar stages | [ExactScalarAnalysis.lean](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean) |
 | Native matrix analysis and completeness | [NativeGemm.lean](tensor-core/TensorCore/Programs/NativeGemm.lean) |
-| Native independent equivalence | [NativeGemmEquivalence.lean](tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean) |
+| Native independent equivalence | [NativeGemmEquivalence.lean](tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean), [NativeScaledGemmEquivalence.lean](tensor-core/TensorCore/PaperSpec/NativeScaledGemmEquivalence.lean) |
+| Native source conversion, scaled accuracy, matrix error | [NativeConvertedAnalysis.lean](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean) |
+| Native scaled proof example | [NativeScaledGemm.lean](tensor-core/examples/NativeScaledGemm.lean) |
 | Per-entry quantified families | [EntryFamily.lean](tensor-core/TensorCore/Programs/EntryFamily.lean) |
 | Small proof examples | [PipelineAnalysis.lean](tensor-core/examples/PipelineAnalysis.lean), [DecisionExtensions.lean](tensor-core/examples/DecisionExtensions.lean) |
 
@@ -490,9 +527,11 @@ dimensions, original words or family bounds, and mathematical target.
 | `entry_family` | Dimensions and rational `a_bounds`, `b_bounds`, `c_bounds` arrays | `model` |
 | `native` | Dimensions, `precision: "bf16"` or `"tf32"`, encoded `a`, `b`, `c` | `model` |
 | `scaled` | `m`, `n`, `k`, encoded `a`, `b`, `c`, `input_format`, `output_format: "fp32"`, encoded FP32 `alpha`, `beta` | `model`, `input_mode`, `multiply_mode`, `add_mode` |
+| `native_scaled` | The scaled fields plus `precision` and `output_mode` | `model`, `input_mode`, `multiply_mode`, `add_mode` |
 
-Scaled candidates must specify all three rounding modes. Final conversion to
-FP32 is exact and uses nearest-even in the returned request. Raw and family
+Both scaled candidate kinds must specify all three rounding modes. FP16 scaled
+selection fixes final conversion to nearest-even. Native scaled selection preserves
+the workload's explicit `output_mode`; final conversion to FP32 is exact. Raw and family
 candidates contain only a model. Unknown fields, invalid candidates, empty
 candidate lists, and shape errors are rejected, including invalid entries after
 an acceptable candidate. Duplicate candidates are allowed. Preference order breaks
@@ -508,9 +547,9 @@ equal-cost ties.
 | `status: "inconclusive"`, `selected_index: null` | No candidate was certified; actual accuracy and feasibility remain undecided |
 
 Models denote different architecture semantics. Supply candidates appropriate to
-your available hardware. Scaled FP16 requests can compare conversion and scalar
-rounding modes. Native requests compare the supported schedules for one fixed
-input precision.
+your available hardware. Both scaled kinds compare conversion and scalar rounding
+modes. Native requests compare supported schedules for one fixed product precision.
+A single decision across FP16, BF16, and TF32 product precisions remains an extension.
 
 For cost optimization, add `"policy": "minimum_cost"` and a `costs` array with
 one nonnegative rational total cost per candidate. Costs use your chosen units;
@@ -602,6 +641,7 @@ publication. Progress goes to stderr; the final report is JSON on stdout.
 | Scaled and quantified-family analysis | [pipeline-analysis-report.json](tensor-core/data/regressions/pipeline-analysis-report.json) |
 | Configuration decisions and initial evaluation | [selection-report.json](tensor-core/data/regressions/selection-report.json) |
 | Native paths, richer families, and supplied costs | [decision-extensions-report.json](tensor-core/data/regressions/decision-extensions-report.json) |
+| Native scaled/source pipeline and certificates | [native-scaled-report.json](tensor-core/data/regressions/native-scaled-report.json) |
 | Bounded EFT | [bounded-eft-report.json](tensor-core/data/regressions/bounded-eft-report.json) |
 | Current claim links and nonvacuity witnesses | [review-claims-report.json](tensor-core/data/regressions/review-claims-report.json) |
 | Historical paper-source assessment | [claim-review.json](tensor-core/data/regressions/claim-review.json) |
@@ -620,7 +660,7 @@ separate from correctness and GPU performance claims.
 ## Assessment and TODO
 
 README.md is the single maintained plan and status document. Current review scope:
-FP32-output arithmetic, complete scaled FP16 GEMM, and raw native BF16/TF32 GEMM;
+FP32-output arithmetic and complete raw/scaled FP16, BF16, and TF32 GEMM;
 FP8 is deferred. The implementation includes
 four-mode finite rounding, signed encoding bijections, selected tensor-core
 contracts, bounded EFT, Eq.20 and extraction grids, complete scaled-GEMM
@@ -642,7 +682,8 @@ kernel-replayable accuracy, preference, and supplied-cost certificates.
 | Full-paper evaluation | Next | Add representative application workloads and related-method comparisons; establish useful certification rates and scaling |
 | Cost-model validation | Open | Supply measured or justified costs; compare decisions against representative applications |
 | Native BF16/TF32 raw GEMM | Implemented | Review five schedules, independent equivalence, encoded input domains, and certificates |
-| Native scaled/source integration | Open | Add native epilogues and original-source conversion bounds; enable comparisons across input precisions |
+| Native scaled/source integration | Implemented | Review all five schedules, independent stage equivalence, source-relative matrix bounds, and kernel-replayable decisions |
+| Selection across product precisions | Open | Compare FP16, BF16, and TF32 candidates for one fixed original-source workload |
 | CUTLASS execution | Open | Compile the pinned fixture and compare on V100 |
 | CUTLASS generalization | Optional | Model residue-first partial K, other epilogues, and split-K |
 | Further error bounds | Optional | Track cancellation and accumulator grids; extend exact scalar cases beyond ±1 and zero addition; add induced norms |
@@ -790,8 +831,8 @@ preserves the initial bits; low-level `runBlocks []` is an unconditional no-op.
 The independent [paper specification](tensor-core/TensorCore/PaperSpec/Definition.lean)
 defines decoding, raw product values and exponents, nonzero exponent selection,
 shared-grid magnitude truncation, accumulation, and FP32 output rounding directly.
-Its definition, profile, schedule, matrix, and scalar modules import only Lean's standard library
-and each other. They do not call the implementation's arithmetic stages. Final
+Its definition, profile, schedule, matrix, native matrix, and scalar modules import
+only Lean's standard library and each other. They do not call the implementation's arithmetic stages. Final
 rounding is characterized by the ordering of all finite encoded FP32 values and
 an explicit sign-bit condition. Its output selector is mathematical
 (`noncomputable`), with proved existence and uniqueness on its valid domain.
@@ -823,6 +864,14 @@ signed zero, ill-formed output formats, and empty dimensions. They require no
 certificate or successful-run premise. This scalar sequence specifies the project
 pipeline; it is not an extra hardware rule attributed to Accurate Models.
 The [example](tensor-core/examples/PaperSpecification.lean) shows these contracts.
+
+`nativeScaledGemm_eq_independent` and `nativeConvertedGemm_eq_independent` extend
+whole-pipeline agreement to the five BF16/TF32 schedules, at arbitrary dimensions
+and in all four scalar/conversion rounding modes. They preserve every encoded
+boundary and rejection without an execution-success premise.
+`nativeConvertedAnalysisCheck_paper` combines this agreement with an accepted
+original-source error certificate. See the
+[native scaled example](tensor-core/examples/NativeScaledGemm.lean).
 
 The [dedicated gate](tensor-core/scripts/check_paper_spec.py) audits compiled
 dependencies of every specification declaration, checks the standard proof-axiom
@@ -1307,6 +1356,12 @@ trace; the complete input-only certificate described next avoids that premise.
 The original `C`-initialized `gemm` API remains available. A regression proves that
 it can differ from `scaledGemm` even when `alpha=beta=1`.
 
+`nativeScaledGemm` uses the same scalar epilogue with BF16 or TF32 products.
+`nativeConvertedGemm` first converts source matrices to that native precision.
+[NativeConvertedAnalysis.lean](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean)
+provides input-only certificates for this complete pipeline, including source
+conversion and a matrix bound formed from the individual entry bounds.
+
 **Certificates for the complete scaled pipeline.**
 [ScaledGemmBounds.lean](tensor-core/TensorCore/Programs/ScaledGemmBounds.lean)
 adds `scaledGemmCheck`. Alongside the raw tensor-core configuration,
@@ -1516,10 +1571,10 @@ additions. This final artifact check does not repeat the external manuscript rev
 FP16/BF16/TF32-to-FP32 tensor-core paths; their stated error, flowback, recovery,
 and guarded correction contracts; bounded EFT refinement; and arbitrary-size
 matrices under the explicit FP16 WMMA/scalar schedule, with original-source error
-certificates. Raw native BF16/TF32 GEMM has five logical schedules with input-derived
-bounds. Independent-specification equivalence covers the eight block paths,
+certificates. Native BF16/TF32 GEMM has five raw and complete scaled schedules
+with original-source conversion bounds. Independent-specification equivalence covers the eight block paths,
 ordered group lists, three raw FP16 WMMA matrix profiles, five native matrix
-schedules, and the complete FP16 scalar/input-conversion pipeline. Automatic
+schedules, and the complete FP16/BF16/TF32 scalar/input-conversion pipelines. Automatic
 analysis, uniform and per-entry families, and preference/minimum-supplied-cost
 selection expose kernel-replayable accuracy certificates. Eq.20 and all permitted
 extraction grids are exposed. One pinned CUTLASS arithmetic projection is connected
@@ -1602,6 +1657,7 @@ contracts; they do not resolve the FP16/FP8 paper ambiguities.
 | `scripts/check_pipeline_analysis.py` | Source-relative scaled analysis and quantified uniform families, input-only dependency audits, independent oracles, and kernel replay |
 | `scripts/check_selection.py` | Fixed-workload preference decisions, tolerance sweeps, rejection cases, conservative refusals, and certificate replay/mutations |
 | `scripts/check_decision_extensions.py` | Five native schedules, tightened exact scalar stages, per-entry families, minimum supplied cost, oracle comparison, boundary and tampering controls |
+| `scripts/check_native_scaled.py` | Five scaled schedules, all input/multiply/add mode combinations, original-source error and every encoded stage, source formats including packed TF32, rejection boundaries, raw/scaled separation, input-only dependency audit, and kernel replay/tampering controls |
 | `scripts/check_review_claims.py` | Current C01–C16 declaration/source links, README file links, and explicit kernel-checked nonvacuity witnesses; no automatic semantic or novelty sign-off |
 | `scripts/check_eft.py` | Seeded scalar acceptance/rejection coverage, accepted-correction comparisons, bounded primitives, and synthetic hardware replay |
 | `scripts/check_paper_eft.py` | Pinned TC-EFT §V-B generators, original named cases and seeds, encoded Algorithm 1, synthetic perturbations, rounding boundaries, excluded draws, and executable dependency checks |

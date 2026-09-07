@@ -85,7 +85,7 @@ def parser():
                                description="Read one GEMM request per line; write one JSON result per request.")
     gemm.add_argument("input", metavar="FILE", help="JSONL input file, or - for standard input")
     analyze = commands.add_parser("analyze", help="Infer GEMM bounds and check an absolute error tolerance")
-    analyze.add_argument("input", metavar="FILE", help="Raw, scaled, native, or family GEMM JSONL requests; - reads standard input")
+    analyze.add_argument("input", metavar="FILE", help="Raw/scaled FP16 or native GEMM, or family JSONL requests; - reads standard input")
     analyze.add_argument("--abs-tol", required=True, help="Nonnegative exact decimal or rational tolerance")
     analyze.add_argument("--emit", metavar="FILE.lean", help="Write a new Lean certificate for certified requests")
     select = commands.add_parser("select", help="Choose a certified configuration by preference or supplied cost")

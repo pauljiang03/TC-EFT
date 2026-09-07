@@ -42,6 +42,11 @@ def main():
         'cheaper_model_is_inaccurate', 'chosen_accuracy_and_minimum',
         'native_positive_error', 'native_error_value', 'native_accuracy',
         'family_member', 'second_family_member', 'family_members_distinct', 'family_members_accurate']]
+    witnesses += ['TensorCore.Regression.NativeScaled.' + name for name in [
+        'exact_scaled', 'native_range_exceeds_fp16', 'directed_input_conversion',
+        'subnormal_zero_boundaries', 'raw_scaled_order_differs', 'intermediate_overflow_rejected',
+        'empty_and_rejected_inputs', 'source_loss_changes_selection', 'selected_accuracy']]
+    sources.add(ROOT / 'TensorCore/Regression/NativeScaledGemm.lean')
     declarations = list(dict.fromkeys(name for claim in claims.values() for name, _ in claim['declarations']))
     subprocess.run(['lake', 'build', 'TensorCore'], cwd=ROOT, check=True, capture_output=True, text=True)
     with tempfile.TemporaryDirectory(prefix='tc-review-claims-') as directory:

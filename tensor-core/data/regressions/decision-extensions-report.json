@@ -23,7 +23,7 @@
   ],
   "entry_family_matrix_bound": "4582416657/8796093022208",
   "uniform_matrix_bound": "273/131072",
-  "elapsed_seconds": 10.615,
+  "elapsed_seconds": 11.624,
   "limitations": [
     "Native integration covers encoded raw AB+C with FP32 output.",
     "Per-entry caps are reduced to row and column maxima for each output bound.",

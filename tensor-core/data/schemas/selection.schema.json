@@ -421,6 +421,220 @@
             }
           },
           "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "operation",
+            "m",
+            "n",
+            "k",
+            "a",
+            "b",
+            "c",
+            "input_format",
+            "output_format",
+            "alpha",
+            "beta",
+            "precision",
+            "output_mode"
+          ],
+          "properties": {
+            "operation": {
+              "const": "native_scaled"
+            },
+            "m": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "n": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "k": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "a": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              }
+            },
+            "b": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 18446744073709551615
+              }
+            },
+            "c": {
+              "type": "array",
+              "items": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 4294967295
+              }
+            },
+            "input_format": {
+              "enum": [
+                "fp16",
+                "bf16",
+                "fp32",
+                "fp64",
+                "tf32"
+              ]
+            },
+            "output_format": {
+              "const": "fp32"
+            },
+            "alpha": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "beta": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4294967295
+            },
+            "precision": {
+              "enum": [
+                "bf16",
+                "tf32"
+              ]
+            },
+            "output_mode": {
+              "enum": [
+                "rne",
+                "rtz",
+                "rdn",
+                "rup"
+              ]
+            }
+          },
+          "additionalProperties": false,
+          "allOf": [
+            {
+              "if": {
+                "properties": {
+                  "input_format": {
+                    "const": "fp16"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "a": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    }
+                  },
+                  "b": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "input_format": {
+                    "const": "bf16"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "a": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    }
+                  },
+                  "b": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 65535
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "input_format": {
+                    "const": "fp32"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "a": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 4294967295
+                    }
+                  },
+                  "b": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 4294967295
+                    }
+                  }
+                }
+              }
+            },
+            {
+              "if": {
+                "properties": {
+                  "input_format": {
+                    "const": "tf32"
+                  }
+                }
+              },
+              "then": {
+                "properties": {
+                  "a": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 524287
+                    }
+                  },
+                  "b": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer",
+                      "minimum": 0,
+                      "maximum": 524287
+                    }
+                  }
+                }
+              }
+            }
+          ]
         }
       ]
     },
@@ -459,7 +673,8 @@
                 "enum": [
                   "v100",
                   "ampere",
-                  "hopper"
+                  "hopper",
+                  "hopper_mma"
                 ]
               },
               "input_mode": {
@@ -526,7 +741,7 @@
           "workload": {
             "properties": {
               "operation": {
-                "const": "scaled"
+                "const": "native_scaled"
               }
             }
           }
@@ -546,9 +761,9 @@
               "properties": {
                 "model": {
                   "enum": [
-                    "v100",
                     "ampere",
-                    "hopper"
+                    "hopper",
+                    "hopper_mma"
                   ]
                 },
                 "input_mode": {
@@ -579,7 +794,38 @@
               "additionalProperties": false
             }
           }
-        }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "workload": {
+                  "properties": {
+                    "precision": {
+                      "const": "bf16"
+                    }
+                  }
+                }
+              }
+            },
+            "then": {
+              "properties": {
+                "candidates": {
+                  "items": {
+                    "properties": {
+                      "model": {
+                        "enum": [
+                          "ampere",
+                          "hopper"
+                        ]
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        ]
       },
       "else": {
         "if": {
@@ -587,7 +833,7 @@
             "workload": {
               "properties": {
                 "operation": {
-                  "const": "native"
+                  "const": "scaled"
                 }
               }
             }
@@ -599,60 +845,10 @@
               "items": {
                 "type": "object",
                 "required": [
-                  "model"
-                ],
-                "properties": {
-                  "model": {
-                    "enum": [
-                      "ampere",
-                      "hopper",
-                      "hopper_mma"
-                    ]
-                  }
-                },
-                "additionalProperties": false
-              }
-            }
-          },
-          "allOf": [
-            {
-              "if": {
-                "properties": {
-                  "workload": {
-                    "properties": {
-                      "precision": {
-                        "const": "bf16"
-                      }
-                    }
-                  }
-                }
-              },
-              "then": {
-                "properties": {
-                  "candidates": {
-                    "items": {
-                      "properties": {
-                        "model": {
-                          "enum": [
-                            "ampere",
-                            "hopper"
-                          ]
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        },
-        "else": {
-          "properties": {
-            "candidates": {
-              "items": {
-                "type": "object",
-                "required": [
-                  "model"
+                  "model",
+                  "input_mode",
+                  "multiply_mode",
+                  "add_mode"
                 ],
                 "properties": {
                   "model": {
@@ -661,9 +857,121 @@
                       "ampere",
                       "hopper"
                     ]
+                  },
+                  "input_mode": {
+                    "enum": [
+                      "rne",
+                      "rtz",
+                      "rdn",
+                      "rup"
+                    ]
+                  },
+                  "multiply_mode": {
+                    "enum": [
+                      "rne",
+                      "rtz",
+                      "rdn",
+                      "rup"
+                    ]
+                  },
+                  "add_mode": {
+                    "enum": [
+                      "rne",
+                      "rtz",
+                      "rdn",
+                      "rup"
+                    ]
                   }
                 },
                 "additionalProperties": false
+              }
+            }
+          }
+        },
+        "else": {
+          "if": {
+            "properties": {
+              "workload": {
+                "properties": {
+                  "operation": {
+                    "const": "native"
+                  }
+                }
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "candidates": {
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "model"
+                  ],
+                  "properties": {
+                    "model": {
+                      "enum": [
+                        "ampere",
+                        "hopper",
+                        "hopper_mma"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            "allOf": [
+              {
+                "if": {
+                  "properties": {
+                    "workload": {
+                      "properties": {
+                        "precision": {
+                          "const": "bf16"
+                        }
+                      }
+                    }
+                  }
+                },
+                "then": {
+                  "properties": {
+                    "candidates": {
+                      "items": {
+                        "properties": {
+                          "model": {
+                            "enum": [
+                              "ampere",
+                              "hopper"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            ]
+          },
+          "else": {
+            "properties": {
+              "candidates": {
+                "items": {
+                  "type": "object",
+                  "required": [
+                    "model"
+                  ],
+                  "properties": {
+                    "model": {
+                      "enum": [
+                        "v100",
+                        "ampere",
+                        "hopper"
+                      ]
+                    }
+                  },
+                  "additionalProperties": false
+                }
               }
             }
           }

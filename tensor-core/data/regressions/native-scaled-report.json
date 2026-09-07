@@ -1,0 +1,35 @@
+{
+  "status": "passed",
+  "seed": 20260910,
+  "requests": 595,
+  "successful_cells": 4365,
+  "analyzed_cells": 4365,
+  "rejected_cells": 60,
+  "input_conversion_rejections": 45,
+  "encoded_boundaries": 24649,
+  "positive_error_cells": 2177,
+  "raw_scaled_separations": 5,
+  "negative_controls": [
+    "transitive-input-only-audit",
+    "all-native-paths-and-packed-source-replay",
+    "input-mode-kernel-rejection",
+    "tolerance-kernel-rejection",
+    "source-word-kernel-rejection",
+    "selected-index-kernel-rejection",
+    "cost-kernel-rejection",
+    "invalid-format-model-width-mode"
+  ],
+  "elapsed_seconds": 13.868,
+  "source_sha256": {
+    "TensorCore/Programs/MatrixConversion.lean": "c89691e146f7ff4968500bf1e0ea8c98b54447fd8297dccb957d49dd8fe6c805",
+    "TensorCore/Programs/NativeScaledGemm.lean": "ac271ccdb8fe0ec298541c034337004eac6e69170c671600bd8c3345091f3a2b",
+    "TensorCore/Programs/NativeConvertedAnalysis.lean": "5da19dc57d32b467e6dca4d6ec30e792e5ff19c9534ee237e993db703257c4fa",
+    "TensorCore/Programs/GemmSelection.lean": "e2d28448872830fddde23c82f6e8d4066539017dae8c9704b95e31c3dd4b880a",
+    "TensorCore/PaperSpec/NativeScaledMatrix.lean": "14a03cd9d1c9e9cef8bee201eeaf87f6dd94d368c1e6be0d6bdb994b2c2abc7c",
+    "TensorCore/PaperSpec/NativeScaledGemmEquivalence.lean": "2f5973f36de403ff1d5a83328acda980d6a77627316682806e9012b2de9f4d48",
+    "TensorCore/Cli/NativePipeline.lean": "94a7af76c6f06049b18dc445705cd0699ef244d4c5b5b2500f4de167eb2b4418",
+    "TensorCore/Cli/GemmSelection.lean": "b4b90ad91f4a1b90aacd694350ead64a79e669cdd3ed9b0807a987cb283f5e49",
+    "TensorCore/Regression/NativeScaledGemm.lean": "1ed43247770d08c315bd5766772ec6766c4bfd79dc7d157feee614a8f9edd37a",
+    "scripts/check_native_scaled.py": "cc8855cc3321cfbf5e36369e7febf8ba01272e29b66f4d5cb4bc289e97493f96"
+  }
+}

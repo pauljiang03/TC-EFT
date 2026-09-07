@@ -35,6 +35,8 @@ def evaluate (input : Json) : Except String Json := do
     return ← Selection.evaluate input
   if ["native", "analyze_native", "analyze_entry_family"].contains (← input.getObjValAs? String "operation") then
     return ← ExtendedAnalysis.evaluate input
+  if ["native_scaled", "analyze_native_scaled"].contains (← input.getObjValAs? String "operation") then
+    return ← NativePipeline.evaluate input
   let architecture ← model (← input.getObjValAs? String "model")
   let m ← input.getObjValAs? Nat "m"
   let n ← input.getObjValAs? Nat "n"

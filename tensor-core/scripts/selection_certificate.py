@@ -4,11 +4,11 @@ from analysis_certificate import FORMATS, MODES, natural, rational, matrix, vect
 
 
 def render_candidate(candidate, kind):
-    fields = {"model"} | ({"input_mode", "multiply_mode", "add_mode"} if kind == "scaled" else set())
+    fields = {"model"} | ({"input_mode", "multiply_mode", "add_mode"} if kind in {"scaled", "native_scaled"} else set())
     if type(candidate) is not dict or set(candidate) != fields:
         raise ValueError("Invalid selection candidate")
     model = candidate["model"]
-    if model not in ({"ampere", "hopper", "hopper_mma"} if kind == "native" else {"v100", "ampere", "hopper"}):
+    if model not in ({"ampere", "hopper", "hopper_mma"} if kind in {"native", "native_scaled"} else {"v100", "ampere", "hopper"}):
         raise ValueError("Invalid selection model")
     modes = [candidate.get(key, "rne") for key in ("input_mode", "multiply_mode", "add_mode")]
     if any(mode not in MODES for mode in modes):
@@ -34,14 +34,16 @@ def render_selection(case, index):
     kind = q.get("operation")
     fields = {"operation", "m", "n", "k"}
     fields |= {"a_bound", "b_bound", "c_bound"} if kind == "family" else {"a", "b", "c"}
-    if kind == "scaled":
+    if kind in {"scaled", "native_scaled"}:
         fields |= {"input_format", "output_format", "alpha", "beta"}
     if kind == "entry_family":
         fields -= {"a", "b", "c"}
         fields |= {"a_bounds", "b_bounds", "c_bounds"}
-    if kind == "native":
+    if kind in {"native", "native_scaled"}:
         fields.add("precision")
-    if kind not in {"raw", "scaled", "family", "entry_family", "native"} or set(q) != fields:
+    if kind == "native_scaled":
+        fields.add("output_mode")
+    if kind not in {"raw", "scaled", "family", "entry_family", "native", "native_scaled"} or set(q) != fields:
         raise ValueError("Invalid selection workload fields")
     m, n, k = [natural(q[key], key) for key in ("m", "n", "k")]
     configs = case["candidates"]
@@ -59,21 +61,29 @@ def render_selection(case, index):
         problem = ".entryFamily ⟨" + ", ".join(caps) + "⟩"
     else:
         source = q.get("input_format", "fp16")
-        if source not in FORMATS or (kind == "scaled" and q["output_format"] != "fp32"):
+        formats = {**FORMATS, "tf32": 19} if kind == "native_scaled" else FORMATS
+        if source not in formats or (kind in {"scaled", "native_scaled"} and q["output_format"] != "fp32"):
             raise ValueError("Invalid selection format; output must be FP32")
-        width = FORMATS[source]
-        if kind == "native":
+        width = formats[source]
+        source = "tf19" if source == "tf32" else source
+        if kind in {"native", "native_scaled"}:
             precision = q["precision"]
             if precision not in {"bf16", "tf32"} or (precision == "bf16" and any(c["model"] == "hopper_mma" for c in configs)):
                 raise ValueError("Invalid native precision and schedule")
-            source, width = ("bf16", 16) if precision == "bf16" else ("tf19", 19)
+            if kind == "native":
+                source, width = ("bf16", 16) if precision == "bf16" else ("tf19", 19)
         lines += [f"def a{index} : DenseMatrix (BitVec {source}.width) {m} {k} := {matrix(q['a'], m, k, width)}",
                   f"def b{index} : DenseMatrix (BitVec {source}.width) {k} {n} := {matrix(q['b'], k, n, width)}",
                   f"def c{index} : DenseMatrix F32 {m} {n} := {matrix(q['c'], m, n, 32)}"]
         args = f"a{index} b{index} c{index}"
-        if kind == "scaled":
+        if kind in {"scaled", "native_scaled"}:
             alpha, beta = [natural(q[key], key, 2 ** 32) for key in ("alpha", "beta")]
-            problem = f".scaled {source} {alpha} {beta} {args}"
+            if kind == "native_scaled":
+                if q["output_mode"] not in MODES:
+                    raise ValueError("Invalid native output mode")
+                problem = f".nativeScaled .{precision} {source} .{MODES[q['output_mode']]} {alpha} {beta} {args}"
+            else:
+                problem = f".scaled {source} {alpha} {beta} {args}"
         elif kind == "native":
             problem = f".native .{precision} {args}"
         else:

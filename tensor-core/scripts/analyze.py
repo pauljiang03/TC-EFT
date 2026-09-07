@@ -93,9 +93,10 @@ def analyze(path, tolerance, emit):
         request = json.loads(line)
         operations = {"raw": "analyze", "analyze": "analyze", "scaled": "analyze_scaled",
                       "analyze_scaled": "analyze_scaled", "family": "analyze_family", "analyze_family": "analyze_family", "native": "analyze_native", "analyze_native": "analyze_native",
+                      "native_scaled": "analyze_native_scaled", "analyze_native_scaled": "analyze_native_scaled",
                       "entry_family": "analyze_entry_family", "analyze_entry_family": "analyze_entry_family"}
         if not isinstance(request, dict) or request.get("operation", "raw") not in operations:
-            raise ValueError(f"Line {number}: expected raw, scaled, native, family, or entry_family analysis")
+            raise ValueError(f"Line {number}: expected raw, scaled, native, native_scaled, family, or entry_family analysis")
         request = {**request, "operation": operations[request.get("operation", "raw")],
                    "absolute_tolerance": f"{tol.numerator}/{tol.denominator}"}
         if request["operation"] == "analyze_family":
@@ -125,6 +126,14 @@ def analyze(path, tolerance, emit):
             return 1
         cases = []
         for request, result in zip(requests, results):
+            if request["operation"] == "analyze_native_scaled":
+                fields = {"precision", "m", "n", "k", "a", "b", "c", "input_format", "output_format", "output_mode", "alpha", "beta"}
+                workload = {key: request[key] for key in fields}
+                workload["operation"] = "native_scaled"
+                candidate = {key: request[key] for key in ("model", "input_mode", "multiply_mode", "add_mode")}
+                cases.append(dict(kind="selection", workload=workload, candidates=[candidate],
+                                  tolerance=request["absolute_tolerance"], selected_index=0))
+                continue
             if request["operation"] in {"analyze_native", "analyze_entry_family"}:
                 native = request["operation"] == "analyze_native"
                 fields = {"m", "n", "k"} | ({"precision", "a", "b", "c"} if native else {"a_bounds", "b_bounds", "c_bounds"})
