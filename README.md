@@ -192,6 +192,10 @@ related-work assessment and application evaluation.
 
 ### Review sign-off
 
+An [independent AI-assisted arithmetic review](INDEPENDENT_REVIEW.md) of commit
+`49e8768` includes critical scope findings, independent exact-arithmetic probes,
+kernel-checked witnesses, and reproduction instructions. It is not human sign-off.
+
 Author sign-off remains pending. Check C01–C16 against the linked definitions,
 especially finite rejection, zero conventions, group order, original-input ideals,
 success obligations, and family membership. Inspect exported certificates with

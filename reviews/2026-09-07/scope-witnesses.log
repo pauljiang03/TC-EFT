@@ -1,0 +1,6 @@
+'IndependentReview.rejects_near_maximum' depends on axioms: [propext, Classical.choice, Quot.sound]
+'IndependentReview.negative_zero_conversion' depends on axioms: [propext, Classical.choice, Quot.sound]
+'IndependentReview.downward_fma_zero' depends on axioms: [propext, Classical.choice, Quot.sound]
+'IndependentReview.arbitrary_output_recovery' depends on axioms: [propext, Classical.choice, Quot.sound]
+'IndependentReview.model_difference' depends on axioms: [propext, Classical.choice, Quot.sound]
+'IndependentReview.nonmonotonicity' depends on axioms: [propext, Classical.choice, Quot.sound]
