@@ -1,0 +1,84 @@
+import TensorCore.PaperSpec.Rounding
+import TensorCore.Theory.MachineRefinement
+
+/-! Universal, bit-level paper/implementation agreement. The paper definition
+and its validity predicate do not call the implementation. The theorems include
+rejections and establish successful execution for every paper-valid input. -/
+
+namespace TensorCore.PaperSpec
+
+set_option maxRecDepth 4096
+
+theorem result_of_eval {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) : Result (parametersOf p) (inputOf x) t.output.bits := by
+  have hp := evalBlock_prepared h
+  have hv := (evalBlock_success_iff p x).mp ⟨t, h⟩
+  have hr := evalPrepared_output (evalBlock_evalPrepared h)
+  have ha := accumulated_eq t.block
+  rw [prepare_profile hp] at ha
+  refine ⟨hv.1, t.block.terms.map rawTermOf, ?_, ?_, ?_⟩
+  · rw [terms_eq, hp]; rfl
+  · rw [ha]; exact round32_range hr
+  · rw [ha]; exact round32_rounds _ _ hr
+
+theorem result_unique {p : Parameters} {x : Input p} {a b : F32}
+    (ha : Result p x a) (hb : Result p x b) : a = b := by
+  obtain ⟨_, ta, hta, _, hra⟩ := ha
+  obtain ⟨_, tb, htb, _, hrb⟩ := hb
+  rw [hta] at htb
+  cases Option.some.inj htb
+  exact rounds_unique _ _ _ hra hrb
+
+theorem result_iff_eval {p : Profile} (x : BlockInput p) (b : F32) :
+    Result (parametersOf p) (inputOf x) b ↔
+      ∃ t, evalBlock x = .ok t ∧ t.output.bits = b := by
+  constructor
+  · intro h
+    have hv : Valid (parametersOf p) (inputOf x) := by
+      obtain ⟨hs, ts, ht, hr, _⟩ := h
+      exact ⟨hs, ts, ht, hr⟩
+    obtain ⟨t, ht⟩ := (valid_iff x).mp hv
+    exact ⟨t, ht, result_unique (result_of_eval ht) h⟩
+  · rintro ⟨t, ht, rfl⟩
+    exact result_of_eval ht
+
+theorem bits_eq_of_result {p : Parameters} {x : Input p} {b : F32}
+    (h : Result p x b) : bits p x = some b := by
+  classical
+  unfold bits
+  rw [dif_pos ⟨b, h⟩]
+  exact congrArg some (result_unique (Classical.choose_spec (show ∃ b, Result p x b from ⟨b, h⟩)) h)
+
+/-- Every encoded input: successful output bits and all rejection cases agree.
+The generic parameter theorem is stronger than its named paper-profile instances. -/
+theorem implementation_eq_paper {p : Profile} (x : BlockInput p) :
+    (evalBlock x).toOption.map (fun t => t.output.bits) =
+      bits (parametersOf p) (inputOf x) := by
+  classical
+  cases he : evalBlock x with
+  | ok t => exact (bits_eq_of_result (result_of_eval he)).symm
+  | error e =>
+    have hn : ¬ ∃ b, Result (parametersOf p) (inputOf x) b := by
+      rintro ⟨b, hb⟩
+      obtain ⟨t, ht, _⟩ := (result_iff_eval x b).mp hb
+      rw [he] at ht
+      contradiction
+    simp [bits, hn, Except.toOption]
+
+/-- The theorem is nonvacuous on the independently specified valid domain. -/
+theorem valid_success {p : Profile} (x : BlockInput p)
+    (hv : Valid (parametersOf p) (inputOf x)) :
+    ∃ t, evalBlock x = .ok t ∧ bits (parametersOf p) (inputOf x) = some t.output.bits := by
+  obtain ⟨t, ht⟩ := (valid_iff x).mp hv
+  exact ⟨t, ht, bits_eq_of_result (result_of_eval ht)⟩
+
+/-- Adequate modular accumulator widths inherit the independent paper theorem. -/
+theorem machine_eq_paper {p : Profile} (x : BlockInput p) (w F carryBits : Nat)
+    (hF : p.alignFraction = F) (hc : p.products + 1 ≤ 2 ^ carryBits)
+    (hw : F + 3 + carryBits ≤ w) :
+    (evalBlockMachine w x).toOption.map (fun t => t.output.bits) =
+      bits (parametersOf p) (inputOf x) := by
+  rw [evalBlockMachine_eq x w F carryBits hF hc (by omega)]
+  exact implementation_eq_paper x
+
+end TensorCore.PaperSpec

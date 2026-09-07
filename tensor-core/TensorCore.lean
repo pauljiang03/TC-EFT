@@ -9,10 +9,13 @@ import TensorCore.Regression.Features
 import TensorCore.Regression.DotProduct
 import TensorCore.Regression.EFT
 import TensorCore.Regression.ScalarEFT
+import TensorCore.Regression.EncodedEFT
 import TensorCore.Regression.Monotonicity
 import TensorCore.Regression.Flowback
 import TensorCore.Regression.CanonicalFormats
+import TensorCore.Regression.FP8
 import TensorCore.Regression.BinaryRounding
+import TensorCore.Regression.DirectedBinary
 import TensorCore.Regression.HalfOutput
 import TensorCore.Regression.Instruction
 import TensorCore.Regression.StaticBudget
@@ -23,3 +26,13 @@ import TensorCore.Theory.ProgramBounds.Loops
 import TensorCore.Applications.BoundedDot
 import TensorCore.Regression.Certification
 import TensorCore.Regression.Application
+import TensorCore.Regression.Gemm
+import TensorCore.Regression.GemmExtensions
+import TensorCore.Regression.GemmInputConversion
+import TensorCore.Regression.GemmSpecification
+import TensorCore.PaperSpec.NegativeControls
+import TensorCore.Theory.EFMachine.Success
+import TensorCore.Regression.BoundedEFT
+import TensorCore.Regression.FoundationCompletion
+import TensorCore.Regression.CutlassWmma
+import TensorCore.Cli.Gemm

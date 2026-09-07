@@ -1,0 +1,54 @@
+{
+  "status": "passed",
+  "audit": {
+    "executable_roots": 8,
+    "negative_controls": [
+      "rational",
+      "model",
+      "linear_scan"
+    ],
+    "proof_audit": "bounded_proof_audit: 207 theorem roots; standard axioms only"
+  },
+  "backend": "compiled Lean BitVec executable",
+  "paper_blocks": 2926,
+  "arbitrary_D_blocks": 1024,
+  "rounding_cases": 3167,
+  "branches": {
+    "scalar": 290,
+    "boundedExact": 2786,
+    "allZero": 8,
+    "outOfRange": 866
+  },
+  "mismatches": 0,
+  "coefficient_width": 576,
+  "common_grid_exponent": -272,
+  "seed": 20260907,
+  "elapsed_seconds": 4.968,
+  "source_sha256": {
+    "TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
+    "TensorCore/Foundations/EFMachine/Decode.lean": "2d97d568f26d471396e2b683f5219be1abace3f91dc078f1db7dcd2cdf33679a",
+    "TensorCore/Foundations/EFMachine/Split.lean": "1f2c7315365f1a8fe25e22fc0bc0e77770d62cce9702abf7ddaab30907136786",
+    "TensorCore/Foundations/EFMachine/Word.lean": "4b4038efb8c9494fd8f6747f5188b68ced62cc87fb2f222d5058e99f6ff0f09c",
+    "TensorCore/Theory/EFMachine/BitScan.lean": "6328842307f73e440b2dfb1cf1d2e9c65a5f3956d63eb102d949e4267b390ff0",
+    "TensorCore/Theory/EFMachine/Correctness.lean": "c5c2d28b5c15ddef7105fbd6e3f23826294f87fb42c0688391f21b557e644db7",
+    "TensorCore/Theory/EFMachine/Cost.lean": "722dd641bc42d73063476eb49da1d87d6e2fc766a89504cb9741ad87289adeb9",
+    "TensorCore/Theory/EFMachine/Decode.lean": "a6778a8dae04a84b4706f1a30dd0043e0c61a288695b4aa1ed9b63188a5a9f71",
+    "TensorCore/Theory/EFMachine/Dyadic.lean": "d5267062d7a30d17e50de543e3fb1cdcf254eb3c4987ed9c40764f32b40484d0",
+    "TensorCore/Theory/EFMachine/Extraction.lean": "46b1aacbd099447419b1d6a5032e3e7c462a6774e24b57c63e75a5039267f210",
+    "TensorCore/Theory/EFMachine/Grid.lean": "56776220875d6bd1ba795cc4371d3dc5cfa410265a66a462508c93971b7fb0ab",
+    "TensorCore/Theory/EFMachine/Preparation.lean": "2600199fee800b31d5bd26b59faa2c96537c57762f54001e07fb130b38f19e97",
+    "TensorCore/Theory/EFMachine/Refinement.lean": "aafa822bb4af68537cc90a78cc4278f6f9bb0d6392864993d93e1aad140d9745",
+    "TensorCore/Theory/EFMachine/Round.lean": "e47a90c761512fb0de4a1f8ffd0696a3de32a5af7f8d4f577ad6a5e0632b258e",
+    "TensorCore/Theory/EFMachine/Scalar.lean": "1a3f200a9b064998858a9a0e51b03085e446b176e1a9ce44de7c9bfa91e45bc8",
+    "TensorCore/Theory/EFMachine/Split.lean": "27e91c702e458869b607aaedfc31f34a48bd8ea30fbf147b022945192dc72337",
+    "TensorCore/Theory/EFMachine/Success.lean": "98b05ddbe2a5484856c6b3fe720209aeac121331a63b51c009396c802dcba9a5",
+    "TensorCore/Theory/EFMachine/Word.lean": "3e7bbce7f5ff85d7cf46b607dcf0878508b4e191a7085ce9cbe0cdb2947dd5ce",
+    "TensorCore/Programs/BoundedEFT.lean": "5f752035f986b98704c8475a18dfa6856399502303889d3b1b4c8f619d5da002",
+    "BoundedEFTMain.lean": "53e9c3a0245a8321c52d8b5af2d9cad1c27eb3b20ee2c49e9e6819d629096aba",
+    "TensorCore/Regression/BoundedEFT.lean": "2c83c71b8aa782e51dfdd19efa882967cb7c705c979d16d618dded2e4dcd6ffc",
+    "BoundedEFTAudit.lean": "9b4c9cade336bfb4096722a9245b672027f74718de6940d7266352c0a1a9d6da",
+    "examples/BoundedEFT.lean": "de8c3d8a8608f72ee48fd3c84b1d22d1e4fd59ca301dd80456ff5825d382fbc4",
+    "data/regressions/eft-paper-cases.json": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
+    "scripts/check_bounded_eft.py": "89017c0fe4c564745fb3dfa04960ab004a0f7b7d70e74f423820b156b89b632e"
+  }
+}

@@ -19,7 +19,8 @@ elab "tc_audit" : command => do
   for n in names do
     let axioms ← liftCoreM (collectAxioms n)
     let axioms := axioms.qsort fun a b => a.toString < b.toString
-    logInfo m!"'{n}' depends on axioms: {axioms.toList}"
+    let axiomText := String.intercalate ", " (axioms.toList.map Name.toString)
+    logInfo m!"'{n}' depends on axioms: [{axiomText}]"
     if axioms.any fun a => !allowed.contains a then
       bad := bad.push n
     if (← liftCoreM (findDeclarationRanges? n)).isSome then

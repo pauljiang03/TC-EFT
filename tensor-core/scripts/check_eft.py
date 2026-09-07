@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Agent B acceptance gate, including all new proof modules through Regression.EFT.
+"""EFT acceptance gate: recovery, encoded Algorithm 1, scalar consolidation, and paper suites.
 
 python3 scripts/check_eft.py
 Builds, audits the imported environment, checks source trust restrictions, runs
@@ -27,8 +27,11 @@ def main():
         shutil.copytree(ROOT, target, ignore=shutil.ignore_patterns('.lake', 'tmp', '__pycache__'))
         assert not (target / '.lake').exists()
         subprocess.run([sys.executable, 'scripts/check_eft.py'], cwd=target, check=True)
-        # Only B-owned reports return to the calling checkout; shared audit docs stay put.
-        for name in ['eft-coverage.json', 'eft-coverage-cases.json', 'eft-checks.json']:
+        # Publish reports from this source copy; shared audit docs stay put.
+        for name in ['eft-coverage.json', 'eft-coverage-cases.json', 'eft-checks.json',
+                     'eft-paper-report.json', 'eft-paper-cases.json',
+                     'eft-paper-original.json', 'eft-paper-second-pass.json',
+                     'bounded-eft-report.json']:
             shutil.copyfile(target/'data/regressions'/name, ROOT/'data/regressions'/name)
         report_path = ROOT/'data/regressions/eft-checks.json'
         report = json.loads(report_path.read_text())
@@ -42,6 +45,8 @@ def main():
         [sys.executable, 'scripts/check_eft_coverage.py'],
         [sys.executable, 'scripts/generate_hardware.py'],
         [sys.executable, 'scripts/replay_hardware.py', '--self-test'],
+        [sys.executable, 'scripts/check_paper_eft.py'],
+        [sys.executable, 'scripts/check_bounded_eft.py'],
     ]
     tmp = ROOT / 'tmp/eft'
     tmp.mkdir(parents=True, exist_ok=True)
@@ -67,16 +72,22 @@ def main():
             assert 'TensorCore.bitSpan_coefficient_bound' in p.stdout
             assert 'TensorCore.evalBlock_scalarCorrectedIn_correct' in p.stdout
             assert 'TensorCore.Regression.scalar64_double_rounding_incorrect' in p.stdout
+            assert 'TensorCore.algorithm1Encoded_correct' in p.stdout
+            assert 'TensorCore.EFMachine.algorithm1_correct' in p.stdout
+            assert 'TensorCore.EFMachine.algorithm1_range_iff' in p.stdout
+            assert 'TensorCore.EFMachine.algorithm1_agrees' in p.stdout
+            assert 'TensorCore.algorithm1Encoded_of_evalBlock' in p.stdout
+            assert 'TensorCore.monotoneInAccumulator_encoded' in p.stdout
         results.append(result)
     sources = [*(ROOT/'TensorCore').rglob('*.lean'), *(ROOT/'examples').glob('*.lean'),
-               ROOT/'Main.lean', ROOT/'FeatureMain.lean']
+               ROOT/'Main.lean', ROOT/'FeatureMain.lean', ROOT/'EFTPaperMain.lean',
+               ROOT/'BoundedEFTMain.lean']
     for source in sources:
         assert not re.search(r'\b(sorry|admit|axiom|native_decide|ofReduceBool|skipKernelTC)\b', source.read_text()), source
     report = dict(status='passed', commands=results, scanned_lean_sources=len(sources),
-                  bounded_scope='11-bit significand multiplication and 24-bit magnitude splitting, with exact truncation/residual refinement',
-                  incomplete=['Encoded decoder and extraction pipeline', 'Bounded overlap and guard',
-                              'Bounded consolidation and end-to-end correctness',
-                              'Useful input-family success theorem', 'Full extraction/guard/consolidation phase costs',
+                  bounded_scope='Complete eight-path encoded EFT: bounded decoding, signed extraction/overlap, guards, scalar and 576-bit exact consolidation, direct FP32 rounding; universal finite-input correctness, success/range, reference refinement, and source-level operation budgets',
+                  bounded_checks=json.loads((ROOT/'data/regressions/bounded-eft-report.json').read_text()),
+                  incomplete=['Optimized machine lowering and performance comparison',
                               'CUDA compilation and actual GPU measurements'])
     (ROOT/'data/regressions/eft-checks.json').write_text(json.dumps(report, indent=2)+'\n')
     print(json.dumps(report, indent=2))

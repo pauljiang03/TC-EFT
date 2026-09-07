@@ -2,14 +2,21 @@
 """Audit every theorem in the TensorCore namespace against a strict standard-axiom allowlist.
 
 Audit.lean enumerates the theorems from the compiled environment, so nothing has to be
-listed by hand. This script re-checks each reported axiom set, verifies the reported count,
-and scans every Lean source (library, executables, examples) for proof shortcuts.
+listed by hand. This script first rebuilds the imported library so cached proofs cannot
+hide broken source, then checks each reported axiom set and theorem count and scans
+every Lean source (library, executables, examples) for proof shortcuts.
 """
 from pathlib import Path
 import re
 import subprocess
+import sys
 
 root = Path(__file__).resolve().parents[1]
+build = subprocess.run(['lake', 'build', 'TensorCore'], cwd=root,
+                       text=True, capture_output=True)
+if build.returncode:
+    print(build.stdout + build.stderr, file=sys.stderr, end='')
+    raise SystemExit(build.returncode)
 allowed = {'propext', 'Classical.choice', 'Quot.sound'}
 proc = subprocess.run(['lake', 'env', 'lean', 'Audit.lean'], cwd=root,
                       check=True, text=True, capture_output=True)
@@ -26,7 +33,7 @@ for line in theorems:
     names = set(match.group(2).split(', ')) if match.group(2) else set()
     assert names <= allowed, (line, names - allowed)
 sources = [*(root / 'TensorCore').rglob('*.lean'), *(root / 'examples').glob('*.lean'),
-           root / 'Main.lean', root / 'FeatureMain.lean']
+           *root.glob('*Main.lean')]
 for source in sources:
     text = source.read_text()
     assert not re.search(r'\b(sorry|admit|axiom|native_decide|ofReduceBool|skipKernelTC)\b', text), source

@@ -1,0 +1,814 @@
+{
+  "source": "MATLAB Tensor Core v0.5, L40S/E4M3 and L40S/E5M2",
+  "commit": "bbcf00a273868172494eaacaa8d6128ab0fb8704",
+  "hashed_files": 12,
+  "paper": "https://arxiv.org/html/2512.07004v4#S4.SS1.SSS4",
+  "products_per_row": 32,
+  "products_per_group": 16,
+  "alignment_fraction_bits": 13,
+  "readings": {
+    "paper": "FP32 toward-zero final conversion",
+    "source13": "13-fraction-bit toward-zero conversion, then FP32 encoding"
+  },
+  "status": "UNRESOLVED paper/source final-precision discrepancy; source13 matches archive",
+  "no_new_gpu_measurements": true,
+  "formats": {
+    "e4m3": {
+      "vectors": 5000,
+      "readings": {
+        "paper": {
+          "compiled_oracle_comparisons": 10000,
+          "numerical_oracle_mismatches": 0,
+          "archive_bit_mismatches": 1055,
+          "first_mismatch_row_1based": 1,
+          "reversed_group_differences": 2553,
+          "merged_group_differences": 1795,
+          "first_outputs": [
+            3175055360,
+            1082292992
+          ],
+          "first_reversed_outputs": [
+            1082996224,
+            1082293248
+          ]
+        },
+        "source13": {
+          "compiled_oracle_comparisons": 10000,
+          "numerical_oracle_mismatches": 0,
+          "archive_bit_mismatches": 0,
+          "first_mismatch_row_1based": null,
+          "reversed_group_differences": 1635,
+          "merged_group_differences": 1060,
+          "first_outputs": [
+            3175055360,
+            1082292224
+          ],
+          "first_reversed_outputs": [
+            1082995712,
+            1082293248
+          ]
+        }
+      },
+      "first_row": {
+        "pairs": [
+          [
+            55,
+            49
+          ],
+          [
+            56,
+            178
+          ],
+          [
+            170,
+            45
+          ],
+          [
+            59,
+            41
+          ],
+          [
+            179,
+            191
+          ],
+          [
+            42,
+            47
+          ],
+          [
+            56,
+            188
+          ],
+          [
+            62,
+            185
+          ],
+          [
+            54,
+            27
+          ],
+          [
+            53,
+            179
+          ],
+          [
+            184,
+            181
+          ],
+          [
+            43,
+            64
+          ],
+          [
+            15,
+            135
+          ],
+          [
+            41,
+            65
+          ],
+          [
+            56,
+            33
+          ],
+          [
+            53,
+            170
+          ],
+          [
+            184,
+            183
+          ],
+          [
+            55,
+            63
+          ],
+          [
+            3,
+            178
+          ],
+          [
+            186,
+            49
+          ],
+          [
+            174,
+            173
+          ],
+          [
+            166,
+            157
+          ],
+          [
+            58,
+            184
+          ],
+          [
+            61,
+            58
+          ],
+          [
+            146,
+            61
+          ],
+          [
+            38,
+            59
+          ],
+          [
+            176,
+            155
+          ],
+          [
+            175,
+            134
+          ],
+          [
+            179,
+            188
+          ],
+          [
+            51,
+            172
+          ],
+          [
+            66,
+            18
+          ],
+          [
+            45,
+            131
+          ]
+        ],
+        "c": 1049872986,
+        "device": 1082292224
+      },
+      "zero_operands": 523,
+      "subnormal_operands": 3373
+    },
+    "e5m2": {
+      "vectors": 5000,
+      "readings": {
+        "paper": {
+          "compiled_oracle_comparisons": 10000,
+          "numerical_oracle_mismatches": 0,
+          "archive_bit_mismatches": 962,
+          "first_mismatch_row_1based": 8,
+          "reversed_group_differences": 2154,
+          "merged_group_differences": 1440,
+          "first_outputs": [
+            1042972672,
+            1081338880
+          ],
+          "first_reversed_outputs": [
+            1083091200,
+            1081339904
+          ]
+        },
+        "source13": {
+          "compiled_oracle_comparisons": 10000,
+          "numerical_oracle_mismatches": 0,
+          "archive_bit_mismatches": 0,
+          "first_mismatch_row_1based": null,
+          "reversed_group_differences": 1188,
+          "merged_group_differences": 717,
+          "first_outputs": [
+            1042972672,
+            1081338880
+          ],
+          "first_reversed_outputs": [
+            1083090944,
+            1081339904
+          ]
+        }
+      },
+      "first_row": {
+        "pairs": [
+          [
+            59,
+            56
+          ],
+          [
+            60,
+            185
+          ],
+          [
+            181,
+            54
+          ],
+          [
+            61,
+            52
+          ],
+          [
+            185,
+            191
+          ],
+          [
+            53,
+            55
+          ],
+          [
+            60,
+            190
+          ],
+          [
+            63,
+            188
+          ],
+          [
+            59,
+            45
+          ],
+          [
+            58,
+            185
+          ],
+          [
+            188,
+            186
+          ],
+          [
+            53,
+            64
+          ],
+          [
+            39,
+            163
+          ],
+          [
+            52,
+            64
+          ],
+          [
+            60,
+            48
+          ],
+          [
+            58,
+            181
+          ],
+          [
+            188,
+            187
+          ],
+          [
+            59,
+            63
+          ],
+          [
+            30,
+            185
+          ],
+          [
+            189,
+            56
+          ],
+          [
+            183,
+            182
+          ],
+          [
+            179,
+            174
+          ],
+          [
+            61,
+            188
+          ],
+          [
+            62,
+            61
+          ],
+          [
+            169,
+            62
+          ],
+          [
+            51,
+            61
+          ],
+          [
+            184,
+            173
+          ],
+          [
+            183,
+            162
+          ],
+          [
+            185,
+            190
+          ],
+          [
+            57,
+            182
+          ],
+          [
+            65,
+            41
+          ],
+          [
+            54,
+            158
+          ]
+        ],
+        "c": 1062222832,
+        "device": 1081338880
+      },
+      "zero_operands": 0,
+      "subnormal_operands": 12
+    }
+  },
+  "precision_review": {
+    "conclusion": "The paper establishes alignment width, but does not establish the source13 normalized truncation.",
+    "unresolved_claim": "After each 16-product group, must the normalized aligned sum be truncated to 13 fraction bits before FP32 encoding?",
+    "paper_locations": {
+      "section_2_pp5_6": "neab counts alignment/guard bits relative to output precision",
+      "section_4_1_4_p10": "13-fraction-bit alignment and early-c probes; both readings satisfy the reported endpoints",
+      "section_4_1_5_p10": "Ada RTX 1000 shares L40S numerical features; no additional precision rule",
+      "figure_4_p11": "(2,13,0) alignment, 20-bit sum, FP32 Norm/Trunc; no explicit normalized 13-bit boundary",
+      "table_3_p14_and_note": "FP32 output, truncation, (2,13) alignment; Acc.20 includes carry bits, not a 13-bit normalized significand"
+    },
+    "source_locations": {
+      "models/AdaTC.m:55-73,105-107": "rz, in-group c, denormalized products, floor -132, fma=16, neab=-10",
+      "models/tools/GEMM.m:80-96": "FP32 NoManBitsOut=23, then add neab=-10 to obtain 13",
+      "models/tools/Generic_BFMA_TC.m:478-489,570-589": "align and sum, then normalize with neab=-10",
+      "models/tools/Generic_BFMA_TC.m:266-293": "rz skips ieeeround; normalized mantissa slice retains NoManBitsOut=13 fraction bits",
+      "models/tools/GEMM.m:233-242": "every group calls Generic_BFMA_TC and passes its output as c"
+    },
+    "mechanism": "Alignment uses 2^(eta-13); after a carry the source normalized grid is coarser. FP32 can retain the bit lost by source13.",
+    "evidence_limit": "Archive endpoint agreement supports the source candidate on these rows, not a universal paper/source or physical-device conformance theorem.",
+    "paper_probe_caveat": "Section 4.1.4 states p1=1 but its stopping expression is 1+p1+p2; tests use the explicit numerical endpoint 1+2^-12, without silently repairing that expression.",
+    "numerical_semantics_changed": false
+  },
+  "checked_source_sha256": {
+    "TensorCore/Semantics/FP8.lean": "0fec6c8bf4656aeb202a49e91179ead6cffd0112661c987e34ef6a98e5fddaa8",
+    "TensorCore/Programs/FP8.lean": "d9c28a731729a7188e53b45e86abb2ebdfb4a8a3684e06b5682d7a35cc08cc1d",
+    "TensorCore/Theory/FP8.lean": "6695679c045207360eaf1c2a02430b9c3f60ca1f2b289d6f9a876531e9469abe",
+    "TensorCore/Regression/FP8.lean": "87dd77dcb398653bd4cbf1b88c7639d4e09e3a1a65557b58b9d4f16f8d7f79db",
+    "FeatureMain.lean": "00f7c1bcf478333e431f6cf9c90a531da9192622fd624a8b66f0945e48f080fe",
+    "scripts/check_device_fp8.py": "c3e98a292d47d2ed9fb51eef5ecb8c875cca1e7268514660263b0a0f2356bef1"
+  },
+  "precision_controls": [
+    {
+      "case": "carry_last",
+      "format": "e4m3",
+      "reading": "paper",
+      "outputs": [
+        0,
+        1073742336
+      ],
+      "accumulated": [
+        "0/1",
+        "16385/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "carry_last",
+      "format": "e4m3",
+      "reading": "source13",
+      "outputs": [
+        0,
+        1073741824
+      ],
+      "accumulated": [
+        "0/1",
+        "16385/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "1/8192"
+      ]
+    },
+    {
+      "case": "negative_carry_last",
+      "format": "e4m3",
+      "reading": "paper",
+      "outputs": [
+        0,
+        3221225984
+      ],
+      "accumulated": [
+        "0/1",
+        "-16385/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "negative_carry_last",
+      "format": "e4m3",
+      "reading": "source13",
+      "outputs": [
+        0,
+        3221225472
+      ],
+      "accumulated": [
+        "0/1",
+        "-16385/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "-1/8192"
+      ]
+    },
+    {
+      "case": "alignment_probe",
+      "format": "e4m3",
+      "reading": "paper",
+      "outputs": [
+        0,
+        1065355264
+      ],
+      "accumulated": [
+        "0/1",
+        "4097/4096"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "alignment_probe",
+      "format": "e4m3",
+      "reading": "source13",
+      "outputs": [
+        0,
+        1065355264
+      ],
+      "accumulated": [
+        "0/1",
+        "4097/4096"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "early_c_probe",
+      "format": "e4m3",
+      "reading": "paper",
+      "outputs": [
+        1065353216,
+        1065353216
+      ],
+      "accumulated": [
+        "1/1",
+        "1/1"
+      ],
+      "residuals": [
+        "0/1",
+        "1/8192"
+      ]
+    },
+    {
+      "case": "early_c_probe",
+      "format": "e4m3",
+      "reading": "source13",
+      "outputs": [
+        1065353216,
+        1065353216
+      ],
+      "accumulated": [
+        "1/1",
+        "1/1"
+      ],
+      "residuals": [
+        "0/1",
+        "1/8192"
+      ]
+    },
+    {
+      "case": "carry_first_absorbed",
+      "format": "e4m3",
+      "reading": "paper",
+      "outputs": [
+        1073742336,
+        1073741824
+      ],
+      "accumulated": [
+        "16385/8192",
+        "2/1"
+      ],
+      "residuals": [
+        "0/1",
+        "1/8192"
+      ]
+    },
+    {
+      "case": "carry_first_absorbed",
+      "format": "e4m3",
+      "reading": "source13",
+      "outputs": [
+        1073741824,
+        1073741824
+      ],
+      "accumulated": [
+        "16385/8192",
+        "2/1"
+      ],
+      "residuals": [
+        "1/8192",
+        "0/1"
+      ]
+    },
+    {
+      "case": "cancellation",
+      "format": "e4m3",
+      "reading": "paper",
+      "outputs": [
+        0,
+        956301312
+      ],
+      "accumulated": [
+        "0/1",
+        "1/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "cancellation",
+      "format": "e4m3",
+      "reading": "source13",
+      "outputs": [
+        0,
+        956301312
+      ],
+      "accumulated": [
+        "0/1",
+        "1/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "carry_last",
+      "format": "e5m2",
+      "reading": "paper",
+      "outputs": [
+        0,
+        1073742336
+      ],
+      "accumulated": [
+        "0/1",
+        "16385/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "carry_last",
+      "format": "e5m2",
+      "reading": "source13",
+      "outputs": [
+        0,
+        1073741824
+      ],
+      "accumulated": [
+        "0/1",
+        "16385/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "1/8192"
+      ]
+    },
+    {
+      "case": "negative_carry_last",
+      "format": "e5m2",
+      "reading": "paper",
+      "outputs": [
+        0,
+        3221225984
+      ],
+      "accumulated": [
+        "0/1",
+        "-16385/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "negative_carry_last",
+      "format": "e5m2",
+      "reading": "source13",
+      "outputs": [
+        0,
+        3221225472
+      ],
+      "accumulated": [
+        "0/1",
+        "-16385/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "-1/8192"
+      ]
+    },
+    {
+      "case": "alignment_probe",
+      "format": "e5m2",
+      "reading": "paper",
+      "outputs": [
+        0,
+        1065355264
+      ],
+      "accumulated": [
+        "0/1",
+        "4097/4096"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "alignment_probe",
+      "format": "e5m2",
+      "reading": "source13",
+      "outputs": [
+        0,
+        1065355264
+      ],
+      "accumulated": [
+        "0/1",
+        "4097/4096"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "early_c_probe",
+      "format": "e5m2",
+      "reading": "paper",
+      "outputs": [
+        1065353216,
+        1065353216
+      ],
+      "accumulated": [
+        "1/1",
+        "1/1"
+      ],
+      "residuals": [
+        "0/1",
+        "1/8192"
+      ]
+    },
+    {
+      "case": "early_c_probe",
+      "format": "e5m2",
+      "reading": "source13",
+      "outputs": [
+        1065353216,
+        1065353216
+      ],
+      "accumulated": [
+        "1/1",
+        "1/1"
+      ],
+      "residuals": [
+        "0/1",
+        "1/8192"
+      ]
+    },
+    {
+      "case": "carry_first_absorbed",
+      "format": "e5m2",
+      "reading": "paper",
+      "outputs": [
+        1073742336,
+        1073741824
+      ],
+      "accumulated": [
+        "16385/8192",
+        "2/1"
+      ],
+      "residuals": [
+        "0/1",
+        "1/8192"
+      ]
+    },
+    {
+      "case": "carry_first_absorbed",
+      "format": "e5m2",
+      "reading": "source13",
+      "outputs": [
+        1073741824,
+        1073741824
+      ],
+      "accumulated": [
+        "16385/8192",
+        "2/1"
+      ],
+      "residuals": [
+        "1/8192",
+        "0/1"
+      ]
+    },
+    {
+      "case": "cancellation",
+      "format": "e5m2",
+      "reading": "paper",
+      "outputs": [
+        0,
+        956301312
+      ],
+      "accumulated": [
+        "0/1",
+        "1/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    },
+    {
+      "case": "cancellation",
+      "format": "e5m2",
+      "reading": "source13",
+      "outputs": [
+        0,
+        956301312
+      ],
+      "accumulated": [
+        "0/1",
+        "1/8192"
+      ],
+      "residuals": [
+        "0/1",
+        "0/1"
+      ]
+    }
+  ],
+  "exhaustive_decode_comparisons": 512,
+  "boundary_comparisons": 52,
+  "wrong_shape_checks": 4,
+  "precision_control_comparisons": 24,
+  "parser_negative_controls": 4,
+  "corrupt_trace_negative_controls": 12,
+  "archive_comparisons": 20000,
+  "reversed_group_comparisons": 20000,
+  "paper_archive_mismatches": 2017,
+  "source13_archive_mismatches": 0,
+  "numerical_oracle_mismatches": 0
+}

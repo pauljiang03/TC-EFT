@@ -1,0 +1,13 @@
+{
+  "source": "TC-EFT corrected manuscript source package: output/tc-eft-latex/validation",
+  "recovered_from": "../tc-eft-draft/output/tc-eft-latex/validation",
+  "paper": "tc-eft-corrected.pdf",
+  "paper_sha256": "e9b19e9766974d64dad081ea1107bb6d54c6aff8a1fd0620ce9fb13dbd497b3e",
+  "files": {
+    "exact_model.py": "51d757e65b22614e74cc617595c4d98a42a5df6938ac3cbe261794981234c8f0",
+    "check_revision.py": "c4f2e213d8c880253b839172cd1a2b85dad0f0759faba630616565f846604fe7",
+    "check_second_pass.py": "687b9b329c3bb9b7c2528daa05a373a40c6d0d58d9fc2a314c551f832dc3b03d"
+  },
+  "modified": false,
+  "scope": "Original software validation generators; no GPU measurements or original V100 experiment vectors."
+}

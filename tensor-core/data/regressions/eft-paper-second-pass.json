@@ -1,0 +1,36 @@
+{
+  "result": "PASS",
+  "seed": 20260906,
+  "full_range_finite_blocks": {
+    "v100-fp16": 200,
+    "a100-fp16": 200,
+    "a100-bf16": 200,
+    "a100-tf32": 200,
+    "h100-fp16": 200,
+    "h100-bf16": 200,
+    "h100-tf32": 200,
+    "h100-tf32-k4": 200
+  },
+  "out_of_domain_draws": {
+    "v100-fp16": 0,
+    "a100-fp16": 0,
+    "a100-bf16": 115,
+    "a100-tf32": 49,
+    "h100-fp16": 0,
+    "h100-bf16": 144,
+    "h100-tf32": 103,
+    "h100-tf32-k4": 48
+  },
+  "scalar_branches_checked": 65,
+  "extraction_grids_per_block": 4,
+  "family_endpoint_cases": 86,
+  "scalar_support_cases": 10,
+  "double_rounding_counterexamples": 1,
+  "signed_zero_and_extreme_cases": 6,
+  "serial_composition_examples": 1,
+  "non_dyadic_rejection": true,
+  "exact_sum_overflow_rejection": true,
+  "independent_alignment_oracle": true,
+  "independent_neighbor_decoder": true,
+  "gpu_measurements": 0
+}

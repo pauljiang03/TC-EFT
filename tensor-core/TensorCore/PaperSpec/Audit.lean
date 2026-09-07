@@ -1,0 +1,62 @@
+import Lean
+import TensorCore.PaperSpec.NegativeControls
+import TensorCore.Regression.FoundationCompletion
+
+/-! A compiled-dependency audit of the independently defined specification.
+It examines declaration types and bodies (including propositions and proofs),
+and permits only the five specification modules and Lean's standard library.
+The bridge modules are deliberately outside this allowlist. -/
+
+open Lean Elab Command
+
+namespace TensorCore.PaperSpec.Audit
+
+def specificationModules : List Name :=
+  [`TensorCore.PaperSpec.Definition, `TensorCore.PaperSpec.Profiles,
+    `TensorCore.PaperSpec.Schedule, `TensorCore.PaperSpec.Matrix, `TensorCore.PaperSpec.Scalar]
+
+def moduleOf (env : Environment) (n : Name) : Option Name := do
+  let idx ← env.getModuleIdxFor? n
+  env.header.moduleNames[idx.toNat]?
+
+def standardModule (name : Name) : Bool :=
+  name.getRoot == `Init || name.getRoot == `Std || name.getRoot == `Lean
+
+partial def visit (env : Environment) (n : Name) : StateM NameSet Unit := do
+  if (← get).contains n then return
+  modify (·.insert n)
+  -- Standard-library arithmetic/types are the deliberately shared foundation.
+  if (moduleOf env n).any standardModule then return
+  match env.find? n with
+  | none => pure ()
+  | some info =>
+    info.type.getUsedConstants.forM (visit env)
+    match info with
+    | .defnInfo d => d.value.getUsedConstants.forM (visit env)
+    | .opaqueInfo d => d.value.getUsedConstants.forM (visit env)
+    | .thmInfo d => d.value.getUsedConstants.forM (visit env)
+    | _ => pure ()
+
+def check (root : Name) : CommandElabM Unit := do
+  let env ← getEnv
+  let deps := ((visit env root).run {}).2
+  let mut bad : Array Name := #[]
+  for n in deps do
+    if n == root then continue
+    match moduleOf env n with
+    | some m =>
+      unless standardModule m || specificationModules.contains m do bad := bad.push n
+    | none => bad := bad.push n
+  unless bad.isEmpty do
+    throwError "Paper specification has forbidden dependencies: {bad}"
+
+elab "paper_spec_audit" : command => do
+  let env ← getEnv
+  let roots := env.constants.fold (init := (#[] : Array Name)) fun acc n _ =>
+    if (moduleOf env n).any specificationModules.contains then acc.push n else acc
+  for n in roots do check n
+  logInfo m!"paper_spec_audit: {roots.size} specification declarations; no implementation dependencies"
+
+end TensorCore.PaperSpec.Audit
+
+paper_spec_audit

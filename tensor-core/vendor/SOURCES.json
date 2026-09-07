@@ -2,7 +2,7 @@
   "repository": "https://github.com/north-numerical-computing/MATLAB-tensor-core",
   "tag": "v0.5",
   "commit": "bbcf00a273868172494eaacaa8d6128ab0fb8704",
-  "selection": "Unmodified source subset and canonical FP16-to-FP32 published vectors for V100/A100/H100; not a complete MATLAB installation",
+  "selection": "Unmodified source subset and published FP16/BF16/TF32/FP8 validation vectors; not a complete MATLAB installation",
   "sha256": {
     "LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
     "README.md": "7117c699a313ab65f6039a365bc2d6012e4b917041072dbc645a51ba9d647efb",
@@ -42,7 +42,16 @@
     "model_validation/H100/tf32/a_H100_tf32.txt": "53d8534fd1106f7e9a23e902b918e59108f9e1b05843d20a36b3049a61bf8204",
     "model_validation/H100/tf32/b_H100_tf32.txt": "1a019e8dcec2a44a741e691268e4c4a9eb9eb9ebc128be097f9921b813d4c6f9",
     "model_validation/H100/tf32/c_H100_fp32.txt": "0e13e585a11bd64b0fc40bafc9fd0b8037176e4f98097c76869505fefbcba23c",
-    "model_validation/H100/tf32/d_H100_fp32.txt": "c879699e2cbac246e311ebdfb1ed4528b2463bf9d588faa3ca3651a4af7222ab"
+    "model_validation/H100/tf32/d_H100_fp32.txt": "c879699e2cbac246e311ebdfb1ed4528b2463bf9d588faa3ca3651a4af7222ab",
+    "models/AdaTC.m": "9c747e9d093ce3a8dde75838b72fc12641cd5e5aa2b4c83f287c0964ae65880e",
+    "model_validation/L40S/E4M3/a_L40S_E4M3.txt": "76a6115878a4662fb486d90a6765e24564ed436a173ed1260d5d53112e8a976c",
+    "model_validation/L40S/E4M3/b_L40S_E4M3.txt": "f35d75720651ab777b10399abea59f060cde011a898065b5c3045ea171cc669d",
+    "model_validation/L40S/E4M3/c_L40S_fp32.txt": "5fe4258b96b4bd99f720796bcbfa39f3f3b4fd45eb5f3c47756914c0fb73552b",
+    "model_validation/L40S/E4M3/d_L40S_fp32.txt": "367af6ea87401170fc811aeaf61ca0ac6fb9c8d6d07b3c39bf5aac819cfdff11",
+    "model_validation/L40S/E5M2/a_L40S_E5M2.txt": "229abb5f9e0f1dfdae18ab467bccc38547749b3286128f99ba134573b443ee1f",
+    "model_validation/L40S/E5M2/b_L40S_E5M2.txt": "dc105fe914100f96ba77b18ec88014bde43b4f5be0bc105e337d2e6bd51eeb35",
+    "model_validation/L40S/E5M2/c_L40S_fp32.txt": "369fb2d8fd05edbbd4c0e4fcb547be29608218e90e5a807a5a27be753912d0b1",
+    "model_validation/L40S/E5M2/d_L40S_fp32.txt": "572b0bc93636d4bd6883c05637ae50285c01e9b6ff6764f7b21b6cc9993f5630"
   },
   "device_vectors": {
     "path": "model_validation/V100/fp16",
@@ -76,5 +85,19 @@
     "used_by": "scripts/check_features.py",
     "archive_root": "north-numerical-computing-MATLAB-tensor-core-bbcf00a",
     "archive_sha256": "38b84ee13344331e354f10b0321b3ae3050b76cdeb23da101595c9641db8458e"
+  },
+  "fp8_vectors": {
+    "paths": [
+      "model_validation/L40S/E4M3",
+      "model_validation/L40S/E5M2"
+    ],
+    "rows_per_format": 5000,
+    "products_per_row": 32,
+    "products_per_group": 16,
+    "layout": "a/b: 32 FP32 hex words containing exact FP8 values; c/d: FP32 binary strings",
+    "order": "Two consecutive groups in increasing k, first encoded output becomes second c",
+    "archive_sha256": "38b84ee13344331e354f10b0321b3ae3050b76cdeb23da101595c9641db8458e",
+    "used_by": "scripts/check_device_fp8.py",
+    "status": "Paper FP32 final conversion and source 13-fraction-bit normalized output are separate readings; source13 agrees with archive, paper reading differs on 2017 rows"
   }
 }

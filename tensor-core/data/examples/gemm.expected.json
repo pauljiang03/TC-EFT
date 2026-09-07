@@ -1,0 +1,130 @@
+[
+  {
+    "name": "negative_halfway_rne",
+    "checks": {
+      "rows.0.0.bits": 48128,
+      "rows.0.0.value": "-1/1"
+    }
+  },
+  {
+    "name": "negative_halfway_rtz",
+    "checks": {
+      "rows.0.0.bits": 48128,
+      "rows.0.0.value": "-1/1"
+    }
+  },
+  {
+    "name": "negative_halfway_rdn",
+    "checks": {
+      "rows.0.0.bits": 48129,
+      "rows.0.0.value": "-1025/1024"
+    }
+  },
+  {
+    "name": "negative_halfway_rup",
+    "checks": {
+      "rows.0.0.bits": 48128,
+      "rows.0.0.value": "-1/1"
+    }
+  },
+  {
+    "name": "source_loss",
+    "checks": {
+      "converted_a": [
+        [
+          15360
+        ]
+      ],
+      "converted_b": [
+        [
+          15360
+        ]
+      ],
+      "rows.0.0.bits": 1065353216,
+      "source_ideal": [
+        [
+          "4198401/4194304"
+        ]
+      ],
+      "ideal": [
+        [
+          "1/1"
+        ]
+      ],
+      "input_product_bound": [
+        [
+          "4099/4194304"
+        ]
+      ]
+    }
+  },
+  {
+    "name": "source_certificate",
+    "checks": {
+      "accepted": true,
+      "entry_bound": "6273/8388608",
+      "source_entry_bounds": [
+        [
+          "14471/8388608"
+        ]
+      ],
+      "source_matrix_bound": "14471/8388608",
+      "tight_entry_bound": "11649/16777216",
+      "tight_source_entry_bounds": [
+        [
+          "28037/16777216"
+        ]
+      ],
+      "tight_source_matrix_bound": "28037/16777216"
+    }
+  },
+  {
+    "name": "inconclusive_certificate",
+    "checks": {
+      "accepted": false,
+      "source_entry_bounds": null,
+      "source_matrix_bound": null,
+      "tight_source_entry_bounds": null,
+      "tight_source_matrix_bound": null
+    }
+  },
+  {
+    "name": "nonfinite_input",
+    "checks": {
+      "input_conversion_rejected": true
+    }
+  },
+  {
+    "name": "finite_out_of_range",
+    "checks": {
+      "input_conversion_rejected": true
+    }
+  },
+  {
+    "name": "subnormal_upward",
+    "checks": {
+      "converted_a": [
+        [
+          1
+        ]
+      ],
+      "converted_b": [
+        [
+          1
+        ]
+      ],
+      "rows.0.0.bits": 662700032,
+      "rows.0.0.value": "1/281474976710656",
+      "source_ideal": [
+        [
+          "1/4503599627370496"
+        ]
+      ],
+      "input_product_bound": [
+        [
+          "15/4503599627370496"
+        ]
+      ]
+    }
+  }
+]

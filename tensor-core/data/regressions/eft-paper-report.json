@@ -1,0 +1,72 @@
+{
+  "status": "passed",
+  "source_sha256": {
+    "exact_model.py": "51d757e65b22614e74cc617595c4d98a42a5df6938ac3cbe261794981234c8f0",
+    "check_revision.py": "c4f2e213d8c880253b839172cd1a2b85dad0f0759faba630616565f846604fe7",
+    "check_second_pass.py": "687b9b329c3bb9b7c2528daa05a373a40c6d0d58d9fc2a314c551f832dc3b03d"
+  },
+  "paper_sha256": "e9b19e9766974d64dad081ea1107bb6d54c6aff8a1fd0620ce9fb13dbd497b3e",
+  "named_cases": 59,
+  "deterministic_blocks": 800,
+  "deterministic_seed": 20260905,
+  "profile_combinations": 8,
+  "synthetic_perturbations": 49005,
+  "rounding_cases": 100,
+  "full_range_blocks": 1600,
+  "full_range_seed": 20260906,
+  "excluded_draws": {
+    "v100-fp16": 0,
+    "a100-fp16": 0,
+    "a100-bf16": 115,
+    "a100-tf32": 49,
+    "h100-fp16": 0,
+    "h100-bf16": 144,
+    "h100-tf32": 103,
+    "h100-tf32-k4": 48
+  },
+  "boundary_composition_blocks": 8,
+  "lean_comparisons": 52031,
+  "executable_dependency_checks": 2,
+  "source_additional_checks": {
+    "family_endpoints": 86,
+    "scalar_support": 10,
+    "scope": "Reproduced in the original Python generator; not additional Lean comparisons."
+  },
+  "correction_branches": {
+    "scalar": 263,
+    "exactReference": 2196,
+    "allZero": 8,
+    "outOfRange": 459
+  },
+  "scalar_predicate_differences": {
+    "named": 2,
+    "deterministic": 15,
+    "full_range": 10
+  },
+  "mismatches": 0,
+  "negative_controls": [
+    "wrong_model_bits_rejected",
+    "wrong_correction_bits_rejected",
+    "invalid_shapes_widths_and_denominators_rejected",
+    "model_dependency_rejected"
+  ],
+  "input_sha256": "edb6e870d29bae5278b07b0179ecabcd6ec18e73a322e71e1f305d7ae95635d6",
+  "cases_sha256": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
+  "output_sha256": "d8168f655c2d1fb8fd1a6ea79f3caa8981ed1ce8c901c19fed6c132a80f104b3",
+  "timing": {
+    "lean_seconds": 14.014,
+    "total_seconds": 18.106
+  },
+  "historical_v100_experiments": {
+    "reported": 100,
+    "surviving_vectors": 0,
+    "reproduced": false
+  },
+  "limits": [
+    "Software model checks; zero new GPU measurements.",
+    "Original generators are pinned and reproduced, not Lean proofs.",
+    "Finite reference ranges exclude overflow; excluded draws are retained and checked.",
+    "Original scalar support uses the finest residual grid; the Lean baseline remains conservative.",
+    "The synthetic family comparison evaluates encoded blocks, not GPU instructions."
+  ]
+}

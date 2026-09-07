@@ -151,7 +151,10 @@ structure ReferenceLedger where
 def referenceLedger (K : Nat) : ReferenceLedger :=
   ⟨2 * K + 2, K + 1, K, K + 1, K, 1, K, 2, 1⟩
 
-/-- The scalar branch performs `n + 1` FP32 operations for `n = K + 1` terms. -/
-def scalarBranchOperations (K : Nat) : Nat := K + 2
+/-- Successful scalar consolidation uses `n + 2` rounded FP32 operations for
+`n = K + 1` terms: `naiveSum32` adds all `n` residuals starting from zero, followed
+by the overlap subtraction and final addition. The paper's `n + 1` count instead
+initializes its sum with the first residual. Extraction and guard work are excluded. -/
+def scalarBranchOperations (K : Nat) : Nat := K + 3
 
 end TensorCore

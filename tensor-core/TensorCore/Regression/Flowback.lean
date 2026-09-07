@@ -55,9 +55,10 @@ theorem algorithm1_cases :
       .ok (.exactReference 0x3f800001) := by
   decide +kernel
 
-/-- TC-EFT Table V for `K = 4` (`n = 5` terms), and the scalar branch's `n + 1` operations. -/
+/-- TC-EFT Table V for `K = 4` (`n = 5` terms), and the implemented scalar
+consolidation's `n + 2` operations, including its initial addition to zero. -/
 theorem table_v_ledger :
-    referenceLedger 4 = ⟨10, 5, 4, 5, 4, 1, 4, 2, 1⟩ ∧ scalarBranchOperations 4 = 6 := by
+    referenceLedger 4 = ⟨10, 5, 4, 5, 4, 1, 4, 2, 1⟩ ∧ scalarBranchOperations 4 = 7 := by
   decide
 
 end TensorCore.Regression

@@ -1,0 +1,126 @@
+#!/usr/bin/env python3
+"""Tensor Core Arithmetic command line."""
+
+import argparse
+import json
+import os
+from pathlib import Path
+import shutil
+import subprocess
+import sys
+
+
+ROOT = Path(__file__).resolve().parent
+PROJECT = ROOT / "tensor-core"
+VERSION = "0.1.0"
+
+
+def run(command, *, diagnostics=False):
+    return subprocess.run(command, cwd=PROJECT,
+                          stdout=sys.stderr if diagnostics else None).returncode
+
+
+def build(target=None):
+    command = ["lake", "build"]
+    if target:
+        command.append(target)
+    return run(command, diagnostics=True)
+
+
+def executable(target, arguments):
+    result = build(target)
+    if result:
+        return result
+    return run([str(PROJECT / ".lake/build/bin" / target), *arguments])
+
+
+def input_file(value):
+    path = Path(value).expanduser().resolve()
+    if not path.is_file():
+        raise ValueError(f"Input file does not exist: {path}")
+    return str(path)
+
+
+def doctor(as_json):
+    pin = (PROJECT / "lean-toolchain").read_text().strip()
+    lake = shutil.which("lake")
+    lean = None
+    if lake:
+        check = subprocess.run([lake, "env", "lean", "--version"], cwd=PROJECT,
+                               text=True, capture_output=True,
+                               env={**os.environ, "ELAN_NO_INSTALL": "1"})
+        if check.returncode == 0:
+            lean = check.stdout.strip()
+    ready = bool(lean and pin.rsplit(":v", 1)[-1] in lean)
+    report = {"tool": "tensor-core-arithmetic", "version": VERSION,
+              "ready": ready, "python": sys.version.split()[0],
+              "toolchain": pin, "lean": lean, "lake": lake,
+              "cuda_required": False}
+    if as_json:
+        print(json.dumps(report, indent=2))
+    else:
+        print(f"Tensor Core Arithmetic {VERSION}")
+        print(f"Python: {report['python']}")
+        print(f"Toolchain: {pin}")
+        print(f"Lean: {lean or 'unavailable'}")
+        print(f"Ready: {'yes' if ready else 'no'}")
+        if not ready:
+            print(f"Install elan, then run: elan toolchain install {pin}")
+    return 0 if ready else 1
+
+
+def parser():
+    cli = argparse.ArgumentParser(
+        prog="tc", description="Verified tensor-core arithmetic and FP16 GEMM with FP32 accumulation.",
+        epilog="Run ./tc COMMAND --help for details. README.md contains the contracts and status.")
+    cli.add_argument("--version", action="version", version=f"Tensor Core Arithmetic {VERSION}")
+    commands = cli.add_subparsers(dest="command", required=True)
+    health = commands.add_parser("doctor", help="Check Python and the pinned Lean toolchain")
+    health.add_argument("--json", action="store_true", help="Print a JSON environment report")
+    commands.add_parser("build", help="Build the library and executables")
+    commands.add_parser("review", help="Check ten editable cases against fixed answers and an independent oracle")
+    commands.add_parser("audit", help="Check proof dependencies and reject proof shortcuts")
+    commands.add_parser("check", help="Run the full validation suite in a clean source snapshot")
+    gemm = commands.add_parser("gemm", help="Execute or certify GEMM requests as JSON Lines",
+                               description="Read one GEMM request per line; write one JSON result per request.")
+    gemm.add_argument("input", metavar="FILE", help="JSONL input file, or - for standard input")
+    commands.add_parser("schema", help="Print the GEMM input JSON Schema")
+    trace = commands.add_parser("trace", help="Print a V100 four-product block trace")
+    trace.add_argument("words", nargs=9, metavar="HEX", help="a0 b0 a1 b1 a2 b2 a3 b3 c, without 0x")
+    eft = commands.add_parser("eft", help="Run bounded EFT on an encoded batch file")
+    eft.add_argument("input", metavar="FILE", help="Batch file in the bounded-EFT format documented in README.md")
+    return cli
+
+
+def main():
+    cli = parser()
+    args = cli.parse_args()
+    if args.command == "doctor":
+        return doctor(args.json)
+    if args.command == "schema":
+        print((PROJECT / "data/schemas/gemm.schema.json").read_text(), end="")
+        return 0
+    if not shutil.which("lake"):
+        cli.error("lake is unavailable. Install elan and run ./tc doctor.")
+    if args.command == "build":
+        return build()
+    if args.command == "gemm":
+        path = "-" if args.input == "-" else input_file(args.input)
+        return executable("tc_gemm", [path])
+    if args.command == "trace":
+        return executable("tc_trace", args.words)
+    if args.command == "eft":
+        return executable("tc_bounded_eft", [input_file(args.input)])
+    scripts = {"review": "check_reviewer.py", "audit": "check_axioms.py", "check": "check_clean_build.py"}
+    return run([sys.executable, "scripts/" + scripts[args.command]])
+
+
+if __name__ == "__main__":
+    try:
+        sys.exit(main())
+    except (OSError, ValueError) as error:
+        print(f"tc: {error}", file=sys.stderr)
+        sys.exit(2)
+    except KeyboardInterrupt:
+        print("tc: interrupted", file=sys.stderr)
+        sys.exit(130)
