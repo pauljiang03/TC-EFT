@@ -28,13 +28,13 @@ def verify(path):
     content = path.read_text()
     first = content.splitlines()[0] if content else ""
     if not first.startswith(HEADER):
-        raise ValueError("Expected a certificate produced by tc analyze --emit")
+        raise ValueError("Expected a certificate produced by tc analyze or tc select --emit")
     manifest = json.loads(first[len(HEADER):])
     if certificate_text(manifest) != content:
         raise ValueError("Certificate is not in the canonical data-and-proof format")
     if manifest["theory_sha256"] != theory_hash():
         raise ValueError("Certificate theory hash differs from this checkout")
-    build = subprocess.run(["lake", "build", "TensorCore.Programs.ConvertedGemmAnalysis", "TensorCore.Programs.GemmFamily"], cwd=PROJECT,
+    build = subprocess.run(["lake", "build", "TensorCore.Programs.GemmSelection"], cwd=PROJECT,
                            stdout=sys.stderr)
     if build.returncode:
         return build.returncode

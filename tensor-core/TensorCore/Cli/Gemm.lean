@@ -1,10 +1,11 @@
 import TensorCore.Programs.GemmTightInputBounds
 import TensorCore.Cli.PipelineAnalysis
+import TensorCore.Cli.GemmSelection
 import Lean
 
 namespace TensorCore.Cli.Gemm
 
-open Lean
+open Lean GemmInput
 
 private def ratText (q : Rat) : String := s!"{q.num}/{q.den}"
 
@@ -16,30 +17,6 @@ private def cellJson : Except ModelError GemmCell → Json
       ("initial", toJson c.initial.bits.toNat),
       ("instructions", toJson (c.instructions.map fun ts => ts.map fun t => t.output.bits.toNat)),
       ("error_budget", toJson (ratText c.errorBudget))]
-
-private def words (width rows cols : Nat) (xs : Array Nat) :
-    Except String (DenseMatrix (BitVec width) rows cols) :=
-  if xs.size != rows * cols then .error "Matrix shape does not match its word count"
-  else if xs.any (· ≥ 2 ^ width) then .error "Operand word exceeds its format width"
-  else .ok (DenseMatrix.ofFn fun i j => BitVec.ofNat width xs[i.val * cols + j.val]!)
-
-private def scalar (input : Json) (key : String) : Except String F32 := do
-  let n ← input.getObjValAs? Nat key
-  if n ≥ 2 ^ 32 then .error "Scalar word exceeds FP32 width" else .ok (BitVec.ofNat 32 n)
-
-private def mode : String → Except String BinaryRoundingMode
-  | "rne" => .ok .nearestEven | "rtz" => .ok .towardZero
-  | "rdn" => .ok .towardNegative | "rup" => .ok .towardPositive
-  | _ => .error "Expected rounding mode rne, rtz, rdn, or rup"
-
-private def format : String → Except String TensorCore.Format
-  | "fp16" => .ok fp16 | "fp32" => .ok fp32
-  | "bf16" => .ok bf16 | "fp64" => .ok fp64
-  | _ => .error "Expected format fp16, fp32, bf16, or fp64"
-
-private def model : String → Except String WmmaGemmModel
-  | "v100" => .ok .v100 | "ampere" => .ok .ampere | "hopper" => .ok .hopper
-  | _ => .error "Expected model v100, ampere, or hopper"
 
 def matrixJson (A : DenseMatrix α m n) (f : α → Json) : Json :=
   toJson (A.toArray.map fun row => row.toArray.map f)
@@ -54,6 +31,8 @@ def scaledCellJson : Option (ScaledGemmCell cfg) → Json
       ("error_budget", toJson (ratText t.errorBudget))]
 
 def evaluate (input : Json) : Except String Json := do
+  if (← input.getObjValAs? String "operation") == "select" then
+    return ← Selection.evaluate input
   let architecture ← model (← input.getObjValAs? String "model")
   let m ← input.getObjValAs? Nat "m"
   let n ← input.getObjValAs? Nat "n"

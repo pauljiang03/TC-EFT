@@ -39,3 +39,4 @@ import TensorCore.Cli.Gemm
 import TensorCore.Regression.GemmAnalysis
 import TensorCore.Regression.PipelineAnalysis
 import TensorCore.Regression.GemmFamily
+import TensorCore.Regression.GemmSelection

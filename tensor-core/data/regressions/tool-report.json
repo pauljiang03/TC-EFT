@@ -10,10 +10,10 @@
   "stdout_json_only": true,
   "readme_local_links": true,
   "source_sha256": {
-    "tc": "4aebea6e4c00f5fed56379d1fd2feeba363ec3f88186b579cfbe3438bab7e17e",
-    "README.md": "f4b51efa0db9f9d1142284b5cca0e51e36af8ad21e28644234d1e292ad40c8f2",
+    "tc": "5e0c97c3d62ca5dc2d0bde91727b71f8b485398e3b39645d1787dd1fa40a9054",
+    "README.md": "f6bd12775550d7802cf21e591d41eb6b796910f3a68621ac3664cafd9dffceac",
     "tensor-core/GemmMain.lean": "b0e7f4cb31d5be76810103940cf55e63c9c9412fd14d4d959d3989282bae96ec",
-    "tensor-core/TensorCore/Cli/Gemm.lean": "e5ba580c74dbcc04de8afe3d15802f23ffd6ab73f741fc6c420ead9888dfc12b",
+    "tensor-core/TensorCore/Cli/Gemm.lean": "8844aee57ce08645c722f1f08eddc7dcd51d60159af8791f3706ee88728c943e",
     "tensor-core/lakefile.toml": "789ef9d9cacca28e67008e75165b9dedabd5825ccdc0d74cfe631c2080a4a145",
     "tensor-core/data/schemas/gemm.schema.json": "131d4558af7aaf0eef2de8436b8074ffd6054b05cfee84738ba8d5ee2805ed16",
     "tensor-core/data/examples/gemm.raw.jsonl": "041f1419a3db1f06dfc157ae9ca7305c27cd852e6402be29fe482fc95beba692",

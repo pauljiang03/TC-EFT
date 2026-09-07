@@ -88,9 +88,14 @@ def parser():
     analyze.add_argument("input", metavar="FILE", help="Raw, scaled, or family GEMM JSONL requests; - reads standard input")
     analyze.add_argument("--abs-tol", required=True, help="Nonnegative exact decimal or rational tolerance")
     analyze.add_argument("--emit", metavar="FILE.lean", help="Write a new Lean certificate for certified requests")
+    select = commands.add_parser("select", help="Choose the first certified configuration in preference order")
+    select.add_argument("input", metavar="FILE", help="Selection JSONL requests; - reads standard input")
+    select.add_argument("--abs-tol", required=True, help="Nonnegative exact decimal or rational tolerance")
+    select.add_argument("--emit", metavar="FILE.lean", help="Write a new certificate of selection and accuracy")
     verify = commands.add_parser("verify", help="Check an exported analysis certificate through Lean's kernel")
-    verify.add_argument("input", metavar="FILE.lean", help="Certificate produced by analyze --emit")
-    commands.add_parser("schema", help="Print the GEMM input JSON Schema")
+    verify.add_argument("input", metavar="FILE.lean", help="Certificate produced by analyze or select --emit")
+    schema = commands.add_parser("schema", help="Print an input JSON Schema")
+    schema.add_argument("interface", nargs="?", choices=["gemm", "select"], default="gemm")
     trace = commands.add_parser("trace", help="Print a V100 four-product block trace")
     trace.add_argument("words", nargs=9, metavar="HEX", help="a0 b0 a1 b1 a2 b2 a3 b3 c, without 0x")
     eft = commands.add_parser("eft", help="Run bounded EFT on an encoded batch file")
@@ -104,7 +109,8 @@ def main():
     if args.command == "doctor":
         return doctor(args.json)
     if args.command == "schema":
-        print((PROJECT / "data/schemas/gemm.schema.json").read_text(), end="")
+        name = "selection" if args.interface == "select" else "gemm"
+        print((PROJECT / f"data/schemas/{name}.schema.json").read_text(), end="")
         return 0
     if not shutil.which("lake"):
         cli.error("lake is unavailable. Install elan and run ./tc doctor.")
@@ -113,12 +119,13 @@ def main():
     if args.command == "gemm":
         path = "-" if args.input == "-" else input_file(args.input)
         return executable("tc_gemm", [path])
-    if args.command in {"analyze", "verify"}:
-        path = "-" if args.input == "-" and args.command == "analyze" else input_file(args.input)
+    if args.command in {"analyze", "select", "verify"}:
+        path = "-" if args.input == "-" and args.command != "verify" else input_file(args.input)
         options = ["--verify"] if args.command == "verify" else ["--abs-tol", args.abs_tol]
-        if args.command == "analyze" and args.emit:
+        if args.command != "verify" and args.emit:
             options += ["--emit", str(Path(args.emit).expanduser().resolve())]
-        return run([sys.executable, "scripts/analyze.py", path, *options])
+        script = "select_gemm.py" if args.command == "select" else "analyze.py"
+        return run([sys.executable, "scripts/" + script, path, *options])
     if args.command == "trace":
         return executable("tc_trace", args.words)
     if args.command == "eft":

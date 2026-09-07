@@ -5,7 +5,7 @@ GEMM in Lean 4. Exact arithmetic, kernel-checked proofs, and independent numeric
 oracles share one reproducible command-line workflow.
 
 [Quick start](#quick-start) · [Scope](#scope) · [Review](#reviewer-walkthrough) ·
-[JSON interface](#gemm-json-interface) · [Validation](#validation-and-trust) ·
+[JSON interface](#gemm-json-interface) · [Selection](#certified-configuration-selection) · [Validation](#validation-and-trust) ·
 [Plan](#assessment-and-todo) · [Reference](#technical-reference)
 
 ## Quick start
@@ -31,8 +31,10 @@ The raw example computes `1*2+0`. Its output has `value: "2/1"` and
 | `./tc gemm FILE` | Run or certify one GEMM request per JSONL line |
 | `./tc gemm -` | Read GEMM requests from standard input |
 | `./tc analyze FILE --abs-tol T` | Infer raw, scaled, or family bounds and check an absolute tolerance |
+| `./tc select FILE --abs-tol T` | Select the first certified configuration in preference order |
 | `./tc verify FILE.lean` | Replay an exported analysis certificate through Lean's kernel |
 | `./tc schema` | Print the GEMM input JSON Schema |
+| `./tc schema select` | Print the configuration-selection JSON Schema |
 | `./tc trace HEX...` | Trace four V100 products and an accumulator |
 | `./tc eft FILE` | Correct encoded blocks using bounded EFT |
 | `./tc review` | Reproduce ten editable cases with fixed answers |
@@ -306,9 +308,86 @@ record independent rational comparisons, kernel replay, altered-certificate
 rejections, and transitive audits excluding GEMM execution and ideal-product
 computation. Sampled family tests supplement the universally quantified Lean proof.
 
-Unsigned magnitude bounds can be conservative under cancellation. Configuration
-selection and broader paper evaluation remain open. Globally correctly rounded
-GEMM and physical GPU guarantees remain outside this analysis.
+Unsigned magnitude bounds can be conservative under cancellation. Broader paper
+evaluation remains open. Globally correctly rounded GEMM and physical GPU
+guarantees remain outside this analysis.
+
+## Certified configuration selection
+
+Supply one workload, candidates in preference order, and an absolute tolerance.
+The tool selects the first candidate whose inferred bound certifies every output
+entry. It reports every candidate's analysis and returns the selected request.
+
+```sh
+./tc select tensor-core/data/examples/gemm.selection.jsonl --abs-tol 1e-6
+./tc select tensor-core/data/examples/gemm.selection.jsonl --abs-tol 1e-6 --emit tmp/Decision.lean
+./tc verify tmp/Decision.lean
+```
+
+The three editable examples select Ampere for concrete raw GEMM, V100 for a raw
+input family, and nearest-even input conversion on Hopper for scaled GEMM.
+Their zero-based `selected_index` values are `1`, `0`, and `1`.
+
+```json
+{"operation":"select","workload":{"operation":"raw","m":1,"n":1,"k":1,"a":[15360],"b":[16384],"c":[0]},"candidates":[{"model":"v100"},{"model":"ampere"},{"model":"hopper"}]}
+```
+
+The [selection schema](tensor-core/data/schemas/selection.schema.json) defines
+the separate request format. `--abs-tol` supplies `absolute_tolerance`; native
+requests include it as a rational string. All candidates share the same workload,
+dimensions, original words or family bounds, and mathematical target.
+
+| Workload | Fixed fields | Candidate fields |
+| --- | --- | --- |
+| `raw` | `m`, `n`, `k`, encoded `a`, `b`, `c` | `model` |
+| `family` | `m`, `n`, `k`, rational `a_bound`, `b_bound`, `c_bound` | `model` |
+| `scaled` | `m`, `n`, `k`, encoded `a`, `b`, `c`, `input_format`, `output_format: "fp32"`, encoded FP32 `alpha`, `beta` | `model`, `input_mode`, `multiply_mode`, `add_mode` |
+
+Scaled candidates must specify all three rounding modes. Final conversion to
+FP32 is exact and uses nearest-even in the returned request. Raw and family
+candidates contain only a model. Unknown fields, invalid candidates, empty
+candidate lists, and shape errors are rejected, including invalid entries after
+an acceptable candidate. Duplicate candidates are allowed; the earlier one wins.
+
+| Result | Meaning |
+| --- | --- |
+| `status: "selected"` | A candidate is certified at the requested tolerance |
+| `selected_index`, `selected_candidate` | Position and configuration in the supplied list |
+| `selected_request` | Raw/scaled execution request, or family analysis request, accepted by `./tc gemm` |
+| `candidates[i].analysis` | Bounds, witnesses, and acceptance for that candidate |
+| `status: "inconclusive"`, `selected_index: null` | No candidate was certified; actual accuracy and feasibility remain undecided |
+
+Models denote different architecture semantics. Order them using your own
+availability or preference information. The tool does not infer GPU speed,
+hardware availability, or optimal cost. On one architecture, scaled requests
+can compare supported conversion and scalar rounding modes. Tensor-core
+multiplicands remain FP16, with the existing fixed WMMA schedules.
+
+The [selection theorem](tensor-core/TensorCore/Programs/GemmSelection.lean)
+proves that the selected index belongs to the candidate list, its execution meets
+the accuracy contract, and every earlier candidate fails this analyzer's test.
+For families, accuracy quantifies over every encoded matrix in the declared
+ranges. `selectGemm_none` characterizes absence of a certified candidate without
+claiming numerical impossibility. The existing independent-specification
+equivalence applies to each selected model.
+
+Export includes the fixed workload, full ordered candidate list, tolerance, and
+selected index. Kernel replay recomputes inference and selection through the
+selected prefix, then derives the accuracy and preference theorems. It does not
+trust JSON acceptance flags or supplied rejection witnesses. Export requires a
+selection for every request and preserves existing files, using the same exit
+codes and source fingerprint checks as `analyze`. See the small
+[proof example](tensor-core/examples/GemmSelection.lean).
+
+The initial [evaluation](tensor-core/data/regressions/selection-report.json)
+covers 236 decision requests, 1,644 candidate analyses, and 2,874 independent
+rational output checks. Later candidates certify 21 requests whose first
+candidate is uncertified. The report records conservative refusals, certificate
+replay, and CPU costs. These counts describe this fixed suite, not an estimated
+success rate for applications. Family sampling remains in the
+[family report](tensor-core/data/regressions/pipeline-analysis-report.json).
+This is an initial artifact evaluation. Representative applications, comparisons
+with related tools, and hardware performance measurements remain open.
 
 ## Bounded EFT interface
 
@@ -351,6 +430,7 @@ publication. Progress goes to stderr; the final report is JSON on stdout.
 | GEMM stages and error certificates | [gemm-extensions-report.json](tensor-core/data/regressions/gemm-extensions-report.json) |
 | Automatic raw analysis and certificate replay | [analysis-report.json](tensor-core/data/regressions/analysis-report.json) |
 | Scaled and quantified-family analysis | [pipeline-analysis-report.json](tensor-core/data/regressions/pipeline-analysis-report.json) |
+| Configuration decisions and initial evaluation | [selection-report.json](tensor-core/data/regressions/selection-report.json) |
 | Bounded EFT | [bounded-eft-report.json](tensor-core/data/regressions/bounded-eft-report.json) |
 | Claim assessment | [claim-review.json](tensor-core/data/regressions/claim-review.json) |
 | Complete axiom listing | [axioms.txt](tensor-core/docs/axioms.txt) |
@@ -372,7 +452,8 @@ FP32-output arithmetic and FP16 GEMM; FP8 is deferred. The implementation includ
 four-mode finite rounding, signed encoding bijections, selected tensor-core
 contracts, bounded EFT, Eq.20 and extraction grids, complete scaled-GEMM
 equivalence, tighter original-input error certificates, automatic raw and scaled
-GEMM analysis, and quantified raw input families with kernel-replayable certificates.
+GEMM analysis, quantified raw input families, and configuration selection with
+kernel-replayable accuracy and preference certificates.
 
 | Priority | Status | Next step |
 | --- | --- | --- |
@@ -383,8 +464,10 @@ GEMM analysis, and quantified raw input families with kernel-replayable certific
 | Automatic scaled analysis | Implemented | Review source-relative budgets, every scalar stage, and kernel exports |
 | Input-family analysis | Implemented for uniform raw ranges | Review quantified finite FP16/FP32 membership and static headroom |
 | Richer input families | Open | Add per-entry ranges, grid constraints, and scaled/source families |
-| Certified configuration selection | Next | Compare supported candidate models or schedules against a requested tolerance; certify the selected result |
-| Full-paper evaluation | Open | Compare related methods, bound tightness, certification rates, and generation/replay costs |
+| Certified configuration selection | Implemented | Review preference-order selection across models and scaled rounding modes, with kernel replay |
+| Decision-tool evaluation | Initial suite implemented | Inspect synthetic and boundary cases, conservative refusals, and CPU/replay costs |
+| Full-paper evaluation | Next | Add representative application workloads and related-method comparisons; establish useful certification rates and scaling |
+| Selection generalization | Open | Add richer families and supported schedules; introduce an explicit cost model before claiming cost optimization |
 | Native BF16/TF32 GEMM | Open | Add matrix interfaces, schedules, operand mappings, and certificate instances |
 | CUTLASS execution | Open | Compile the pinned fixture and compare on V100 |
 | CUTLASS generalization | Optional | Model residue-first partial K, other epilogues, and split-K |

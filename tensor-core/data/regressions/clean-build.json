@@ -102,6 +102,10 @@
       "scripts/check_pipeline_analysis.py"
     ],
     [
+      "python3",
+      "scripts/check_selection.py"
+    ],
+    [
       "lake",
       "env",
       "lean",
@@ -183,6 +187,12 @@
       "lake",
       "env",
       "lean",
+      "examples/GemmSelection.lean"
+    ],
+    [
+      "lake",
+      "env",
+      "lean",
       "examples/GemmSpecification.lean"
     ],
     [
@@ -216,8 +226,8 @@
       "examples/Verify.lean"
     ]
   ],
-  "targets_built": 343,
-  "audit": "1843 theorem roots audited (1130 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 351,
+  "audit": "1868 theorem roots audited (1142 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [
@@ -404,7 +414,7 @@
     "prior_error_does_not_roll_back": true,
     "supplied_proof_compiles": true,
     "example_compiles": true,
-    "example_elaboration_wall_seconds": 0.578766,
+    "example_elaboration_wall_seconds": 0.525089,
     "executable_dependency_checks": 3,
     "dependency_negative_control": true,
     "concrete_path": "Exact ideal prefixes, no model execution or residual ledger",
@@ -448,84 +458,84 @@
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.17592334000000043
+        "median_wall_ms_per_case": 0.1634408399999998
       },
       {
         "products": 1,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.18913749999999951
+        "median_wall_ms_per_case": 0.17169792000000014
       },
       {
         "products": 1,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.19243125000000028
+        "median_wall_ms_per_case": 0.17199041999999998
       },
       {
         "products": 16,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.20164458999999968
+        "median_wall_ms_per_case": 0.18212166999999943
       },
       {
         "products": 16,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.22425791999999944
+        "median_wall_ms_per_case": 0.20584208000000045
       },
       {
         "products": 16,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.24789041999999983
+        "median_wall_ms_per_case": 0.2342570899999996
       },
       {
         "products": 64,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.2528641599999992
+        "median_wall_ms_per_case": 0.2399554199999987
       },
       {
         "products": 64,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.3359800000000001
+        "median_wall_ms_per_case": 0.32443250000000035
       },
       {
         "products": 64,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.4215416700000007
+        "median_wall_ms_per_case": 0.4377020899999984
       },
       {
         "products": 256,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.47338375000000044
+        "median_wall_ms_per_case": 0.46747541000000004
       },
       {
         "products": 256,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.763762910000001
+        "median_wall_ms_per_case": 0.8047770899999995
       },
       {
         "products": 256,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 1.1059604200000006
+        "median_wall_ms_per_case": 1.2418612500000004
       }
     ],
     "timing_scope": "Compiled CLI batches, including process startup, parsing and JSON; 1 warmup and 3 measured processes of 100 cases. Model path also computes its exact ideal and trace report. No extraction or GPU timing claim."
@@ -555,7 +565,7 @@
           "Audit.lean"
         ],
         "exit_code": 0,
-        "audit": "tc_audit: 1843 theorem roots (1130 written in source, the rest generated)"
+        "audit": "tc_audit: 1868 theorem roots (1142 written in source, the rest generated)"
       },
       {
         "command": [
@@ -594,7 +604,7 @@
         "exit_code": 0
       }
     ],
-    "scanned_lean_sources": 188,
+    "scanned_lean_sources": 193,
     "bounded_scope": "Complete eight-path encoded EFT: bounded decoding, signed extraction/overlap, guards, scalar and 576-bit exact consolidation, direct FP32 rounding; universal finite-input correctness, success/range, reference refinement, and source-level operation budgets",
     "bounded_checks": {
       "status": "passed",
@@ -621,7 +631,7 @@
       "coefficient_width": 576,
       "common_grid_exponent": -272,
       "seed": 20260907,
-      "elapsed_seconds": 6.468,
+      "elapsed_seconds": 4.843,
       "source_sha256": {
         "TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
         "TensorCore/Foundations/EFMachine/Decode.lean": "2d97d568f26d471396e2b683f5219be1abace3f91dc078f1db7dcd2cdf33679a",
@@ -711,8 +721,8 @@
     "cases_sha256": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
     "output_sha256": "d8168f655c2d1fb8fd1a6ea79f3caa8981ed1ce8c901c19fed6c132a80f104b3",
     "timing": {
-      "lean_seconds": 15.604,
-      "total_seconds": 24.068
+      "lean_seconds": 13.974,
+      "total_seconds": 17.943
     },
     "historical_v100_experiments": {
       "reported": 100,
@@ -752,7 +762,7 @@
     "coefficient_width": 576,
     "common_grid_exponent": -272,
     "seed": 20260907,
-    "elapsed_seconds": 6.468,
+    "elapsed_seconds": 4.843,
     "source_sha256": {
       "TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
       "TensorCore/Foundations/EFMachine/Decode.lean": "2d97d568f26d471396e2b683f5219be1abace3f91dc078f1db7dcd2cdf33679a",
@@ -1718,7 +1728,7 @@
     ],
     "input_sha256": "b4b3dd8afebed92eff562650d11fd2e6ea2330a88a20192084780f8c95fda8ac",
     "output_sha256": "2618a5d29fb1c166e3ebed926dda392f6a0206147a31d57e4ef3742560d3f605",
-    "elapsed_seconds": 10.337,
+    "elapsed_seconds": 5.347,
     "limitations": [
       "Executable comparisons, not additional universal proofs.",
       "Matrix-level instruction semantics; no CUDA memory/lane refinement.",
@@ -1785,7 +1795,9 @@
     "source_sha256": {
       "TensorCore/Applications/BoundedDot.lean": "38bc3cab4c77465ee901a974d891976ba40e52b3723296712bc7a9fc4c566cb1",
       "TensorCore/Cli/Analysis.lean": "99de16e3b7422abca55868f75463538621dd3d20804383abed8468340fbd7b8c",
-      "TensorCore/Cli/Gemm.lean": "e5ba580c74dbcc04de8afe3d15802f23ffd6ab73f741fc6c420ead9888dfc12b",
+      "TensorCore/Cli/Gemm.lean": "8844aee57ce08645c722f1f08eddc7dcd51d60159af8791f3706ee88728c943e",
+      "TensorCore/Cli/GemmInput.lean": "1d44cd6edc46530351621bc0e0e7732b850ff6b9adbd752e78387765b564d497",
+      "TensorCore/Cli/GemmSelection.lean": "66a64d796f2e372bd69b8f3b90651a014dbc5604ed15cefcec31aab71a560633",
       "TensorCore/Cli/PipelineAnalysis.lean": "2aba569d68506738516bfd94473d7baee3b8897cc1d4dd645b975562ed83d1ce",
       "TensorCore/Foundations/BinaryRounding.lean": "972c25a1dec1cb8dc268b147a64b9cd8904044dd720ba249989cd611a8d44003",
       "TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
@@ -1835,6 +1847,7 @@
       "TensorCore/Programs/GemmFamily.lean": "f76e608e7e53babb50e62b20d17d999310d2bcff0eff99eb87d1980568e5d622",
       "TensorCore/Programs/GemmInputBounds.lean": "e29fddc10c5f93801d0b2ba819a34b2da34d3008de886b6997246466edfc4deb",
       "TensorCore/Programs/GemmRoundingBudget.lean": "5a9e327ea52d8bf7da79ec95074cc89ff1eb291335b0d679cb8b6aaee7c499a3",
+      "TensorCore/Programs/GemmSelection.lean": "44431ee5a2be96eba33e2941f2a81cd9de1fdcf30da3a5917d7c2ba32b563ba5",
       "TensorCore/Programs/GemmTightBounds.lean": "f36c80339b4db362e05d2bb0d407a568a18afcf6f1fac1542c65cd29c0363546",
       "TensorCore/Programs/GemmTightInputBounds.lean": "0c4bc220e027aac595ac2e82f73b3569e0154ab3fabda32df72b156cb2e9cb54",
       "TensorCore/Programs/GroupAnalysis.lean": "ebd1bfeb6bff899fef2329f27a491348ad03c40453547bceef459e724a329717",
@@ -1871,6 +1884,7 @@
       "TensorCore/Regression/GemmExtensions.lean": "34c09582252ca4d1ac64a887458e508684cfeb15d057826f2eacd50089cbe28b",
       "TensorCore/Regression/GemmFamily.lean": "d954da70f01b256861e9d113c0c34098f7a4d09a92e50f78233fa313f70cc0f6",
       "TensorCore/Regression/GemmInputConversion.lean": "954e15c81786d04e7a02c8be91ce2a75e4bc802c2e7ae78ba2458276f12566e6",
+      "TensorCore/Regression/GemmSelection.lean": "bc2dba2f81d712d3ade2e134586fecd0e598eabb25d1e298e08f4edf56c127e6",
       "TensorCore/Regression/GemmSpecification.lean": "80c074018cfff8f1019dc59858d80c0a9071b0816a54b63b6b63500b6a4ae969",
       "TensorCore/Regression/HalfOutput.lean": "45962d110f485a2524ae87680fe2ae64857bd8cb815bf0c87451ee526aea8b34",
       "TensorCore/Regression/Instruction.lean": "212d797751fc9f6abe2959a4f2a746fde7d56b426e9e76e2093fc0ed53297b20",
@@ -1946,13 +1960,13 @@
       "TensorCore/Theory/ScalarSum.lean": "c522e990242ef70168d45b7d85bc42fa13664a510c6011d91117da469cc441dc",
       "TensorCore/Theory/StageResiduals.lean": "77555637e237771e874d1bbd278aa28b749d153ebf1baf95d609db1396223fb7",
       "TensorCore/Theory/StaticBudget.lean": "442b0981461f5c9b846308dd6d1b380ca60959d9e7371d59224dd11721c52bd3",
-      "TensorCore.lean": "72b350cad367644c86471ba5075296cbe5177ce132c705b99dbc8623e591b1f9",
+      "TensorCore.lean": "716a12220d50bcd9de19bad63353d156ad5abf4838a65106a1b923e454975727",
       "examples/GemmExtensions.lean": "154a89b1378c3354ad101bc3667437a035d229e3a160e7c8f7583fef87b28057",
       "scripts/check_gemm.py": "f949761812d4b36a6b22859ac1868fda8a203d707484ca3333d2b01d1e572f9b",
       "scripts/check_features.py": "ac24baa73a45a5754c8087b6b5cde67b908e421811d4b89bcba9cad2dee995e3",
       "scripts/check_gemm_extensions.py": "60561b7a17c79f43fcee518251bf07c39ffedd9764a5f20eb6064042fa23a7f7"
     },
-    "elapsed_seconds": 417.286,
+    "elapsed_seconds": 367.986,
     "limitations": [
       "Independent implementation of the same numerical specification; no new GPU data.",
       "Scalar exact zeros canonicalize to +0; finite reference domain.",
@@ -1970,7 +1984,7 @@
       "data/examples/gemm.expected.json": "304401e03c8e30d9f8954ecec007a0c39f3c223591f186b433ef8f289b86d7b5",
       "scripts/check_reviewer.py": "ea7cc1be7b36cfccdce072746181dfb51ca062ea444a9b4b86797dee1edeef6d",
       "GemmMain.lean": "b0e7f4cb31d5be76810103940cf55e63c9c9412fd14d4d959d3989282bae96ec",
-      "TensorCore/Cli/Gemm.lean": "e5ba580c74dbcc04de8afe3d15802f23ffd6ab73f741fc6c420ead9888dfc12b"
+      "TensorCore/Cli/Gemm.lean": "8844aee57ce08645c722f1f08eddc7dcd51d60159af8791f3706ee88728c943e"
     }
   },
   "tool_checks": {
@@ -1985,10 +1999,10 @@
     "stdout_json_only": true,
     "readme_local_links": true,
     "source_sha256": {
-      "tc": "4aebea6e4c00f5fed56379d1fd2feeba363ec3f88186b579cfbe3438bab7e17e",
-      "README.md": "f4b51efa0db9f9d1142284b5cca0e51e36af8ad21e28644234d1e292ad40c8f2",
+      "tc": "5e0c97c3d62ca5dc2d0bde91727b71f8b485398e3b39645d1787dd1fa40a9054",
+      "README.md": "f6bd12775550d7802cf21e591d41eb6b796910f3a68621ac3664cafd9dffceac",
       "tensor-core/GemmMain.lean": "b0e7f4cb31d5be76810103940cf55e63c9c9412fd14d4d959d3989282bae96ec",
-      "tensor-core/TensorCore/Cli/Gemm.lean": "e5ba580c74dbcc04de8afe3d15802f23ffd6ab73f741fc6c420ead9888dfc12b",
+      "tensor-core/TensorCore/Cli/Gemm.lean": "8844aee57ce08645c722f1f08eddc7dcd51d60159af8791f3706ee88728c943e",
       "tensor-core/lakefile.toml": "789ef9d9cacca28e67008e75165b9dedabd5825ccdc0d74cfe631c2080a4a145",
       "tensor-core/data/schemas/gemm.schema.json": "131d4558af7aaf0eef2de8436b8074ffd6054b05cfee84738ba8d5ee2805ed16",
       "tensor-core/data/examples/gemm.raw.jsonl": "041f1419a3db1f06dfc157ae9ca7305c27cd852e6402be29fe482fc95beba692",
@@ -2038,16 +2052,16 @@
       }
     ],
     "input_only_dependency_audit": true,
-    "native_analysis_seconds": 0.08,
-    "elapsed_seconds": 6.491,
+    "native_analysis_seconds": 0.089,
+    "elapsed_seconds": 6.109,
     "source_sha256": {
       "TensorCore/Theory/ProgramBounds/Local.lean": "13571554a84170562c7c0b9be51e3fe6e20d1085f5589acccacc09102c2d8660",
       "TensorCore/Programs/GroupAnalysis.lean": "ebd1bfeb6bff899fef2329f27a491348ad03c40453547bceef459e724a329717",
       "TensorCore/Programs/GemmAnalysis.lean": "402e298340b681db2ff26c8cf70ef5cdfd99e8d51274089ce90f964f0cdf3f9b",
       "TensorCore/Regression/GemmAnalysis.lean": "6611c75af86fd30debddb25da87418b1fc29c18513bc5388c3de9c8b3829ef93",
       "TensorCore/Cli/Analysis.lean": "99de16e3b7422abca55868f75463538621dd3d20804383abed8468340fbd7b8c",
-      "scripts/analyze.py": "ece53a658c2b53a843fb97ce4d6a57540db46dc1e642041c07acf428ee132881",
-      "scripts/analysis_certificate.py": "7f46846fec29577e7c986430b18d7ed575934fbc6c239c9f9fc9f5a5b39eb066",
+      "scripts/analyze.py": "2c267986aa7fcd873fd3b10ece0d60db8f7d11490b78071c7c7e69bdc41ef598",
+      "scripts/analysis_certificate.py": "a987071ae0e2cf7eebf4781b7e51e89247cff8e6fc4604f3e3aebb37286a9eaf",
       "scripts/check_analysis.py": "8863941e962826ff5d14007894ed02f6a0632ab80896aa2743e384284ca0f6b7"
     },
     "limitations": [
@@ -2080,7 +2094,7 @@
       "mixed_inconclusive_export_refused",
       "invalid_family_ranges_rejected"
     ],
-    "elapsed_seconds": 14.301,
+    "elapsed_seconds": 11.745,
     "source_sha256": {
       "TensorCore/Programs/ScalarAnalysis.lean": "444bb6104ddd9fedfcdb291c4ab2c24adb126f5710ae7ad374b749900ce8a6f1",
       "TensorCore/Programs/ScaledGemmAnalysis.lean": "fede20386fd54b9bbeef0c91681d6cec2fb5dee2f97f3f02a173e72781e61d5a",
@@ -2090,14 +2104,134 @@
       "TensorCore/Cli/PipelineAnalysis.lean": "2aba569d68506738516bfd94473d7baee3b8897cc1d4dd645b975562ed83d1ce",
       "TensorCore/Regression/PipelineAnalysis.lean": "b6773ed79e7dc1eb224ff7f656432def427688e1f0dbb820b2424b9c411c3484",
       "TensorCore/Regression/GemmFamily.lean": "d954da70f01b256861e9d113c0c34098f7a4d09a92e50f78233fa313f70cc0f6",
-      "scripts/analyze.py": "ece53a658c2b53a843fb97ce4d6a57540db46dc1e642041c07acf428ee132881",
-      "scripts/analysis_certificate.py": "7f46846fec29577e7c986430b18d7ed575934fbc6c239c9f9fc9f5a5b39eb066",
+      "scripts/analyze.py": "2c267986aa7fcd873fd3b10ece0d60db8f7d11490b78071c7c7e69bdc41ef598",
+      "scripts/analysis_certificate.py": "a987071ae0e2cf7eebf4781b7e51e89247cff8e6fc4604f3e3aebb37286a9eaf",
       "scripts/check_pipeline_analysis.py": "f4c3a84e2159abfc418964aaed6428859e4b3599e6b465e2e5bf7baaf59feb51"
     },
     "limitations": [
       "Family samples test the implementation; the Lean theorem quantifies over all family members.",
       "Input families currently cover uniform finite raw FP16/FP32 magnitude bounds.",
       "Scaled analysis can be conservative under cancellation or exact nonzero scalar stages."
+    ]
+  },
+  "selection_checks": {
+    "status": "passed",
+    "requests": 236,
+    "candidate_analyses": 1644,
+    "checked_output_cells": 2874,
+    "workload_sha256": "e274ed612ddaa1cffa497599d012a47613341d855b037b015973c0568c39f855",
+    "environment": {
+      "system": "Darwin",
+      "release": "25.6.0",
+      "machine": "arm64",
+      "python": "3.9.6",
+      "toolchain": "leanprover/lean4:v4.33.1"
+    },
+    "by_workload": {
+      "raw": {
+        "requests": 114,
+        "inconclusive": 75,
+        "later_candidate_selected": 11,
+        "candidate_analyses": 342,
+        "certified_candidates": 99,
+        "oracle_successful_candidates": 324,
+        "oracle_within_tolerance": 154,
+        "within_tolerance_but_uncertified": 55,
+        "selected": 39
+      },
+      "scaled": {
+        "requests": 104,
+        "selected": 63,
+        "later_candidate_selected": 10,
+        "candidate_analyses": 1248,
+        "certified_candidates": 708,
+        "oracle_successful_candidates": 1056,
+        "oracle_within_tolerance": 936,
+        "within_tolerance_but_uncertified": 228,
+        "inconclusive": 41
+      },
+      "family": {
+        "requests": 18,
+        "inconclusive": 9,
+        "later_candidate_selected": 0,
+        "candidate_analyses": 54,
+        "certified_candidates": 27,
+        "selected": 9
+      }
+    },
+    "native_selection_batch_seconds": 1.634,
+    "native_analysis_batch_seconds": 1.23,
+    "certificate_cases": 7,
+    "certificate_bytes": 12755,
+    "certificate_render_seconds": 0.0035,
+    "kernel_replay_seconds": 1.195,
+    "kernel_replay": true,
+    "input_only_dependency_audit": true,
+    "negative_controls": [
+      "preference_order",
+      "duplicate_tie",
+      "tighter_tolerance",
+      "no_candidate",
+      "invalid_configuration_and_workload_rejected",
+      "selected-index_rejected_by_kernel",
+      "preference-order_rejected_by_kernel",
+      "tolerance_rejected_by_kernel",
+      "source-word_rejected_by_kernel",
+      "rounding-mode_rejected_by_kernel",
+      "family-range_rejected_by_kernel",
+      "stdin_file_agreement",
+      "invalid_family_caps",
+      "appended_commands_rejected",
+      "cli_export_and_replay",
+      "existing_export_preserved",
+      "inconclusive_export_refused",
+      "schema",
+      "transitive_input_only_audit"
+    ],
+    "scaling": [
+      {
+        "m": 1,
+        "n": 1,
+        "k": 64,
+        "candidates": 3,
+        "selected_index": 1,
+        "native_process_seconds": 0.0209
+      },
+      {
+        "m": 4,
+        "n": 4,
+        "k": 64,
+        "candidates": 3,
+        "selected_index": 1,
+        "native_process_seconds": 0.062
+      },
+      {
+        "m": 16,
+        "n": 16,
+        "k": 64,
+        "candidates": 3,
+        "selected_index": 1,
+        "native_process_seconds": 0.7294
+      }
+    ],
+    "elapsed_seconds": 20.836,
+    "source_sha256": {
+      "TensorCore/Programs/GemmSelection.lean": "44431ee5a2be96eba33e2941f2a81cd9de1fdcf30da3a5917d7c2ba32b563ba5",
+      "TensorCore/Cli/GemmSelection.lean": "66a64d796f2e372bd69b8f3b90651a014dbc5604ed15cefcec31aab71a560633",
+      "TensorCore/Cli/GemmInput.lean": "1d44cd6edc46530351621bc0e0e7732b850ff6b9adbd752e78387765b564d497",
+      "TensorCore/Regression/GemmSelection.lean": "bc2dba2f81d712d3ade2e134586fecd0e598eabb25d1e298e08f4edf56c127e6",
+      "scripts/select_gemm.py": "fcadf5a4e949f8076347b1f4cac5c571034d0d2b08b98356dc526e98f78d85dc",
+      "scripts/selection_certificate.py": "f23a1fbe3b55c930d418e31e165d46a6ce23c9360acee59b3e3d1fd8f66f3981",
+      "scripts/check_selection.py": "126a14e9cc2256d00ab11f4b812fd9c7c03e1a21af1c78f5fecfe34d2a53353b",
+      "data/examples/gemm.selection.jsonl": "2d5d5e9ffb1be640fff871b83965dc76dacc9a1db9925808fa29942cda175e80",
+      "data/schemas/selection.schema.json": "61975b429081df1eba07877df9035e5167653eb8bd52cb69579611c773f2a092"
+    },
+    "limitations": [
+      "Deterministic synthetic and boundary workloads, not a representative application benchmark.",
+      "Counts depend on the supplied candidate lists and tolerances; they are not population estimates.",
+      "Oracle accuracy is checked on concrete encoded inputs; family guarantees use quantified Lean proofs.",
+      "Selection prioritizes the input order among certified candidates; it does not prove actual-error or GPU-speed optimality.",
+      "CPU timings include process startup; selection reports all candidates and reevaluates the selected prefix."
     ]
   },
   "cutlass_checks": {
@@ -2155,7 +2289,9 @@
     "PaperSpecAudit.lean": "0a371cef3059c60c5f26f067df1260d349271572a63620917b75dcc26fa52f5d",
     "TensorCore/Applications/BoundedDot.lean": "38bc3cab4c77465ee901a974d891976ba40e52b3723296712bc7a9fc4c566cb1",
     "TensorCore/Cli/Analysis.lean": "99de16e3b7422abca55868f75463538621dd3d20804383abed8468340fbd7b8c",
-    "TensorCore/Cli/Gemm.lean": "e5ba580c74dbcc04de8afe3d15802f23ffd6ab73f741fc6c420ead9888dfc12b",
+    "TensorCore/Cli/Gemm.lean": "8844aee57ce08645c722f1f08eddc7dcd51d60159af8791f3706ee88728c943e",
+    "TensorCore/Cli/GemmInput.lean": "1d44cd6edc46530351621bc0e0e7732b850ff6b9adbd752e78387765b564d497",
+    "TensorCore/Cli/GemmSelection.lean": "66a64d796f2e372bd69b8f3b90651a014dbc5604ed15cefcec31aab71a560633",
     "TensorCore/Cli/PipelineAnalysis.lean": "2aba569d68506738516bfd94473d7baee3b8897cc1d4dd645b975562ed83d1ce",
     "TensorCore/Foundations/BinaryRounding.lean": "972c25a1dec1cb8dc268b147a64b9cd8904044dd720ba249989cd611a8d44003",
     "TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
@@ -2205,6 +2341,7 @@
     "TensorCore/Programs/GemmFamily.lean": "f76e608e7e53babb50e62b20d17d999310d2bcff0eff99eb87d1980568e5d622",
     "TensorCore/Programs/GemmInputBounds.lean": "e29fddc10c5f93801d0b2ba819a34b2da34d3008de886b6997246466edfc4deb",
     "TensorCore/Programs/GemmRoundingBudget.lean": "5a9e327ea52d8bf7da79ec95074cc89ff1eb291335b0d679cb8b6aaee7c499a3",
+    "TensorCore/Programs/GemmSelection.lean": "44431ee5a2be96eba33e2941f2a81cd9de1fdcf30da3a5917d7c2ba32b563ba5",
     "TensorCore/Programs/GemmTightBounds.lean": "f36c80339b4db362e05d2bb0d407a568a18afcf6f1fac1542c65cd29c0363546",
     "TensorCore/Programs/GemmTightInputBounds.lean": "0c4bc220e027aac595ac2e82f73b3569e0154ab3fabda32df72b156cb2e9cb54",
     "TensorCore/Programs/GroupAnalysis.lean": "ebd1bfeb6bff899fef2329f27a491348ad03c40453547bceef459e724a329717",
@@ -2241,6 +2378,7 @@
     "TensorCore/Regression/GemmExtensions.lean": "34c09582252ca4d1ac64a887458e508684cfeb15d057826f2eacd50089cbe28b",
     "TensorCore/Regression/GemmFamily.lean": "d954da70f01b256861e9d113c0c34098f7a4d09a92e50f78233fa313f70cc0f6",
     "TensorCore/Regression/GemmInputConversion.lean": "954e15c81786d04e7a02c8be91ce2a75e4bc802c2e7ae78ba2458276f12566e6",
+    "TensorCore/Regression/GemmSelection.lean": "bc2dba2f81d712d3ade2e134586fecd0e598eabb25d1e298e08f4edf56c127e6",
     "TensorCore/Regression/GemmSpecification.lean": "80c074018cfff8f1019dc59858d80c0a9071b0816a54b63b6b63500b6a4ae969",
     "TensorCore/Regression/HalfOutput.lean": "45962d110f485a2524ae87680fe2ae64857bd8cb815bf0c87451ee526aea8b34",
     "TensorCore/Regression/Instruction.lean": "212d797751fc9f6abe2959a4f2a746fde7d56b426e9e76e2093fc0ed53297b20",
@@ -2316,7 +2454,7 @@
     "TensorCore/Theory/ScalarSum.lean": "c522e990242ef70168d45b7d85bc42fa13664a510c6011d91117da469cc441dc",
     "TensorCore/Theory/StageResiduals.lean": "77555637e237771e874d1bbd278aa28b749d153ebf1baf95d609db1396223fb7",
     "TensorCore/Theory/StaticBudget.lean": "442b0981461f5c9b846308dd6d1b380ca60959d9e7371d59224dd11721c52bd3",
-    "TensorCore.lean": "72b350cad367644c86471ba5075296cbe5177ce132c705b99dbc8623e591b1f9",
+    "TensorCore.lean": "716a12220d50bcd9de19bad63353d156ad5abf4838a65106a1b923e454975727",
     "data/examples/eft.txt": "4104fdbd5ab534f7dd69698cf0bd9353306fb29aa658d0530694de75fdc2935a",
     "data/examples/gemm.analysis.jsonl": "b876f147d4fc9b41bab47d17e4aa15ff5e2e3265093131b1de5b9d734e116158",
     "data/examples/gemm.expected.json": "304401e03c8e30d9f8954ecec007a0c39f3c223591f186b433ef8f289b86d7b5",
@@ -2324,7 +2462,9 @@
     "data/examples/gemm.jsonl": "68c43fcd11b1324a65d9d61838d4226b045eba52fc10217d31c7074bd59bd2a2",
     "data/examples/gemm.raw.jsonl": "041f1419a3db1f06dfc157ae9ca7305c27cd852e6402be29fe482fc95beba692",
     "data/examples/gemm.scaled-analysis.jsonl": "58a22cd485948843717b78fcefca5fe4ff8267a43ba7b31f9f76f747d5af235a",
+    "data/examples/gemm.selection.jsonl": "2d5d5e9ffb1be640fff871b83965dc76dacc9a1db9925808fa29942cda175e80",
     "data/schemas/gemm.schema.json": "131d4558af7aaf0eef2de8436b8074ffd6054b05cfee84738ba8d5ee2805ed16",
+    "data/schemas/selection.schema.json": "61975b429081df1eba07877df9035e5167653eb8bd52cb69579611c773f2a092",
     "examples/BinaryFoundation.lean": "38fb227083af6354f99f0002ba156936cbf5e49b725c72c8bbf9eeb31d8c595a",
     "examples/BoundedDot.lean": "0d3c272411e129872339f9d9244c689b1fe54906df5c5e8252b0c1bde8681228",
     "examples/BoundedEFT.lean": "de8c3d8a8608f72ee48fd3c84b1d22d1e4fd59ca301dd80456ff5825d382fbc4",
@@ -2339,6 +2479,7 @@
     "examples/Gemm.lean": "d7760e3ead17482fcc8a21e75c7e704b9bb9fda105ee98cc9e4936c27760ea51",
     "examples/GemmAnalysis.lean": "df16e8f414340492caa95135bad4f44215291f0e4d39559bcaba345701ef7d31",
     "examples/GemmExtensions.lean": "154a89b1378c3354ad101bc3667437a035d229e3a160e7c8f7583fef87b28057",
+    "examples/GemmSelection.lean": "be28ad1731843b021a40cbf1695d3e92b6a2e74826092da555eedca45b9a34f1",
     "examples/GemmSpecification.lean": "be17ab04746b909c794e8fd94697a59039320ebdd4cea3fcaf9c6817db8fef2b",
     "examples/LongDotProduct.lean": "b2269d5f78ea8840afcb465325f366565cd4622eb68b02fbabc4ce41082e9563",
     "examples/PaperSpecification.lean": "b7772a8e2653884e4d935d4285631b1d764d136c41feb48f4096ffe54def6628",
@@ -2373,8 +2514,8 @@
     "lake-manifest.json": "21b8947c41a7619fa20876b690f660faa351dfa816b995ba898acde20cef9d60",
     "lakefile.toml": "789ef9d9cacca28e67008e75165b9dedabd5825ccdc0d74cfe631c2080a4a145",
     "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
-    "scripts/analysis_certificate.py": "7f46846fec29577e7c986430b18d7ed575934fbc6c239c9f9fc9f5a5b39eb066",
-    "scripts/analyze.py": "ece53a658c2b53a843fb97ce4d6a57540db46dc1e642041c07acf428ee132881",
+    "scripts/analysis_certificate.py": "a987071ae0e2cf7eebf4781b7e51e89247cff8e6fc4604f3e3aebb37286a9eaf",
+    "scripts/analyze.py": "2c267986aa7fcd873fd3b10ece0d60db8f7d11490b78071c7c7e69bdc41ef598",
     "scripts/benchmark_bounded_eft.py": "722ed764f1eef68b841a14015b2d9e75e7d0dfc949b5fce2ceb25eee2d947811",
     "scripts/check_analysis.py": "8863941e962826ff5d14007894ed02f6a0632ab80896aa2743e384284ca0f6b7",
     "scripts/check_application.py": "59b87f1cdfb35b366660a529a54a352bd99b1aff3bbeda08046495ef060313a1",
@@ -2382,7 +2523,7 @@
     "scripts/check_axioms_regression.py": "4319985a4fca4ab0dbe20206db372dd324697b7056e3a6c8f5fe53474be75349",
     "scripts/check_bounded_eft.py": "89017c0fe4c564745fb3dfa04960ab004a0f7b7d70e74f423820b156b89b632e",
     "scripts/check_certificates.py": "f651f3565d4fe92d0bf0c10eae5e26add859f3530cca02d5676d2f9ebf325c33",
-    "scripts/check_clean_build.py": "4a822a8908525abe99b345fca4270a0caa0a9ce17e973cfc2d5ce725a763183e",
+    "scripts/check_clean_build.py": "eb8436fdfbf296f5c0cd8667c908364714af2fd02946b9297de0fa33bde53dd4",
     "scripts/check_cutlass.py": "4933ec6d1b4dd783081ef87bd611cdbc6a2e69a778d1150bcf722091fb329e25",
     "scripts/check_device.py": "4dacd6bca0e4a01f54e129a5d92f2b61742dd334d42346a21adfb4b2739f9a6e",
     "scripts/check_device_formats.py": "20ec6031dac8be99fa18fad0cf9b54817a9784a0cffecb97f0cb95bba665d0bd",
@@ -2399,9 +2540,12 @@
     "scripts/check_pipeline_analysis.py": "f4c3a84e2159abfc418964aaed6428859e4b3599e6b465e2e5bf7baaf59feb51",
     "scripts/check_programs.py": "501ea29edb398fd3a70d38e6cbd4bc99bdcc7786a27fecec99037e9644631b35",
     "scripts/check_reviewer.py": "ea7cc1be7b36cfccdce072746181dfb51ca062ea444a9b4b86797dee1edeef6d",
+    "scripts/check_selection.py": "126a14e9cc2256d00ab11f4b812fd9c7c03e1a21af1c78f5fecfe34d2a53353b",
     "scripts/check_tool.py": "aa1ad43ac62d5d92127a318e600efd4fed444f1a5dce02f3645478213a2f18ee",
     "scripts/generate_hardware.py": "00354f7ab294c6665e68b900da4a101c3e9c66e29a86a7c3c2047b3735596c56",
     "scripts/replay_hardware.py": "f2f1ebc8dd5dffa229ce0de5cc3a3e366fa69523bf38a68623865edd043ccf10",
+    "scripts/select_gemm.py": "fcadf5a4e949f8076347b1f4cac5c571034d0d2b08b98356dc526e98f78d85dc",
+    "scripts/selection_certificate.py": "f23a1fbe3b55c930d418e31e165d46a6ce23c9360acee59b3e3d1fd8f66f3981",
     "scripts/validate.py": "b371fe95a6bad7857b1b1ad1d1812b6f8931da13832db5cc53d197cece4ff28a",
     "vendor/SOURCES.json": "df1002634ee41d4df59fc5501c5c56621473f92daaf35c5ac68dcfc27479601a",
     "vendor/matlab-tensor-core-v0.5/LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
@@ -2469,7 +2613,9 @@
     "tensor-core/PaperSpecAudit.lean": "0a371cef3059c60c5f26f067df1260d349271572a63620917b75dcc26fa52f5d",
     "tensor-core/TensorCore/Applications/BoundedDot.lean": "38bc3cab4c77465ee901a974d891976ba40e52b3723296712bc7a9fc4c566cb1",
     "tensor-core/TensorCore/Cli/Analysis.lean": "99de16e3b7422abca55868f75463538621dd3d20804383abed8468340fbd7b8c",
-    "tensor-core/TensorCore/Cli/Gemm.lean": "e5ba580c74dbcc04de8afe3d15802f23ffd6ab73f741fc6c420ead9888dfc12b",
+    "tensor-core/TensorCore/Cli/Gemm.lean": "8844aee57ce08645c722f1f08eddc7dcd51d60159af8791f3706ee88728c943e",
+    "tensor-core/TensorCore/Cli/GemmInput.lean": "1d44cd6edc46530351621bc0e0e7732b850ff6b9adbd752e78387765b564d497",
+    "tensor-core/TensorCore/Cli/GemmSelection.lean": "66a64d796f2e372bd69b8f3b90651a014dbc5604ed15cefcec31aab71a560633",
     "tensor-core/TensorCore/Cli/PipelineAnalysis.lean": "2aba569d68506738516bfd94473d7baee3b8897cc1d4dd645b975562ed83d1ce",
     "tensor-core/TensorCore/Foundations/BinaryRounding.lean": "972c25a1dec1cb8dc268b147a64b9cd8904044dd720ba249989cd611a8d44003",
     "tensor-core/TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
@@ -2519,6 +2665,7 @@
     "tensor-core/TensorCore/Programs/GemmFamily.lean": "f76e608e7e53babb50e62b20d17d999310d2bcff0eff99eb87d1980568e5d622",
     "tensor-core/TensorCore/Programs/GemmInputBounds.lean": "e29fddc10c5f93801d0b2ba819a34b2da34d3008de886b6997246466edfc4deb",
     "tensor-core/TensorCore/Programs/GemmRoundingBudget.lean": "5a9e327ea52d8bf7da79ec95074cc89ff1eb291335b0d679cb8b6aaee7c499a3",
+    "tensor-core/TensorCore/Programs/GemmSelection.lean": "44431ee5a2be96eba33e2941f2a81cd9de1fdcf30da3a5917d7c2ba32b563ba5",
     "tensor-core/TensorCore/Programs/GemmTightBounds.lean": "f36c80339b4db362e05d2bb0d407a568a18afcf6f1fac1542c65cd29c0363546",
     "tensor-core/TensorCore/Programs/GemmTightInputBounds.lean": "0c4bc220e027aac595ac2e82f73b3569e0154ab3fabda32df72b156cb2e9cb54",
     "tensor-core/TensorCore/Programs/GroupAnalysis.lean": "ebd1bfeb6bff899fef2329f27a491348ad03c40453547bceef459e724a329717",
@@ -2555,6 +2702,7 @@
     "tensor-core/TensorCore/Regression/GemmExtensions.lean": "34c09582252ca4d1ac64a887458e508684cfeb15d057826f2eacd50089cbe28b",
     "tensor-core/TensorCore/Regression/GemmFamily.lean": "d954da70f01b256861e9d113c0c34098f7a4d09a92e50f78233fa313f70cc0f6",
     "tensor-core/TensorCore/Regression/GemmInputConversion.lean": "954e15c81786d04e7a02c8be91ce2a75e4bc802c2e7ae78ba2458276f12566e6",
+    "tensor-core/TensorCore/Regression/GemmSelection.lean": "bc2dba2f81d712d3ade2e134586fecd0e598eabb25d1e298e08f4edf56c127e6",
     "tensor-core/TensorCore/Regression/GemmSpecification.lean": "80c074018cfff8f1019dc59858d80c0a9071b0816a54b63b6b63500b6a4ae969",
     "tensor-core/TensorCore/Regression/HalfOutput.lean": "45962d110f485a2524ae87680fe2ae64857bd8cb815bf0c87451ee526aea8b34",
     "tensor-core/TensorCore/Regression/Instruction.lean": "212d797751fc9f6abe2959a4f2a746fde7d56b426e9e76e2093fc0ed53297b20",
@@ -2630,7 +2778,7 @@
     "tensor-core/TensorCore/Theory/ScalarSum.lean": "c522e990242ef70168d45b7d85bc42fa13664a510c6011d91117da469cc441dc",
     "tensor-core/TensorCore/Theory/StageResiduals.lean": "77555637e237771e874d1bbd278aa28b749d153ebf1baf95d609db1396223fb7",
     "tensor-core/TensorCore/Theory/StaticBudget.lean": "442b0981461f5c9b846308dd6d1b380ca60959d9e7371d59224dd11721c52bd3",
-    "tensor-core/TensorCore.lean": "72b350cad367644c86471ba5075296cbe5177ce132c705b99dbc8623e591b1f9",
+    "tensor-core/TensorCore.lean": "716a12220d50bcd9de19bad63353d156ad5abf4838a65106a1b923e454975727",
     "tensor-core/data/examples/eft.txt": "4104fdbd5ab534f7dd69698cf0bd9353306fb29aa658d0530694de75fdc2935a",
     "tensor-core/data/examples/gemm.analysis.jsonl": "b876f147d4fc9b41bab47d17e4aa15ff5e2e3265093131b1de5b9d734e116158",
     "tensor-core/data/examples/gemm.expected.json": "304401e03c8e30d9f8954ecec007a0c39f3c223591f186b433ef8f289b86d7b5",
@@ -2638,7 +2786,9 @@
     "tensor-core/data/examples/gemm.jsonl": "68c43fcd11b1324a65d9d61838d4226b045eba52fc10217d31c7074bd59bd2a2",
     "tensor-core/data/examples/gemm.raw.jsonl": "041f1419a3db1f06dfc157ae9ca7305c27cd852e6402be29fe482fc95beba692",
     "tensor-core/data/examples/gemm.scaled-analysis.jsonl": "58a22cd485948843717b78fcefca5fe4ff8267a43ba7b31f9f76f747d5af235a",
+    "tensor-core/data/examples/gemm.selection.jsonl": "2d5d5e9ffb1be640fff871b83965dc76dacc9a1db9925808fa29942cda175e80",
     "tensor-core/data/schemas/gemm.schema.json": "131d4558af7aaf0eef2de8436b8074ffd6054b05cfee84738ba8d5ee2805ed16",
+    "tensor-core/data/schemas/selection.schema.json": "61975b429081df1eba07877df9035e5167653eb8bd52cb69579611c773f2a092",
     "tensor-core/examples/BinaryFoundation.lean": "38fb227083af6354f99f0002ba156936cbf5e49b725c72c8bbf9eeb31d8c595a",
     "tensor-core/examples/BoundedDot.lean": "0d3c272411e129872339f9d9244c689b1fe54906df5c5e8252b0c1bde8681228",
     "tensor-core/examples/BoundedEFT.lean": "de8c3d8a8608f72ee48fd3c84b1d22d1e4fd59ca301dd80456ff5825d382fbc4",
@@ -2653,6 +2803,7 @@
     "tensor-core/examples/Gemm.lean": "d7760e3ead17482fcc8a21e75c7e704b9bb9fda105ee98cc9e4936c27760ea51",
     "tensor-core/examples/GemmAnalysis.lean": "df16e8f414340492caa95135bad4f44215291f0e4d39559bcaba345701ef7d31",
     "tensor-core/examples/GemmExtensions.lean": "154a89b1378c3354ad101bc3667437a035d229e3a160e7c8f7583fef87b28057",
+    "tensor-core/examples/GemmSelection.lean": "be28ad1731843b021a40cbf1695d3e92b6a2e74826092da555eedca45b9a34f1",
     "tensor-core/examples/GemmSpecification.lean": "be17ab04746b909c794e8fd94697a59039320ebdd4cea3fcaf9c6817db8fef2b",
     "tensor-core/examples/LongDotProduct.lean": "b2269d5f78ea8840afcb465325f366565cd4622eb68b02fbabc4ce41082e9563",
     "tensor-core/examples/PaperSpecification.lean": "b7772a8e2653884e4d935d4285631b1d764d136c41feb48f4096ffe54def6628",
@@ -2687,8 +2838,8 @@
     "tensor-core/lake-manifest.json": "21b8947c41a7619fa20876b690f660faa351dfa816b995ba898acde20cef9d60",
     "tensor-core/lakefile.toml": "789ef9d9cacca28e67008e75165b9dedabd5825ccdc0d74cfe631c2080a4a145",
     "tensor-core/lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
-    "tensor-core/scripts/analysis_certificate.py": "7f46846fec29577e7c986430b18d7ed575934fbc6c239c9f9fc9f5a5b39eb066",
-    "tensor-core/scripts/analyze.py": "ece53a658c2b53a843fb97ce4d6a57540db46dc1e642041c07acf428ee132881",
+    "tensor-core/scripts/analysis_certificate.py": "a987071ae0e2cf7eebf4781b7e51e89247cff8e6fc4604f3e3aebb37286a9eaf",
+    "tensor-core/scripts/analyze.py": "2c267986aa7fcd873fd3b10ece0d60db8f7d11490b78071c7c7e69bdc41ef598",
     "tensor-core/scripts/benchmark_bounded_eft.py": "722ed764f1eef68b841a14015b2d9e75e7d0dfc949b5fce2ceb25eee2d947811",
     "tensor-core/scripts/check_analysis.py": "8863941e962826ff5d14007894ed02f6a0632ab80896aa2743e384284ca0f6b7",
     "tensor-core/scripts/check_application.py": "59b87f1cdfb35b366660a529a54a352bd99b1aff3bbeda08046495ef060313a1",
@@ -2696,7 +2847,7 @@
     "tensor-core/scripts/check_axioms_regression.py": "4319985a4fca4ab0dbe20206db372dd324697b7056e3a6c8f5fe53474be75349",
     "tensor-core/scripts/check_bounded_eft.py": "89017c0fe4c564745fb3dfa04960ab004a0f7b7d70e74f423820b156b89b632e",
     "tensor-core/scripts/check_certificates.py": "f651f3565d4fe92d0bf0c10eae5e26add859f3530cca02d5676d2f9ebf325c33",
-    "tensor-core/scripts/check_clean_build.py": "4a822a8908525abe99b345fca4270a0caa0a9ce17e973cfc2d5ce725a763183e",
+    "tensor-core/scripts/check_clean_build.py": "eb8436fdfbf296f5c0cd8667c908364714af2fd02946b9297de0fa33bde53dd4",
     "tensor-core/scripts/check_cutlass.py": "4933ec6d1b4dd783081ef87bd611cdbc6a2e69a778d1150bcf722091fb329e25",
     "tensor-core/scripts/check_device.py": "4dacd6bca0e4a01f54e129a5d92f2b61742dd334d42346a21adfb4b2739f9a6e",
     "tensor-core/scripts/check_device_formats.py": "20ec6031dac8be99fa18fad0cf9b54817a9784a0cffecb97f0cb95bba665d0bd",
@@ -2713,9 +2864,12 @@
     "tensor-core/scripts/check_pipeline_analysis.py": "f4c3a84e2159abfc418964aaed6428859e4b3599e6b465e2e5bf7baaf59feb51",
     "tensor-core/scripts/check_programs.py": "501ea29edb398fd3a70d38e6cbd4bc99bdcc7786a27fecec99037e9644631b35",
     "tensor-core/scripts/check_reviewer.py": "ea7cc1be7b36cfccdce072746181dfb51ca062ea444a9b4b86797dee1edeef6d",
+    "tensor-core/scripts/check_selection.py": "126a14e9cc2256d00ab11f4b812fd9c7c03e1a21af1c78f5fecfe34d2a53353b",
     "tensor-core/scripts/check_tool.py": "aa1ad43ac62d5d92127a318e600efd4fed444f1a5dce02f3645478213a2f18ee",
     "tensor-core/scripts/generate_hardware.py": "00354f7ab294c6665e68b900da4a101c3e9c66e29a86a7c3c2047b3735596c56",
     "tensor-core/scripts/replay_hardware.py": "f2f1ebc8dd5dffa229ce0de5cc3a3e366fa69523bf38a68623865edd043ccf10",
+    "tensor-core/scripts/select_gemm.py": "fcadf5a4e949f8076347b1f4cac5c571034d0d2b08b98356dc526e98f78d85dc",
+    "tensor-core/scripts/selection_certificate.py": "f23a1fbe3b55c930d418e31e165d46a6ce23c9360acee59b3e3d1fd8f66f3981",
     "tensor-core/scripts/validate.py": "b371fe95a6bad7857b1b1ad1d1812b6f8931da13832db5cc53d197cece4ff28a",
     "tensor-core/vendor/SOURCES.json": "df1002634ee41d4df59fc5501c5c56621473f92daaf35c5ac68dcfc27479601a",
     "tensor-core/vendor/matlab-tensor-core-v0.5/LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
@@ -2770,8 +2924,8 @@
     "tensor-core/vendor/tc-eft-validation/check_revision.py": "c4f2e213d8c880253b839172cd1a2b85dad0f0759faba630616565f846604fe7",
     "tensor-core/vendor/tc-eft-validation/check_second_pass.py": "687b9b329c3bb9b7c2528daa05a373a40c6d0d58d9fc2a314c551f832dc3b03d",
     "tensor-core/vendor/tc-eft-validation/exact_model.py": "51d757e65b22614e74cc617595c4d98a42a5df6938ac3cbe261794981234c8f0",
-    "tc": "4aebea6e4c00f5fed56379d1fd2feeba363ec3f88186b579cfbe3438bab7e17e",
-    "README.md": "f4b51efa0db9f9d1142284b5cca0e51e36af8ad21e28644234d1e292ad40c8f2",
+    "tc": "5e0c97c3d62ca5dc2d0bde91727b71f8b485398e3b39645d1787dd1fa40a9054",
+    "README.md": "f6bd12775550d7802cf21e591d41eb6b796910f3a68621ac3664cafd9dffceac",
     ".gitignore": "01336a4787a8835196eb9311beb448b543f0914c1d69fdd6003cfccfe4a1354c"
   },
   "snapshot_stable": true,

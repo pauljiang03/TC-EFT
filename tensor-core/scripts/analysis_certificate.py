@@ -85,13 +85,18 @@ def certificate_text(manifest):
     if not manifest["cases"]:
         raise ValueError("A certificate must contain at least one request")
     lines = [HEADER + json.dumps(manifest, sort_keys=True, separators=(",", ":")),
-             "import TensorCore.Programs.ConvertedGemmAnalysis", "import TensorCore.Programs.GemmFamily", "",
+             "import TensorCore.Programs.ConvertedGemmAnalysis", "import TensorCore.Programs.GemmFamily",
+             "import TensorCore.Programs.GemmSelection", "",
              "namespace TensorCore.Certificate", "", "set_option maxRecDepth 32768",
              "set_option maxHeartbeats 64000000", ""]
     for index, case in enumerate(manifest["cases"]):
         if type(case) is not dict:
             raise ValueError("Invalid certificate case")
         kind = case.get("kind", "raw")
+        if kind == "selection":
+            from selection_certificate import render_selection
+            lines += render_selection(case, index)
+            continue
         expected = BASE_FIELDS | ({"a", "b", "c"} if kind != "family" else {"kind", "a_bound", "b_bound", "c_bound"})
         if kind == "scaled":
             expected |= SCALED_FIELDS | {"kind"}
