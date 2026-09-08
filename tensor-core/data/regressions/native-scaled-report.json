@@ -19,7 +19,7 @@
     "cost-kernel-rejection",
     "invalid-format-model-width-mode"
   ],
-  "elapsed_seconds": 13.868,
+  "elapsed_seconds": 10.563,
   "source_sha256": {
     "TensorCore/Programs/MatrixConversion.lean": "c89691e146f7ff4968500bf1e0ea8c98b54447fd8297dccb957d49dd8fe6c805",
     "TensorCore/Programs/NativeScaledGemm.lean": "ac271ccdb8fe0ec298541c034337004eac6e69170c671600bd8c3345091f3a2b",

@@ -236,9 +236,69 @@
           "tensor-core/TensorCore/Kernels/CutlassWmma.lean"
         ]
       ]
+    },
+    "C17": {
+      "declarations": [
+        [
+          "TensorCore.IEEE.convert_correct",
+          "tensor-core/TensorCore/IEEE/Specification.lean"
+        ],
+        [
+          "TensorCore.IEEE.add_correct",
+          "tensor-core/TensorCore/IEEE/Specification.lean"
+        ],
+        [
+          "TensorCore.IEEE.sub_correct",
+          "tensor-core/TensorCore/IEEE/Specification.lean"
+        ],
+        [
+          "TensorCore.IEEE.mul_correct",
+          "tensor-core/TensorCore/IEEE/Specification.lean"
+        ],
+        [
+          "TensorCore.IEEE.fma_correct",
+          "tensor-core/TensorCore/IEEE/Specification.lean"
+        ]
+      ]
+    },
+    "C18": {
+      "declarations": [
+        [
+          "TensorCore.IEEE.precisionMagnitude_correct",
+          "tensor-core/TensorCore/IEEE/Precision.lean"
+        ],
+        [
+          "TensorCore.IEEE.precisionRound_unique",
+          "tensor-core/TensorCore/IEEE/Precision.lean"
+        ],
+        [
+          "TensorCore.IEEE.round_correct",
+          "tensor-core/TensorCore/IEEE/Rounding.lean"
+        ],
+        [
+          "TensorCore.IEEE.round_overflow_iff",
+          "tensor-core/TensorCore/IEEE/Rounding.lean"
+        ]
+      ]
+    },
+    "C19": {
+      "declarations": [
+        [
+          "TensorCore.IEEE.convert_self_finite",
+          "tensor-core/TensorCore/IEEE/Compatibility.lean"
+        ],
+        [
+          "TensorCore.IEEE.convert_quietNaN_roundtrip",
+          "tensor-core/TensorCore/IEEE/Compatibility.lean"
+        ],
+        [
+          "TensorCore.IEEE.round_agrees_finite",
+          "tensor-core/TensorCore/IEEE/Rounding.lean"
+        ]
+      ]
     }
   },
-  "declaration_count": 43,
+  "declaration_count": 55,
   "kernel_checked_witnesses": [
     "TensorCore.Regression.ReviewClaims.tiny_ideal",
     "TensorCore.Regression.ReviewClaims.tiny_outputs",
@@ -262,12 +322,16 @@
     "TensorCore.Regression.NativeScaled.source_loss_changes_selection",
     "TensorCore.Regression.NativeScaled.selected_accuracy"
   ],
-  "local_readme_links_checked": 108,
+  "local_readme_links_checked": 49,
   "human_sign_off": false,
   "novelty_assessed": false,
   "external_paper_review_repeated": false,
   "source_sha256": {
-    "README.md": "a03238376e440a64c60b53ea6644fc9919ea26abeb7deab9c9d9e8903755ab8f",
+    "README.md": "56a6bc73aa80a0c32e5ac74ec043136376f739e9f3f0aafaf93fa745422a9938",
+    "tensor-core/TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+    "tensor-core/TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
+    "tensor-core/TensorCore/IEEE/Rounding.lean": "bd2e4b8e5356691c7049f9b188b3f7414d5bb469d686e01e4e06995ffa0f471b",
+    "tensor-core/TensorCore/IEEE/Specification.lean": "24aa3bdd79e6cdf3fd0edc1c7901ab556178b729639a5fdd4edbca581b30fb84",
     "tensor-core/TensorCore/Kernels/CutlassWmma.lean": "36dff40c9f9bc114355694653ecf9b98345f37a32b7f34125fac5320d352cec5",
     "tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean": "1e6c41601b5cb8fca65309a17190d79d0b7d07bc14942a6ba0c4bf31dbf2b87a",
     "tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean": "c27b86373cc9302496a7eca303a749cc5c8073309daa789809ae319237234ff1",

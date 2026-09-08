@@ -1,0 +1,49 @@
+{
+  "status": "passed",
+  "seed": 75420260907,
+  "cases": 341472,
+  "groups": {
+    "edges": 110976,
+    "random": 17280,
+    "conversion": 11088,
+    "fused_boundary": 48,
+    "rounding_threshold": 5472,
+    "all_fp16_words": 196608
+  },
+  "flag_combinations": {
+    "0": 259756,
+    "16": 18168,
+    "1": 46220,
+    "5": 6281,
+    "3": 11047
+  },
+  "ordered_encoding_oracle": true,
+  "softfloat_compared": true,
+  "softfloat_nan_policy_differences": 119,
+  "failures": 0,
+  "first_failures": [],
+  "request_sha256": "b21959ff2fadc5481a13a5d0dc375d51058b04ea75bed34355918b96076caec7",
+  "invalid_request_controls": 7,
+  "source_sha256": {
+    "TensorCore/IEEE/Basic.lean": "0d34d6c6d4ab86a76480e772f079b430f93d72ad7f5dd0e2fe622f83f3928414",
+    "TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+    "TensorCore/IEEE/Operations.lean": "52649c6d777a0702aa85f2e3fdeb796960091e198692d663b1e95da861ed6c7f",
+    "TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
+    "TensorCore/IEEE/Regression.lean": "7288be9dd786050a857332817602e2ea9ecdbba36bd56c354b9dd3e95b7063c8",
+    "TensorCore/IEEE/Rounding.lean": "bd2e4b8e5356691c7049f9b188b3f7414d5bb469d686e01e4e06995ffa0f471b",
+    "TensorCore/IEEE/Specification.lean": "24aa3bdd79e6cdf3fd0edc1c7901ab556178b729639a5fdd4edbca581b30fb84",
+    "TensorCore/Cli/IEEE.lean": "68d1e932155e28aa864ce2c0638413df905061aa53641f7b4fe9ca1551a9ec94",
+    "IEEEMain.lean": "eccf49d98692a7b3a987666826a6f956d344424f753cae07a3a35b6031676f2f",
+    "scripts/check_ieee.py": "ca9b2fa1a367e54da1a996a7fa7e2bebdd51d40a236d20d64873519b4e4547e7",
+    "tests/ieee/softfloat_oracle.c": "9255fdb61c41ab2e59f3e9ac24a1b0fc08b04458e1a4de45c5ee5df7c1f09a85"
+  },
+  "elapsed_seconds": 27.562,
+  "reference": {
+    "repository": "https://github.com/ucb-bar/berkeley-softfloat-3.git",
+    "commit": "f74b1e48110ac3a27dd49b787d164e55e42d81d1",
+    "release": "3e",
+    "specialization": "ARM-VFPv2",
+    "tracked_source_changes": false,
+    "same_format_conversion": "Runner checks identity and signaling-NaN quieting; no SoftFloat same-format API exists."
+  }
+}

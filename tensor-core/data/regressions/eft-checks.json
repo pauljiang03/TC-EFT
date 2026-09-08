@@ -12,6 +12,7 @@
         "ld64.lld: warning: directory not found for option -L/usr/local/lib",
         "ld64.lld: warning: directory not found for option -L/usr/local/lib",
         "ld64.lld: warning: directory not found for option -L/usr/local/lib",
+        "ld64.lld: warning: directory not found for option -L/usr/local/lib",
         "ld64.lld: warning: directory not found for option -L/usr/local/lib"
       ]
     },
@@ -23,7 +24,7 @@
         "Audit.lean"
       ],
       "exit_code": 0,
-      "audit": "tc_audit: 2008 theorem roots (1216 written in source, the rest generated)"
+      "audit": "tc_audit: 2162 theorem roots (1276 written in source, the rest generated)"
     },
     {
       "command": [
@@ -62,7 +63,7 @@
       "exit_code": 0
     }
   ],
-  "scanned_lean_sources": 211,
+  "scanned_lean_sources": 219,
   "bounded_scope": "Complete eight-path encoded EFT: bounded decoding, signed extraction/overlap, guards, scalar and 576-bit exact consolidation, direct FP32 rounding; universal finite-input correctness, success/range, reference refinement, and source-level operation budgets",
   "bounded_checks": {
     "status": "passed",
@@ -89,7 +90,7 @@
     "coefficient_width": 576,
     "common_grid_exponent": -272,
     "seed": 20260907,
-    "elapsed_seconds": 6.5,
+    "elapsed_seconds": 5.887,
     "source_sha256": {
       "TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
       "TensorCore/Foundations/EFMachine/Decode.lean": "2d97d568f26d471396e2b683f5219be1abace3f91dc078f1db7dcd2cdf33679a",

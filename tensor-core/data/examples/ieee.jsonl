@@ -1,0 +1,5 @@
+{"operation":"fma","format":"fp64","mode":"rdn","a":4607182418800017408,"b":4607182418800017408,"c":13830554455654793216}
+{"operation":"convert","format":"fp32","target":"fp16","mode":"rne","a":1199563008}
+{"operation":"add","format":"fp32","mode":"rne","a":2139095040,"b":4286578688}
+{"operation":"mul","format":"fp16","mode":"rne","a":1,"b":14336}
+{"operation":"convert","format":"fp16","target":"fp32","mode":"rne","a":31745}

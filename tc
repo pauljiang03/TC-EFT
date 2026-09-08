@@ -84,6 +84,8 @@ def parser():
     gemm = commands.add_parser("gemm", help="Execute or certify GEMM requests as JSON Lines",
                                description="Read one GEMM request per line; write one JSON result per request.")
     gemm.add_argument("input", metavar="FILE", help="JSONL input file, or - for standard input")
+    ieee = commands.add_parser("ieee", help="Execute IEEE binary scalar operations and report exception flags")
+    ieee.add_argument("input", metavar="FILE", help="JSONL input file, or - for standard input")
     analyze = commands.add_parser("analyze", help="Infer GEMM bounds and check an absolute error tolerance")
     analyze.add_argument("input", metavar="FILE", help="Raw/scaled FP16 or native GEMM, or family JSONL requests; - reads standard input")
     analyze.add_argument("--abs-tol", required=True, help="Nonnegative exact decimal or rational tolerance")
@@ -95,7 +97,7 @@ def parser():
     verify = commands.add_parser("verify", help="Check an exported analysis certificate through Lean's kernel")
     verify.add_argument("input", metavar="FILE.lean", help="Certificate produced by analyze or select --emit")
     schema = commands.add_parser("schema", help="Print an input JSON Schema")
-    schema.add_argument("interface", nargs="?", choices=["gemm", "select"], default="gemm")
+    schema.add_argument("interface", nargs="?", choices=["gemm", "select", "ieee"], default="gemm")
     trace = commands.add_parser("trace", help="Print a V100 four-product block trace")
     trace.add_argument("words", nargs=9, metavar="HEX", help="a0 b0 a1 b1 a2 b2 a3 b3 c, without 0x")
     eft = commands.add_parser("eft", help="Run bounded EFT on an encoded batch file")
@@ -109,13 +111,16 @@ def main():
     if args.command == "doctor":
         return doctor(args.json)
     if args.command == "schema":
-        name = "selection" if args.interface == "select" else "gemm"
+        name = "selection" if args.interface == "select" else args.interface
         print((PROJECT / f"data/schemas/{name}.schema.json").read_text(), end="")
         return 0
     if not shutil.which("lake"):
         cli.error("lake is unavailable. Install elan and run ./tc doctor.")
     if args.command == "build":
         return build()
+    if args.command == "ieee":
+        path = "-" if args.input == "-" else input_file(args.input)
+        return executable("tc_ieee", [path])
     if args.command == "gemm":
         path = "-" if args.input == "-" else input_file(args.input)
         return executable("tc_gemm", [path])

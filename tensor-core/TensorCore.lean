@@ -43,3 +43,4 @@ import TensorCore.Regression.GemmSelection
 import TensorCore.Regression.DecisionExtensions
 import TensorCore.Regression.ReviewClaims
 import TensorCore.Regression.NativeScaledGemm
+import TensorCore.IEEE.Regression

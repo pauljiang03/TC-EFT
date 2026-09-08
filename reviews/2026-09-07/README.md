@@ -1,11 +1,15 @@
 **Reproducing the independent review of `49e8768`**
 
-Read the [assessment](../../INDEPENDENT_REVIEW.md) before interpreting the results.
+Read the [historical assessment](https://github.com/pauljiang03/tensor-core-arithmetic/blob/6406712e456c8d36f662a70be8065d7022e14566/INDEPENDENT_REVIEW.md) before interpreting the results.
 These checks concern the declared finite arithmetic model, not physical GPU
 conformance. They require the repository's pinned Lean toolchain, a working native
 C toolchain, and Python 3. No Python packages or repository test oracles are used.
 
-From the repository root:
+These checks are historical. Use a separate checkout of `6406712` for the
+original source manifest and certificates. The [current evaluation](../../EVALUATION.md)
+covers the later IEEE extension; this historical review does not assess that code.
+
+From the baseline repository root:
 
 ```sh
 python3 reviews/2026-09-07/run_review.py

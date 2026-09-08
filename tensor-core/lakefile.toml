@@ -1,6 +1,6 @@
 name = "tensorCore"
 version = "0.1.0"
-defaultTargets = ["TensorCore", "tc_trace", "tc_features", "tc_eft_paper", "tc_bounded_eft", "tc_gemm"]
+defaultTargets = ["TensorCore", "tc_trace", "tc_features", "tc_eft_paper", "tc_bounded_eft", "tc_gemm", "tc_ieee"]
 
 [[lean_lib]]
 name = "TensorCore"
@@ -24,3 +24,7 @@ root = "BoundedEFTMain"
 [[lean_exe]]
 name = "tc_gemm"
 root = "GemmMain"
+
+[[lean_exe]]
+name = "tc_ieee"
+root = "IEEEMain"
