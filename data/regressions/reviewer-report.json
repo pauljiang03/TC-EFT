@@ -1,0 +1,13 @@
+{
+  "status": "passed",
+  "cases": 10,
+  "fixed_expected_values": true,
+  "independent_fraction_oracle": true,
+  "source_sha256": {
+    "data/examples/gemm.jsonl": "68c43fcd11b1324a65d9d61838d4226b045eba52fc10217d31c7074bd59bd2a2",
+    "data/examples/gemm.expected.json": "304401e03c8e30d9f8954ecec007a0c39f3c223591f186b433ef8f289b86d7b5",
+    "scripts/check_reviewer.py": "e7b680a40c9c013098ae13a906673b075229e605a15ce067cd913c11ddc6c63c",
+    "Main/Gemm.lean": "01d4eb8a0dc515ea45b0262511a4273be6bd15a69f4cfa790ae2077b0dd1b357",
+    "TensorCore/Gemm/Cli/Gemm.lean": "5c211fbf82ae66fa800713f358e4185dee6df0fff9b5e78aa2c50061560bdbb4"
+  }
+}

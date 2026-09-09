@@ -1,60 +1,540 @@
 # Tensor Core Arithmetic
 
-Lean 4 theories and executable reference models for selected tensor-core arithmetic,
-with proved binary rounding, accumulation refinements, GEMM error certificates,
-and an IEEE binary scalar layer. Uses Lean 4.33.1 and its standard library.
+A Lean formalization of tensor-core arithmetic and TC-EFT: exact binary arithmetic,
+encoded tensor-core operations, error extraction, and correctly rounded correction.
+GEMM semantics and accuracy certificates form a separate extension.
 
-The [current evaluation](EVALUATION.md) records validation, scope, and unresolved
-concerns. Human specification review and physical GPU conformance remain open.
-The [implementation plan](IMPLEMENTATION_PLAN.md) records the IEEE equivalence
-proofs and migration to Lean's built-in operations.
+The development uses **Lean 4.33.1 and its standard library**. Mathematical types
+are written `ℕ`, `ℤ`, and `ℚ`; `ℚ` is Lean's executable exact rational type.
 
-The native IEEE migration preserves the scalar API's result bits and exception
-flags by kernel-checked equivalence proofs. The EFT executable also uses native
-FP32 addition for scalar consolidation, with a proof preserving its complete
-result, branch selection, and errors. The original references and tensor-core/GEMM
-models are retained. The [compatibility guide](tensor-core/docs/lean-ieee-compatibility.md)
-explains the preserved results, retained reference paths, and evidence of correctness.
+## Project structure
 
-## The two core functions: tensor core and EFT
+Definitions and their properties are organized by subject, following the layout of
+[FLoPS](https://github.com/rutgers-apl/FLoPS). Each subject has a focused import.
 
-Start with these two functions and their main theorems. The Lean blocks below
-are copied directly from the source, including the proof bodies. Their imports,
-namespace context, and helper definitions are in the linked files. The
-[full theorem catalog](#main-theorem-code) collects the wider library results.
+| Directory / import | Contents |
+| --- | --- |
+| [`TensorCore.Core`](TensorCore/Core.lean) | Basic representations, exact arithmetic, encodings, algebraic models, bijections, rounding, and scalar sums. |
+| [`TensorCore.TC`](TensorCore/TC.lean) | Tensor-core profiles and operations, error bounds, machine refinement, monotonicity, and ordered programs. |
+| [`TensorCore.EFT`](TensorCore/EFT.lean) | TC-EFT extraction, scalar consolidation, Algorithm 1, and bounded machine execution. |
+| [`TensorCore.Gemm`](TensorCore/Gemm.lean) | Matrix definitions, raw/scaled/native GEMM, bounds, certificates, selection, and independent matrix specifications. |
+| [`TensorCore.IEEE`](TensorCore/IEEE.lean) | IEEE special values and flags, scalar operations, and equivalence to Lean's native floating-point operations. |
+| [`TensorCore.All`](TensorCore/All.lean) | The complete development, including interfaces and regression witnesses. |
+| [`Main/`](Main) | Executable entry points. |
+| [`examples/`](examples), [`scripts/`](scripts) | Usage examples, validation, audits, and documentation generation. |
+| [`data/`](data), [`hardware/`](hardware), [`kernels/`](kernels), [`vendor/`](vendor) | Input fixtures, recorded evidence, hardware harnesses, and pinned external sources. |
 
-### Tensor-core function: `evalBlock`
+`import TensorCore` brings in Core, TC, and EFT. The foundational `Core` imports
+no tensor-core or GEMM implementation; TC imports no EFT or GEMM development;
+EFT imports no GEMM development. `lake build` still checks the complete library.
+The [migration guide](docs/migration.md) maps the former paths to their new homes.
 
-**Input:** a profile `p`, `p.products` encoded operand pairs `(A_i, B_i)`, and
-an encoded FP32 accumulator `C`. **Output:** a trace containing the uncorrected
-FP32 tensor-core result, or an explicit error. This function models one
-normalization group; instruction and GEMM layers compose multiple groups.
+## Bit encodings, algebraic models, and isomorphisms
 
-Its arithmetic is:
+The finite model has three equivalent presentations:
 
-```text
-S = value(C) + sum_i(value(A_i) * value(B_i))    -- original exact dot product
-terms = [C, A_1*B_1, ..., A_K*B_K]              -- K = p.products
-eta = maximum nonzero raw scale, then the profile's floor
-q = 2^(eta - p.alignFraction)                   -- shared alignment grid
-M = q * sum_j truncTowardZero(value(terms_j) / q)
-D_tc = roundFP32TowardZero(M)
+```mermaid
+flowchart LR
+  B["FiniteBinaryWord f: finite bit patterns"] <-->|"finiteBinaryBijection"| A["BinaryRep f: sign, significand, exponent"]
+  B <-->|"signedFiniteBinaryBijection"| V["SignedFiniteValue f: exact value and sign"]
 ```
 
-Raw multiplication preserves the exact product value. Alignment truncates each
-term separately before summation. For all-zero terms the grid choice is
-irrelevant. Acceptance requires the right number of products, finite decoded
-operands, and an aligned accumulator `M` within the finite FP32 range; see
-[`evalBlock_success_iff`](tensor-core/TensorCore/Theory/AcceptedDomain.lean#L34).
+[`Core/Defs.lean`](TensorCore/Core/Defs.lean) defines formats and the exact decoded
+value `significand × 2^(rawScale - fractionalBits)`.
+[`Core/Encoding.lean`](TensorCore/Core/Encoding.lean) classifies and decodes bit patterns.
+[`Core/Binary/Defs.lean`](TensorCore/Core/Binary/Defs.lean) gives the canonical algebraic
+representation and its finite domains. The [bijection](TensorCore/Core/Binary/Bijection.lean),
+[round-trip](TensorCore/Core/Binary/RoundTrip.lean), and
+[signed-value bijection](TensorCore/Core/Binary/SignedBijection.lean) prove both inverse
+laws and preservation of values. Their Lean code is expandable below.
 
-The actual entry point and its final rounding stage, in namespace `TensorCore`:
+These bijections apply to every well-formed IEEE-style finite binary format, including
+subnormals and both signed zeros. A bare rational identifies the two zeros, so the
+numerical bijection retains a separate sign. NaNs and infinities have separate
+classification and IEEE semantics; they are outside the finite bijection.
+`Decoded` retains raw, potentially unnormalized metadata for tensor-core alignment;
+`BinaryRep` is the canonical representation used for the encoding isomorphism.
 
-[TensorCore.evalBlock](tensor-core/TensorCore/Semantics/Block.lean#L108):
+## Build and regression
 
-Checks the product count, decodes finite operands, and evaluates one tensor-core
-normalization group. Invalid inputs return an explicit error.
+Run from the repository root:
+
+```sh
+lake build
+./tc doctor
+./tc eft data/examples/eft.txt
+./tc check
+```
+
+`./tc check` builds a fresh source snapshot and runs the full regression suite:
+proof audits, independent specifications and negative controls, TC/EFT/GEMM/IEEE
+checks, CLI and certificate checks, archived device-vector replay, every standalone
+example, module boundaries, and generated proof documentation.
+Its reports are written to [`data/regressions/`](data/regressions); the combined log
+is `tmp/clean-build.log`. GPU replay uses archived evidence and does not claim a new
+physical-device run.
+
+For the interfaces and detailed assumptions, see the [reference manual](docs/reference.md),
+[current evaluation](docs/evaluation.md), and [IEEE compatibility guide](docs/lean-ieee-compatibility.md).
+The [style guide](docs/style.md) records notation, module ownership, and proof trust.
+
+<!-- BEGIN GENERATED PROOF GUIDE -->
+## Proof guide
+
+Expand a claim to read its Lean code. Within each declaration, expand the supporting proofs and follow their links to continue through the dependency graph. The code is copied from the checked source, including proof bodies.
+
+The [complete proof index](docs/proofs/README.md) covers **1431 source theorems** and **966 definitions**. The [machine-readable graph](docs/proofs/dependencies.json) also retains generated proofs and standard-library edges. Regenerate with `python3 scripts/generate_proof_docs.py`; `--check` verifies that this guide is current.
+
+```mermaid
+flowchart TD
+  TC[Tensor-core contracts] --> C[Core arithmetic and rounding]
+  EFT[TC-EFT correctness] --> TC
+  EFT --> C
+  E[Bounded EFT execution] --> EFT
+  E --> I[IEEE and Lean scalar refinement]
+  I --> C
+  G[GEMM certificates] --> TC
+  G --> C
+  TC --> S[Independent TC specification]
+  G --> M[Independent matrix specification]
+```
+
+### Entry points
+
+<details>
+<summary><code>TensorCore.Format</code></summary>
+
+[Lean source](TensorCore/Core/Defs.lean#L7) · [Full dependency node](docs/proofs/Core/Defs.md#decl-db780180792c6817)
 
 ```lean
+structure Format where
+  fractionBits : ℕ
+  exponentBits : ℕ
+  bias : ℤ
+  deriving Repr, DecidableEq
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+No supporting source theorem in this repository.
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+None in this repository.
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.BinaryRep</code></summary>
+
+[Lean source](TensorCore/Core/Binary/Defs.lean#L8) · [Full dependency node](docs/proofs/Core/Binary/Defs.md#decl-895d436fd0a35170)
+
+```lean
+/-- Canonical arithmetic data, including a sign for either zero. -/
+structure BinaryRep (f : Format) where
+  negative : Bool
+  exponent : ℤ
+  significand : ℕ
+  exponent_min : f.emin ≤ exponent
+  exponent_max : exponent ≤ f.emax
+  significand_lt : significand < 2 ^ (f.fractionBits + 1)
+  normalized : 2 ^ f.fractionBits ≤ significand ∨ exponent = f.emin
+  deriving DecidableEq
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+No supporting source theorem in this repository.
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.emax](docs/proofs/Core/Defs.md#decl-dc4afe2b44cdf196), [TensorCore.Format.emin](docs/proofs/Core/Defs.md#decl-af48d9057baa67b0)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.BinaryRep.value</code></summary>
+
+[Lean source](TensorCore/Core/Binary/Defs.lean#L25) · [Full dependency node](docs/proofs/Core/Binary/Defs.md#decl-cc6dcf5c8ebfaa31)
+
+```lean
+def BinaryRep.value {f : Format} (r : BinaryRep f) : ℚ :=
+  (if r.negative then -(r.significand : ℚ) else r.significand) *
+    pow2 (r.exponent - f.fractionBits)
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+No supporting source theorem in this repository.
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRep](docs/proofs/Core/Binary/Defs.md#decl-895d436fd0a35170), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.finiteBinaryBijection</code></summary>
+
+[Lean source](TensorCore/Core/Binary/Bijection.lean#L174) · [Full dependency node](docs/proofs/Core/Binary/Bijection.md#decl-b1a16403ef1ee57a)
+
+```lean
+def finiteBinaryBijection (f : Format) (hf : f.WellFormed) :
+    BinaryBijection (BinaryRep f) (FiniteBinaryWord f) :=
+  ⟨encodeBinaryRep f hf, decodeBinaryRep f hf,
+    decode_encodeBinaryRep f hf, encode_decodeBinaryRep f hf⟩
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.decode_encodeBinaryRep</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/Bijection.md#decl-2b92b9b7bcfc34f3)
+
+```lean
+theorem decode_encodeBinaryRep (f : Format) (hf : f.WellFormed) (r : BinaryRep f) :
+    decodeBinaryRep f hf (encodeBinaryRep f hf r) = r
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.encode_decodeBinaryRep</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/Bijection.md#decl-0ef3a70fffcc866c)
+
+```lean
+/-- Reassembling sign, exponent and fraction reproduces the original finite word. -/
+theorem encode_decodeBinaryRep (f : Format) (hf : f.WellFormed) (b : FiniteBinaryWord f) :
+    encodeBinaryRep f hf (decodeBinaryRep f hf b) = b
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryBijection](docs/proofs/Core/Defs.md#decl-85b8cc75be52e666), [TensorCore.BinaryRep](docs/proofs/Core/Binary/Defs.md#decl-895d436fd0a35170), [TensorCore.FiniteBinaryWord](docs/proofs/Core/Binary/Defs.md#decl-b1ebef5bf580ea01), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.decodeBinaryRep](docs/proofs/Core/Binary/Bijection.md#decl-dd7db11ae1e1ea80), [TensorCore.encodeBinaryRep](docs/proofs/Core/Binary/Bijection.md#decl-abc077f61bbca602)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.decode_encodeBinaryRep</code></summary>
+
+[Lean source](TensorCore/Core/Binary/Bijection.lean#L110) · [Full dependency node](docs/proofs/Core/Binary/Bijection.md#decl-2b92b9b7bcfc34f3)
+
+```lean
+theorem decode_encodeBinaryRep (f : Format) (hf : f.WellFormed) (r : BinaryRep f) :
+    decodeBinaryRep f hf (encodeBinaryRep f hf r) = r := by
+  obtain ⟨hs, he, hk⟩ := encodeBinary_fields f hf r
+  have hemin := r.exponent_min
+  have hn := r.normalized
+  have hP := Nat.two_pow_pos f.fractionBits
+  have hE : (r.exponent + f.bias).toNat ≠ 0 := by unfold Format.emin at hemin; omega
+  cases r with
+  | mk s e k h1 h2 h3 h4 =>
+    simp only [decodeBinaryRep, encodeBinaryRep, hs, he, hk]
+    congr 1 <;> split <;> simp_all <;> omega
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.encodeBinary_fields</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/Bijection.md#decl-bcffec0f99ba4510)
+
+```lean
+/-- Field extraction for the existing generic encoder. -/
+theorem encodeBinary_fields (f : Format) (hf : f.WellFormed) (r : BinaryRep f) :
+    binarySign f r.encode = r.negative ∧
+    binaryExponentField f r.encode =
+      (if r.significand < 2 ^ f.fractionBits then 0 else (r.exponent + f.bias).toNat) ∧
+    r.encode.toNat % 2 ^ f.fractionBits =
+      (if r.significand < 2 ^ f.fractionBits then r.significand
+       else r.significand - 2 ^ f.fractionBits)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRep](docs/proofs/Core/Binary/Defs.md#decl-895d436fd0a35170), [TensorCore.BinaryRep.encode](docs/proofs/Core/Binary/Bijection.md#decl-3a2559ae7dd8fec5), [TensorCore.Classification.finite](docs/proofs/Core/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.Decoded](docs/proofs/Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.emax](docs/proofs/Core/Defs.md#decl-dc4afe2b44cdf196), [TensorCore.Format.emin](docs/proofs/Core/Defs.md#decl-af48d9057baa67b0), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.binaryExponentField](docs/proofs/Core/Binary/Encoding.md#decl-c12aa273bd1bbbb3), [TensorCore.binarySign](docs/proofs/Core/Binary/Encoding.md#decl-a5de0a69a17e78c5), [TensorCore.classify](docs/proofs/Core/Encoding.md#decl-793c375a3325b7e3), [TensorCore.decodeBinaryRep](docs/proofs/Core/Binary/Bijection.md#decl-dd7db11ae1e1ea80), [TensorCore.encodeBinaryRep](docs/proofs/Core/Binary/Bijection.md#decl-abc077f61bbca602)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.encode_decodeBinaryRep</code></summary>
+
+[Lean source](TensorCore/Core/Binary/Bijection.lean#L123) · [Full dependency node](docs/proofs/Core/Binary/Bijection.md#decl-0ef3a70fffcc866c)
+
+```lean
+/-- Reassembling sign, exponent and fraction reproduces the original finite word. -/
+theorem encode_decodeBinaryRep (f : Format) (hf : f.WellFormed) (b : FiniteBinaryWord f) :
+    encodeBinaryRep f hf (decodeBinaryRep f hf b) = b := by
+  apply Subtype.ext
+  change (decodeBinaryRep f hf b).encode = b.val
+  apply BitVec.eq_of_toNat_eq
+  let hr := decodeBinaryRep f hf b
+  rw [show (decodeBinaryRep f hf b).encode.toNat = _ from
+    encodeBinary_toNat f hf hr.negative hr.exponent hr.significand
+      (by omega) (by have := hr.significand_lt; omega) hr.exponent_min hr.exponent_max]
+  simp only [hr, decodeBinaryRep, binarySign, binaryExponentField, Nat.pow_add]
+  dsimp +instances only [hr, decodeBinaryRep, binarySign, binaryExponentField]
+  have hn := b.val.isLt
+  have hwidth : 2 ^ f.width = 2 ^ (f.fractionBits + f.exponentBits) * 2 := by
+    rw [show f.width = f.fractionBits + f.exponentBits + 1 by unfold Format.width; omega,
+      Nat.pow_succ]
+  rw [hwidth, Nat.pow_add] at hn
+  have hP := Nat.two_pow_pos f.fractionBits
+  have hW := Nat.two_pow_pos f.exponentBits
+  generalize hPv : 2 ^ f.fractionBits = P at *
+  generalize hWv : 2 ^ f.exponentBits = W at *
+  generalize hnv : b.val.toNat = n at *
+  have hPW := Nat.mul_pos hP hW
+  have hq : n / (P * W) < 2 := (Nat.div_lt_iff_lt_mul hPW).mpr (by omega)
+  have hdecomp : n = (n / (P * W)) * (P * W) + (n / P % W) * P + n % P := by
+    have h1 := Nat.div_add_mod n P
+    have h2 := Nat.div_add_mod (n / P) W
+    have h3 := congrArg (fun z => z * P) h2
+    rw [Nat.div_div_eq_div_mul] at h3
+    grind
+  have hfrac := Nat.mod_lt n hP
+  have hsign : (if (n / (P * W) != 0) then P * W else 0) = (n / (P * W) : ℕ) * (P * W) := by
+    by_cases hz : n / (P * W) = 0
+    · simp [hz]
+    · have ho : n / (P * W) = 1 := by
+        generalize n / (P * W) = q at *
+        omega
+      simp [ho]
+  rw [hsign]
+  by_cases he : n / P % W = 0
+  · simp only [he, ↓reduceIte]
+    rw [if_pos (show ((n % P : ℕ) : ℤ) < (P : ℕ) by omega)]
+    simp only [Int.toNat_natCast]
+    simp only [he, Nat.zero_mul, Nat.add_zero] at hdecomp
+    omega
+  · simp only [he, ↓reduceIte]
+    rw [if_neg (show ¬ ((P + n % P : ℕ) : ℤ) < (P : ℕ) by omega)]
+    have hE : (((n / P % W : ℕ) : ℤ) - f.bias + f.bias).toNat = n / P % W := by omega
+    have hK : (((P + n % P : ℕ) : ℤ) - (P : ℕ)).toNat = n % P := by omega
+    rw [hE, hK]
+    omega
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.encodeBinary_toNat</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/Encoding.md#decl-0082d54957605cf4)
+
+```lean
+/-- The constructed encoding fits the word and has the stated fields. -/
+theorem encodeBinary_toNat (f : Format) (hf : f.WellFormed) (negative : Bool) (e k : ℤ)
+    (hk0 : 0 ≤ k) (hk1 : k < ((2 ^ (f.fractionBits + 1) : ℕ) : ℤ)) (_he1 : f.emin ≤ e)
+    (he2 : e ≤ f.emax) :
+    (encodeBinary f negative e k).toNat =
+      (if negative then 2 ^ (f.fractionBits + f.exponentBits) else 0) +
+        (if k < (2 ^ f.fractionBits : ℕ) then k.toNat
+         else (e + f.bias).toNat * 2 ^ f.fractionBits + (k - (2 ^ f.fractionBits : ℕ)).toNat)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRep](docs/proofs/Core/Binary/Defs.md#decl-895d436fd0a35170), [TensorCore.BinaryRep.encode](docs/proofs/Core/Binary/Bijection.md#decl-3a2559ae7dd8fec5), [TensorCore.Classification.finite](docs/proofs/Core/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.Decoded](docs/proofs/Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.FiniteBinaryWord](docs/proofs/Core/Binary/Defs.md#decl-b1ebef5bf580ea01), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.emax](docs/proofs/Core/Defs.md#decl-dc4afe2b44cdf196), [TensorCore.Format.emin](docs/proofs/Core/Defs.md#decl-af48d9057baa67b0), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.binaryExponentField](docs/proofs/Core/Binary/Encoding.md#decl-c12aa273bd1bbbb3), [TensorCore.binarySign](docs/proofs/Core/Binary/Encoding.md#decl-a5de0a69a17e78c5), [TensorCore.classify](docs/proofs/Core/Encoding.md#decl-793c375a3325b7e3), [TensorCore.decodeBinaryRep](docs/proofs/Core/Binary/Bijection.md#decl-dd7db11ae1e1ea80), [TensorCore.encodeBinaryRep](docs/proofs/Core/Binary/Bijection.md#decl-abc077f61bbca602)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.SignedFiniteValue</code></summary>
+
+[Lean source](TensorCore/Core/Binary/Defs.lean#L32) · [Full dependency node](docs/proofs/Core/Binary/Defs.md#decl-86fdea2e792bf344)
+
+```lean
+structure SignedFiniteValue (f : Format) where
+  value : ℚ
+  negative : Bool
+  finite : f.FiniteValue value
+  sign_nonzero : value ≠ 0 → negative = decide (value < 0)
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+No supporting source theorem in this repository.
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.FiniteValue](docs/proofs/Core/Defs.md#decl-e3dc9cecad983d99)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.signedFiniteBinaryBijection</code></summary>
+
+[Lean source](TensorCore/Core/Binary/SignedBijection.lean#L134) · [Full dependency node](docs/proofs/Core/Binary/SignedBijection.md#decl-52799c5e93137e77)
+
+```lean
+/-- Finite IEEE words correspond bijectively to representable rationals with two zeros.
+For nonzero values the sign is determined, so there is exactly one representation. -/
+def signedFiniteBinaryBijection (f : Format) (hf : f.WellFormed) :
+    BinaryBijection (SignedFiniteValue f) (FiniteBinaryWord f) :=
+  ⟨encodeSignedBinary f hf, decodeSignedBinary f hf,
+    decode_encodeSignedBinary f hf, encode_decodeSignedBinary f hf⟩
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.decode_encodeSignedBinary</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/SignedBijection.md#decl-2c11097025d8ee97)
+
+```lean
+theorem decode_encodeSignedBinary (f : Format) (hf : f.WellFormed) (v : SignedFiniteValue f) :
+    decodeSignedBinary f hf (encodeSignedBinary f hf v) = v
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.encode_decodeSignedBinary</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/SignedBijection.md#decl-c65020fe3f9595ba)
+
+```lean
+theorem encode_decodeSignedBinary (f : Format) (hf : f.WellFormed) (b : FiniteBinaryWord f) :
+    encodeSignedBinary f hf (decodeSignedBinary f hf b) = b
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryBijection](docs/proofs/Core/Defs.md#decl-85b8cc75be52e666), [TensorCore.FiniteBinaryWord](docs/proofs/Core/Binary/Defs.md#decl-b1ebef5bf580ea01), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.SignedFiniteValue](docs/proofs/Core/Binary/Defs.md#decl-86fdea2e792bf344), [TensorCore.decodeSignedBinary](docs/proofs/Core/Binary/SignedBijection.md#decl-cb2fcf99d19b6a37), [TensorCore.encodeSignedBinary](docs/proofs/Core/Binary/SignedBijection.md#decl-1ab7a3966bec465c)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.Profile</code></summary>
+
+[Lean source](TensorCore/TC/Defs.lean#L11) · [Full dependency node](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a)
+
+```lean
+/-- Explicit parameters of one globally aligned FP32-output normalization group:
+input format, products per group `K`, fractional alignment bits `F` below `2^eta`,
+and an alignment-exponent floor applied after the nonzero maximum (Accurate Models
+v4 Table 3). Fields without established semantics for a device are not added. -/
+structure Profile where
+  input : Format
+  products : ℕ
+  alignFraction : ℤ
+  alignFloor : Option ℤ
+  deriving Repr, DecidableEq
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+No supporting source theorem in this repository.
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.BlockInput</code></summary>
+
+[Lean source](TensorCore/TC/Block.lean#L10) · [Full dependency node](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6)
+
+```lean
+/-- Encoded operands of one normalization group under a profile; `c` is always FP32. -/
+structure BlockInput (p : Profile) where
+  products : List (p.Word × p.Word)
+  c : F32
+  deriving Repr, DecidableEq
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+No supporting source theorem in this repository.
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.evalBlock</code></summary>
+
+[Lean source](TensorCore/TC/Block.lean#L97) · [Full dependency node](docs/proofs/TC/Block.md#decl-58fdfbbb09a9ba58)
+
+```lean
+/-- One normalization group of the profile, not a complete PTX tile or GEMM. -/
 def evalBlock {p : Profile} (x : BlockInput p) : Except ModelError BlockTrace :=
   if x.products.length != p.products then .error .wrongProductCount
   else match prepare x with
@@ -62,110 +542,62 @@ def evalBlock {p : Profile} (x : BlockInput p) : Except ModelError BlockTrace :=
     | some b => evalPrepared b
 ```
 
-[TensorCore.evalPrepared](tensor-core/TensorCore/Semantics/Block.lean#L100):
+<details>
+<summary>Supporting proofs</summary>
 
-Rounds the aligned accumulator toward zero to FP32 and packages a finite output trace.
-An accumulator outside the accepted range is rejected.
+No supporting source theorem in this repository.
 
-```lean
-def evalPrepared (b : PreparedBlock) : Except ModelError BlockTrace :=
-  match round32 .towardZero b.accumulator with
-  | none => .error .accumulatorOutOfRange
-  | some bits => match finite32 bits with
-    | none => .error .nonfiniteOutput
-    | some d => .ok ⟨b, d⟩
-```
+</details>
 
-**Main arithmetic theorem — `profile_contract`.** For an accepted trace, this
-proves the original-input ideal, the toward-zero result, a bound on total error
-(alignment plus output conversion), and equality with a fixed-width accumulator.
-`hF` fixes the alignment precision; `hc` supplies enough carry bits for the
-`K + 1` terms. The required accumulator width is `F + 3 + carryBits`.
+<details>
+<summary>Definitions and types</summary>
 
-[TensorCore.profile_contract](tensor-core/TensorCore/Theory/CanonicalFormats.lean#L11):
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](docs/proofs/TC/Block.md#decl-703939eff806d883), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.evalPrepared](docs/proofs/TC/Block.md#decl-700b85398ddd8f12), [TensorCore.prepare](docs/proofs/TC/Block.md#decl-32c2d7273540d876)
 
-For an accepted block and sufficient carry bits, proves the output rounding rule, total
-error bound, and equality with the stated fixed-width accumulator.
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.algorithm1Encoded</code></summary>
+
+[Lean source](TensorCore/EFT/Encoded.lean#L35) · [Full dependency node](docs/proofs/EFT/Encoded.md#decl-8017eca136315bcf)
 
 ```lean
-theorem profile_contract (p : Profile) (F carryBits : Nat) (hF : p.alignFraction = F)
-    (hc : p.products + 1 ≤ 2 ^ carryBits) (x : BlockInput p) (t : BlockTrace)
-    (h : evalBlock x = .ok t) :
-    exactDot x = some t.block.exactDot ∧
-    round32 .towardZero t.block.accumulator = some t.output.bits ∧
-    absQ (t.block.exactDot - t.output.value) <
-      ((p.products + 1 : Nat) : Rat) * pow2 t.block.quantumExponent +
-        pow2 (outputQuantumExponent t.output.bits) ∧
-    t.block.machineAccumulator (F + 3 + carryBits) = t.block.accumulator := by
-  have hp := evalBlock_prepared h
-  have hlen := (prepare_terms_bounded hp).1
-  have hshape : x.products.length = p.products := by
-    unfold evalBlock at h
-    split at h <;> simp_all
-  have herr := evalBlock_error_bound h
-  have hw := evalBlock_machineAccumulator h F carryBits hF hc
-  refine ⟨by simp [exactDot, hp], evalPrepared_output (evalBlock_evalPrepared h), ?_, ?_⟩
-  · simpa [hlen, hshape] using herr
-  · have he : F + 2 + carryBits + 1 = F + 3 + carryBits := by omega
-    simpa [he] using hw
+/-- Algorithm 1: check the finite encoded interface, return +0 for all-zero terms,
+otherwise reconstruct the grids and overlap components and execute the two-branch reference.
+The range failure is retained as `.consolidated .outOfRange`. -/
+def algorithm1Encoded {p : Profile} (x : BlockInput p) (D : F32) :
+    Except ModelError EncodedEFTResult :=
+  match prepareEncodedEFT x D with
+  | .error e => .error e
+  | .ok t => .ok (if t.block.allZeroTerms then .allZero else .consolidated t.algorithm1)
 ```
 
-**Translation theorem — `supported_eq_paper`.** On all eight supported paths,
-`evalBlock` agrees bit-for-bit with the separately defined `PaperSpec` model for
-every encoded input. Rejection also agrees, with errors observed as `none`.
-The statement is in namespace `TensorCore.PaperSpec`. Reviewing the definitions
-of `parameters` and `bits` is the human check that this specification expresses
-the intended paper model; the theorem establishes equality of the two Lean models.
+<details>
+<summary>Supporting proofs</summary>
 
-[TensorCore.PaperSpec.supported_eq_paper](tensor-core/TensorCore/PaperSpec/Supported.lean#L25):
+No supporting source theorem in this repository.
 
-Proves that all eight supported paths match the separately defined paper model on output
-bits and rejection. Failures on both sides are compared as `none`.
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](docs/proofs/EFT/Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.EncodedEFTResult](docs/proofs/EFT/Encoded.md#decl-43c5cf7090b5e17e), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock.allZeroTerms](docs/proofs/EFT/Encoded.md#decl-12dcaf3961e33ea9), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.prepareEncodedEFT](docs/proofs/EFT/Encoded.md#decl-aaaf1649ccd95844)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1WithLean</code></summary>
+
+[Lean source](TensorCore/EFT/Native.lean#L101) · [Full dependency node](docs/proofs/EFT/Native.md#decl-e854b34f0fadc9c3)
 
 ```lean
-theorem supported_eq_paper (path : Path) (x : BlockInput (implementationProfile path)) :
-    (evalBlock x).toOption.map (fun t => t.output.bits) =
-      bits (parameters path) (supportedInput path x) := by
-  cases path <;> exact implementation_eq_paper x
-```
-
-### EFT function: `algorithm1WithLean`
-
-**Input:** a supported path, the original encoded operands and `C`, and an encoded
-FP32 output `D` to correct. **Output:** `.scalar bits`, `.boundedExact bits`,
-`.allZero`, `.outOfRange`, or an explicit error. `./tc eft` executes this
-function. `D` can be the tensor-core result above; the correctness theorem covers
-any finite supplied `D`.
-
-The extraction and correction flow is:
-
-```text
-Split each original term: t_j = h_j + e_j
-H = sum_j h_j
-O = value(D) - H                               -- overlap
-S = value(D) - O + sum_j e_j                    -- recovered exact dot product
-
-If the scalar guards and intermediate checks pass:
-    E = left-to-right FP32 nearest-even sum of the e_j, starting at +0
-    H_fp = FP32 nearest-even addition of D and -O
-    result = FP32 nearest-even addition of H_fp and E
-Otherwise:
-    result = directly round the recovered 576-bit exact value to FP32 nearest-even
-```
-
-The scalar checks establish exact residual consolidation and exact recovery of
-`H`; the final addition can round. These additions use Lean's native `Float32`
-through the proved finite adapter. The bounded fallback handles cases refused by
-the scalar path. Preparation, all-zero handling, and finite-range rejection are
-explicit in the actual code, in namespace `TensorCore.EFMachine`:
-
-[TensorCore.EFMachine.algorithm1WithLean](tensor-core/TensorCore/Programs/NativeEFT.lean#L101):
-
-Runs bounded EFT extraction, tries native FP32 scalar correction, and uses exact
-consolidation when the scalar path refuses. Zero and out-of-range results have explicit
-branches.
-
-```lean
+/-- Algorithm 1 with native scalar additions, retaining bounded exact consolidation
+when the scalar guard or intermediate checks refuse the scalar branch. -/
 def algorithm1WithLean (path : Path) (x : BlockInput path.profile) (D : F32) : Except Error Result := do
   let p ← prepare path x D
   if p.terms.all (fun t => t.word.magnitude == 0) then return .allZero
@@ -178,569 +610,37 @@ def algorithm1WithLean (path : Path) (x : BlockInput path.profile) (D : F32) : E
     | none => return .outOfRange
 ```
 
-**Main correctness theorem — `algorithm1WithLean_correct`.** `hlen` requires the
-profile's product count, `hx` identifies the exact original-input dot product
-`s` after finite decoding, and `hD` requires finite `D`. The conclusion equates
-the result's optional bits to a single nearest-even rounding of `s`. It does not
-assume successful extraction or a residual identity; those are proved internally.
-When `s` is out of range, the optional bits are `none`.
-
-[TensorCore.EFMachine.algorithm1WithLean_correct](tensor-core/TensorCore/Programs/NativeEFT.lean#L118):
-
-For shape-correct finite inputs and any finite supplied `D`, proves that EFT returns the
-directly rounded exact dot product. Its optional output bits also preserve range
-rejection.
-
-```lean
-theorem algorithm1WithLean_correct {path : Path} {x : BlockInput path.profile}
-    {D : F32} {s d : Rat} (hlen : x.products.length = path.profile.products)
-    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
-    ∃ r, algorithm1WithLean path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s := by
-  rw [algorithm1WithLean_eq]
-  exact algorithm1_correct hlen hx hD
-```
-
-**Correct rounding with an actual output — `algorithm1WithLean_success`.** Adding
-the hypothesis `absQ s ≤ maxFinite32` guarantees returned bits `b` satisfying
-`NearestEven32 s b`. That predicate, in namespace `TensorCore`, explicitly compares
-against every finite representable value and requires an even low bit in a tie:
-
-[TensorCore.NearestEven32](tensor-core/TensorCore/Theory/CorrectRounding.lean#L162):
-
-Defines FP32 nearest-even correctness by comparison with every finite representable
-value. An equally close distinct value requires the returned encoding to have an even
-low bit.
-
-```lean
-def NearestEven32 (x : Rat) (b : F32) : Prop :=
-  ∃ d : Rat, value32 b = some d ∧
-    (∀ y : Rat, FiniteValue32 y → absQ (x - d) ≤ absQ (x - y)) ∧
-    (∀ y : Rat, FiniteValue32 y → y ≠ d →
-      absQ (x - y) = absQ (x - d) → b.toNat % 2 = 0)
-```
-
-[TensorCore.EFMachine.algorithm1WithLean_success](tensor-core/TensorCore/Programs/NativeEFT.lean#L125):
-
-When the exact dot product is in the finite FP32 range, proves that native EFT returns
-actual bits satisfying nearest-even rounding.
-
-```lean
-theorem algorithm1WithLean_success {path : Path} {x : BlockInput path.profile}
-    {D : F32} {s d : Rat} (hlen : x.products.length = path.profile.products)
-    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d)
-    (hrange : absQ s ≤ maxFinite32) :
-    ∃ r b, algorithm1WithLean path x D = .ok r ∧ r.bits = some b ∧ NearestEven32 s b := by
-  rw [algorithm1WithLean_eq]
-  exact algorithm1_success hlen hx hD hrange
-```
-
-**Exact success domain — `algorithm1WithLean_range_iff`.** With the same finite,
-shape-correct inputs, obtaining output bits is equivalent to the original ideal
-being within the finite FP32 range:
-
-[TensorCore.EFMachine.algorithm1WithLean_range_iff](tensor-core/TensorCore/Programs/NativeEFT.lean#L133):
-
-For shape-correct finite inputs and finite `D`, proves that native EFT returns output
-bits exactly when the original exact dot product is in range.
-
-```lean
-theorem algorithm1WithLean_range_iff {path : Path} {x : BlockInput path.profile}
-    {D : F32} {s d : Rat} (hlen : x.products.length = path.profile.products)
-    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
-    (∃ r b, algorithm1WithLean path x D = .ok r ∧ r.bits = some b) ↔ absQ s ≤ maxFinite32 := by
-  rw [algorithm1WithLean_eq]
-  exact algorithm1_range_iff hlen hx hD
-```
-
-**Native Lean preservation — `algorithm1WithLean_eq`.** For every input, including
-invalid inputs, replacing scalar additions with the Lean-native adapter preserves
-the complete original EFT result: bits, branch choice, and errors.
-
-[TensorCore.EFMachine.algorithm1WithLean_eq](tensor-core/TensorCore/Programs/NativeEFT.lean#L113):
-
-Proves that native EFT preserves the entire original bounded EFT result for every input,
-including output bits, branch choice, and errors.
-
-```lean
-theorem algorithm1WithLean_eq (path : Path) (x : BlockInput path.profile) (D : F32) :
-    algorithm1WithLean path x D = algorithm1 path x D := by
-  simp only [algorithm1WithLean, algorithm1, Components.scalarWithLean_eq]
-  rfl
-```
-
-Together these establish the modeled tensor-core arithmetic and the EFT's
-correctly rounded recovery. Physical GPU correspondence remains a separate
-obligation. Further scalar execution details are [below](#eft-scalar-accumulation).
-
-## Quick start
-
-```sh
-./tc doctor --json
-./tc build
-./tc review
-./tc ieee tensor-core/data/examples/ieee.jsonl
-./tc audit
-./tc check
-```
-
-Install the pinned toolchain through elan if `doctor` reports it unavailable.
-Commands build their native target before executing. Diagnostics go to stderr;
-results go to stdout. CUDA is not required for the Lean build or the numerical checks.
-
-| Command | Purpose |
-| --- | --- |
-| `./tc ieee FILE` | IEEE scalar conversions and arithmetic, with exception flags |
-| `./tc gemm FILE` | Execute one GEMM request per JSONL line |
-| `./tc analyze FILE --abs-tol T` | Infer concrete or family accuracy bounds |
-| `./tc select FILE --abs-tol T` | Choose a certified configuration by preference or supplied cost |
-| `./tc verify FILE.lean` | Replay an exported accuracy/selection certificate in Lean |
-| `./tc schema [gemm\|select\|ieee]` | Print an input schema |
-| `./tc trace HEX...` | Trace four V100 products plus an accumulator |
-| `./tc eft FILE` | Run bounded block correction with native FP32 scalar consolidation |
-| `./tc review` | Check ten editable GEMM examples against fixed answers |
-| `./tc audit` | Audit theorem dependencies and reject proof shortcuts |
-| `./tc check` | Run every validation gate in a fresh source copy |
-
-Use `-` instead of a JSONL filename for standard input. Words are unsigned decimal
-bit encodings, not decimal floating-point values. FP64 words need an integer-preserving
-JSON parser. Run `./tc COMMAND --help` for arguments.
-
-## Scope
-
-There are two explicit arithmetic contracts:
-
-| Layer | Implemented contract |
-| --- | --- |
-| Tensor-core/GEMM | Selected finite FP16/BF16/TF32 inputs, FP32 outputs, explicit alignment and instruction schedules, and conservative source-relative error certificates |
-| IEEE scalar | FP16/FP32/FP64 conversions, addition, subtraction, multiplication, and fused multiply-add; every encoding, four rounding directions, signed zeros, infinities, quiet/signaling NaNs, and default exception flags |
-
-The tensor-core pipeline retains its original finite semantics: nonfinite operands
-and exact conversions beyond maximum finite magnitude are rejected; exact arithmetic
-zero becomes +0; negative nonzero underflow preserves its sign. Empty raw reductions
-preserve finite C bits. The IEEE scalar API is separately named and does not silently
-change tensor-core alignment, intermediate conversions, GEMM results, or certificates.
-
-The selected tensor-core families are V100/Ampere/Hopper FP16, Ampere/Hopper BF16,
-and Ampere/Hopper TF32 WMMA/MMA paths. FP8 and FP16-output candidates remain partial.
-The hardware profile constants are model inputs, and hardware correspondence is an
-explicit external obligation. Globally correctly rounded GEMM is not claimed.
-
-## IEEE scalar interface
-
-```json
-{"operation":"fma","format":"fp64","mode":"rdn","a":4607182418800017408,"b":4607182418800017408,"c":13830554455654793216}
-```
-
-This is `1 * 1 + (-1)` rounded downward. It returns negative zero,
-`bits: 9223372036854775808`, with all flags false.
-
-| Field | Values |
-| --- | --- |
-| `operation` | `convert`, `add`, `sub`, `mul`, `fma` |
-| `format` | `fp16`, `fp32`, `fp64`; the input format and arithmetic destination |
-| `target` | Destination format; required for `convert` |
-| `mode` | `rne` nearest/even, `rtz` toward zero, `rdn` toward negative infinity, `rup` toward positive infinity |
-| `tininess` | `before` or `after`; defaults to `after` |
-| `a`, `b`, `c` | Encoded operands: `a` for conversion; `a,b` for binary operations; all three for FMA |
-
-Each result contains `bits` and Boolean flags `invalid`, `divide_by_zero`,
-`overflow`, `underflow`, and `inexact`. Flags report the current operation.
-The Lean API's `Result.accumulate` combines them with prior sticky flags. Choose
-one tininess policy consistently for a computation. Division is outside this
-milestone, so these operations never raise the divide-by-zero flag.
-
-NaN propagation chooses the first signaling NaN, otherwise the first quiet NaN,
-in operand order. The selected sign and payload are retained, signaling NaNs are
-quieted, and payload bits are aligned at their high end during format conversion.
-Invalid operations without a NaN input produce a positive quiet NaN with zero
-payload. FMA signals invalid for `0 * infinity` even with a quiet-NaN addend.
-This is an explicit permitted policy, not a promise to match every processor's
-NaN selection. See the [schema](tensor-core/data/schemas/ieee.schema.json),
-[operations](tensor-core/TensorCore/IEEE/Operations.lean), and
-[complete case contracts](tensor-core/TensorCore/IEEE/Specification.lean).
-
-The exact IEEE reference is retained. The CLI uses proved wrappers around Lean's
-native FP32/FP64 nearest-even addition, subtraction, and multiplication when both
-operands are nonzero and finite and the absolute exact result is at most the
-destination's maximum finite value. Cancellation to zero and underflow are covered.
-Other cases, FP16, FMA, and conversions keep the reference path. The
-[wrapper theorems](tensor-core/TensorCore/IEEE/NativeOperations.lean) preserve
-every result bit and flag for every input and context, including the fallbacks;
-exact arithmetic still computes domain checks and exception conditions. See the
-[compatibility and trust details](tensor-core/docs/lean-ieee-compatibility.md).
-
-Division, square root, comparisons, integer and text conversions, decimal
-formats, additional operations, traps, and alternate exception handling are not
-included. This milestone is not full IEEE 754 coverage.
-
-## EFT scalar accumulation
-
-`./tc eft FILE` calls
-[`algorithm1WithLean`](tensor-core/TensorCore/Programs/NativeEFT.lean). Its scalar
-branch adds residuals left to right using Lean's native `Float32` addition under
-nearest-even rounding. The overlap subtraction and final scalar addition use the
-same proved primitive. Every addition has its own FP32 rounding boundary:
-
-```text
-s = +0
-for residual in residuals:
-    s = round_FP32_nearestEven(s + residual)
-```
-
-The existing EFT guard ensures representable residuals and sufficient headroom
-for exact scalar consolidation. The adapter retains finite-input and exact-range
-rejection and normalizes `-0 + -0` to `+0`, matching EFT's numerical zero policy.
-It checks range using bounded words and obtains result bits from native addition;
-it does not recompute a reference-rounded answer at each step.
-
-`naiveSum32WithLeanFrom_eq` proves the whole encoded fold equals the original
-bounded fold for every list and starting accumulator. `algorithm1WithLean_eq`
-preserves all result bits, branch tags, and errors for every input. The transferred
-`algorithm1WithLean_correct` theorem covers all eight supported profiles with
-shape-correct finite operands and any finite supplied output D. An in-range exact
-ideal yields its correctly rounded FP32 result. The
-[kernel witness](tensor-core/TensorCore/Regression/NativeEFT.lean) for the four
-`0x3e00 * 0x3d00` products, `C = 0x3f7fffff`, and `D = 0x4107ffff` returns
-`.scalar 0x41080000` (8.5).
-
-Extraction, guards, and the 576-bit exact fallback remain custom. The original
-EFT definitions remain independent references, and the generic FP64 consolidation
-model is retained. The [native accumulation report](tensor-core/data/regressions/lean-eft-report.json)
-checks individual folds; the [bounded EFT report](tensor-core/data/regressions/bounded-eft-report.json)
-also compares complete original/native results so a branch fallback cannot hide
-a scalar difference. These are proofs about the models plus compiled-execution
-checks; physical GPU conformance remains separate.
-
-## GEMM and accuracy certificates
-
-```sh
-./tc gemm tensor-core/data/examples/gemm.jsonl
-./tc gemm tensor-core/data/examples/gemm.native.jsonl
-./tc gemm tensor-core/data/examples/gemm.native-scaled.jsonl
-./tc analyze tensor-core/data/examples/gemm.entry-family.jsonl --abs-tol 0.001
-./tc select tensor-core/data/examples/gemm.cost-selection.jsonl --abs-tol 0.001 --emit tmp/cost.lean
-./tc verify tmp/cost.lean
-```
-
-The native examples return five raw values of one and five scaled values of five.
-The supplied-cost example selects index 2, Hopper TF32 MMA, with supplied cost one.
-Certificate export is not kernel replay: run `verify` to check the exported proof.
-Certificates pin their theory sources; re-export them after a source revision.
-
-| Operation | Arithmetic |
-| --- | --- |
-| `raw` | FP16 `AB+C`, FP32 C and output |
-| `scaled` | Source conversion to FP16, tensor product from +0, separately rounded FP32 alpha/beta products and addition, then output conversion |
-| `native` | Native BF16 or packed 19-bit TF32 `AB+C`, FP32 C and output |
-| `native_scaled` | Source conversion to native precision, followed by the complete FP32 scalar epilogue |
-| `analyze`, `analyze_scaled`, `analyze_native`, `analyze_native_scaled` | Input-derived absolute error certificates for those pipelines |
-| `analyze_family`, `analyze_entry_family` | Quantified raw FP16/FP32 guarantees over uniform or per-entry magnitude caps |
-
-Here `native` names the tensor-core input precision (BF16 or TF32). These GEMM
-paths retain their finite arithmetic model. The Lean `Float`/`Float32` migration
-applies to the separately named IEEE wrappers and the EFT scalar execution path.
-
-The [GEMM schema](tensor-core/data/schemas/gemm.schema.json) specifies required
-fields. Matrices are flat row-major arrays with dimensions `m,n,k`; concrete
-inputs must have exactly `m*k`, `k*n`, and `m*n` words. All dimensions, including
-empty reductions and padding/cropping, are represented in the formal contracts.
-
-A certificate bounds error relative to the original decoded source values,
-including input conversion and scalar stages. Acceptance entails successful
-execution and a defined ideal. Refusal means the analyzer did not certify the
-request; it does not prove the numerical result inaccurate. Matrix bounds use
-the sum of absolute entries, not an induced matrix norm. Selection minimizes
-supplied costs among certified candidates; those costs are not measured GPU speeds.
-
-The [editable cases](tensor-core/data/examples/gemm.jsonl) and their
-[expected fields](tensor-core/data/examples/gemm.expected.json) demonstrate
-source loss, conservative refusal, nonfinite rejection, directed conversion,
-and subnormal boundaries. The [selection schema](tensor-core/data/schemas/selection.schema.json)
-covers preference and cost decisions. Further runnable contracts are in
-[tensor-core/examples](tensor-core/examples).
-
-## Main claims to review
-
-C01–C16 retain the original finite tensor-core scope. C17–C19 describe the IEEE
-layer, C20 describes its migration to Lean operations, and C21 covers native EFT
-scalar execution. These are claims about
-the explicit definitions and hypotheses; a successful build is not a human
-assessment of specification adequacy.
-
-The table is an index. [Expand the main theorem code below](#main-theorem-code)
-to read the Lean hypotheses, conclusions, and full proofs for every claim group.
-
-| Claim | Proved scope and assumptions | Public declarations |
-| --- | --- | --- |
-| C01. Finite rounding | Every well-formed IEEE-style binary format, all four modes, rational inputs within maximum finite magnitude. Out-of-range inputs are rejected even when a directed finite result could exist. | [`TensorCore.roundBinary_correct`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean), [`TensorCore.roundBinary_isSome_iff`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean) |
-| C02. Encoding and signed zero | Bijection between finite encoded words and a representable rational value paired with a sign bit. Nonzero signs agree with the value; zero has two representations. Arithmetic exact zero remains +0. | [`TensorCore.signedFiniteBinaryBijection`](tensor-core/TensorCore/Theory/Binary/SignedBijection.lean), [`TensorCore.roundBinary_zero`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean) |
-| C03. FP64 fused arithmetic | One exact product plus accumulator, one final rounding in each direction; finite decoded inputs and an in-range exact fused result give success. No intermediate product range restriction. | [`TensorCore.binary64Fma_correct`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean), [`TensorCore.binary64Fma_success`](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean) |
-| C04. Tensor-core arithmetic | The selected FP16/BF16/TF32 profiles model raw subnormal scales, alignment, floors, signed truncation, and final conversion. Fixed-width refinement has explicit width/carry assumptions. | [`TensorCore.profile_contract`](tensor-core/TensorCore/Theory/CanonicalFormats.lean), [`TensorCore.PaperSpec.supported_eq_paper`](tensor-core/TensorCore/PaperSpec/Supported.lean) |
-| C05. Error, recovery, and order | Local error includes final conversion; exact residual recovery composes across encoded accumulators. Nonmonotonicity is proved for the specified realizable input family. Accepted traces and the stated range/profile premises remain explicit. | [`TensorCore.evalBlock_error_bound`](tensor-core/TensorCore/Theory/ErrorBounds.lean), [`TensorCore.runBlocks_residual_ledger`](tensor-core/TensorCore/Programs/Composition.lean), [`TensorCore.nonmonotone_range_encoded`](tensor-core/TensorCore/Theory/MonotonicityRange.lean) |
-| C06. Bounded EFT | All eight paths, shape-correct finite inputs and any finite supplied output D. A fixed 576-bit workspace computes the correctly rounded FP32 ideal when that ideal is in range; refinement preserves result bits. | [`TensorCore.EFMachine.algorithm1_success`](tensor-core/TensorCore/Theory/EFMachine/Correctness.lean), [`TensorCore.EFMachine.algorithm1_range_iff`](tensor-core/TensorCore/Theory/EFMachine/Correctness.lean), [`TensorCore.EFMachine.algorithm1_agrees`](tensor-core/TensorCore/Theory/EFMachine/Refinement.lean) |
-| C07. Eq.20 and extraction | Every permitted coarse extraction grid; Eq.20 supplies the coefficient budget for exact scalar summation. Minimum grid, finite magnitude, and guarded component representability remain hypotheses. | [`TensorCore.ExtractionGrid.eq20_exact_sum`](tensor-core/TensorCore/Programs/ExtractionGrid.lean), [`TensorCore.ExtractionGrid.eq20_scalarPredicate`](tensor-core/TensorCore/Programs/ExtractionGrid.lean), [`TensorCore.ExtractionGrid.recovery`](tensor-core/TensorCore/Programs/ExtractionGrid.lean) |
-| C08. Program composition | Typed invocations expose exact loss/recovery; ordered programs and bounded repetitions have sufficient scale and headroom contracts. Adaptive branching is outside this API. | [`TensorCore.evalInvocation_recovery`](tensor-core/TensorCore/Theory/Invocation.lean), [`TensorCore.Program.repeat_accurate_of_scales`](tensor-core/TensorCore/Theory/ProgramBounds/Loops.lean) |
-| C09. Raw FP16 GEMM | Arbitrary dimensions, three logical WMMA schedules, padding/cropping, every encoded group boundary, and rejection agree with the separately defined matrix specification. | [`TensorCore.PaperSpec.gemm_eq_paper`](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean), [`TensorCore.PaperSpec.gemm_rejected_iff_paper`](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean) |
-| C10. Native BF16/TF32 GEMM | Raw `AB+C` and complete source-converted `alpha*AB+beta*C`, five schedules, FP32 C/output. All four conversion/scalar modes; independent equivalence includes every stage and rejection. Accepted input-only checks imply successful execution and error against original source values. | [`TensorCore.PaperSpec.nativeGemm_eq_paper`](tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean), [`TensorCore.nativeAnalysisCheck_sound`](tensor-core/TensorCore/Programs/NativeGemm.lean), [`TensorCore.PaperSpec.nativeConvertedGemm_eq_independent`](tensor-core/TensorCore/PaperSpec/NativeScaledGemmEquivalence.lean), [`TensorCore.nativeConvertedAnalysisCheck_paper`](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean), [`TensorCore.analyzeNativeConvertedGemm_matrix_error`](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean) |
-| C11. Complete scaled FP16 GEMM | Source conversion to FP16, tensor-core product, separately rounded FP32 alpha/beta products and addition, then output conversion. Independent equivalence includes every stage and rejection without assuming execution success. | [`TensorCore.PaperSpec.convertedGemm_eq_independent`](tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean), [`TensorCore.PaperSpec.scaledGemm_eq_independent`](tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean) |
-| C12. Input-derived error certificates | Acceptance proves successful execution and error relative to original decoded inputs, including conversion perturbations and scalar stages. Per-entry bounds sum to a matrix absolute-entry-sum bound. Inference is conservative. | [`TensorCore.gemmAnalysisCheck_sound`](tensor-core/TensorCore/Programs/GemmAnalysis.lean), [`TensorCore.convertedAnalysisCheck_paper`](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean), [`TensorCore.analyzeConvertedGemm_matrix_error`](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean) |
-| C13. Tighter bounds | Tighter scalar/input budgets are proved no larger than the earlier budgets. Finite multiplication by ±1 and addition with a zero-magnitude operand receive zero rounding error in every mode. | [`TensorCore.scaledGemmTightError_le`](tensor-core/TensorCore/Programs/GemmTightBounds.lean), [`TensorCore.gemmInputPairTightError_le`](tensor-core/TensorCore/Programs/GemmTightInputBounds.lean), [`TensorCore.checkFiniteMultiply_sound`](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean), [`TensorCore.checkFiniteAdd_sound`](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean) |
-| C14. Quantified families | One accepted witness covers every finite FP16 A/B and FP32 C matrix satisfying uniform or per-entry magnitude caps. Per-entry analysis uses row/column maxima; zero caps permit both zero encodings. | [`TensorCore.familyCheck_sound`](tensor-core/TensorCore/Programs/GemmFamily.lean), [`TensorCore.entryFamilyCheck_sound`](tensor-core/TensorCore/Programs/EntryFamily.lean), [`TensorCore.entryFamilyCheck_matrix_error`](tensor-core/TensorCore/Programs/EntryFamily.lean) |
-| C15. Certified decisions | Selection proves accuracy and either earliest certified preference or minimum supplied rational cost among certified candidates. Refusal means no candidate was certified. Native precision is fixed per workload. | [`TensorCore.selectGemm_sound`](tensor-core/TensorCore/Programs/GemmSelection.lean), [`TensorCore.selectGemm_none`](tensor-core/TensorCore/Programs/GemmSelection.lean), [`TensorCore.selectGemmCost_sound`](tensor-core/TensorCore/Programs/CostSelection.lean) |
-| C16. Pinned CUTLASS connection | The reviewed arithmetic projection agrees with FP16 GEMM and inherits its accuracy checker. The selected K is divisible by 16; C++ execution, memory, compilation, and GPU correspondence are separate obligations. | [`TensorCore.CutlassWmma.project_eq_gemm`](tensor-core/TensorCore/Kernels/CutlassWmma.lean), [`TensorCore.CutlassWmma.project_check_sound`](tensor-core/TensorCore/Kernels/CutlassWmma.lean) |
-| C17. IEEE scalar results | Every FP16/FP32/FP64 encoding, conversions/add/subtract/multiply/FMA, four modes, both tininess policies, exact zero signs, infinity and NaN cases, and default flags. One exact product plus addend is rounded only once. | [`TensorCore.IEEE.convert_correct`](tensor-core/TensorCore/IEEE/Specification.lean), [`TensorCore.IEEE.add_correct`](tensor-core/TensorCore/IEEE/Specification.lean), [`TensorCore.IEEE.sub_correct`](tensor-core/TensorCore/IEEE/Specification.lean), [`TensorCore.IEEE.mul_correct`](tensor-core/TensorCore/IEEE/Specification.lean), [`TensorCore.IEEE.fma_correct`](tensor-core/TensorCore/IEEE/Specification.lean) |
-| C18. IEEE precision and flags | Unbounded-exponent precision rounding satisfies independently specified integer optimality, is unique, and determines overflow. Nearest and directed magnitude results compare against all bounded-significand dyadic competitors. | [`TensorCore.IEEE.precisionMagnitude_correct`](tensor-core/TensorCore/IEEE/Precision.lean), [`TensorCore.IEEE.precisionRound_unique`](tensor-core/TensorCore/IEEE/Precision.lean), [`TensorCore.IEEE.round_correct`](tensor-core/TensorCore/IEEE/Rounding.lean), [`TensorCore.IEEE.round_overflow_iff`](tensor-core/TensorCore/IEEE/Rounding.lean) |
-| C19. IEEE compatibility | Same-format finite conversion preserves every encoding and raises no flags; quiet NaN payloads survive widening/narrowing. Nonzero in-range rounding agrees with the existing finite converter. | [`TensorCore.IEEE.convert_self_finite`](tensor-core/TensorCore/IEEE/Compatibility.lean), [`TensorCore.IEEE.convert_quietNaN_roundtrip`](tensor-core/TensorCore/IEEE/Compatibility.lean), [`TensorCore.IEEE.round_agrees_finite`](tensor-core/TensorCore/IEEE/Rounding.lean) |
-| C20. Lean native migration | FP32/FP64 nearest-even add/sub/mul agree with Lean's logical operations for nonzero finite operands with an in-range exact result. Wrappers preserve the original bits and every flag for all formats, inputs, rounding modes, and tininess policies by retaining reference fallbacks. | [`TensorCore.IEEE.addWithLean_eq`](tensor-core/TensorCore/IEEE/NativeOperations.lean), [`TensorCore.IEEE.subWithLean_eq`](tensor-core/TensorCore/IEEE/NativeOperations.lean), [`TensorCore.IEEE.mulWithLean_eq`](tensor-core/TensorCore/IEEE/NativeOperations.lean) |
-| C21. Native EFT scalar execution | Native FP32 scalar additions preserve the complete bounded Algorithm 1 result for every input, including branch tags and errors. All eight supported finite, shape-correct paths retain correct rounding and the exact range/success contract. | [`TensorCore.EFMachine.naiveSum32WithLeanFrom_eq`](tensor-core/TensorCore/Programs/NativeEFT.lean), [`TensorCore.EFMachine.algorithm1WithLean_eq`](tensor-core/TensorCore/Programs/NativeEFT.lean), [`TensorCore.EFMachine.algorithm1WithLean_correct`](tensor-core/TensorCore/Programs/NativeEFT.lean), [`TensorCore.EFMachine.algorithm1WithLean_range_iff`](tensor-core/TensorCore/Programs/NativeEFT.lean) |
-
-<!-- BEGIN MAIN THEOREM CODE -->
-
-### Main theorem code
-
-Expand a claim below to read the **actual Lean declarations and complete proof
-bodies** copied from the current source. This catalog contains 96 main theorem
-declarations across C01–C21, plus 30 accompanying definitions/structures
-that expose key contracts. It includes every declaration linked in the claim
-table, the encoding inverse laws, the scalar EFT contracts, bounded-dot guarantees,
-the six FP32/FP64 native arithmetic bridges, and the complete native EFT proof chain.
-Supporting lemmas remain in the linked files; the
-[axiom audit](tensor-core/docs/axioms.txt) lists the broader audited theorem set.
-
-For a `theorem`, the arguments and hypotheses precede its result-type `:`. The
-proposition between that `:` and `:=` is the guarantee; the expression after
-`:=` is the proof. For statements
-such as `AddSpec ...` or `Program.Accurate ...`, inspect the accompanying `def`:
-that is where the intended mathematical contract is expressed. A `def` supplies a
-definition; a `theorem` proves a proposition about those definitions. The signed
-bijection is a `def` containing its proved inverse laws, which are also shown.
-
-These are verbatim source excerpts in their original namespace context. Imports,
-section variables, local options, and helper lemmas remain in the linked source;
-the blocks are not standalone Lean modules. Follow a declaration link and use
-Go to Definition in VS Code to inspect any remaining predicate or operation.
-For a first EFT review, read **C01 → C04 → C07 → C06 → C21**; for the IEEE
-translation, read **C17 → C18 → C19 → C20**. Kernel checking establishes these
-written statements; reviewing the definitions and hypotheses establishes whether
-they express the intended mathematics.
-
 <details>
-<summary>C01. Finite rounding — Lean declarations</summary>
+<summary>Supporting proofs</summary>
 
-**[TensorCore.NearestEven](tensor-core/TensorCore/Theory/Binary/CorrectRounding.lean#L270)** (def; namespace `TensorCore`).
-
-Defines nearest-even correctness for a general binary format using all finite
-representable competitors and an even low encoding bit for ties.
-
-```lean
-def NearestEven (f : Format) (x : Rat) (bits : BitVec f.width) : Prop :=
-  ∃ d : Rat, binaryValue f bits = some d ∧
-    (∀ y : Rat, f.FiniteValue y → absQ (x - d) ≤ absQ (x - y)) ∧
-    (∀ y : Rat, f.FiniteValue y → y ≠ d → absQ (x - y) = absQ (x - d) → bits.toNat % 2 = 0)
-```
-
-**[TensorCore.TowardZero](tensor-core/TensorCore/Theory/Binary/CorrectRounding.lean#L348)** (def; namespace `TensorCore`).
-
-Defines toward-zero rounding as the representable value between zero and the input with
-greatest magnitude.
-
-```lean
-def TowardZero (f : Format) (x : Rat) (bits : BitVec f.width) : Prop :=
-  ∃ d : Rat, binaryValue f bits = some d ∧ Between0 x d ∧
-    ∀ y : Rat, f.FiniteValue y → Between0 x y → absQ y ≤ absQ d
-```
-
-**[TensorCore.TowardNegative](tensor-core/TensorCore/Theory/Binary/DirectedRounding.lean#L10)** (def; namespace `TensorCore`).
-
-Defines downward rounding as the greatest finite representable value that does not
-exceed the input.
-
-```lean
-def TowardNegative (f : Format) (x : Rat) (bits : BitVec f.width) : Prop :=
-  ∃ d : Rat, binaryValue f bits = some d ∧ d ≤ x ∧
-    ∀ y : Rat, f.FiniteValue y → y ≤ x → y ≤ d
-```
-
-**[TensorCore.TowardPositive](tensor-core/TensorCore/Theory/Binary/DirectedRounding.lean#L15)** (def; namespace `TensorCore`).
-
-Defines upward rounding as the least finite representable value that is not below the
-input.
-
-```lean
-def TowardPositive (f : Format) (x : Rat) (bits : BitVec f.width) : Prop :=
-  ∃ d : Rat, binaryValue f bits = some d ∧ x ≤ d ∧
-    ∀ y : Rat, f.FiniteValue y → x ≤ y → d ≤ y
-```
-
-**[TensorCore.BinaryRoundSpec](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean#L9)** (def; namespace `TensorCore`).
-
-Selects the mathematical rounding predicate corresponding to the requested direction.
-
-```lean
-def BinaryRoundSpec (f : Format) (mode : BinaryRoundingMode) (x : Rat)
-    (bits : BitVec f.width) : Prop :=
-  match mode with
-  | .nearestEven => NearestEven f x bits
-  | .towardZero => TowardZero f x bits
-  | .towardNegative => TowardNegative f x bits
-  | .towardPositive => TowardPositive f x bits
-```
-
-**[TensorCore.roundBinary_correct](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean#L17)** (theorem; namespace `TensorCore`).
-
-For a well-formed format and a rational input within its finite range, proves that
-conversion succeeds and satisfies the requested rounding predicate.
-
-```lean
-theorem roundBinary_correct (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
-    (x : Rat) (hr : absQ x ≤ f.maxFinite) :
-    ∃ bits, roundBinary f mode x = some bits ∧ BinaryRoundSpec f mode x bits := by
-  cases mode
-  · exact roundBinary_towardZero_correct f hf x hr
-  · exact roundBinary_nearestEven_correct f hf x hr
-  · exact roundBinary_towardNegative_correct f hf x hr
-  · exact roundBinary_towardPositive_correct f hf x hr
-```
-
-**[TensorCore.roundBinary_isSome_iff](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean#L37)** (theorem; namespace `TensorCore`).
-
-Proves that finite conversion succeeds exactly when the format is well formed and the
-exact input magnitude is within its maximum finite value.
-
-```lean
-theorem roundBinary_isSome_iff (f : Format) (mode : BinaryRoundingMode) (x : Rat) :
-    (roundBinary f mode x).isSome = true ↔ f.WellFormed ∧ absQ x ≤ f.maxFinite := by
-  constructor
-  · intro h
-    cases hb : roundBinary f mode x with
-    | none => simp [hb] at h
-    | some b => exact roundBinary_range hb
-  · rintro ⟨hf, hr⟩
-    obtain ⟨b, hb, _⟩ := roundBinary_correct f hf mode x hr
-    simp [hb]
-```
+No supporting source theorem in this repository.
 
 </details>
 
 <details>
-<summary>C02. Encoding and signed zero — Lean declarations</summary>
+<summary>Definitions and types</summary>
 
-**[TensorCore.SignedFiniteValue](tensor-core/TensorCore/Theory/Binary/SignedBijection.lean#L52)** (structure; namespace `TensorCore`).
-
-Represents a finite representable rational together with its sign bit. Nonzero signs
-follow the value, while zero permits either sign.
-
-```lean
-structure SignedFiniteValue (f : Format) where
-  value : Rat
-  negative : Bool
-  finite : f.FiniteValue value
-  sign_nonzero : value ≠ 0 → negative = decide (value < 0)
-```
-
-**[TensorCore.decode_encodeSignedBinary](tensor-core/TensorCore/Theory/Binary/SignedBijection.lean#L122)** (theorem; namespace `TensorCore`).
-
-Proves that encoding and then decoding a signed finite value recovers the original value
-and sign, assuming a well-formed format.
-
-```lean
-theorem decode_encodeSignedBinary (f : Format) (hf : f.WellFormed) (v : SignedFiniteValue f) :
-    decodeSignedBinary f hf (encodeSignedBinary f hf v) = v := by
-  have hv := Option.some.inj ((decodeBinaryRep_value f hf (encodeSignedBinary f hf v)).symm.trans
-    (encodeSignedBinary_value f hf v))
-  have hs := encodeSignedBinary_sign f hf v
-  cases v
-  simp only [decodeSignedBinary]
-  congr
-```
-
-**[TensorCore.encode_decodeSignedBinary](tensor-core/TensorCore/Theory/Binary/SignedBijection.lean#L131)** (theorem; namespace `TensorCore`).
-
-Proves that decoding and then encoding a finite word recovers the original bits,
-including the sign of zero.
-
-```lean
-theorem encode_decodeSignedBinary (f : Format) (hf : f.WellFormed) (b : FiniteBinaryWord f) :
-    encodeSignedBinary f hf (decodeSignedBinary f hf b) = b := by
-  apply binaryValue_sign_injective f hf _ _ (decodeSignedBinary f hf b).value
-  · exact encodeSignedBinary_value f hf _
-  · exact decodeBinaryRep_value f hf b
-  · exact encodeSignedBinary_sign f hf _
-```
-
-**[TensorCore.signedFiniteBinaryBijection](tensor-core/TensorCore/Theory/Binary/SignedBijection.lean#L140)** (def; namespace `TensorCore`).
-
-Packages signed finite values and finite encoded words into a bijection, using the two
-proved inverse laws.
-
-```lean
-def signedFiniteBinaryBijection (f : Format) (hf : f.WellFormed) :
-    BinaryBijection (SignedFiniteValue f) (FiniteBinaryWord f) :=
-  ⟨encodeSignedBinary f hf, decodeSignedBinary f hf,
-    decode_encodeSignedBinary f hf, encode_decodeSignedBinary f hf⟩
-```
-
-**[TensorCore.roundBinary_zero](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean#L48)** (theorem; namespace `TensorCore`).
-
-Proves that the finite arithmetic converter maps exact rational zero to positive zero in
-every rounding direction.
-
-```lean
-theorem roundBinary_zero (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode) :
-    roundBinary f mode 0 = some 0 := by
-  have hr : 0 ≤ f.maxFinite := Rat.mul_nonneg Rat.natCast_nonneg (Rat.le_of_lt (pow2_pos _))
-  simp only [roundBinary, hf, not_true_eq_false, ↓reduceIte]
-  rw [if_neg (by simpa [absQ] using Rat.not_lt.mpr hr)]
-```
-
-**[TensorCore.roundBinary_sign](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean#L56)** (theorem; namespace `TensorCore`).
-
-Proves that a successful finite conversion uses the exact input's strict negativity as
-its sign, including negative values that underflow to zero.
-
-```lean
-theorem roundBinary_sign (f : Format) (mode : BinaryRoundingMode) (x : Rat)
-    (bits : BitVec f.width) (h : roundBinary f mode x = some bits) :
-    binarySign f bits = decide (x < 0) := by
-  obtain ⟨hf, hr⟩ := roundBinary_range h
-  by_cases hx : x = 0
-  · subst x
-    rw [roundBinary_zero f hf mode] at h
-    cases Option.some.inj h
-    simp [binarySign]
-  · have hm := absQ_pos_of_ne_zero x hx
-    obtain ⟨he1, he2, _, _⟩ := binaryConvExp_bounds f hf (absQ x) hm hr
-    obtain ⟨hk0, hk1, hsub, htop⟩ := binaryConvCoeff_bounds f hf mode (decide (x < 0)) (absQ x) hm hr
-    have hs := binaryCarry_spec f hf _ _ he1 he2 hk0 hk1 hsub htop
-    let e := (binaryCarry f (binaryConvExp f (absQ x)) (binaryCoefficient mode (decide (x < 0))
-      (absQ x / pow2 (binaryConvExp f (absQ x) - f.fractionBits)))).1
-    let k := (binaryCarry f (binaryConvExp f (absQ x)) (binaryCoefficient mode (decide (x < 0))
-      (absQ x / pow2 (binaryConvExp f (absQ x) - f.fractionBits)))).2
-    have hk : 0 ≤ k := hs.2.2.1
-    let r : BinaryRep f := ⟨decide (x < 0), e, k.toNat, hs.1, hs.2.1,
-      by have := hs.2.2.2.1; change k < _ at this; omega,
-      by have := hs.2.2.2.2.1; change _ ≤ k ∨ e = _ at this; omega⟩
-    have heq : encodeBinary f (decide (x < 0)) e k = bits := by
-      unfold roundBinary at h
-      rw [if_neg (fun hn => hn hf), if_neg (Rat.not_lt.mpr hr), if_neg hx] at h
-      change (if e > f.emax then none else some (encodeBinary f (decide (x < 0)) e k)) = some bits at h
-      rw [if_neg (Int.not_lt.mpr hs.2.1)] at h
-      exact Option.some.inj h
-    have hsign := (encodeBinary_fields f hf r).1
-    simpa only [r, BinaryRep.encode, Int.toNat_of_nonneg hk, heq] using hsign
-```
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.EFMachine.Components](docs/proofs/EFT/Bounded.md#decl-cbab83ff033f2778), [TensorCore.EFMachine.Components.scalarWithLean](docs/proofs/EFT/Native.md#decl-f2a2e92b799d4090), [TensorCore.EFMachine.Error](docs/proofs/EFT/Bounded.md#decl-ae7458916e66d6a4), [TensorCore.EFMachine.Magnitude](docs/proofs/EFT/Machine/WordDefs.md#decl-666b5ba9cbd0ae62), [TensorCore.EFMachine.Path](docs/proofs/EFT/Machine/DecodeDefs.md#decl-2506d95eda2deaf1), [TensorCore.EFMachine.Path.profile](docs/proofs/EFT/Machine/DecodeDefs.md#decl-ccec848a9e7609d0), [TensorCore.EFMachine.Prepared](docs/proofs/EFT/Bounded.md#decl-60336b9775817f9a), [TensorCore.EFMachine.Result](docs/proofs/EFT/Bounded.md#decl-dbcfe8dff7f13123), [TensorCore.EFMachine.Term](docs/proofs/EFT/Machine/DecodeDefs.md#decl-fa1797d418dbd302), [TensorCore.EFMachine.Word](docs/proofs/EFT/Machine/WordDefs.md#decl-df353d912dc0da43), [TensorCore.EFMachine.Word.round32](docs/proofs/EFT/Machine/WordDefs.md#decl-ae96957dae22a7c5), [TensorCore.EFMachine.extract](docs/proofs/EFT/Bounded.md#decl-1edcf1bb479bb8a3), [TensorCore.EFMachine.prepare](docs/proofs/EFT/Bounded.md#decl-795b364db94203eb), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f)
 
 </details>
 
+</details>
+
+### Tensor-core model
+
 <details>
-<summary>C03. FP64 fused arithmetic — Lean declarations</summary>
+<summary>C03. FP64 fused arithmetic</summary>
 
-**[TensorCore.binary64Fma_correct](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean#L88)** (theorem; namespace `TensorCore`).
+One exact product plus accumulator, one final rounding in each direction; finite decoded inputs and an in-range exact fused result give success. No intermediate product range restriction.
 
-For an accepted FP64 fused invocation, proves rounding of the original exact product
-plus addend in the requested direction, with the output sign specified.
+<details>
+<summary><code>TensorCore.binary64Fma_correct</code></summary>
+
+[Lean source](TensorCore/TC/FusedRounding.lean#L10) · [Full dependency node](docs/proofs/TC/FusedRounding.md#decl-818649bb83af8ab6)
 
 ```lean
+/-- Accepted FP64 DMMA arithmetic is correctly rounded in each of the four modes,
+with the original-input ideal and the output sign made explicit. -/
 theorem binary64Fma_correct {mode : BinaryRoundingMode}
     {x : InvocationInput (binary64Fma mode)} {t : InvocationTrace (binary64Fma mode)}
     (h : evalInvocation x = .ok t) :
@@ -754,12 +654,86 @@ theorem binary64Fma_correct {mode : BinaryRoundingMode}
   exact ⟨binary64Fma_exact_input h, hc, roundBinary_sign fp64 mode _ _ hout.1⟩
 ```
 
-**[TensorCore.binary64Fma_success](tensor-core/TensorCore/Theory/Binary/RoundingContract.lean#L102)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that finite, one-product FP64 fused inputs succeed when the exact fused result is
-in range. The intermediate product need not be in range.
+<details>
+<summary><code>TensorCore.binary64Fma_exact_input</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/Conversion.md#decl-e9ea2eb0949990ef)
 
 ```lean
+/-- Fused FP64 rounds the independently decoded exact product plus accumulator;
+there is no intermediate rounding. -/
+theorem binary64Fma_exact_input {mode : BinaryRoundingMode}
+    {x : InvocationInput (binary64Fma mode)} {t : InvocationTrace (binary64Fma mode)}
+    (h : evalInvocation x = .ok t) : invocationIdeal x = some t.intermediate.value
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.evalInvocation_output</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/InvocationProperties.md#decl-c5356d6db12f1b4d)
+
+```lean
+/-- The final output obeys the specified executable conversion, with its own range guard. -/
+theorem evalInvocation_output {p : InvocationSpec} {x : InvocationInput p} {t : InvocationTrace p}
+    (h : evalInvocation x = .ok t) :
+    roundBinary p.output.format p.output.mode t.intermediate.value = some t.output.bits ∧
+    absQ t.intermediate.value ≤ p.output.format.maxFinite
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/RoundingContract.md#decl-12a22af180d3ad5e)
+
+```lean
+theorem roundBinary_correct (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
+    (x : ℚ) (hr : absQ x ≤ f.maxFinite) :
+    ∃ bits, roundBinary f mode x = some bits ∧ BinaryRoundSpec f mode x bits
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_sign</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/RoundingContract.md#decl-89538250b2c31eac)
+
+```lean
+/-- The output sign is the input's strict negativity, even when it underflows to zero.
+Exact rational zero therefore has a positive sign in every mode. -/
+theorem roundBinary_sign (f : Format) (mode : BinaryRoundingMode) (x : ℚ)
+    (bits : BitVec f.width) (h : roundBinary f mode x = some bits) :
+    binarySign f bits = decide (x < 0)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundSpec](docs/proofs/Core/Binary/RoundingContract.md#decl-88c3ff9da8e0df3a), [TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionRun](docs/proofs/Core/Conversion.md#decl-ed5a81cbcde403d2), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.FiniteBinary](docs/proofs/Core/Conversion.md#decl-819c01227290b53b), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.InvocationError](docs/proofs/TC/Invocation.md#decl-4afa1dfc6f87e57d), [TensorCore.InvocationInput](docs/proofs/TC/Invocation.md#decl-6320316242fc8f99), [TensorCore.InvocationSpec](docs/proofs/TC/Invocation.md#decl-686e1fb8fa675688), [TensorCore.InvocationTrace](docs/proofs/TC/Invocation.md#decl-b63a56d7a7c92388), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.binary64Fma](docs/proofs/TC/Profiles.md#decl-8bfe46830da92086), [TensorCore.binarySign](docs/proofs/Core/Binary/Encoding.md#decl-a5de0a69a17e78c5), [TensorCore.evalInvocation](docs/proofs/TC/Invocation.md#decl-d69509a8df45ebe4), [TensorCore.fp64](docs/proofs/Core/Defs.md#decl-a9439171a8dcf9cb), [TensorCore.invocationIdeal](docs/proofs/TC/Invocation.md#decl-ce5a842b255050cf), [TensorCore.roundBinary](docs/proofs/Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.binary64Fma_success</code></summary>
+
+[Lean source](TensorCore/TC/FusedRounding.lean#L24) · [Full dependency node](docs/proofs/TC/FusedRounding.md#decl-b369329edfc5a2cd)
+
+```lean
+/-- Finite decoded inputs of the required one-product shape succeed whenever their
+exact fused result is in range; no intermediate-product range bound is imposed. -/
 theorem binary64Fma_success (mode : BinaryRoundingMode) (x : InvocationInput (binary64Fma mode))
     (b : PreparedInvocation (binary64Fma mode)) (hp : prepareInvocation x = some b)
     (hn : x.products.length = 1) (hr : absQ b.exactDot ≤ fp64.maxFinite) :
@@ -779,24 +753,79 @@ theorem binary64Fma_success (mode : BinaryRoundingMode) (x : InvocationInput (bi
   exact ⟨_, rfl⟩
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.BinaryRoundSpec.finite</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/RoundingContract.md#decl-5fa4e1dc58d238c5)
+
+```lean
+theorem BinaryRoundSpec.finite {f : Format} {mode : BinaryRoundingMode} {x : ℚ}
+    {bits : BitVec f.width} (h : BinaryRoundSpec f mode x bits) :
+    ∃ d, (classify f bits).finite = some d
+```
+
 </details>
 
 <details>
-<summary>C04. Tensor-core arithmetic — Lean declarations</summary>
+<summary><code>TensorCore.finiteBinary_some</code></summary>
 
-**[TensorCore.profile_contract](tensor-core/TensorCore/Theory/CanonicalFormats.lean#L11)** (theorem; namespace `TensorCore`).
-
-For an accepted block and sufficient carry bits, proves the output rounding rule, total
-error bound, and equality with the stated fixed-width accumulator.
+[Expand this proof and its dependencies](docs/proofs/Core/Conversion.md#decl-66e4132ec74cac83)
 
 ```lean
-theorem profile_contract (p : Profile) (F carryBits : Nat) (hF : p.alignFraction = F)
+theorem finiteBinary_some {f : Format} {bits : BitVec f.width} {d : Decoded}
+    (hd : (classify f bits).finite = some d) : finiteBinary f bits = some ⟨bits, d, hd⟩
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/RoundingContract.md#decl-12a22af180d3ad5e)
+
+```lean
+theorem roundBinary_correct (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
+    (x : ℚ) (hr : absQ x ≤ f.maxFinite) :
+    ∃ bits, roundBinary f mode x = some bits ∧ BinaryRoundSpec f mode x bits
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.AccumulationKind](docs/proofs/TC/Invocation.md#decl-e676df9d836e3187), [TensorCore.BinaryRoundSpec](docs/proofs/Core/Binary/RoundingContract.md#decl-88c3ff9da8e0df3a), [TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.CPlacement](docs/proofs/TC/Invocation.md#decl-465383d437a4df50), [TensorCore.Classification.finite](docs/proofs/Core/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.ConversionEvent](docs/proofs/Core/Conversion.md#decl-4715b3224a6fd37c), [TensorCore.ConversionRun](docs/proofs/Core/Conversion.md#decl-ed5a81cbcde403d2), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.ConversionStage.convert](docs/proofs/Core/Conversion.md#decl-5e2170b37d7e10f7), [TensorCore.Decoded](docs/proofs/Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.FiniteBinary](docs/proofs/Core/Conversion.md#decl-819c01227290b53b), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.InvocationError](docs/proofs/TC/Invocation.md#decl-4afa1dfc6f87e57d), [TensorCore.InvocationInput](docs/proofs/TC/Invocation.md#decl-6320316242fc8f99), [TensorCore.InvocationSpec](docs/proofs/TC/Invocation.md#decl-686e1fb8fa675688), [TensorCore.InvocationSpec.Valid](docs/proofs/TC/Invocation.md#decl-ba647c851a0365a5), [TensorCore.InvocationTrace](docs/proofs/TC/Invocation.md#decl-b63a56d7a7c92388), [TensorCore.LocalAccumulation](docs/proofs/TC/Invocation.md#decl-a84c087ad8e27576), [TensorCore.OperandEncoding](docs/proofs/Core/Format.md#decl-372baaa74f9e3836), [TensorCore.OperandEncoding.Word](docs/proofs/Core/Format.md#decl-3024ce1c6868fc17), [TensorCore.PreparedInvocation](docs/proofs/TC/Invocation.md#decl-f9bfc73e05dc3dce), [TensorCore.PreparedInvocation.exactDot](docs/proofs/TC/Invocation.md#decl-d708da3010825603), [TensorCore.ValueFormat](docs/proofs/Core/Format.md#decl-5fda6482ff1a70d2), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.binary64Fma](docs/proofs/TC/Profiles.md#decl-8bfe46830da92086), [TensorCore.classify](docs/proofs/Core/Encoding.md#decl-793c375a3325b7e3), [TensorCore.evalInvocation](docs/proofs/TC/Invocation.md#decl-d69509a8df45ebe4), [TensorCore.evalInvocationPrepared](docs/proofs/TC/Invocation.md#decl-0d3709c08efd2102), [TensorCore.finiteBinary](docs/proofs/Core/Conversion.md#decl-4947fce7ecea0c20), [TensorCore.fp64](docs/proofs/Core/Defs.md#decl-a9439171a8dcf9cb), [TensorCore.packedIEEE](docs/proofs/Core/Format.md#decl-1c87313094e2d4c0), [TensorCore.prepareInvocation](docs/proofs/TC/Invocation.md#decl-4c327b22c0823d02), [TensorCore.roundBinary](docs/proofs/Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed), [TensorCore.stagesValid](docs/proofs/TC/Invocation.md#decl-e34cdc92870df2ae)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C04. Tensor-core arithmetic</summary>
+
+The selected FP16/BF16/TF32 profiles model raw subnormal scales, alignment, floors, signed truncation, and final conversion. Fixed-width refinement has explicit width/carry assumptions.
+
+<details>
+<summary><code>TensorCore.profile_contract</code></summary>
+
+[Lean source](TensorCore/TC/CanonicalFormats.lean#L11) · [Full dependency node](docs/proofs/TC/CanonicalFormats.md#decl-ccfc8f82aa7974cb)
+
+```lean
+/-- Uncorrected output, error, and machine-width contract for any profile. -/
+theorem profile_contract (p : Profile) (F carryBits : ℕ) (hF : p.alignFraction = F)
     (hc : p.products + 1 ≤ 2 ^ carryBits) (x : BlockInput p) (t : BlockTrace)
     (h : evalBlock x = .ok t) :
     exactDot x = some t.block.exactDot ∧
     round32 .towardZero t.block.accumulator = some t.output.bits ∧
     absQ (t.block.exactDot - t.output.value) <
-      ((p.products + 1 : Nat) : Rat) * pow2 t.block.quantumExponent +
+      ((p.products + 1 : ℕ) : ℚ) * pow2 t.block.quantumExponent +
         pow2 (outputQuantumExponent t.output.bits) ∧
     t.block.machineAccumulator (F + 3 + carryBits) = t.block.accumulator := by
   have hp := evalBlock_prepared h
@@ -812,43 +841,226 @@ theorem profile_contract (p : Profile) (F carryBits : Nat) (hF : p.alignFraction
     simpa [he] using hw
 ```
 
-**[TensorCore.PaperSpec.supported_eq_paper](tensor-core/TensorCore/PaperSpec/Supported.lean#L25)** (theorem; namespace `TensorCore.PaperSpec`).
+```mermaid
+flowchart TD
+  root["profile_contract"]
+  p0["evalBlock_error_bound"]
+  root --> p0
+  p1["evalBlock_evalPrepared"]
+  root --> p1
+  p2["evalBlock_machineAccumulator"]
+  root --> p2
+  p3["evalBlock_prepared"]
+  root --> p3
+  p4["evalPrepared_output"]
+  root --> p4
+  p5["prepare_terms_bounded"]
+  root --> p5
+```
 
-Proves that all eight supported paths match the separately defined paper model on output
-bits and rejection. Failures on both sides are compared as `none`.
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.evalBlock_error_bound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/ErrorBounds.md#decl-cd49461242c6068b)
 
 ```lean
+theorem evalBlock_error_bound {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) :
+    absQ (t.block.exactDot - t.output.value) <
+      (t.block.terms.length : ℚ) * pow2 t.block.quantumExponent +
+        pow2 (outputQuantumExponent t.output.bits)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.evalBlock_evalPrepared</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/StageResiduals.md#decl-e818d9197d4da76d)
+
+```lean
+theorem evalBlock_evalPrepared {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) : evalPrepared t.block = .ok t
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.evalBlock_machineAccumulator</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/AlignmentScale.md#decl-33be1c6d56f7d2cd)
+
+```lean
+theorem evalBlock_machineAccumulator {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) (F carryBits : ℕ)
+    (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
+    t.block.machineAccumulator (F + 2 + carryBits + 1) = t.block.accumulator
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.evalBlock_prepared</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/StageResiduals.md#decl-7b1107ad8e7189d9)
+
+```lean
+theorem evalBlock_prepared {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) : prepare x = some t.block
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.evalPrepared_output</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/ErrorBounds.md#decl-48e730a73a284cc0)
+
+```lean
+theorem evalPrepared_output {b : PreparedBlock} {t : BlockTrace}
+    (h : evalPrepared b = .ok t) : round32 .towardZero b.accumulator = some t.output.bits
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.prepare_terms_bounded</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/AlignmentScale.md#decl-73a22edb6efb821c)
+
+```lean
+theorem prepare_terms_bounded {p : Profile} {x : BlockInput p} {b : PreparedBlock}
+    (h : prepare x = some b) :
+    b.terms.length = x.products.length + 1 ∧ ∀ t ∈ b.terms, t.Bounded
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](docs/proofs/Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](docs/proofs/TC/Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.accumulator](docs/proofs/TC/Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.exactDot](docs/proofs/TC/Block.md#decl-32d061749cae163e), [TensorCore.PreparedBlock.machineAccumulator](docs/proofs/TC/Accumulator.md#decl-9e58c7148c06ae54), [TensorCore.PreparedBlock.quantumExponent](docs/proofs/TC/Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](docs/proofs/TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.RawProduct](docs/proofs/Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.Bounded](docs/proofs/Core/RawProduct.md#decl-3e529071d4e652db), [TensorCore.RoundingMode](docs/proofs/Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.evalBlock](docs/proofs/TC/Block.md#decl-58fdfbbb09a9ba58), [TensorCore.evalPrepared](docs/proofs/TC/Block.md#decl-700b85398ddd8f12), [TensorCore.exactDot](docs/proofs/TC/Block.md#decl-451fb68e7faa00f3), [TensorCore.outputQuantumExponent](docs/proofs/Core/RoundOp.md#decl-70bb2de461b51682), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.prepare](docs/proofs/TC/Block.md#decl-32c2d7273540d876), [TensorCore.round32](docs/proofs/Core/RoundOp.md#decl-11a6489236dbb65b)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.PaperSpec.supported_eq_paper</code></summary>
+
+[Lean source](TensorCore/TC/Specification/Supported.lean#L27) · [Full dependency node](docs/proofs/TC/Specification/Supported.md#decl-13a8bbc2350f91f1)
+
+```lean
+/-- Every supported paper path and every input, with failures observed as none. -/
 theorem supported_eq_paper (path : Path) (x : BlockInput (implementationProfile path)) :
     (evalBlock x).toOption.map (fun t => t.output.bits) =
       bits (parameters path) (supportedInput path x) := by
   cases path <;> exact implementation_eq_paper x
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.PaperSpec.implementation_eq_paper</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/Specification/Equivalence.md#decl-944384931631e849)
+
+```lean
+/-- Every encoded input: successful output bits and all rejection cases agree.
+The generic parameter theorem is stronger than its named paper-profile instances. -/
+theorem implementation_eq_paper {p : Profile} (x : BlockInput p) :
+    (evalBlock x).toOption.map (fun t => t.output.bits) =
+      bits (parametersOf p) (inputOf x)
+```
+
+</details>
+
 </details>
 
 <details>
-<summary>C05. Error, recovery, and order — Lean declarations</summary>
+<summary>Definitions and types</summary>
 
-**[TensorCore.evalBlock_error_bound](tensor-core/TensorCore/Theory/ErrorBounds.lean#L144)** (theorem; namespace `TensorCore`).
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](docs/proofs/Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PaperSpec.Path](docs/proofs/TC/Specification/Profiles.md#decl-4e0e2e5d21f848a7), [TensorCore.PaperSpec.bits](docs/proofs/TC/Specification/Defs.md#decl-7903d07b8ab34f66), [TensorCore.PaperSpec.implementationProfile](docs/proofs/TC/Specification/Supported.md#decl-3c13ed61a6208d31), [TensorCore.PaperSpec.parameters](docs/proofs/TC/Specification/Profiles.md#decl-ee26be9404546300), [TensorCore.PaperSpec.supportedInput](docs/proofs/TC/Specification/Supported.md#decl-9a9de8a677d86544), [TensorCore.evalBlock](docs/proofs/TC/Block.md#decl-58fdfbbb09a9ba58)
 
-Bounds the absolute error of an accepted tensor-core block by the sum of alignment and
-final-conversion budgets.
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C05. Error, recovery, and order</summary>
+
+Local error includes final conversion; exact residual recovery composes across encoded accumulators. Nonmonotonicity is proved for the specified realizable input family. Accepted traces and the stated range/profile premises remain explicit.
+
+<details>
+<summary><code>TensorCore.evalBlock_error_bound</code></summary>
+
+[Lean source](TensorCore/TC/ErrorBounds.lean#L80) · [Full dependency node](docs/proofs/TC/ErrorBounds.md#decl-cd49461242c6068b)
 
 ```lean
 theorem evalBlock_error_bound {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) :
     absQ (t.block.exactDot - t.output.value) <
-      (t.block.terms.length : Rat) * pow2 t.block.quantumExponent +
+      (t.block.terms.length : ℚ) * pow2 t.block.quantumExponent +
         pow2 (outputQuantumExponent t.output.bits) :=
   evalPrepared_error_bound (evalBlock_evalPrepared h)
 ```
 
-**[TensorCore.runBlocks_residual_ledger](tensor-core/TensorCore/Programs/Composition.lean#L94)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-For a successful ordered block run, proves that the initial value plus all exact product
-contributions equals the final output plus accumulated residuals.
+<details>
+<summary><code>TensorCore.evalBlock_evalPrepared</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/StageResiduals.md#decl-e818d9197d4da76d)
 
 ```lean
+theorem evalBlock_evalPrepared {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (h : evalBlock x = .ok t) : evalPrepared t.block = .ok t
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.evalPrepared_error_bound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/ErrorBounds.md#decl-6a51cec1858cd298)
+
+```lean
+theorem evalPrepared_error_bound {b : PreparedBlock} {t : BlockTrace}
+    (h : evalPrepared b = .ok t) :
+    absQ (t.block.exactDot - t.output.value) <
+      (t.block.terms.length : ℚ) * pow2 t.block.quantumExponent +
+        pow2 (outputQuantumExponent t.output.bits)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.Finite32](docs/proofs/Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock.exactDot](docs/proofs/TC/Block.md#decl-32d061749cae163e), [TensorCore.PreparedBlock.quantumExponent](docs/proofs/TC/Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](docs/proofs/TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.RawProduct](docs/proofs/Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.evalBlock](docs/proofs/TC/Block.md#decl-58fdfbbb09a9ba58), [TensorCore.outputQuantumExponent](docs/proofs/Core/RoundOp.md#decl-70bb2de461b51682), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.runBlocks_residual_ledger</code></summary>
+
+[Lean source](TensorCore/TC/Program/Composition.lean#L96) · [Full dependency node](docs/proofs/TC/Program/Composition.md#decl-c73efd4921810886)
+
+```lean
+/-- Every successful executable schedule inherits the encoded-boundary ledger. -/
 theorem runBlocks_residual_ledger (p : Profile) (initial : Finite32)
     (ps : List (List (p.Word × p.Word))) (ts : List BlockTrace)
     (h : runBlocks p initial.bits ps = .ok ts) :
@@ -857,14 +1069,61 @@ theorem runBlocks_residual_ledger (p : Profile) (initial : Finite32)
   encoded_trace_ledger initial ts (runBlocks_chain p initial ps ts h)
 ```
 
-**[TensorCore.nonmonotone_range_encoded](tensor-core/TensorCore/Theory/MonotonicityRange.lean#L278)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-Characterizes when the encoded family with an accumulator just below one produces an
-output above one, and gives output formulas and bounds. Profile and range conditions
-remain explicit hypotheses.
+<details>
+<summary><code>TensorCore.encoded_trace_ledger</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/Program/Composition.md#decl-775280e15ad44086)
 
 ```lean
-theorem nonmonotone_range_encoded (K p j : Nat) (floor : Option Int)
+/-- Block-trace specialization of the ledger, with a checked encoded-boundary premise. -/
+theorem encoded_trace_ledger (initial : Finite32) (ts : List BlockTrace)
+    (chain : EncodedChain initial ts) :
+    initial.value + sumQ (ts.map fun t => t.block.exactProducts) =
+      (lastOutput initial ts).value + sumQ (ts.map BlockTrace.residual)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.runBlocks_chain</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/Program/Composition.md#decl-4a9736f9c5dc068b)
+
+```lean
+theorem runBlocks_chain (p : Profile) (initial : Finite32)
+    (ps : List (List (p.Word × p.Word)))
+    (ts : List BlockTrace) (h : runBlocks p initial.bits ps = .ok ts) :
+    EncodedChain initial ts
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.residual](docs/proofs/TC/Block.md#decl-29503c8290420b97), [TensorCore.Finite32](docs/proofs/Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock.exactProducts](docs/proofs/TC/Block.md#decl-1f40b290e956d863), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.lastOutput](docs/proofs/TC/Program/Composition.md#decl-59a9e0884980f32b), [TensorCore.runBlocks](docs/proofs/TC/Program/Composition.md#decl-d4b070b6697e01f0), [TensorCore.sumQ](docs/proofs/Core/Exact.md#decl-f20062bdc47118bd)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.nonmonotone_range_encoded</code></summary>
+
+[Lean source](TensorCore/TC/MonotonicityRange.lean#L278) · [Full dependency node](docs/proofs/TC/MonotonicityRange.md#decl-25e9827b84766b38)
+
+```lean
+/-- Theorem III.5 on encoded FP16 operands under any canonical profile: `K` copies of one
+factor pair whose raw product is `2^-(24+p)` with raw scale at most `−1`, and the FP32
+accumulator input `3f800000 − j`. The output exceeds `1` exactly for
+`1 ≤ j ≤ min(2^23, ⌊K/2^p⌋ − 2)`, equals `1 + 2^-23·⌊(K − j·2^p)/2^(p+1)⌋` whenever
+`j·2^p ≤ K`, and never exceeds the `j = 1` value `1 + 2^-23·⌊(K − 2^p)/2^(p+1)⌋`. -/
+theorem nonmonotone_range_encoded (K p j : ℕ) (floor : Option ℤ)
     (hfl : ∀ f ∈ floor, f ≤ -1)
     (a b : (fp16Fp32Profile K p floor).Word) (da db : Decoded)
     (ha : (fp16Fp32Profile K p floor).decode a = some da)
@@ -876,10 +1135,10 @@ theorem nonmonotone_range_encoded (K p j : Nat) (floor : Option Int)
         BlockInput (fp16Fp32Profile K p floor)) = .ok t ∧
       (1 < t.output.value ↔ j ≤ min (2 ^ 23) (K / 2 ^ p - 2)) ∧
       (j * 2 ^ p ≤ K →
-        t.output.value = 1 + (((K - j * 2 ^ p) / 2 ^ (p + 1) : Nat) : Rat) * pow2 (-23)) ∧
-      t.output.value ≤ 1 + (((K - 2 ^ p) / 2 ^ (p + 1) : Nat) : Rat) * pow2 (-23) := by
+        t.output.value = 1 + (((K - j * 2 ^ p) / 2 ^ (p + 1) : ℕ) : ℚ) * pow2 (-23)) ∧
+      t.output.value ≤ 1 + (((K - 2 ^ p) / 2 ^ (p + 1) : ℕ) : ℚ) * pow2 (-23) := by
   have hF : (fp16Fp32Profile K p floor).alignFraction = 23 + p := by
-    show ((23 + p : Nat) : Int) = 23 + (p : Int)
+    show ((23 + p : ℕ) : ℤ) = 23 + (p : ℤ)
     omega
   obtain ⟨t, h1, hiff, hform, hbound⟩ :=
     nonmonotone_range (fp16Fp32Profile K p floor) p K j da db hF hfl hval hscale hK hj1 hj2
@@ -896,80 +1155,283 @@ theorem nonmonotone_range_encoded (K p j : Nat) (floor : Option Int)
     exact ⟨fun h => ⟨hj2, h⟩, fun h => h.2⟩
 ```
 
-**[TensorCore.evalBlock_corrected_correct](tensor-core/TensorCore/Programs/Correction.lean#L13)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-For an accepted block with an in-range original ideal, proves that reference residual
-correction returns the nearest-even FP32 rounding of that ideal.
+<details>
+<summary><code>TensorCore.decode32_below</code></summary>
 
-```lean
-theorem evalBlock_corrected_correct {p : Profile} {x : BlockInput p} {t : BlockTrace}
-    {z : Rat} (h : evalBlock x = .ok t) (hz : exactDot x = some z)
-    (hr : absQ z ≤ maxFinite32) :
-    ∃ b, t.corrected = some b ∧ NearestEven32 z b := by
-  simp only [exactDot, evalBlock_prepared h, Option.map_some] at hz
-  have he := Option.some.inj hz
-  rw [← he] at hr ⊢
-  exact corrected_correct t hr
-```
-
-**[TensorCore.runBlocks_corrected_correct](tensor-core/TensorCore/Programs/Correction.lean#L41)** (theorem; namespace `TensorCore`).
-
-For a successful block schedule with an in-range total ideal, proves that reference
-schedule correction returns its nearest-even FP32 rounding.
+[Expand this proof and its dependencies](docs/proofs/TC/MonotonicityRange.md#decl-a811310312b96b08)
 
 ```lean
-theorem runBlocks_corrected_correct (p : Profile) (initial : Finite32)
-    (ps : List (List (p.Word × p.Word))) (ts : List BlockTrace)
-    (h : runBlocks p initial.bits ps = .ok ts)
-    (hr : absQ (initial.value + sumQ (ts.map fun t => t.block.exactProducts)) ≤ maxFinite32) :
-    ∃ b, correctedSchedule initial ts = some b ∧
-      NearestEven32 (initial.value + sumQ (ts.map fun t => t.block.exactProducts)) b :=
-  correctedSchedule_correct initial ts (runBlocks_chain p initial ps ts h) hr
+/-- The FP32 encoding `3f800000 − j` decodes to `c_j` for `1 ≤ j ≤ 2^23`. -/
+theorem decode32_below (j : ℕ) (hj1 : 1 ≤ j) (hj2 : j ≤ 2 ^ 23) :
+    decode32 (BitVec.ofNat 32 (0x3f800000 - j)) = some (belowDecoded j)
 ```
 
 </details>
 
 <details>
-<summary>C06. Bounded EFT — Lean declarations</summary>
+<summary><code>TensorCore.nonmonotone_range</code></summary>
 
-**[TensorCore.NearestEven32](tensor-core/TensorCore/Theory/CorrectRounding.lean#L162)** (def; namespace `TensorCore`).
-
-Defines FP32 nearest-even correctness by comparison with every finite representable
-value. An equally close distinct value requires the returned encoding to have an even
-low bit.
+[Expand this proof and its dependencies](docs/proofs/TC/MonotonicityRange.md#decl-d5c8fadfda678cb4)
 
 ```lean
-def NearestEven32 (x : Rat) (b : F32) : Prop :=
-  ∃ d : Rat, value32 b = some d ∧
-    (∀ y : Rat, FiniteValue32 y → absQ (x - d) ≤ absQ (x - y)) ∧
-    (∀ y : Rat, FiniteValue32 y → y ≠ d →
-      absQ (x - y) = absQ (x - d) → b.toNat % 2 = 0)
+/-- TC-EFT Theorem III.5 on prepared blocks. For any profile with `F = 23 + p`, a floor at
+most `−1`, `K < 2^(24+p)` equal products of value `2^-(24+p)` with raw scale at most `−1`,
+and `1 ≤ j ≤ 2^23`: the block with `c_j = 1 − j·2^-24` returns more than `1` exactly when
+`(j + 2)·2^p ≤ K`; when `j·2^p ≤ K` its output is `1 + 2^-23·⌊(K − j·2^p)/2^(p+1)⌋`; and
+its output never exceeds `1 + 2^-23·⌊(K − 2^p)/2^(p+1)⌋`, the value at `j = 1`. -/
+theorem nonmonotone_range (prof : Profile) (p K j : ℕ) (da db : Decoded)
+    (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
+    (hK : K < 2 ^ (24 + p)) (hj1 : 1 ≤ j) (hj2 : j ≤ 2 ^ 23) :
+    ∃ t : BlockTrace,
+      evalPrepared ⟨prof, List.replicate K (da, db), belowDecoded j⟩ = .ok t ∧
+      (1 < t.output.value ↔ (j + 2) * 2 ^ p ≤ K) ∧
+      (j * 2 ^ p ≤ K →
+        t.output.value = 1 + (((K - j * 2 ^ p) / 2 ^ (p + 1) : ℕ) : ℚ) * pow2 (-23)) ∧
+      t.output.value ≤ 1 + (((K - 2 ^ p) / 2 ^ (p + 1) : ℕ) : ℚ) * pow2 (-23)
 ```
 
-**[TensorCore.EFMachine.algorithm1_correct](tensor-core/TensorCore/Theory/EFMachine/Correctness.lean#L82)** (theorem; namespace `TensorCore.EFMachine`).
+</details>
 
-For shape-correct finite inputs and finite `D`, proves that the original bounded EFT
-returns the directly rounded exact dot product, including range rejection.
+<details>
+<summary><code>TensorCore.nonmonotone_range_iff</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/MonotonicityRange.md#decl-a2d2d541bf27443e)
 
 ```lean
-theorem algorithm1_correct {path : Path} {x : BlockInput path.profile} {D : F32} {s d : Rat}
-    (hlen : x.products.length = path.profile.products)
-    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
-    ∃ r, algorithm1 path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s := by
-  obtain ⟨p, hp⟩ := prepare_exists hlen hx hD
-  have hi := (prepare_spec hp).2.1
-  have hv : p.ideal = s := Option.some.inj (hi.symm.trans hx)
-  obtain ⟨r, hr, hb⟩ := algorithm1_prepared hp
-  exact ⟨r, hr, by simpa [hv] using hb⟩
+/-- Equation 9: with `1 ≤ j`, the witness condition `j ≤ 2^23 ∧ (j + 2)·2^p ≤ K` is
+`j ≤ min(2^23, ⌊K/2^p⌋ − 2)`. -/
+theorem nonmonotone_range_iff (p K j : ℕ) (hj1 : 1 ≤ j) :
+    (j ≤ 2 ^ 23 ∧ (j + 2) * 2 ^ p ≤ K) ↔ j ≤ min (2 ^ 23) (K / 2 ^ p - 2)
 ```
 
-**[TensorCore.EFMachine.algorithm1_success](tensor-core/TensorCore/Theory/EFMachine/Correctness.lean#L94)** (theorem; namespace `TensorCore.EFMachine`).
+</details>
 
-Adds an in-range ideal hypothesis to guarantee actual output bits and nearest-even
-correctness for the original bounded EFT.
+<details>
+<summary><code>TensorCore.prepareProducts_replicate</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/Block.md#decl-3ef93e2d1a862b59)
 
 ```lean
-theorem algorithm1_success {path : Path} {x : BlockInput path.profile} {D : F32} {s d : Rat}
+theorem prepareProducts_replicate (p : Profile) (a b : p.Word) (da db : Decoded) (K : ℕ)
+    (ha : p.decode a = some da) (hb : p.decode b = some db) :
+    prepareProducts p (List.replicate K (a, b)) = some (List.replicate K (da, db))
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.Decoded](docs/proofs/Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](docs/proofs/TC/Block.md#decl-703939eff806d883), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Profile.decode](docs/proofs/TC/Defs.md#decl-178599198b2d538e), [TensorCore.RawProduct](docs/proofs/Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](docs/proofs/Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.belowDecoded](docs/proofs/TC/MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.decode32](docs/proofs/Core/Encoding.md#decl-a4001029898e709f), [TensorCore.evalBlock](docs/proofs/TC/Block.md#decl-58fdfbbb09a9ba58), [TensorCore.evalPrepared](docs/proofs/TC/Block.md#decl-700b85398ddd8f12), [TensorCore.fp16](docs/proofs/Core/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.fp16Fp32Profile](docs/proofs/TC/CanonicalDefs.md#decl-00203670fbae3212), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.prepare](docs/proofs/TC/Block.md#decl-32c2d7273540d876), [TensorCore.prepareProducts](docs/proofs/TC/Block.md#decl-90abac48864edcd2), [TensorCore.rawMul](docs/proofs/Core/RawProduct.md#decl-ebe5dd867373b275)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C08. Program composition</summary>
+
+Typed invocations expose exact loss/recovery; ordered programs and bounded repetitions have sufficient scale and headroom contracts. Adaptive branching is outside this API.
+
+<details>
+<summary><code>TensorCore.evalInvocation_recovery</code></summary>
+
+[Lean source](TensorCore/TC/InvocationProperties.lean#L91) · [Full dependency node](docs/proofs/TC/InvocationProperties.md#decl-137c91f57a77bdc9)
+
+```lean
+/-- Original-bit ideal equals the actual returned value plus all local stage losses. -/
+theorem evalInvocation_recovery {p : InvocationSpec} {x : InvocationInput p} {t : InvocationTrace p}
+    (h : evalInvocation x = .ok t) :
+    invocationIdeal x = some (t.output.value + t.residual) := by
+  obtain ⟨_, _, hp, ha, hr, _⟩ := evalInvocation_spec h
+  have hl := accumulateInvocation_recovery t.prepared t.accumulation ha
+  have hc := runConversions_recovery p.intermediate t.accumulation.value t.intermediate hr
+  simp only [invocationIdeal, hp, Option.map_some]
+  congr 1
+  unfold InvocationTrace.residual
+  grind
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.accumulateInvocation_recovery</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/InvocationProperties.md#decl-42509334ff62e502)
+
+```lean
+theorem accumulateInvocation_recovery {p : InvocationSpec} (b : PreparedInvocation p)
+    (a : LocalAccumulation) (h : accumulateInvocation b = some a) :
+    b.exactDot = a.value + a.loss
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.evalInvocation_spec</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/InvocationProperties.md#decl-cf70673e8284a3b5)
+
+```lean
+/-- Successful encoded evaluation certifies its parameters, shape, decoding, and stages. -/
+theorem evalInvocation_spec {p : InvocationSpec} {x : InvocationInput p} {t : InvocationTrace p}
+    (h : evalInvocation x = .ok t) :
+    p.Valid ∧ x.products.length = p.products ∧ prepareInvocation x = some t.prepared ∧
+    accumulateInvocation t.prepared = some t.accumulation ∧
+    runConversions p.intermediate t.accumulation.value = some t.intermediate ∧
+    p.output.convert t.intermediate.value = some t.output
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.runConversions_recovery</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Conversion.md#decl-9a595a0bbdd2a7fc)
+
+```lean
+/-- Executed sequences telescope across actual encodings, with every loss retained. -/
+theorem runConversions_recovery (ss : List ConversionStage) (x : ℚ) (r : ConversionRun)
+    (h : runConversions ss x = some r) : x = r.value + r.loss
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.ConversionRun](docs/proofs/Core/Conversion.md#decl-ed5a81cbcde403d2), [TensorCore.ConversionRun.loss](docs/proofs/Core/Conversion.md#decl-29f602efd8dc0504), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.ConversionStage.convert](docs/proofs/Core/Conversion.md#decl-5e2170b37d7e10f7), [TensorCore.FiniteBinary](docs/proofs/Core/Conversion.md#decl-819c01227290b53b), [TensorCore.FiniteBinary.value](docs/proofs/Core/Conversion.md#decl-91103d704c4a7c32), [TensorCore.InvocationError](docs/proofs/TC/Invocation.md#decl-4afa1dfc6f87e57d), [TensorCore.InvocationInput](docs/proofs/TC/Invocation.md#decl-6320316242fc8f99), [TensorCore.InvocationSpec](docs/proofs/TC/Invocation.md#decl-686e1fb8fa675688), [TensorCore.InvocationSpec.Valid](docs/proofs/TC/Invocation.md#decl-ba647c851a0365a5), [TensorCore.InvocationTrace](docs/proofs/TC/Invocation.md#decl-b63a56d7a7c92388), [TensorCore.InvocationTrace.residual](docs/proofs/TC/Invocation.md#decl-c97ce73fb104bc58), [TensorCore.LocalAccumulation](docs/proofs/TC/Invocation.md#decl-a84c087ad8e27576), [TensorCore.LocalAccumulation.loss](docs/proofs/TC/Invocation.md#decl-68d84640e3352f8b), [TensorCore.OperandEncoding.Word](docs/proofs/Core/Format.md#decl-3024ce1c6868fc17), [TensorCore.PreparedInvocation](docs/proofs/TC/Invocation.md#decl-f9bfc73e05dc3dce), [TensorCore.PreparedInvocation.exactDot](docs/proofs/TC/Invocation.md#decl-d708da3010825603), [TensorCore.accumulateInvocation](docs/proofs/TC/Invocation.md#decl-7e7acb74ce8e2620), [TensorCore.evalInvocation](docs/proofs/TC/Invocation.md#decl-d69509a8df45ebe4), [TensorCore.invocationIdeal](docs/proofs/TC/Invocation.md#decl-ce5a842b255050cf), [TensorCore.prepareInvocation](docs/proofs/TC/Invocation.md#decl-4c327b22c0823d02), [TensorCore.runConversions](docs/proofs/Core/Conversion.md#decl-3bc91db620898ff3)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.Program.repeat_accurate_of_scales</code></summary>
+
+[Lean source](TensorCore/TC/Program/Bounds/Loops.lean#L41) · [Full dependency node](docs/proofs/TC/Program/Bounds/Loops.md#decl-428a5fa42c1f272b)
+
+```lean
+/-- Repetition with a changing rounded accumulator and accumulated error. All iterations
+are covered by induction from operand bounds; the body need not restore its initial state. -/
+theorem Program.repeat_accurate_of_scales {p : Profile} (body : Program p) (n : ℕ)
+    (E P : ℤ) (L : ℕ) (hE : -126 ≤ E) (hPE : P ≤ E)
+    (hfl : ∀ f ∈ p.alignFloor, f ≤ E) (hL : p.products + 1 ≤ 2 ^ L)
+    (hrange : E + 2 + L ≤ 127) (hscale : ∀ g ∈ body.inputs, GroupScaleBounded p g P)
+    (initial : Finite32) (C tolerance : ℚ) (hC : absQ initial.value ≤ C)
+    (hroom : C + ((n * body.inputs.length : ℕ) : ℚ) *
+      ((p.products : ℚ) * (4 * pow2 P) + staticBudget (p.products + 1) p.alignFraction E L) <
+      pow2 (E + 1))
+    (htol : ((n * body.inputs.length : ℕ) : ℚ) *
+      staticBudget (p.products + 1) p.alignFraction E L ≤ tolerance) :
+    (Program.repeat n body).Accurate initial.bits tolerance := by
+  apply Program.accurate_of_scales _ E P L hE hPE hfl hL hrange
+  · intro g hg
+    rw [Program.inputs_repeat] at hg
+    exact hscale g (mem_of_mem_repeatList body.inputs n g hg)
+  · exact hC
+  · simpa only [Program.inputs_repeat, repeatList_length] using hroom
+  · simpa only [Program.staticErrorBudget, Program.inputs_repeat, repeatList_length] using htol
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.Program.accurate_of_scales</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/Program/Bounds/Loops.md#decl-1a60f53bc1fc3642)
+
+```lean
+/-- An input-scale certificate for arbitrary programs, without concrete ideal prefixes. -/
+theorem Program.accurate_of_scales {p : Profile} (pr : Program p) (E P : ℤ) (L : ℕ)
+    (hE : -126 ≤ E) (hPE : P ≤ E) (hfl : ∀ f ∈ p.alignFloor, f ≤ E)
+    (hL : p.products + 1 ≤ 2 ^ L) (hrange : E + 2 + L ≤ 127)
+    (hscale : ∀ g ∈ pr.inputs, GroupScaleBounded p g P) (initial : Finite32) (C tolerance : ℚ)
+    (hC : absQ initial.value ≤ C)
+    (hroom : C + (pr.inputs.length : ℚ) *
+      ((p.products : ℚ) * (4 * pow2 P) + staticBudget (p.products + 1) p.alignFraction E L) <
+      pow2 (E + 1))
+    (htol : pr.staticErrorBudget E L ≤ tolerance) : pr.Accurate initial.bits tolerance
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.Program.inputs_repeat</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/Program/Loops.md#decl-7697e13eef655896)
+
+```lean
+theorem Program.inputs_repeat {p : Profile} (body : Program p) (n : ℕ) :
+    (Program.repeat n body).inputs = repeatList body.inputs n
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.mem_of_mem_repeatList</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/Program/Bounds/Loops.md#decl-65c47eca9cfd9bef)
+
+```lean
+theorem mem_of_mem_repeatList (xs : List α) (n : ℕ) (x : α)
+    (h : x ∈ repeatList xs n) : x ∈ xs
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.repeatList_length</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/TC/Program/Bounds/Loops.md#decl-24743b1b0c722725)
+
+```lean
+theorem repeatList_length (xs : List α) (n : ℕ) : (repeatList xs n).length = n * xs.length
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.Finite32](docs/proofs/Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.GroupScaleBounded](docs/proofs/TC/StaticBudget.md#decl-cc059aaa303d9b13), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Program](docs/proofs/TC/Program/Defs.md#decl-181bc2fc467c7372), [TensorCore.Program.Accurate](docs/proofs/TC/Program/CertifiedProgram.md#decl-5a5f6971912cfb9a), [TensorCore.Program.inputs](docs/proofs/TC/Program/Defs.md#decl-bd3749a183ce7223), [TensorCore.Program.staticErrorBudget](docs/proofs/TC/Program/CertifiedProgram.md#decl-488ed7ab54b8d5ab), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.repeatList](docs/proofs/TC/Program/Defs.md#decl-eb2acff2f837428b), [TensorCore.staticBudget](docs/proofs/TC/StaticBudget.md#decl-2759d010c1c6063d)
+
+</details>
+
+</details>
+
+</details>
+
+### TC-EFT
+
+<details>
+<summary>C06. Bounded EFT</summary>
+
+All eight paths, shape-correct finite inputs and any finite supplied output D. A fixed 576-bit workspace computes the correctly rounded FP32 ideal when that ideal is in range; refinement preserves result bits.
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1_success</code></summary>
+
+[Lean source](TensorCore/EFT/Machine/Correctness.lean#L96) · [Full dependency node](docs/proofs/EFT/Machine/Correctness.md#decl-56c6ead02b649bea)
+
+```lean
+/-- Useful success family: every shape-correct finite block whose *independent*
+ideal is within the finite FP32 interval. This includes arbitrary cancellation. -/
+theorem algorithm1_success {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
     (hlen : x.products.length = path.profile.products)
     (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d)
     (hrange : absQ s ≤ maxFinite32) :
@@ -979,13 +1441,57 @@ theorem algorithm1_success {path : Path} {x : BlockInput path.profile} {D : F32}
   exact ⟨r, b, hr, hb.trans hround, hn⟩
 ```
 
-**[TensorCore.EFMachine.algorithm1_range_iff](tensor-core/TensorCore/Theory/EFMachine/Correctness.lean#L104)** (theorem; namespace `TensorCore.EFMachine`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that the original bounded EFT returns output bits exactly when the ideal is in
-range, after shape and finite-input requirements are met.
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Machine/Correctness.md#decl-ec47f9869483c5f4)
 
 ```lean
-theorem algorithm1_range_iff {path : Path} {x : BlockInput path.profile} {D : F32} {s d : Rat}
+/-- Universal finite-input theorem for all eight paths and any finite supplied D.
+There is no premise asserting an extraction, overlap, or exact-sum identity. -/
+theorem algorithm1_correct {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
+    (hlen : x.products.length = path.profile.products)
+    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
+    ∃ r, algorithm1 path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.round32_nearestEven_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/CorrectRounding.md#decl-213324c196c49312)
+
+```lean
+/-- Total correctness on the declared finite range, for all rational inputs. -/
+theorem round32_nearestEven_correct (x : ℚ) (hr : absQ x ≤ maxFinite32) :
+    ∃ b : F32, round32 .nearestEven x = some b ∧ NearestEven32 x b
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.EFMachine.Error](docs/proofs/EFT/Bounded.md#decl-ae7458916e66d6a4), [TensorCore.EFMachine.Path](docs/proofs/EFT/Machine/DecodeDefs.md#decl-2506d95eda2deaf1), [TensorCore.EFMachine.Path.profile](docs/proofs/EFT/Machine/DecodeDefs.md#decl-ccec848a9e7609d0), [TensorCore.EFMachine.Result](docs/proofs/EFT/Bounded.md#decl-dbcfe8dff7f13123), [TensorCore.EFMachine.Result.bits](docs/proofs/EFT/Bounded.md#decl-5da5d1a0f8426a7b), [TensorCore.EFMachine.algorithm1](docs/proofs/EFT/Bounded.md#decl-67eeb0773e124575), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](docs/proofs/Core/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.RoundingMode](docs/proofs/Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.exactDot](docs/proofs/TC/Block.md#decl-451fb68e7faa00f3), [TensorCore.maxFinite32](docs/proofs/Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.round32](docs/proofs/Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.value32](docs/proofs/Core/Encoding.md#decl-72aed83a98321df4)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1_range_iff</code></summary>
+
+[Lean source](TensorCore/EFT/Machine/Correctness.lean#L106) · [Full dependency node](docs/proofs/EFT/Machine/Correctness.md#decl-c9a066d91dcbea2c)
+
+```lean
+/-- After valid decoding, range acceptance is both necessary and sufficient. -/
+theorem algorithm1_range_iff {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
     (hlen : x.products.length = path.profile.products)
     (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
     (∃ r b, algorithm1 path x D = .ok r ∧ r.bits = some b) ↔ absQ s ≤ maxFinite32 := by
@@ -1000,12 +1506,75 @@ theorem algorithm1_range_iff {path : Path} {x : BlockInput path.profile} {D : F3
     exact ⟨r, b, hr, hb⟩
 ```
 
-**[TensorCore.EFMachine.algorithm1_agrees](tensor-core/TensorCore/Theory/EFMachine/Refinement.lean#L9)** (theorem; namespace `TensorCore.EFMachine`).
+<details>
+<summary>Supporting proofs</summary>
 
-When encoded EFT preparation succeeds, proves that bounded Algorithm 1 agrees with the
-reference trace's optional result bits. This comparison does not equate branch tags.
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Machine/Correctness.md#decl-ec47f9869483c5f4)
 
 ```lean
+/-- Universal finite-input theorem for all eight paths and any finite supplied D.
+There is no premise asserting an extraction, overlap, or exact-sum identity. -/
+theorem algorithm1_correct {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
+    (hlen : x.products.length = path.profile.products)
+    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
+    ∃ r, algorithm1 path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1_success</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Machine/Correctness.md#decl-56c6ead02b649bea)
+
+```lean
+/-- Useful success family: every shape-correct finite block whose *independent*
+ideal is within the finite FP32 interval. This includes arbitrary cancellation. -/
+theorem algorithm1_success {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
+    (hlen : x.products.length = path.profile.products)
+    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d)
+    (hrange : absQ s ≤ maxFinite32) :
+    ∃ r b, algorithm1 path x D = .ok r ∧ r.bits = some b ∧ NearestEven32 s b
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.round32_range</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/RoundOp.md#decl-cd74c43ff6d7803c)
+
+```lean
+/-- Success in the public conversion implies the *accumulator* range condition. -/
+theorem round32_range {mode : RoundingMode} {x : ℚ} {b : F32}
+    (h : round32 mode x = some b) : absQ x ≤ maxFinite32
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.EFMachine.Error](docs/proofs/EFT/Bounded.md#decl-ae7458916e66d6a4), [TensorCore.EFMachine.Path](docs/proofs/EFT/Machine/DecodeDefs.md#decl-2506d95eda2deaf1), [TensorCore.EFMachine.Path.profile](docs/proofs/EFT/Machine/DecodeDefs.md#decl-ccec848a9e7609d0), [TensorCore.EFMachine.Result](docs/proofs/EFT/Bounded.md#decl-dbcfe8dff7f13123), [TensorCore.EFMachine.Result.bits](docs/proofs/EFT/Bounded.md#decl-5da5d1a0f8426a7b), [TensorCore.EFMachine.algorithm1](docs/proofs/EFT/Bounded.md#decl-67eeb0773e124575), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](docs/proofs/Core/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.RoundingMode](docs/proofs/Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.exactDot](docs/proofs/TC/Block.md#decl-451fb68e7faa00f3), [TensorCore.maxFinite32](docs/proofs/Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.round32](docs/proofs/Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.value32](docs/proofs/Core/Encoding.md#decl-72aed83a98321df4)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1_agrees</code></summary>
+
+[Lean source](TensorCore/EFT/Machine/Refinement.lean#L11) · [Full dependency node](docs/proofs/EFT/Machine/Refinement.md#decl-98c4f9688b4f1890)
+
+```lean
+/-- Bit refinement of the paper-interface reference on every accepted finite input.
+Branch tags may differ because bounded scalar acceptance additionally checks the
+executed intermediate encodings. Exact consolidation uses a fixed workspace. -/
 theorem algorithm1_agrees {path : Path} {x : BlockInput path.profile} {D : F32} {t : BlockTrace}
     (ht : prepareEncodedEFT x D = .ok t) :
     (algorithm1 path x D).map Result.bits = .ok t.algorithm1.bits := by
@@ -1022,66 +1591,173 @@ theorem algorithm1_agrees {path : Path} {x : BlockInput path.profile} {D : F32} 
   rw [hr, Except.map, hb, algorithm1_bits_eq_round]
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Machine/Correctness.md#decl-ec47f9869483c5f4)
+
+```lean
+/-- Universal finite-input theorem for all eight paths and any finite supplied D.
+There is no premise asserting an extraction, overlap, or exact-sum identity. -/
+theorem algorithm1_correct {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
+    (hlen : x.products.length = path.profile.products)
+    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
+    ∃ r, algorithm1 path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s
+```
+
 </details>
 
 <details>
-<summary>C07. Eq.20 and extraction — Lean declarations</summary>
+<summary><code>TensorCore.algorithm1_bits_eq_round</code></summary>
 
-**[TensorCore.ExtractionGrid](tensor-core/TensorCore/Programs/ExtractionGrid.lean#L10)** (structure; namespace `TensorCore`).
-
-Chooses an extraction exponent together with a proof that its grid is at least as coarse
-as the block's alignment grid.
+[Expand this proof and its dependencies](docs/proofs/EFT/Encoded.md#decl-ff78455708a6f933)
 
 ```lean
-structure ExtractionGrid (t : BlockTrace) where
-  exponent : Int
-  coarser : t.block.quantumExponent ≤ exponent
+/-- Bit equality for the trace algorithm, including rejection outside the finite ideal range. -/
+theorem algorithm1_bits_eq_round (t : BlockTrace) :
+    t.algorithm1.bits = round32 .nearestEven t.block.exactDot
 ```
 
-**[TensorCore.ExtractionGrid.scalarPredicate](tensor-core/TensorCore/Programs/ExtractionGrid.lean#L126)** (def; namespace `TensorCore.ExtractionGrid`).
+</details>
 
-Defines the scalar-path guard: residual grid and coefficient budgets, finite range,
-representable intermediate components, and an in-range final ideal.
+<details>
+<summary><code>TensorCore.prepareEncodedEFT_spec</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Encoded.md#decl-926dcc55d35ecae9)
 
 ```lean
-def scalarPredicate (g : ExtractionGrid t) (f : Format) (ℓ : Int) : Bool :=
-  decide f.WellFormed && decide (f.emin - f.fractionBits ≤ ℓ) &&
-  (g.lowParts == (g.coefficients ℓ).map fun (z : Int) => (z : Rat) * pow2 ℓ) &&
-  decide (magnitudeSum (g.coefficients ℓ) < 2 ^ (f.fractionBits + 1)) &&
-  decide ((magnitudeSum (g.coefficients ℓ) : Rat) * pow2 ℓ ≤ f.maxFinite) &&
-  representableBinary f t.output.value && representableBinary f g.overlap &&
-  representableBinary f g.retainedSum &&
-  decide (absQ (g.retainedSum + sumQ g.lowParts) ≤ maxFinite32)
+theorem prepareEncodedEFT_spec {p : Profile} {x : BlockInput p} {D : F32} {t : BlockTrace}
+    (h : prepareEncodedEFT x D = .ok t) :
+    x.products.length = p.products ∧ prepare x = some t.block ∧ finite32 D = some t.output
 ```
 
-**[TensorCore.ExtractionGrid.eq20_exact_sum](tensor-core/TensorCore/Programs/ExtractionGrid.lean#L116)** (theorem; namespace `TensorCore.ExtractionGrid`).
+</details>
 
-Under the common-grid, Equation 20 coefficient-budget, and range hypotheses, proves that
-stepwise scalar summation of the low parts is exact.
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.Algorithm1Result.bits](docs/proofs/EFT/Algorithm1.md#decl-813f0f3b4334e3b7), [TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](docs/proofs/EFT/Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.Decoded](docs/proofs/Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](docs/proofs/Core/Defs.md#decl-c988858af545448a), [TensorCore.EFMachine.Error](docs/proofs/EFT/Bounded.md#decl-ae7458916e66d6a4), [TensorCore.EFMachine.Path](docs/proofs/EFT/Machine/DecodeDefs.md#decl-2506d95eda2deaf1), [TensorCore.EFMachine.Path.profile](docs/proofs/EFT/Machine/DecodeDefs.md#decl-ccec848a9e7609d0), [TensorCore.EFMachine.Result](docs/proofs/EFT/Bounded.md#decl-dbcfe8dff7f13123), [TensorCore.EFMachine.Result.bits](docs/proofs/EFT/Bounded.md#decl-5da5d1a0f8426a7b), [TensorCore.EFMachine.algorithm1](docs/proofs/EFT/Bounded.md#decl-67eeb0773e124575), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](docs/proofs/Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](docs/proofs/TC/Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.exactDot](docs/proofs/TC/Block.md#decl-32d061749cae163e), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.RoundingMode](docs/proofs/Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.decode32](docs/proofs/Core/Encoding.md#decl-a4001029898e709f), [TensorCore.exactDot](docs/proofs/TC/Block.md#decl-451fb68e7faa00f3), [TensorCore.finite32](docs/proofs/Core/Encoding.md#decl-82d0e30146423be5), [TensorCore.prepare](docs/proofs/TC/Block.md#decl-32c2d7273540d876), [TensorCore.prepareEncodedEFT](docs/proofs/EFT/Encoded.md#decl-aaaf1649ccd95844), [TensorCore.round32](docs/proofs/Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.value32](docs/proofs/Core/Encoding.md#decl-72aed83a98321df4)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C07. Eq.20 and extraction</summary>
+
+Every permitted coarse extraction grid; Eq.20 supplies the coefficient budget for exact scalar summation. Minimum grid, finite magnitude, and guarded component representability remain hypotheses.
+
+<details>
+<summary><code>TensorCore.ExtractionGrid.eq20_exact_sum</code></summary>
+
+[Lean source](TensorCore/EFT/ExtractionGrid.lean#L116) · [Full dependency node](docs/proofs/EFT/ExtractionGrid.md#decl-802e16aa4b0d2cbf)
 
 ```lean
 theorem eq20_exact_sum (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
-    (ℓ : Int) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
-    (hinput : ∀ x ∈ t.block.terms, ∃ z : Int, x.value = (z : Rat) * pow2 ℓ)
+    (ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
+    (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.fractionBits + 1))
-    (hrange : (magnitudeSum (g.coefficients ℓ) : Rat) * pow2 ℓ ≤ f.maxFinite) :
+    (hrange : (magnitudeSum (g.coefficients ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite) :
     naiveSumBinary f g.lowParts = some (sumQ g.lowParts) := by
   rw [g.lowParts_on_grid ℓ hℓ hinput,
     naiveSumBinary_exact f hf ℓ hmin _ (g.eq20_coefficients ℓ _ hℓ hinput hbudget) hrange,
     sum_coefficients]
 ```
 
-**[TensorCore.ExtractionGrid.eq20_scalarPredicate](tensor-core/TensorCore/Programs/ExtractionGrid.lean#L179)** (theorem; namespace `TensorCore.ExtractionGrid`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that Equation 20 and the stated grid, range, and component-representability
-conditions make the scalar guard accept.
+<details>
+<summary><code>TensorCore.ExtractionGrid.eq20_coefficients</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/ExtractionGrid.md#decl-98cbe3951ade59c5)
 
 ```lean
+/-- Equation 20 derives the actual coefficient budget from the original input
+grid, component count (including C), and chosen extraction exponent. -/
+theorem eq20_coefficients (g : ExtractionGrid t) (ℓ : ℤ) (P : ℕ) (hℓ : ℓ ≤ g.exponent)
+    (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
+    (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ P) :
+    magnitudeSum (g.coefficients ℓ) < 2 ^ P
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.ExtractionGrid.lowParts_on_grid</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/ExtractionGrid.md#decl-fb6adb3614a7013f)
+
+```lean
+/-- Original terms on a common grid yield exact residual coefficients on it.
+The grid need not be the finest nonzero residual grid, and all-zero terms work. -/
+theorem lowParts_on_grid (g : ExtractionGrid t) (ℓ : ℤ) (hℓ : ℓ ≤ g.exponent)
+    (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ) :
+    g.lowParts = (g.coefficients ℓ).map fun (z : ℤ) => (z : ℚ) * pow2 ℓ
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.naiveSumBinary_exact</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/ScalarSum.md#decl-415a2ea1e64c6184)
+
+```lean
+/-- Theorem IV.8 with exactly the paper's minimum-grid, coefficient, and absolute-range
+conditions. Applied to any ordering of the coefficient list, this proves exact naive sum. -/
+theorem naiveSumBinary_exact (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
+    (h1 : f.emin - f.fractionBits ≤ ℓ) (zs : List ℤ)
+    (hbound : magnitudeSum zs < 2 ^ (f.fractionBits + 1))
+    (hrange : (magnitudeSum zs : ℚ) * pow2 ℓ ≤ f.maxFinite) :
+    naiveSumBinary f (zs.map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) = some ((sumZ zs : ℚ) * pow2 ℓ)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.sum_coefficients</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-005e2ad99fe60fa3)
+
+```lean
+theorem sum_coefficients (zs : List ℤ) (q : ℚ) :
+    sumQ (zs.map fun (z : ℤ) => (z : ℚ) * q) = (sumZ zs : ℚ) * q
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.ExtractionGrid](docs/proofs/EFT/ExtractionGrid.md#decl-d0237d242e3d9256), [TensorCore.ExtractionGrid.coefficients](docs/proofs/EFT/ExtractionGrid.md#decl-4e520e672b0502a5), [TensorCore.ExtractionGrid.lowParts](docs/proofs/EFT/ExtractionGrid.md#decl-9b1a30bc57169e40), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.emin](docs/proofs/Core/Defs.md#decl-af48d9057baa67b0), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.PreparedBlock.terms](docs/proofs/TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](docs/proofs/Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](docs/proofs/Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.magnitudeSum](docs/proofs/Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.naiveSumBinary](docs/proofs/Core/Binary/ScalarSum.md#decl-1f7bd75282742e86), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.sumQ](docs/proofs/Core/Exact.md#decl-f20062bdc47118bd), [TensorCore.sumZ](docs/proofs/Core/Exact.md#decl-eba77bb372c3b3ff)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.ExtractionGrid.eq20_scalarPredicate</code></summary>
+
+[Lean source](TensorCore/EFT/ExtractionGrid.lean#L179) · [Full dependency node](docs/proofs/EFT/ExtractionGrid.md#decl-d4904f8d22c84319)
+
+```lean
+/-- Eq.20 is a sufficient precision condition for the actual scalar correction.
+The independent range and representability obligations remain explicit. -/
 theorem eq20_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
-    (ℓ : Int) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
-    (hinput : ∀ x ∈ t.block.terms, ∃ z : Int, x.value = (z : Rat) * pow2 ℓ)
+    (ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
+    (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.fractionBits + 1))
-    (hrange : (magnitudeSum (g.coefficients ℓ) : Rat) * pow2 ℓ ≤ f.maxFinite)
+    (hrange : (magnitudeSum (g.coefficients ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite)
     (hD : representableBinary f t.output.value = true)
     (hO : representableBinary f g.overlap = true)
     (hH : representableBinary f g.retainedSum = true)
@@ -1094,10 +1770,67 @@ theorem eq20_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.WellFor
     by simpa [g.retained_add_low] using hfinal⟩
 ```
 
-**[TensorCore.ExtractionGrid.recovery](tensor-core/TensorCore/Programs/ExtractionGrid.lean#L49)** (theorem; namespace `TensorCore.ExtractionGrid`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves the exact identity: original dot product equals supplied output minus overlap
-plus the sum of extracted low parts.
+<details>
+<summary><code>TensorCore.ExtractionGrid.eq20_coefficients</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/ExtractionGrid.md#decl-98cbe3951ade59c5)
+
+```lean
+/-- Equation 20 derives the actual coefficient budget from the original input
+grid, component count (including C), and chosen extraction exponent. -/
+theorem eq20_coefficients (g : ExtractionGrid t) (ℓ : ℤ) (P : ℕ) (hℓ : ℓ ≤ g.exponent)
+    (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
+    (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ P) :
+    magnitudeSum (g.coefficients ℓ) < 2 ^ P
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.ExtractionGrid.lowParts_on_grid</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/ExtractionGrid.md#decl-fb6adb3614a7013f)
+
+```lean
+/-- Original terms on a common grid yield exact residual coefficients on it.
+The grid need not be the finest nonzero residual grid, and all-zero terms work. -/
+theorem lowParts_on_grid (g : ExtractionGrid t) (ℓ : ℤ) (hℓ : ℓ ≤ g.exponent)
+    (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ) :
+    g.lowParts = (g.coefficients ℓ).map fun (z : ℤ) => (z : ℚ) * pow2 ℓ
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.ExtractionGrid.retained_add_low</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/ExtractionGrid.md#decl-613cd2d8bf397127)
+
+```lean
+theorem retained_add_low (g : ExtractionGrid t) :
+    g.retainedSum + sumQ g.lowParts = t.block.exactDot
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.ExtractionGrid](docs/proofs/EFT/ExtractionGrid.md#decl-d0237d242e3d9256), [TensorCore.ExtractionGrid.coefficients](docs/proofs/EFT/ExtractionGrid.md#decl-4e520e672b0502a5), [TensorCore.ExtractionGrid.lowParts](docs/proofs/EFT/ExtractionGrid.md#decl-9b1a30bc57169e40), [TensorCore.ExtractionGrid.overlap](docs/proofs/EFT/ExtractionGrid.md#decl-83babfaeb37f9950), [TensorCore.ExtractionGrid.retainedSum](docs/proofs/EFT/ExtractionGrid.md#decl-2e41827366b1c9d0), [TensorCore.ExtractionGrid.scalarPredicate](docs/proofs/EFT/ExtractionGrid.md#decl-555af608d3c6bc2a), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.emin](docs/proofs/Core/Defs.md#decl-af48d9057baa67b0), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.PreparedBlock.exactDot](docs/proofs/TC/Block.md#decl-32d061749cae163e), [TensorCore.PreparedBlock.terms](docs/proofs/TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](docs/proofs/Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](docs/proofs/Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](docs/proofs/Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](docs/proofs/Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.representableBinary](docs/proofs/Core/Binary/ScalarSum.md#decl-983cd49dc90d1170), [TensorCore.sumQ](docs/proofs/Core/Exact.md#decl-f20062bdc47118bd)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.ExtractionGrid.recovery</code></summary>
+
+[Lean source](TensorCore/EFT/ExtractionGrid.lean#L49) · [Full dependency node](docs/proofs/EFT/ExtractionGrid.md#decl-7c36a09e78670e2b)
 
 ```lean
 theorem recovery (g : ExtractionGrid t) :
@@ -1107,273 +1840,514 @@ theorem recovery (g : ExtractionGrid t) :
   grind
 ```
 
-**[TensorCore.ExtractionGrid.eq20_coefficients](tensor-core/TensorCore/Programs/ExtractionGrid.lean#L104)** (theorem; namespace `TensorCore.ExtractionGrid`).
+<details>
+<summary>Supporting proofs</summary>
 
-Derives the residual coefficient-magnitude budget from Equation 20's term-count and
-grid-spacing inequality.
+<details>
+<summary><code>TensorCore.ExtractionGrid.retained_add_low</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/ExtractionGrid.md#decl-613cd2d8bf397127)
 
 ```lean
-theorem eq20_coefficients (g : ExtractionGrid t) (ℓ : Int) (P : Nat) (hℓ : ℓ ≤ g.exponent)
-    (hinput : ∀ x ∈ t.block.terms, ∃ z : Int, x.value = (z : Rat) * pow2 ℓ)
-    (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ P) :
-    magnitudeSum (g.coefficients ℓ) < 2 ^ P := by
-  have hg := g.lowParts_on_grid ℓ hℓ hinput
-  apply extraction_coefficient_bound _ g.exponent ℓ P hℓ
-  · intro z hz
-    apply g.lowPart_bound
-    rw [hg]
-    exact List.mem_map.mpr ⟨z, hz, rfl⟩
-  · simpa [coefficients, lowParts] using hbudget
+theorem retained_add_low (g : ExtractionGrid t) :
+    g.retainedSum + sumQ g.lowParts = t.block.exactDot
 ```
 
-**[TensorCore.ExtractionGrid.scalarCorrected_correct](tensor-core/TensorCore/Programs/ExtractionGrid.lean#L157)** (theorem; namespace `TensorCore.ExtractionGrid`).
+</details>
 
-If the explicit extraction-grid scalar guard accepts, proves that correction succeeds
-with the nearest-even FP32 result for the exact dot product.
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.ExtractionGrid](docs/proofs/EFT/ExtractionGrid.md#decl-d0237d242e3d9256), [TensorCore.ExtractionGrid.lowParts](docs/proofs/EFT/ExtractionGrid.md#decl-9b1a30bc57169e40), [TensorCore.ExtractionGrid.overlap](docs/proofs/EFT/ExtractionGrid.md#decl-83babfaeb37f9950), [TensorCore.ExtractionGrid.retainedSum](docs/proofs/EFT/ExtractionGrid.md#decl-2e41827366b1c9d0), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.PreparedBlock.exactDot](docs/proofs/TC/Block.md#decl-32d061749cae163e), [TensorCore.sumQ](docs/proofs/Core/Exact.md#decl-f20062bdc47118bd)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C21. Native EFT scalar execution</summary>
+
+Native FP32 scalar additions preserve the complete bounded Algorithm 1 result for every input, including branch tags and errors. All eight supported finite, shape-correct paths retain correct rounding and the exact range/success contract.
+
+<details>
+<summary><code>TensorCore.EFMachine.naiveSum32WithLeanFrom_eq</code></summary>
+
+[Lean source](TensorCore/EFT/Native.lean#L74) · [Full dependency node](docs/proofs/EFT/Native.md#decl-0301e5d588c478f8)
 
 ```lean
-theorem scalarCorrected_correct (g : ExtractionGrid t) (f : Format) (ℓ : Int)
-    (h : g.scalarPredicate f ℓ = true) :
-    ∃ bits, g.scalarCorrected f ℓ = some bits ∧ NearestEven32 t.block.exactDot bits := by
-  rw [g.scalarCorrected_eq f ℓ h]
-  apply round32_nearestEven_correct
-  simp only [scalarPredicate, Bool.and_eq_true, decide_eq_true_eq] at h
-  simpa [retained_add_low] using h.2
+theorem naiveSum32WithLeanFrom_eq (acc : F32) (xs : List F32) :
+    naiveSum32WithLeanFrom acc xs = xs.foldlM add32 acc := by
+  simp only [naiveSum32WithLeanFrom, show add32WithLean = add32 from by funext a b; exact add32WithLean_eq a b]
 ```
 
-**[TensorCore.scalarCorrectedIn_correct](tensor-core/TensorCore/Programs/ScalarEFT.lean#L80)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-If the scalar guard for the chosen consolidation format accepts, proves that generic
-scalar correction returns the nearest-even FP32 ideal.
+<details>
+<summary><code>TensorCore.EFMachine.add32WithLean_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Native.md#decl-606ce6330a627312)
 
 ```lean
-theorem scalarCorrectedIn_correct (t : BlockTrace) (f : Format) (h : t.scalarPredicateIn f = true) :
-    ∃ b, t.scalarCorrectedIn f = some b ∧ NearestEven32 t.block.exactDot b := by
-  rw [scalarCorrectedIn_eq t f h]
-  apply round32_nearestEven_correct
-  unfold BlockTrace.scalarPredicateIn at h
-  simp only [Bool.and_eq_true, decide_eq_true_eq] at h
-  rw [← retained_add_low]
-  exact h.2
+/-- Full scalar primitive preservation, including nonfinite rejection, exact
+range rejection, signed underflow, and normalization of exact zero. -/
+theorem add32WithLean_eq (a b : F32) : add32WithLean a b = add32 a b
 ```
 
-**[TensorCore.tceft_correct](tensor-core/TensorCore/Programs/EFT.lean#L310)** (theorem; namespace `TensorCore`).
+</details>
 
-Proves that every accepted reference `tceft` output satisfies nearest-even FP32 rounding
-of the block's exact dot product.
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.EFMachine.add32](docs/proofs/EFT/Machine/DecodeDefs.md#decl-7ed3fa6d2b144ea7), [TensorCore.EFMachine.add32WithLean](docs/proofs/EFT/Native.md#decl-d54ee0a869d0df69), [TensorCore.EFMachine.naiveSum32WithLeanFrom](docs/proofs/EFT/Native.md#decl-8840f9876c0a9452), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1WithLean_eq</code></summary>
+
+[Lean source](TensorCore/EFT/Native.lean#L113) · [Full dependency node](docs/proofs/EFT/Native.md#decl-07076ef7735fa9b8)
 
 ```lean
-theorem tceft_correct (t : BlockTrace) (b : F32) (h : t.tceft = some b) :
-    NearestEven32 t.block.exactDot b := by
-  unfold BlockTrace.tceft BlockTrace.scalarCorrected at h
-  split at h
-  · rename_i hp
-    obtain ⟨b', hb', hn⟩ := scalarCorrected_correct t hp
-    simp only [BlockTrace.scalarCorrected, if_pos hp] at hb'
-    rw [hb'] at h
-    cases Option.some.inj h
-    exact hn
-  · contradiction
+/-- Every input preserves the entire result, including branch tags and errors. -/
+theorem algorithm1WithLean_eq (path : Path) (x : BlockInput path.profile) (D : F32) :
+    algorithm1WithLean path x D = algorithm1 path x D := by
+  simp only [algorithm1WithLean, algorithm1, Components.scalarWithLean_eq]
+  rfl
 ```
 
-**[TensorCore.tceft_isSome_iff](tensor-core/TensorCore/Programs/EFT.lean#L323)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that reference `tceft` produces output bits exactly when its scalar guard
-accepts.
+<details>
+<summary><code>TensorCore.EFMachine.Components.scalarWithLean_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Native.md#decl-cc00897e3b21cc23)
 
 ```lean
-theorem tceft_isSome_iff (t : BlockTrace) : (t.tceft).isSome = true ↔ t.scalarPredicate = true := by
-  unfold BlockTrace.tceft BlockTrace.scalarCorrected
+theorem Components.scalarWithLean_eq (c : Components) : c.scalarWithLean = c.scalar
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.EFMachine.Components](docs/proofs/EFT/Bounded.md#decl-cbab83ff033f2778), [TensorCore.EFMachine.Components.scalar](docs/proofs/EFT/Bounded.md#decl-6c67918db14780c9), [TensorCore.EFMachine.Components.scalarWithLean](docs/proofs/EFT/Native.md#decl-f2a2e92b799d4090), [TensorCore.EFMachine.Error](docs/proofs/EFT/Bounded.md#decl-ae7458916e66d6a4), [TensorCore.EFMachine.Magnitude](docs/proofs/EFT/Machine/WordDefs.md#decl-666b5ba9cbd0ae62), [TensorCore.EFMachine.Path](docs/proofs/EFT/Machine/DecodeDefs.md#decl-2506d95eda2deaf1), [TensorCore.EFMachine.Path.profile](docs/proofs/EFT/Machine/DecodeDefs.md#decl-ccec848a9e7609d0), [TensorCore.EFMachine.Prepared](docs/proofs/EFT/Bounded.md#decl-60336b9775817f9a), [TensorCore.EFMachine.Result](docs/proofs/EFT/Bounded.md#decl-dbcfe8dff7f13123), [TensorCore.EFMachine.Term](docs/proofs/EFT/Machine/DecodeDefs.md#decl-fa1797d418dbd302), [TensorCore.EFMachine.Word](docs/proofs/EFT/Machine/WordDefs.md#decl-df353d912dc0da43), [TensorCore.EFMachine.Word.round32](docs/proofs/EFT/Machine/WordDefs.md#decl-ae96957dae22a7c5), [TensorCore.EFMachine.algorithm1](docs/proofs/EFT/Bounded.md#decl-67eeb0773e124575), [TensorCore.EFMachine.algorithm1WithLean](docs/proofs/EFT/Native.md#decl-e854b34f0fadc9c3), [TensorCore.EFMachine.extract](docs/proofs/EFT/Bounded.md#decl-1edcf1bb479bb8a3), [TensorCore.EFMachine.prepare](docs/proofs/EFT/Bounded.md#decl-795b364db94203eb), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1WithLean_correct</code></summary>
+
+[Lean source](TensorCore/EFT/Native.lean#L118) · [Full dependency node](docs/proofs/EFT/Native.md#decl-44b89c4eb1a452d1)
+
+```lean
+theorem algorithm1WithLean_correct {path : Path} {x : BlockInput path.profile}
+    {D : F32} {s d : ℚ} (hlen : x.products.length = path.profile.products)
+    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
+    ∃ r, algorithm1WithLean path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s := by
+  rw [algorithm1WithLean_eq]
+  exact algorithm1_correct hlen hx hD
+```
+
+```mermaid
+flowchart TD
+  root["EFMachine.algorithm1WithLean_correct"]
+  p0["EFMachine.algorithm1WithLean_eq"]
+  root --> p0
+  p1["EFMachine.algorithm1_correct"]
+  root --> p1
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1WithLean_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Native.md#decl-07076ef7735fa9b8)
+
+```lean
+/-- Every input preserves the entire result, including branch tags and errors. -/
+theorem algorithm1WithLean_eq (path : Path) (x : BlockInput path.profile) (D : F32) :
+    algorithm1WithLean path x D = algorithm1 path x D
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Machine/Correctness.md#decl-ec47f9869483c5f4)
+
+```lean
+/-- Universal finite-input theorem for all eight paths and any finite supplied D.
+There is no premise asserting an extraction, overlap, or exact-sum identity. -/
+theorem algorithm1_correct {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
+    (hlen : x.products.length = path.profile.products)
+    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
+    ∃ r, algorithm1 path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.EFMachine.Error](docs/proofs/EFT/Bounded.md#decl-ae7458916e66d6a4), [TensorCore.EFMachine.Path](docs/proofs/EFT/Machine/DecodeDefs.md#decl-2506d95eda2deaf1), [TensorCore.EFMachine.Path.profile](docs/proofs/EFT/Machine/DecodeDefs.md#decl-ccec848a9e7609d0), [TensorCore.EFMachine.Result](docs/proofs/EFT/Bounded.md#decl-dbcfe8dff7f13123), [TensorCore.EFMachine.Result.bits](docs/proofs/EFT/Bounded.md#decl-5da5d1a0f8426a7b), [TensorCore.EFMachine.algorithm1](docs/proofs/EFT/Bounded.md#decl-67eeb0773e124575), [TensorCore.EFMachine.algorithm1WithLean](docs/proofs/EFT/Native.md#decl-e854b34f0fadc9c3), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.RoundingMode](docs/proofs/Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.exactDot](docs/proofs/TC/Block.md#decl-451fb68e7faa00f3), [TensorCore.round32](docs/proofs/Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.value32](docs/proofs/Core/Encoding.md#decl-72aed83a98321df4)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1WithLean_range_iff</code></summary>
+
+[Lean source](TensorCore/EFT/Native.lean#L133) · [Full dependency node](docs/proofs/EFT/Native.md#decl-8f27f77556b03c65)
+
+```lean
+theorem algorithm1WithLean_range_iff {path : Path} {x : BlockInput path.profile}
+    {D : F32} {s d : ℚ} (hlen : x.products.length = path.profile.products)
+    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
+    (∃ r b, algorithm1WithLean path x D = .ok r ∧ r.bits = some b) ↔ absQ s ≤ maxFinite32 := by
+  rw [algorithm1WithLean_eq]
+  exact algorithm1_range_iff hlen hx hD
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1WithLean_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Native.md#decl-07076ef7735fa9b8)
+
+```lean
+/-- Every input preserves the entire result, including branch tags and errors. -/
+theorem algorithm1WithLean_eq (path : Path) (x : BlockInput path.profile) (D : F32) :
+    algorithm1WithLean path x D = algorithm1 path x D
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.EFMachine.algorithm1_range_iff</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/EFT/Machine/Correctness.md#decl-c9a066d91dcbea2c)
+
+```lean
+/-- After valid decoding, range acceptance is both necessary and sufficient. -/
+theorem algorithm1_range_iff {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
+    (hlen : x.products.length = path.profile.products)
+    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
+    (∃ r b, algorithm1 path x D = .ok r ∧ r.bits = some b) ↔ absQ s ≤ maxFinite32
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockInput](docs/proofs/TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.EFMachine.Error](docs/proofs/EFT/Bounded.md#decl-ae7458916e66d6a4), [TensorCore.EFMachine.Path](docs/proofs/EFT/Machine/DecodeDefs.md#decl-2506d95eda2deaf1), [TensorCore.EFMachine.Path.profile](docs/proofs/EFT/Machine/DecodeDefs.md#decl-ccec848a9e7609d0), [TensorCore.EFMachine.Result](docs/proofs/EFT/Bounded.md#decl-dbcfe8dff7f13123), [TensorCore.EFMachine.Result.bits](docs/proofs/EFT/Bounded.md#decl-5da5d1a0f8426a7b), [TensorCore.EFMachine.algorithm1](docs/proofs/EFT/Bounded.md#decl-67eeb0773e124575), [TensorCore.EFMachine.algorithm1WithLean](docs/proofs/EFT/Native.md#decl-e854b34f0fadc9c3), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.exactDot](docs/proofs/TC/Block.md#decl-451fb68e7faa00f3), [TensorCore.maxFinite32](docs/proofs/Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.value32](docs/proofs/Core/Encoding.md#decl-72aed83a98321df4)
+
+</details>
+
+</details>
+
+</details>
+
+### Core arithmetic
+
+<details>
+<summary>C01. Finite rounding</summary>
+
+Every well-formed IEEE-style binary format, all four modes, rational inputs within maximum finite magnitude. Out-of-range inputs are rejected even when a directed finite result could exist.
+
+<details>
+<summary><code>TensorCore.roundBinary_correct</code></summary>
+
+[Lean source](TensorCore/Core/Binary/RoundingContract.lean#L17) · [Full dependency node](docs/proofs/Core/Binary/RoundingContract.md#decl-12a22af180d3ad5e)
+
+```lean
+theorem roundBinary_correct (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
+    (x : ℚ) (hr : absQ x ≤ f.maxFinite) :
+    ∃ bits, roundBinary f mode x = some bits ∧ BinaryRoundSpec f mode x bits := by
+  cases mode
+  · exact roundBinary_towardZero_correct f hf x hr
+  · exact roundBinary_nearestEven_correct f hf x hr
+  · exact roundBinary_towardNegative_correct f hf x hr
+  · exact roundBinary_towardPositive_correct f hf x hr
+```
+
+```mermaid
+flowchart TD
+  root["roundBinary_correct"]
+  p0["roundBinary_nearestEven_correct"]
+  root --> p0
+  p1["roundBinary_towardNegative_correct"]
+  root --> p1
+  p2["roundBinary_towardPositive_correct"]
+  root --> p2
+  p3["roundBinary_towardZero_correct"]
+  root --> p3
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.roundBinary_nearestEven_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/CorrectRounding.md#decl-56aa49cf9819c893)
+
+```lean
+/-- Total correctness of nearest-even conversion on the finite range of any format. -/
+theorem roundBinary_nearestEven_correct (f : Format) (hf : f.WellFormed) (x : ℚ)
+    (hr : absQ x ≤ f.maxFinite) :
+    ∃ bits : BitVec f.width, roundBinary f .nearestEven x = some bits ∧ NearestEven f x bits
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_towardNegative_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/DirectedRounding.md#decl-3b3e5c3213c35d5f)
+
+```lean
+theorem roundBinary_towardNegative_correct (f : Format) (hf : f.WellFormed) (x : ℚ)
+    (hr : absQ x ≤ f.maxFinite) :
+    ∃ bits, roundBinary f .towardNegative x = some bits ∧ TowardNegative f x bits
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_towardPositive_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/DirectedRounding.md#decl-a0d617c51646227e)
+
+```lean
+theorem roundBinary_towardPositive_correct (f : Format) (hf : f.WellFormed) (x : ℚ)
+    (hr : absQ x ≤ f.maxFinite) :
+    ∃ bits, roundBinary f .towardPositive x = some bits ∧ TowardPositive f x bits
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_towardZero_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/CorrectRounding.md#decl-7cd93a19048f4025)
+
+```lean
+theorem roundBinary_towardZero_correct (f : Format) (hf : f.WellFormed) (x : ℚ)
+    (hr : absQ x ≤ f.maxFinite) :
+    ∃ bits : BitVec f.width, roundBinary f .towardZero x = some bits ∧ TowardZero f x bits
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundSpec](docs/proofs/Core/Binary/RoundingContract.md#decl-88c3ff9da8e0df3a), [TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.roundBinary](docs/proofs/Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_isSome_iff</code></summary>
+
+[Lean source](TensorCore/Core/Binary/RoundingContract.lean#L37) · [Full dependency node](docs/proofs/Core/Binary/RoundingContract.md#decl-9083817d3e897973)
+
+```lean
+theorem roundBinary_isSome_iff (f : Format) (mode : BinaryRoundingMode) (x : ℚ) :
+    (roundBinary f mode x).isSome = true ↔ f.WellFormed ∧ absQ x ≤ f.maxFinite := by
   constructor
   · intro h
-    split at h
-    · assumption
-    · simp at h
-  · intro hp
-    rw [if_pos hp]
-    obtain ⟨b, hb, _⟩ := scalarCorrected_correct t hp
-    simp only [BlockTrace.scalarCorrected, if_pos hp] at hb
-    rw [hb]
-    rfl
+    cases hb : roundBinary f mode x with
+    | none => simp [hb] at h
+    | some b => exact roundBinary_range hb
+  · rintro ⟨hf, hr⟩
+    obtain ⟨b, hb, _⟩ := roundBinary_correct f hf mode x hr
+    simp [hb]
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.roundBinary_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/RoundingContract.md#decl-12a22af180d3ad5e)
+
+```lean
+theorem roundBinary_correct (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
+    (x : ℚ) (hr : absQ x ≤ f.maxFinite) :
+    ∃ bits, roundBinary f mode x = some bits ∧ BinaryRoundSpec f mode x bits
 ```
 
 </details>
 
 <details>
-<summary>C08. Program composition — Lean declarations</summary>
+<summary><code>TensorCore.roundBinary_range</code></summary>
 
-**[TensorCore.Program.Correct](tensor-core/TensorCore/Programs/Program.lean#L125)** (def; namespace `TensorCore`).
-
-Defines program correctness as successful execution, exact residual recovery, and a
-final corrected output satisfying nearest-even rounding of the original ideal.
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/RoundOp.md#decl-0877ce0e6eb40a61)
 
 ```lean
-def Program.Correct {p : Profile} (pr : Program p) (c : F32) : Prop :=
-  ∃ (initial : Finite32) (ts : List BlockTrace) (z : Rat) (b : F32),
-    initial.bits = c ∧ pr.run c = .ok ts ∧ pr.ideal c = some z ∧
-    recoveredSchedule initial ts = z ∧ correctedSchedule initial ts = some b ∧
-    NearestEven32 z b
+theorem roundBinary_range {f : Format} {mode : BinaryRoundingMode} {x : ℚ}
+    {bits : BitVec f.width} (h : roundBinary f mode x = some bits) :
+    f.WellFormed ∧ absQ x ≤ f.maxFinite
 ```
 
-**[TensorCore.Program.Accurate](tensor-core/TensorCore/Programs/CertifiedProgram.lean#L6)** (def; namespace `TensorCore`).
+</details>
 
-Defines uncorrected program accuracy as successful execution with a defined original
-ideal and final absolute error at most the requested tolerance.
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundSpec](docs/proofs/Core/Binary/RoundingContract.md#decl-88c3ff9da8e0df3a), [TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.roundBinary](docs/proofs/Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C02. Encoding and signed zero</summary>
+
+Bijection between finite encoded words and a representable rational value paired with a sign bit. Nonzero signs agree with the value; zero has two representations. Arithmetic exact zero remains +0.
+
+<details>
+<summary><code>TensorCore.signedFiniteBinaryBijection</code></summary>
+
+[Lean source](TensorCore/Core/Binary/SignedBijection.lean#L134) · [Full dependency node](docs/proofs/Core/Binary/SignedBijection.md#decl-52799c5e93137e77)
 
 ```lean
-def Program.Accurate {p : Profile} (pr : Program p) (c : F32) (tolerance : Rat) : Prop :=
-  ∃ (initial : Finite32) (ts : List BlockTrace) (ideal : Rat),
-    initial.bits = c ∧ pr.run c = .ok ts ∧ pr.ideal c = some ideal ∧
-    absQ (ideal - (lastOutput initial ts).value) ≤ tolerance
+/-- Finite IEEE words correspond bijectively to representable rationals with two zeros.
+For nonzero values the sign is determined, so there is exactly one representation. -/
+def signedFiniteBinaryBijection (f : Format) (hf : f.WellFormed) :
+    BinaryBijection (SignedFiniteValue f) (FiniteBinaryWord f) :=
+  ⟨encodeSignedBinary f hf, decodeSignedBinary f hf,
+    decode_encodeSignedBinary f hf, encode_decodeSignedBinary f hf⟩
 ```
 
-**[TensorCore.evalInvocation_recovery](tensor-core/TensorCore/Theory/Invocation.lean#L89)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-For an accepted typed invocation, proves that its original-input ideal equals the output
-value plus the invocation's total residual.
+<details>
+<summary><code>TensorCore.decode_encodeSignedBinary</code></summary>
 
-```lean
-theorem evalInvocation_recovery {p : InvocationSpec} {x : InvocationInput p} {t : InvocationTrace p}
-    (h : evalInvocation x = .ok t) :
-    invocationIdeal x = some (t.output.value + t.residual) := by
-  obtain ⟨_, _, hp, ha, hr, _⟩ := evalInvocation_spec h
-  have hl := accumulateInvocation_recovery t.prepared t.accumulation ha
-  have hc := runConversions_recovery p.intermediate t.accumulation.value t.intermediate hr
-  simp only [invocationIdeal, hp, Option.map_some]
-  congr 1
-  unfold InvocationTrace.residual
-  grind
-```
-
-**[TensorCore.Program.repeat_accurate_of_scales](tensor-core/TensorCore/Theory/ProgramBounds/Loops.lean#L39)** (theorem; namespace `TensorCore`).
-
-Proves successful, tolerance-bounded execution of a repeated program under the stated
-scale, carry, range, headroom, and accumulated-error conditions.
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/SignedBijection.md#decl-2c11097025d8ee97)
 
 ```lean
-theorem Program.repeat_accurate_of_scales {p : Profile} (body : Program p) (n : Nat)
-    (E P : Int) (L : Nat) (hE : -126 ≤ E) (hPE : P ≤ E)
-    (hfl : ∀ f ∈ p.alignFloor, f ≤ E) (hL : p.products + 1 ≤ 2 ^ L)
-    (hrange : E + 2 + L ≤ 127) (hscale : ∀ g ∈ body.inputs, GroupScaleBounded p g P)
-    (initial : Finite32) (C tolerance : Rat) (hC : absQ initial.value ≤ C)
-    (hroom : C + ((n * body.inputs.length : Nat) : Rat) *
-      ((p.products : Rat) * (4 * pow2 P) + staticBudget (p.products + 1) p.alignFraction E L) <
-      pow2 (E + 1))
-    (htol : ((n * body.inputs.length : Nat) : Rat) *
-      staticBudget (p.products + 1) p.alignFraction E L ≤ tolerance) :
-    (Program.repeat n body).Accurate initial.bits tolerance := by
-  apply Program.accurate_of_scales _ E P L hE hPE hfl hL hrange
-  · intro g hg
-    rw [Program.inputs_repeat] at hg
-    exact hscale g (mem_of_mem_repeatList body.inputs n g hg)
-  · exact hC
-  · simpa only [Program.inputs_repeat, repeatList_length] using hroom
-  · simpa only [Program.staticErrorBudget, Program.inputs_repeat, repeatList_length] using htol
-```
-
-**[TensorCore.Program.recovery](tensor-core/TensorCore/Programs/Program.lean#L100)** (theorem; namespace `TensorCore`).
-
-For a successful program run, proves that the recovered schedule value equals the
-original program ideal.
-
-```lean
-theorem Program.recovery {p : Profile} (pr : Program p) (initial : Finite32)
-    (ts : List BlockTrace) (h : pr.run initial.bits = .ok ts) :
-    pr.ideal initial.bits = some (recoveredSchedule initial ts) := by
-  have hc := runBlocks_idealContributions p initial.bits pr.inputs ts h
-  have hl := runBlocks_residual_ledger p initial pr.inputs ts h
-  simp only [Program.ideal, value32, initial.valid, Option.map_some, hc]
-  change some (initial.value + sumQ (ts.map fun t => t.block.exactProducts)) = _
-  rw [hl]; rfl
-```
-
-**[TensorCore.Program.vc_sound](tensor-core/TensorCore/Programs/Program.lean#L139)** (theorem; namespace `TensorCore`).
-
-Proves that the program's verification condition implies its full correctness predicate,
-including successful execution and correctly rounded recovery.
-
-```lean
-theorem Program.vc_sound {p : Profile} (pr : Program p) (c : F32) (h : pr.VC c) :
-    pr.Correct c := by
-  unfold Program.VC at h
-  cases hi : finite32 c with
-  | none => simp [hi] at h
-  | some initial =>
-    cases he : pr.run c with
-    | error e => simp [hi, he] at h
-    | ok ts =>
-      simp only [hi, he] at h
-      have hb := finite32_bits hi
-      have hr := pr.recovery initial ts (by simpa [hb] using he)
-      rw [hb] at hr
-      obtain ⟨b, hc, hn⟩ := round32_nearestEven_correct (recoveredSchedule initial ts) h
-      exact ⟨initial, ts, recoveredSchedule initial ts, b, hb, he, hr, rfl, hc, hn⟩
-```
-
-**[TensorCore.Program.staticCertificate_sound](tensor-core/TensorCore/Programs/CertifiedProgram.lean#L31)** (theorem; namespace `TensorCore`).
-
-Proves that an accepted static input certificate guarantees successful execution and the
-requested error tolerance for the uncorrected program output.
-
-```lean
-theorem Program.staticCertificate_sound {p : Profile} (pr : Program p) (E : Int) (L : Nat)
-    (c : F32) (tolerance : Rat) (h : pr.staticCertificate E L c tolerance = true) :
-    pr.Accurate c tolerance := by
-  simp only [Program.staticCertificate, Bool.and_eq_true, decide_eq_true_eq] at h
-  obtain ⟨initial, hbits, ts, products, hrun, hi, herr⟩ := staticCheck_sound p E L c pr.inputs h.1
-  have ht : absQ (initial.value + products - (lastOutput initial ts).value) ≤ tolerance :=
-    Rat.le_trans herr h.2
-  have hr : pr.run initial.bits = .ok ts := by simpa [Program.run, hbits] using hrun
-  have result := pr.accurate_of_run initial ts products tolerance hr hi ht
-  simpa [hbits] using result
-```
-
-**[TensorCore.boundedDot_accurate_of_bits](tensor-core/TensorCore/Applications/BoundedDot.lean#L154)** (theorem; namespace `TensorCore`).
-
-For at most 256 operand pairs satisfying the stated FP16 bit bounds and an initial
-magnitude at most one, proves absolute error at most `1 / 2048`.
-
-```lean
-theorem boundedDot_accurate_of_bits (xs : List (F16 × F16)) (initial : Finite32)
-    (hlen : xs.length ≤ 256)
-    (hs : ∀ pair ∈ xs, pair.1.toNat % 32768 < 11264 ∧ pair.2.toNat % 32768 < 11264)
-    (hc : absQ initial.value ≤ 1) : (boundedDot xs).Accurate initial.bits (1 / 2048) :=
-  boundedDot_accurate xs initial hlen
-    (fun pair hp => ⟨small16_of_bits _ (hs pair hp).1, small16_of_bits _ (hs pair hp).2⟩) hc
-```
-
-**[TensorCore.boundedDotCheck_sound](tensor-core/TensorCore/Applications/BoundedDot.lean#L168)** (theorem; namespace `TensorCore`).
-
-Proves that acceptance by the bounded-dot input checker implies successful execution
-with absolute error at most `1 / 2048`.
-
-```lean
-theorem boundedDotCheck_sound (xs : List (F16 × F16)) (c : F32)
-    (h : boundedDotCheck xs c = true) : (boundedDot xs).Accurate c (1 / 2048) := by
-  simp only [boundedDotCheck, Bool.and_eq_true, decide_eq_true_eq] at h
-  obtain ⟨⟨hlen, hs⟩, hc⟩ := h
-  cases hv : value32 c with
-  | none => simp [hv] at hc
-  | some v =>
-    obtain ⟨initial, _, hb, hi⟩ := finite32_of_value32 c v hv
-    have hs' : ∀ pair ∈ xs, small16 pair.1 = true ∧ small16 pair.2 = true := by
-      intro pair hp
-      simpa only [Bool.and_eq_true] using List.all_eq_true.mp hs pair hp
-    have hcv : absQ initial.value ≤ 1 := by simpa [hv, hi] using hc
-    simpa [hb] using boundedDot_accurate xs initial hlen hs' hcv
+theorem decode_encodeSignedBinary (f : Format) (hf : f.WellFormed) (v : SignedFiniteValue f) :
+    decodeSignedBinary f hf (encodeSignedBinary f hf v) = v
 ```
 
 </details>
 
 <details>
-<summary>C09. Raw FP16 GEMM — Lean declarations</summary>
+<summary><code>TensorCore.encode_decodeSignedBinary</code></summary>
 
-**[TensorCore.PaperSpec.gemm_eq_paper](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean#L121)** (theorem; namespace `TensorCore.PaperSpec`).
-
-Proves cellwise agreement between raw FP16 GEMM execution and the independent WMMA
-schedule specification, including observations of intermediate stages and failures.
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/SignedBijection.md#decl-c65020fe3f9595ba)
 
 ```lean
+theorem encode_decodeSignedBinary (f : Format) (hf : f.WellFormed) (b : FiniteBinaryWord f) :
+    encodeSignedBinary f hf (decodeSignedBinary f hf b) = b
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryBijection](docs/proofs/Core/Defs.md#decl-85b8cc75be52e666), [TensorCore.FiniteBinaryWord](docs/proofs/Core/Binary/Defs.md#decl-b1ebef5bf580ea01), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.SignedFiniteValue](docs/proofs/Core/Binary/Defs.md#decl-86fdea2e792bf344), [TensorCore.decodeSignedBinary](docs/proofs/Core/Binary/SignedBijection.md#decl-cb2fcf99d19b6a37), [TensorCore.encodeSignedBinary](docs/proofs/Core/Binary/SignedBijection.md#decl-1ab7a3966bec465c)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_zero</code></summary>
+
+[Lean source](TensorCore/Core/Binary/RoundingContract.lean#L48) · [Full dependency node](docs/proofs/Core/Binary/RoundingContract.md#decl-765cac64e8b78cf4)
+
+```lean
+theorem roundBinary_zero (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode) :
+    roundBinary f mode 0 = some 0 := by
+  have hr : 0 ≤ f.maxFinite := Rat.mul_nonneg Rat.natCast_nonneg (Rat.le_of_lt (pow2_pos _))
+  simp only [roundBinary, hf, not_true_eq_false, ↓reduceIte]
+  rw [if_neg (by simpa [absQ] using Rat.not_lt.mpr hr)]
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.pow2_pos</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-8f231b6648575120)
+
+```lean
+theorem pow2_pos (e : ℤ) : 0 < pow2 e
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.emax](docs/proofs/Core/Defs.md#decl-dc4afe2b44cdf196), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.binaryCarry](docs/proofs/Core/Binary/RoundOp.md#decl-ae1aaac3088affc4), [TensorCore.binaryCoefficient](docs/proofs/Core/Binary/RoundOp.md#decl-f5dc97045520b8c7), [TensorCore.binaryConvExp](docs/proofs/Core/Binary/RoundOp.md#decl-627946dba132da21), [TensorCore.encodeBinary](docs/proofs/Core/Binary/RoundOp.md#decl-d8cef04fa85eeb47), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.roundBinary](docs/proofs/Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed)
+
+</details>
+
+</details>
+
+</details>
+
+### GEMM
+
+<details>
+<summary>C09. Raw FP16 GEMM</summary>
+
+Arbitrary dimensions, three logical WMMA schedules, padding/cropping, every encoded group boundary, and rejection agree with the separately defined matrix specification.
+
+<details>
+<summary><code>TensorCore.PaperSpec.gemm_eq_paper</code></summary>
+
+[Lean source](TensorCore/Gemm/Specification/GemmEquivalence.lean#L121) · [Full dependency node](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-5c9e12476c94c50c)
+
+```lean
+/-- Universal matrix equality, including dimensions, output cropping, tail padding,
+initial C, every encoded group/instruction boundary, and rejection as none. -/
 theorem gemm_eq_paper (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
     (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) :
     (gemm model A B C).map (fun row => row.map fun cell =>
@@ -1387,10 +2361,51 @@ theorem gemm_eq_paper (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
   exact simulateGemmCell_eq_paper model (gemmPairs A B ⟨i, hi⟩ ⟨j, hj⟩) C[i][j]
 ```
 
-**[TensorCore.PaperSpec.gemm_rejected_iff_paper](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean#L158)** (theorem; namespace `TensorCore.PaperSpec`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that the implementation and independent raw FP16 GEMM specification reject
-exactly the same output cells.
+<details>
+<summary><code>TensorCore.PaperSpec.simulateGemmCell_eq_paper</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-62707c4cb8f2dc7c)
+
+```lean
+theorem simulateGemmCell_eq_paper (model : WmmaGemmModel) (pairs : List (F16 × F16)) (c : F32) :
+    (simulateGemmCell model pairs c).toOption.map gemmCellObservation =
+      matrixCell (wmmaModel model) pairs c
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.gemm_entry</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Defs.md#decl-e24588ca0d6e9549)
+
+```lean
+@[simp] theorem gemm_entry (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
+    (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) (i : Fin m) (j : Fin n) :
+    (gemm model A B C)[i.val][j.val] =
+      simulateGemmCell model (gemmPairs A B i j) C[i.val][j.val]
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.GemmCell](docs/proofs/Gemm/Defs.md#decl-36e8239d9f1fd59e), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PaperSpec.Matrix](docs/proofs/Gemm/Specification/Matrix.md#decl-0b93e30a9665e8db), [TensorCore.PaperSpec.MatrixCell](docs/proofs/Gemm/Specification/Matrix.md#decl-78b1933617aed7a4), [TensorCore.PaperSpec.gemmCellObservation](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-c61a953641cc1967), [TensorCore.PaperSpec.matrixCell](docs/proofs/Gemm/Specification/Matrix.md#decl-0760d932c690b0cb), [TensorCore.PaperSpec.matrixPairs](docs/proofs/Gemm/Specification/Matrix.md#decl-a2b1744a02af852c), [TensorCore.PaperSpec.wmmaGemm](docs/proofs/Gemm/Specification/Matrix.md#decl-66a4e74e5f4e4b6c), [TensorCore.PaperSpec.wmmaModel](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-419ac65204c32de1), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.gemm](docs/proofs/Gemm/Defs.md#decl-9b05da03dbb16cdd), [TensorCore.gemmPairs](docs/proofs/Gemm/Defs.md#decl-5a2664b8ab0c94ef), [TensorCore.simulateGemmCell](docs/proofs/Gemm/Defs.md#decl-f667f4469749d691)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.PaperSpec.gemm_rejected_iff_paper</code></summary>
+
+[Lean source](TensorCore/Gemm/Specification/GemmEquivalence.lean#L158) · [Full dependency node](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-41f4521a2591b00c)
 
 ```lean
 theorem gemm_rejected_iff_paper (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
@@ -1402,52 +2417,63 @@ theorem gemm_rejected_iff_paper (model : WmmaGemmModel) (A : DenseMatrix F16 m k
   cases he : (gemm model A B C)[i.val][j.val] <;> simp [Except.toOption]
 ```
 
-**[TensorCore.PaperSpec.gemmBits_eq_paper](tensor-core/TensorCore/PaperSpec/GemmEquivalence.lean#L134)** (theorem; namespace `TensorCore.PaperSpec`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves equality of the raw FP16 GEMM output-bit matrices, with each failed cell
-represented as `none`.
+<details>
+<summary><code>TensorCore.PaperSpec.gemm_entry_eq_paper_iff</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-c3ea9f4e462f6e60)
 
 ```lean
-theorem gemmBits_eq_paper (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
-    (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) :
-    (gemmBits model A B C).map (fun row => row.map Except.toOption) =
-      wmmaGemmBits (wmmaModel model) A B C := by
-  rw [wmmaGemmBits, ← gemm_eq_paper]
-  apply Vector.ext
-  intro i hi
-  apply Vector.ext
-  intro j hj
-  simp only [gemmBits, Vector.getElem_map]
-  cases he : (gemm model A B C)[i][j] with
-  | error e => rfl
-  | ok cell => simp [Except.toOption, Except.map, gemmCellObservation_output]
+/-- Paper-side success yields an executable trace, and conversely. The nested
+trace retains every encoded boundary, rather than just the final value. -/
+theorem gemm_entry_eq_paper_iff (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
+    (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) (i : Fin m) (j : Fin n) (d : MatrixCell) :
+    (wmmaGemm (wmmaModel model) A B C)[i.val][j.val] = some d ↔
+      ∃ cell, (gemm model A B C)[i.val][j.val] = .ok cell ∧ gemmCellObservation cell = d
 ```
 
 </details>
 
 <details>
-<summary>C10. Native BF16/TF32 GEMM — Lean declarations</summary>
+<summary><code>TensorCore.PaperSpec.gemm_eq_paper</code></summary>
 
-**[TensorCore.NativeConvertedGemmAccurate](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean#L58)** (def; namespace `TensorCore`).
-
-Defines successful source-converted BF16/TF32 GEMM with every output entry within
-tolerance of the original source-value ideal.
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-5c9e12476c94c50c)
 
 ```lean
-def NativeConvertedGemmAccurate (source : Format) (mode : BinaryRoundingMode)
-    (model : NativeGemmModel precision) (cfg : GemmEpilogue) (alpha beta : F32)
-    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
-    (C : DenseMatrix F32 m n) (tol : Rat) : Prop :=
-  ∃ D, nativeConvertedGemm source mode model cfg alpha beta A B C = some D ∧
-    ∀ i : Fin m, ∀ j : Fin n, ∃ t z, D[i.val][j.val] = some t ∧
-      (sourceGemmIdeal source alpha beta A B C)[i.val][j.val] = some z ∧
-      absQ (z - t.output.value) ≤ tol
+/-- Universal matrix equality, including dimensions, output cropping, tail padding,
+initial C, every encoded group/instruction boundary, and rejection as none. -/
+theorem gemm_eq_paper (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
+    (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) :
+    (gemm model A B C).map (fun row => row.map fun cell =>
+      cell.toOption.map gemmCellObservation) = wmmaGemm (wmmaModel model) A B C
 ```
 
-**[TensorCore.PaperSpec.nativeGemm_eq_paper](tensor-core/TensorCore/PaperSpec/NativeGemmEquivalence.lean#L42)** (theorem; namespace `TensorCore.PaperSpec`).
+</details>
 
-Proves that raw BF16/TF32 GEMM cell observations and rejection agree with the
-independent specification for the selected native-precision schedule.
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.GemmCell](docs/proofs/Gemm/Defs.md#decl-36e8239d9f1fd59e), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PaperSpec.Matrix](docs/proofs/Gemm/Specification/Matrix.md#decl-0b93e30a9665e8db), [TensorCore.PaperSpec.MatrixCell](docs/proofs/Gemm/Specification/Matrix.md#decl-78b1933617aed7a4), [TensorCore.PaperSpec.gemmCellObservation](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-c61a953641cc1967), [TensorCore.PaperSpec.wmmaGemm](docs/proofs/Gemm/Specification/Matrix.md#decl-66a4e74e5f4e4b6c), [TensorCore.PaperSpec.wmmaModel](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-419ac65204c32de1), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.gemm](docs/proofs/Gemm/Defs.md#decl-9b05da03dbb16cdd)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C10. Native BF16/TF32 GEMM</summary>
+
+Raw `AB+C` and complete source-converted `alpha*AB+beta*C`, five schedules, FP32 C/output. All four conversion/scalar modes; independent equivalence includes every stage and rejection. Accepted input-only checks imply successful execution and error against original source values.
+
+<details>
+<summary><code>TensorCore.PaperSpec.nativeGemm_eq_paper</code></summary>
+
+[Lean source](TensorCore/Gemm/Specification/NativeGemmEquivalence.lean#L44) · [Full dependency node](docs/proofs/Gemm/Specification/NativeGemmEquivalence.md#decl-0c528c944d5eb808)
 
 ```lean
 theorem nativeGemm_eq_paper (model : NativeGemmModel p)
@@ -1464,15 +2490,43 @@ theorem nativeGemm_eq_paper (model : NativeGemmModel p)
   exact nativeGemmCell_eq_paper model (nativePairs A B ⟨i, hi⟩ ⟨j, hj⟩) C[i][j]
 ```
 
-**[TensorCore.nativeAnalysisCheck_sound](tensor-core/TensorCore/Programs/NativeGemm.lean#L199)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that an accepted native-precision GEMM analysis certificate guarantees successful
-cells and the requested error tolerance.
+<details>
+<summary><code>TensorCore.PaperSpec.nativeGemmCell_eq_paper</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/NativeGemmEquivalence.md#decl-ad9e45da7765a5c5)
+
+```lean
+theorem nativeGemmCell_eq_paper (model : NativeGemmModel p)
+    (pairs : List (NativeWord p × NativeWord p)) (c : F32) :
+    (nativeGemmCell model pairs c).map (fun cell => cell.blocks.map fun t => t.output.bits) =
+      nativeMatrixCell (parametersOf model.profile) p.inner pairs c
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](docs/proofs/Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.NativeGemmCell](docs/proofs/Gemm/NativeGemm.md#decl-7bd05491f02ceac8), [TensorCore.NativeGemmModel](docs/proofs/Gemm/NativeGemm.md#decl-a3abe0ff1ca91653), [TensorCore.NativeGemmModel.profile](docs/proofs/Gemm/NativeGemm.md#decl-55e737716812459e), [TensorCore.NativePrecision](docs/proofs/Gemm/NativeGemm.md#decl-1b7c099e42422b0b), [TensorCore.NativePrecision.inner](docs/proofs/Gemm/NativeGemm.md#decl-9b4f9f60884163ac), [TensorCore.NativeWord](docs/proofs/Gemm/NativeGemm.md#decl-adb4602de4a52395), [TensorCore.PaperSpec.Layout.width](docs/proofs/TC/Specification/Defs.md#decl-b7a731aa48165c61), [TensorCore.PaperSpec.Matrix](docs/proofs/Gemm/Specification/Matrix.md#decl-0b93e30a9665e8db), [TensorCore.PaperSpec.Parameters](docs/proofs/TC/Specification/Defs.md#decl-26a9e9dc96610178), [TensorCore.PaperSpec.nativeMatrix](docs/proofs/Gemm/Specification/NativeMatrix.md#decl-faec5dc99cdd0c6d), [TensorCore.PaperSpec.nativeMatrixCell](docs/proofs/Gemm/Specification/NativeMatrix.md#decl-a26286392090ff3e), [TensorCore.PaperSpec.parametersOf](docs/proofs/TC/Specification/Stages.md#decl-91b93bf798baf8df), [TensorCore.nativeGemm](docs/proofs/Gemm/NativeGemm.md#decl-0dc3f0675850245e), [TensorCore.nativeGemmCell](docs/proofs/Gemm/NativeGemm.md#decl-74e63a5f52eb41d5), [TensorCore.nativePairs](docs/proofs/Gemm/NativeGemm.md#decl-160e768b2358c84f)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.nativeAnalysisCheck_sound</code></summary>
+
+[Lean source](TensorCore/Gemm/NativeGemm.lean#L201) · [Full dependency node](docs/proofs/Gemm/NativeGemm.md#decl-f6bddcc98d97f99f)
 
 ```lean
 theorem nativeAnalysisCheck_sound (model : NativeGemmModel p) (A : DenseMatrix (NativeWord p) m k)
     (B : DenseMatrix (NativeWord p) k n) (C : DenseMatrix F32 m n)
-    (ws : DenseMatrix (List GroupWitness) m n) (tol : Rat)
+    (ws : DenseMatrix (List GroupWitness) m n) (tol : ℚ)
     (h : nativeAnalysisCheck model A B C ws tol = true) : NativeGemmAccurate model A B C tol := by
   simp only [nativeAnalysisCheck, Bool.and_eq_true, decide_eq_true_eq] at h
   intro i j
@@ -1486,11 +2540,40 @@ theorem nativeAnalysisCheck_sound (model : NativeGemmModel p) (A : DenseMatrix (
       by simp [nativeGemmIdeal, DenseMatrix.ofFn, hv, hp], Rat.le_trans he hc⟩
 ```
 
-**[TensorCore.PaperSpec.nativeConvertedGemm_eq_independent](tensor-core/TensorCore/PaperSpec/NativeScaledGemmEquivalence.lean#L65)** (theorem; namespace `TensorCore.PaperSpec`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves complete equivalence of source-converted BF16/TF32 GEMM with its independent
-specification, including source conversion, scalar stages, output conversion, and
-failures.
+<details>
+<summary><code>TensorCore.checkNativeCell_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/NativeGemm.md#decl-3d33153bf5b5dc40)
+
+```lean
+theorem checkNativeCell_sound (model : NativeGemmModel p) (xs : List (NativeWord p × NativeWord p))
+    (c : F32) (ws : List GroupWitness) (b : AnalysisBound) (h : checkNativeCell model xs c ws = some b) :
+    ∃ cell products, nativeGemmCell model xs c = some cell ∧
+      idealProducts model.profile xs = some products ∧ value32 c = some cell.initial.value ∧
+      absQ cell.output.value ≤ b.magnitude ∧
+      absQ (cell.initial.value + products - cell.output.value) ≤ b.error
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.AnalysisBound](docs/proofs/TC/Program/GroupAnalysis.md#decl-b8d00c6cb811c77e), [TensorCore.AnalysisBound.error](docs/proofs/TC/Program/GroupAnalysis.md#decl-51f6228293fd16fa), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.GroupWitness](docs/proofs/TC/Program/GroupAnalysis.md#decl-f08d46262601f09c), [TensorCore.NativeGemmAccurate](docs/proofs/Gemm/NativeGemm.md#decl-05565e34f54e5d74), [TensorCore.NativeGemmCell](docs/proofs/Gemm/NativeGemm.md#decl-7bd05491f02ceac8), [TensorCore.NativeGemmCell.output](docs/proofs/Gemm/NativeGemm.md#decl-270e5e5e51ac1063), [TensorCore.NativeGemmModel](docs/proofs/Gemm/NativeGemm.md#decl-a3abe0ff1ca91653), [TensorCore.NativeGemmModel.profile](docs/proofs/Gemm/NativeGemm.md#decl-55e737716812459e), [TensorCore.NativePrecision](docs/proofs/Gemm/NativeGemm.md#decl-1b7c099e42422b0b), [TensorCore.NativeWord](docs/proofs/Gemm/NativeGemm.md#decl-adb4602de4a52395), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.checkNativeCell](docs/proofs/Gemm/NativeGemm.md#decl-9b50e2e7318616a8), [TensorCore.idealProducts](docs/proofs/TC/Program/Defs.md#decl-5d908ac035267580), [TensorCore.nativeAnalysisCheck](docs/proofs/Gemm/NativeGemm.md#decl-10bee9068a09e5e3), [TensorCore.nativeGemm](docs/proofs/Gemm/NativeGemm.md#decl-0dc3f0675850245e), [TensorCore.nativeGemmCell](docs/proofs/Gemm/NativeGemm.md#decl-74e63a5f52eb41d5), [TensorCore.nativeGemmIdeal](docs/proofs/Gemm/NativeGemm.md#decl-b9b24fce99a6a8c6), [TensorCore.nativePairs](docs/proofs/Gemm/NativeGemm.md#decl-160e768b2358c84f), [TensorCore.value32](docs/proofs/Core/Encoding.md#decl-72aed83a98321df4)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.PaperSpec.nativeConvertedGemm_eq_independent</code></summary>
+
+[Lean source](TensorCore/Gemm/Specification/NativeScaledGemmEquivalence.lean#L67) · [Full dependency node](docs/proofs/Gemm/Specification/NativeScaledGemmEquivalence.md#decl-2e75264013becf7a)
 
 ```lean
 theorem nativeConvertedGemm_eq_independent (source : Format) (mode : BinaryRoundingMode)
@@ -1506,16 +2589,60 @@ theorem nativeConvertedGemm_eq_independent (source : Format) (mode : BinaryRound
     simp [bind, pure, nativeScaledGemm_eq_independent] <;> rfl
 ```
 
-**[TensorCore.nativeConvertedAnalysisCheck_paper](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean#L162)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-Transfers an accepted source-converted BF16/TF32 analysis certificate to successful
-independent-specification outputs with the requested source-relative error bound.
+<details>
+<summary><code>TensorCore.PaperSpec.convertMatrixToLayout_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/NativeScaledGemmEquivalence.md#decl-0c4aad986b36989b)
+
+```lean
+theorem convertMatrixToLayout_eq (source target : Format) (mode : BinaryRoundingMode)
+    (A : DenseMatrix (BitVec source.width) m n) :
+    convertMatrixToLayout (layoutOf source) (layoutOf target) (scalarModeOf mode) A =
+      convertMatrixTo source target mode A
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.PaperSpec.nativeScaledGemm_eq_independent</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/NativeScaledGemmEquivalence.md#decl-3e0fc41a9ec7970f)
+
+```lean
+theorem nativeScaledGemm_eq_independent (model : NativeGemmModel p) (cfg : GemmEpilogue)
+    (alpha beta : F32) (A : DenseMatrix (NativeWord p) m k) (B : DenseMatrix (NativeWord p) k n)
+    (C : DenseMatrix F32 m n) :
+    (nativeScaledGemm model cfg alpha beta A B C).map (fun row => row.map fun cell =>
+      cell.map scaledCellObservation) =
+      nativeScaledMatrix (parametersOf model.profile) p.inner (epilogueOf cfg) alpha beta A B C
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.GemmEpilogue](docs/proofs/Gemm/ScaledGemm.md#decl-88c6d32ebe9ea7bf), [TensorCore.NativeGemmModel](docs/proofs/Gemm/NativeGemm.md#decl-a3abe0ff1ca91653), [TensorCore.NativeGemmModel.products](docs/proofs/Gemm/NativeGemm.md#decl-ac6b62d5b4f2d47b), [TensorCore.NativeGemmModel.profile](docs/proofs/Gemm/NativeGemm.md#decl-55e737716812459e), [TensorCore.NativePrecision](docs/proofs/Gemm/NativeGemm.md#decl-1b7c099e42422b0b), [TensorCore.NativePrecision.format](docs/proofs/Gemm/NativeGemm.md#decl-837815a482deb8b3), [TensorCore.NativePrecision.inner](docs/proofs/Gemm/NativeGemm.md#decl-9b4f9f60884163ac), [TensorCore.PaperSpec.Layout.width](docs/proofs/TC/Specification/Defs.md#decl-b7a731aa48165c61), [TensorCore.PaperSpec.Matrix](docs/proofs/Gemm/Specification/Matrix.md#decl-0b93e30a9665e8db), [TensorCore.PaperSpec.Parameters](docs/proofs/TC/Specification/Defs.md#decl-26a9e9dc96610178), [TensorCore.PaperSpec.ScalarEpilogue](docs/proofs/Gemm/Specification/Scalar.md#decl-cf56fde55dfdad5a), [TensorCore.PaperSpec.ScalarStage](docs/proofs/Gemm/Specification/Scalar.md#decl-cd13f1ba691467e5), [TensorCore.PaperSpec.ScaledMatrixCell](docs/proofs/Gemm/Specification/Scalar.md#decl-1ccbb0740d01c0df), [TensorCore.PaperSpec.convertMatrixToLayout](docs/proofs/Gemm/Specification/NativeScaledMatrix.md#decl-ba133c7a4812ff93), [TensorCore.PaperSpec.epilogueOf](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-1e5f134635c2454c), [TensorCore.PaperSpec.layoutOf](docs/proofs/TC/Specification/Stages.md#decl-04255acd1d57f3f3), [TensorCore.PaperSpec.nativeConvertedMatrix](docs/proofs/Gemm/Specification/NativeScaledMatrix.md#decl-a193a5e500a7adca), [TensorCore.PaperSpec.nativeScaledMatrix](docs/proofs/Gemm/Specification/NativeScaledMatrix.md#decl-d8536b49742f0b76), [TensorCore.PaperSpec.parametersOf](docs/proofs/TC/Specification/Stages.md#decl-91b93bf798baf8df), [TensorCore.PaperSpec.scalarModeOf](docs/proofs/Gemm/Specification/ScalarRounding.md#decl-d2db74b0263bc16a), [TensorCore.PaperSpec.scaledCellObservation](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-a319b456fbf50ad5), [TensorCore.ScaledGemmCell](docs/proofs/Gemm/ScaledGemm.md#decl-37e2cfa554d68ad1), [TensorCore.convertMatrixTo](docs/proofs/Gemm/MatrixConversion.md#decl-ebb9bf1ec4c6ff34), [TensorCore.nativeConvertedGemm](docs/proofs/Gemm/NativeScaledGemm.md#decl-fffa475379689f33), [TensorCore.nativeScaledGemm](docs/proofs/Gemm/NativeScaledGemm.md#decl-727eddedc05f8257)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.nativeConvertedAnalysisCheck_paper</code></summary>
+
+[Lean source](TensorCore/Gemm/NativeConvertedAnalysis.lean#L164) · [Full dependency node](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-1f1d6e0e7d0c4faa)
 
 ```lean
 theorem nativeConvertedAnalysisCheck_paper (source : Format) (mode : BinaryRoundingMode)
     (model : NativeGemmModel precision) (cfg : GemmEpilogue) (alpha beta : F32)
     (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
-    (C : DenseMatrix F32 m n) (w : DenseMatrix ScaledWitness m n) (tol : Rat)
+    (C : DenseMatrix F32 m n) (w : DenseMatrix ScaledWitness m n) (tol : ℚ)
     (h : nativeConvertedAnalysisCheck source mode model cfg alpha beta A B C w tol = true) :
     ∃ D, PaperSpec.nativeConvertedMatrix (PaperSpec.layoutOf source) (PaperSpec.scalarModeOf mode)
         (PaperSpec.parametersOf model.profile) precision.inner (PaperSpec.epilogueOf cfg) alpha beta A B C = some D ∧
@@ -1533,10 +2660,58 @@ theorem nativeConvertedAnalysisCheck_paper (source : Format) (mode : BinaryRound
     · simp [PaperSpec.scaledCellObservation, binaryValue, t.output.valid, FiniteBinary.value]
 ```
 
-**[TensorCore.analyzeNativeConvertedGemm_matrix_error](tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean#L182)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-When every analysis cell succeeds and `D` and `Z` identify the computed and ideal
-matrices, bounds the sum of absolute entry errors by the summed inferred budgets.
+<details>
+<summary><code>TensorCore.PaperSpec.nativeConvertedGemm_eq_independent</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/NativeScaledGemmEquivalence.md#decl-2e75264013becf7a)
+
+```lean
+theorem nativeConvertedGemm_eq_independent (source : Format) (mode : BinaryRoundingMode)
+    (model : NativeGemmModel p) (cfg : GemmEpilogue) (alpha beta : F32)
+    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
+    (C : DenseMatrix F32 m n) :
+    (nativeConvertedGemm source mode model cfg alpha beta A B C).map
+      (fun D => D.map fun row => row.map fun cell => cell.map scaledCellObservation) =
+      nativeConvertedMatrix (layoutOf source) (scalarModeOf mode) (parametersOf model.profile)
+        p.inner (epilogueOf cfg) alpha beta A B C
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.nativeConvertedAnalysisCheck_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-bcd2971126fa98b6)
+
+```lean
+theorem nativeConvertedAnalysisCheck_sound (source : Format) (mode : BinaryRoundingMode)
+    (model : NativeGemmModel precision) (cfg : GemmEpilogue) (alpha beta : F32)
+    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
+    (C : DenseMatrix F32 m n) (w : DenseMatrix ScaledWitness m n) (tol : ℚ)
+    (h : nativeConvertedAnalysisCheck source mode model cfg alpha beta A B C w tol = true) :
+    NativeConvertedGemmAccurate source mode model cfg alpha beta A B C tol
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Classification.finite](docs/proofs/Core/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.Decoded](docs/proofs/Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](docs/proofs/Core/Defs.md#decl-c988858af545448a), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.FiniteBinary](docs/proofs/Core/Conversion.md#decl-819c01227290b53b), [TensorCore.FiniteBinary.value](docs/proofs/Core/Conversion.md#decl-91103d704c4a7c32), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.GemmEpilogue](docs/proofs/Gemm/ScaledGemm.md#decl-88c6d32ebe9ea7bf), [TensorCore.NativeConvertedGemmAccurate](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-ea71efe82ee92d2a), [TensorCore.NativeGemmModel](docs/proofs/Gemm/NativeGemm.md#decl-a3abe0ff1ca91653), [TensorCore.NativeGemmModel.profile](docs/proofs/Gemm/NativeGemm.md#decl-55e737716812459e), [TensorCore.NativePrecision](docs/proofs/Gemm/NativeGemm.md#decl-1b7c099e42422b0b), [TensorCore.NativePrecision.inner](docs/proofs/Gemm/NativeGemm.md#decl-9b4f9f60884163ac), [TensorCore.PaperSpec.Matrix](docs/proofs/Gemm/Specification/Matrix.md#decl-0b93e30a9665e8db), [TensorCore.PaperSpec.ScalarEpilogue](docs/proofs/Gemm/Specification/Scalar.md#decl-cf56fde55dfdad5a), [TensorCore.PaperSpec.ScalarStage](docs/proofs/Gemm/Specification/Scalar.md#decl-cd13f1ba691467e5), [TensorCore.PaperSpec.ScaledMatrixCell](docs/proofs/Gemm/Specification/Scalar.md#decl-1ccbb0740d01c0df), [TensorCore.PaperSpec.epilogueOf](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-1e5f134635c2454c), [TensorCore.PaperSpec.layoutOf](docs/proofs/TC/Specification/Stages.md#decl-04255acd1d57f3f3), [TensorCore.PaperSpec.nativeConvertedMatrix](docs/proofs/Gemm/Specification/NativeScaledMatrix.md#decl-a193a5e500a7adca), [TensorCore.PaperSpec.parametersOf](docs/proofs/TC/Specification/Stages.md#decl-91b93bf798baf8df), [TensorCore.PaperSpec.scalarModeOf](docs/proofs/Gemm/Specification/ScalarRounding.md#decl-d2db74b0263bc16a), [TensorCore.PaperSpec.scaledCellObservation](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-a319b456fbf50ad5), [TensorCore.ScaledGemmCell](docs/proofs/Gemm/ScaledGemm.md#decl-37e2cfa554d68ad1), [TensorCore.ScaledWitness](docs/proofs/Gemm/ScaledGemmAnalysis.md#decl-689b6d14860c84bb), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.analyzeNativeConvertedGemm](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-c0dcde0fbb1acc93), [TensorCore.binaryValue](docs/proofs/Core/Binary/RoundOp.md#decl-45dceb4f1deb9b75), [TensorCore.classify](docs/proofs/Core/Encoding.md#decl-793c375a3325b7e3), [TensorCore.nativeConvertedAnalysisCheck](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-5abbeacff71576c1), [TensorCore.nativeConvertedGemm](docs/proofs/Gemm/NativeScaledGemm.md#decl-fffa475379689f33), [TensorCore.sourceGemmIdeal](docs/proofs/Gemm/InputBounds.md#decl-f22289384470bd38)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.analyzeNativeConvertedGemm_matrix_error</code></summary>
+
+[Lean source](TensorCore/Gemm/NativeConvertedAnalysis.lean#L184) · [Full dependency node](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-9e1e0b7ef35671a4)
 
 ```lean
 theorem analyzeNativeConvertedGemm_matrix_error (source : Format) (mode : BinaryRoundingMode)
@@ -1545,7 +2720,7 @@ theorem analyzeNativeConvertedGemm_matrix_error (source : Format) (mode : Binary
     (C : DenseMatrix F32 m n) (cells : DenseMatrix (Option ScaledAnalysis) m n)
     (h : analyzeNativeConvertedGemm source mode model cfg alpha beta A B C = some cells)
     (hcells : ∀ i : Fin m, ∀ j : Fin n, ∃ cell, cells[i.val][j.val] = some cell)
-    (D Z : DenseMatrix Rat m n)
+    (D Z : DenseMatrix ℚ m n)
     (hd : ∀ out, nativeConvertedGemm source mode model cfg alpha beta A B C = some out →
       ∀ i : Fin m, ∀ j : Fin n, ∀ t, out[i.val][j.val] = some t → D[i.val][j.val] = t.output.value)
     (hz : ∀ i : Fin m, ∀ j : Fin n,
@@ -1572,49 +2747,90 @@ theorem analyzeNativeConvertedGemm_matrix_error (source : Format) (mode : Binary
       simpa [DenseMatrix.ofFn, pipelineEntryBounds, hcell, hd _ hr i j t ht] using he
 ```
 
-**[TensorCore.PaperSpec.nativeScaledGemm_eq_independent](tensor-core/TensorCore/PaperSpec/NativeScaledGemmEquivalence.lean#L31)** (theorem; namespace `TensorCore.PaperSpec`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves complete equivalence of the BF16/TF32 scaled pipeline and its independent
-specification, including the separately rounded scalar epilogue and rejection.
+<details>
+<summary><code>TensorCore.analyzeNativeConvertedGemm_checked</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-94b16087f568439c)
 
 ```lean
-theorem nativeScaledGemm_eq_independent (model : NativeGemmModel p) (cfg : GemmEpilogue)
-    (alpha beta : F32) (A : DenseMatrix (NativeWord p) m k) (B : DenseMatrix (NativeWord p) k n)
-    (C : DenseMatrix F32 m n) :
-    (nativeScaledGemm model cfg alpha beta A B C).map (fun row => row.map fun cell =>
-      cell.map scaledCellObservation) =
-      nativeScaledMatrix (parametersOf model.profile) p.inner (epilogueOf cfg) alpha beta A B C := by
-  apply Vector.ext
-  intro i hi
-  apply Vector.ext
-  intro j hj
-  simp only [nativeScaledGemm, nativeScaledMatrix, DenseMatrix.ofFn, Vector.getElem_map, Vector.getElem_ofFn]
-  change ((nativeProductCell model (nativePairs A B ⟨i, hi⟩ ⟨j, hj⟩)).bind
-    (gemmEpilogue cfg alpha beta C[i][j])).map scaledCellObservation =
-    ((nativeProductMatrixCell (parametersOf model.profile) p.inner (nativePairs A B ⟨i, hi⟩ ⟨j, hj⟩)).bind
-      (scalarEpilogue (epilogueOf cfg) alpha beta C[i][j]))
-  calc
-    _ = ((nativeProductCell model (nativePairs A B ⟨i, hi⟩ ⟨j, hj⟩)).map gemmCellObservation).bind
-        (scalarEpilogue (epilogueOf cfg) alpha beta C[i][j]) := by
-      cases nativeProductCell model (nativePairs A B ⟨i, hi⟩ ⟨j, hj⟩) with
-      | none => rfl
-      | some product => exact (scalarEpilogue_eq cfg alpha beta C[i][j] product).symm
-    _ = _ := congrArg (fun product : Option MatrixCell => product.bind
-      (scalarEpilogue (epilogueOf cfg) alpha beta C[i][j]))
-      (nativeProductCell_eq_independent model (nativePairs A B ⟨i, hi⟩ ⟨j, hj⟩))
+theorem analyzeNativeConvertedGemm_checked (source : Format) (mode : BinaryRoundingMode)
+    (model : NativeGemmModel precision) (cfg : GemmEpilogue) (alpha beta : F32)
+    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
+    (C : DenseMatrix F32 m n) (cells : DenseMatrix (Option ScaledAnalysis) m n)
+    (h : analyzeNativeConvertedGemm source mode model cfg alpha beta A B C = some cells)
+    (a : DenseMatrix (NativeWord precision) m k) (b : DenseMatrix (NativeWord precision) k n)
+    (ha : convertMatrixTo source precision.format mode A = some a) (hb : convertMatrixTo source precision.format mode B = some b)
+    (i : Fin m) (j : Fin n) (cell : ScaledAnalysis) (hc : cells[i.val][j.val] = some cell) :
+    checkNativeConvertedCell source mode model cfg alpha beta C[i.val][j.val]
+      (nativePairs a b i j) (sourceGemmPairs source A B i j) cell.witness = some cell.bound
 ```
 
 </details>
 
 <details>
-<summary>C11. Complete scaled FP16 GEMM — Lean declarations</summary>
+<summary><code>TensorCore.checkNativeConvertedCell_sound</code></summary>
 
-**[TensorCore.PaperSpec.convertedGemm_eq_independent](tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean#L131)** (theorem; namespace `TensorCore.PaperSpec`).
-
-Proves equivalence of the full source-converted FP16 pipeline and its independent
-specification, including every conversion, scalar stage, and failure.
+[Expand this proof and its dependencies](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-fe18412a5491e109)
 
 ```lean
+theorem checkNativeConvertedCell_sound (source : Format) (mode : BinaryRoundingMode)
+    (model : NativeGemmModel precision) (cfg : GemmEpilogue) (alpha beta : F32)
+    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
+    (C : DenseMatrix F32 m n) (a : DenseMatrix (NativeWord precision) m k) (b : DenseMatrix (NativeWord precision) k n)
+    (ha : convertMatrixTo source precision.format mode A = some a) (hb : convertMatrixTo source precision.format mode B = some b)
+    (i : Fin m) (j : Fin n) (w : ScaledWitness) (bound : PipelineBound)
+    (h : checkNativeConvertedCell source mode model cfg alpha beta C[i.val][j.val]
+      (nativePairs a b i j) (sourceGemmPairs source A B i j) w = some bound) :
+    ∃ t z, (nativeScaledGemm model cfg alpha beta a b C)[i.val][j.val] = some t ∧
+      (sourceGemmIdeal source alpha beta A B C)[i.val][j.val] = some z ∧
+      absQ t.output.value ≤ bound.magnitude ∧ absQ (z - t.output.value) ≤ bound.error
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.matrixAbsSum_le_entry_bounds</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/InputBounds.md#decl-46e7ff540915c07d)
+
+```lean
+/-- Sum varying entry budgets, rather than multiplying by a worst-case entry. -/
+theorem matrixAbsSum_le_entry_bounds (X E : DenseMatrix ℚ m n)
+    (h : ∀ i : Fin m, ∀ j : Fin n, absQ X[i.val][j.val] ≤ E[i.val][j.val]) :
+    matrixAbsSum X ≤ matrixAbsSum E
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.DenseMatrix.ofFn](docs/proofs/Gemm/Matrix.md#decl-5bd40ba4904179d3), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.FiniteBinary.value](docs/proofs/Core/Conversion.md#decl-91103d704c4a7c32), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.GemmEpilogue](docs/proofs/Gemm/ScaledGemm.md#decl-88c6d32ebe9ea7bf), [TensorCore.NativeGemmModel](docs/proofs/Gemm/NativeGemm.md#decl-a3abe0ff1ca91653), [TensorCore.NativePrecision](docs/proofs/Gemm/NativeGemm.md#decl-1b7c099e42422b0b), [TensorCore.NativePrecision.format](docs/proofs/Gemm/NativeGemm.md#decl-837815a482deb8b3), [TensorCore.PipelineBound](docs/proofs/Gemm/ScaledGemmAnalysis.md#decl-6cb812882dfa62f2), [TensorCore.PipelineBound.error](docs/proofs/Gemm/ScaledGemmAnalysis.md#decl-7e75458ed410184c), [TensorCore.ScaledAnalysis](docs/proofs/Gemm/ScaledGemmAnalysis.md#decl-e3e466f30da2b9b7), [TensorCore.ScaledGemmCell](docs/proofs/Gemm/ScaledGemm.md#decl-37e2cfa554d68ad1), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.analyzeNativeConvertedGemm](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-c0dcde0fbb1acc93), [TensorCore.analyzeNativeScaledCell](docs/proofs/Gemm/NativeScaledGemm.md#decl-00cd2688fa55eadc), [TensorCore.checkNativeConvertedCell](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-391b325129d3f272), [TensorCore.convertMatrixTo](docs/proofs/Gemm/MatrixConversion.md#decl-ebb9bf1ec4c6ff34), [TensorCore.matrixAbsSum](docs/proofs/Gemm/Bounds.md#decl-3500b8a4ffeefc9e), [TensorCore.nativeConvertedGemm](docs/proofs/Gemm/NativeScaledGemm.md#decl-fffa475379689f33), [TensorCore.nativePairs](docs/proofs/Gemm/NativeGemm.md#decl-160e768b2358c84f), [TensorCore.nativeScaledGemm](docs/proofs/Gemm/NativeScaledGemm.md#decl-727eddedc05f8257), [TensorCore.nativeSourceAnalysisCell](docs/proofs/Gemm/NativeConvertedAnalysis.md#decl-1fde80241417645a), [TensorCore.pipelineEntryBounds](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-2800a71c520f2518), [TensorCore.sourceGemmIdeal](docs/proofs/Gemm/InputBounds.md#decl-f22289384470bd38), [TensorCore.sourceGemmPairs](docs/proofs/Gemm/InputBounds.md#decl-2fa90183da38c041)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C11. Complete scaled FP16 GEMM</summary>
+
+Source conversion to FP16, tensor-core product, separately rounded FP32 alpha/beta products and addition, then output conversion. Independent equivalence includes every stage and rejection without assuming execution success.
+
+<details>
+<summary><code>TensorCore.PaperSpec.convertedGemm_eq_independent</code></summary>
+
+[Lean source](TensorCore/Gemm/Specification/ScaledGemmEquivalence.lean#L131) · [Full dependency node](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-cf7e09c03287eb25)
+
+```lean
+/-- Complete source-format pipeline equality, including whole-input-conversion
+failure and per-entry scalar/tensor-core failure. Empty dimensions remain explicit. -/
 theorem convertedGemm_eq_independent (source : Format) (inputMode : BinaryRoundingMode)
     (model : WmmaGemmModel) (cfg : GemmEpilogue) (alpha beta : F32)
     (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
@@ -1628,12 +2844,58 @@ theorem convertedGemm_eq_independent (source : Format) (inputMode : BinaryRoundi
     simp [bind, pure, scaledGemm_eq_independent] <;> rfl
 ```
 
-**[TensorCore.PaperSpec.scaledGemm_eq_independent](tensor-core/TensorCore/PaperSpec/ScaledGemmEquivalence.lean#L69)** (theorem; namespace `TensorCore.PaperSpec`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves equivalence of the scaled FP16 GEMM pipeline and its independent specification,
-including the tensor product, scalar epilogue, output conversion, and failure cases.
+<details>
+<summary><code>TensorCore.PaperSpec.convertMatrix_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-6abc23999fbbbae3)
 
 ```lean
+theorem convertMatrix_eq (source : Format) (mode : BinaryRoundingMode)
+    (A : DenseMatrix (BitVec source.width) m n) :
+    convertMatrix (layoutOf source) (scalarModeOf mode) A = convertGemmInput source mode A
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.PaperSpec.scaledGemm_eq_independent</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-fcea418441d43028)
+
+```lean
+/-- Every encoded product and scalar boundary agrees, for all input matrices.
+No certificate, execution-success, range, or stage-correctness premise. -/
+theorem scaledGemm_eq_independent (model : WmmaGemmModel) (cfg : GemmEpilogue)
+    (alpha beta : F32) (A : DenseMatrix F16 m k) (B : DenseMatrix F16 k n)
+    (C : DenseMatrix F32 m n) :
+    (scaledGemm model cfg alpha beta A B C).map (fun row => row.map fun cell =>
+      cell.map scaledCellObservation) = scaledMatrix (wmmaModel model) (epilogueOf cfg) alpha beta A B C
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.GemmEpilogue](docs/proofs/Gemm/ScaledGemm.md#decl-88c6d32ebe9ea7bf), [TensorCore.PaperSpec.Matrix](docs/proofs/Gemm/Specification/Matrix.md#decl-0b93e30a9665e8db), [TensorCore.PaperSpec.ScalarEpilogue](docs/proofs/Gemm/Specification/Scalar.md#decl-cf56fde55dfdad5a), [TensorCore.PaperSpec.ScalarStage](docs/proofs/Gemm/Specification/Scalar.md#decl-cd13f1ba691467e5), [TensorCore.PaperSpec.ScaledMatrixCell](docs/proofs/Gemm/Specification/Scalar.md#decl-1ccbb0740d01c0df), [TensorCore.PaperSpec.convertMatrix](docs/proofs/Gemm/Specification/Scalar.md#decl-c0712e73fc64ca5f), [TensorCore.PaperSpec.convertedMatrix](docs/proofs/Gemm/Specification/Scalar.md#decl-e146d465c52d904e), [TensorCore.PaperSpec.epilogueOf](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-1e5f134635c2454c), [TensorCore.PaperSpec.layoutOf](docs/proofs/TC/Specification/Stages.md#decl-04255acd1d57f3f3), [TensorCore.PaperSpec.scalarModeOf](docs/proofs/Gemm/Specification/ScalarRounding.md#decl-d2db74b0263bc16a), [TensorCore.PaperSpec.scaledCellObservation](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-a319b456fbf50ad5), [TensorCore.PaperSpec.scaledMatrix](docs/proofs/Gemm/Specification/Scalar.md#decl-eb73cbc06da59e62), [TensorCore.PaperSpec.wmmaModel](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-419ac65204c32de1), [TensorCore.ScaledGemmCell](docs/proofs/Gemm/ScaledGemm.md#decl-37e2cfa554d68ad1), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.convertGemmInput](docs/proofs/Gemm/ScaledGemm.md#decl-02d35e3c713c1e24), [TensorCore.convertedGemm](docs/proofs/Gemm/ScaledGemm.md#decl-f354aa226c12ed99), [TensorCore.scaledGemm](docs/proofs/Gemm/ScaledGemm.md#decl-aee47dc0721f3c2d)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.PaperSpec.scaledGemm_eq_independent</code></summary>
+
+[Lean source](TensorCore/Gemm/Specification/ScaledGemmEquivalence.lean#L69) · [Full dependency node](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-fcea418441d43028)
+
+```lean
+/-- Every encoded product and scalar boundary agrees, for all input matrices.
+No certificate, execution-success, range, or stage-correctness premise. -/
 theorem scaledGemm_eq_independent (model : WmmaGemmModel) (cfg : GemmEpilogue)
     (alpha beta : F32) (A : DenseMatrix F16 m k) (B : DenseMatrix F16 k n)
     (C : DenseMatrix F32 m n) :
@@ -1657,49 +2919,65 @@ theorem scaledGemm_eq_independent (model : WmmaGemmModel) (cfg : GemmEpilogue)
   | ok product => exact (scalarEpilogue_eq cfg alpha beta C[i][j] product).symm
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.PaperSpec.gemm_eq_paper</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-5c9e12476c94c50c)
+
+```lean
+/-- Universal matrix equality, including dimensions, output cropping, tail padding,
+initial C, every encoded group/instruction boundary, and rejection as none. -/
+theorem gemm_eq_paper (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
+    (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) :
+    (gemm model A B C).map (fun row => row.map fun cell =>
+      cell.toOption.map gemmCellObservation) = wmmaGemm (wmmaModel model) A B C
+```
+
 </details>
 
 <details>
-<summary>C12. Input-derived error certificates — Lean declarations</summary>
+<summary><code>TensorCore.PaperSpec.scalarEpilogue_eq</code></summary>
 
-**[TensorCore.GemmAccurate](tensor-core/TensorCore/Programs/GemmAnalysis.lean#L77)** (def; namespace `TensorCore`).
-
-Defines raw GEMM accuracy by requiring successful execution and a defined ideal at every
-output entry, with each absolute error within tolerance.
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-80f754dc80ca34eb)
 
 ```lean
-def GemmAccurate (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
-    (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) (tolerance : Rat) : Prop :=
-  ∀ i : Fin m, ∀ j : Fin n, ∃ cell z,
-    (gemm model A B C)[i.val][j.val] = .ok cell ∧
-    (gemmIdeal A B C)[i.val][j.val] = some z ∧ absQ (z - cell.output.value) ≤ tolerance
+theorem scalarEpilogue_eq (cfg : GemmEpilogue) (alpha beta c : F32) (product : GemmCell) :
+    scalarEpilogue (epilogueOf cfg) alpha beta c (gemmCellObservation product) =
+      (gemmEpilogue cfg alpha beta c product).map scaledCellObservation
 ```
 
-**[TensorCore.ConvertedGemmAccurate](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean#L44)** (def; namespace `TensorCore`).
+</details>
 
-Defines successful source-converted FP16 GEMM with each output entry within tolerance of
-the ideal computed from the original source values.
+</details>
 
-```lean
-def ConvertedGemmAccurate (source : Format) (mode : BinaryRoundingMode)
-    (model : WmmaGemmModel) (cfg : GemmEpilogue) (alpha beta : F32)
-    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
-    (C : DenseMatrix F32 m n) (tol : Rat) : Prop :=
-  ∃ D, convertedGemm source mode model cfg alpha beta A B C = some D ∧
-    ∀ i : Fin m, ∀ j : Fin n, ∃ t z, D[i.val][j.val] = some t ∧
-      (sourceGemmIdeal source alpha beta A B C)[i.val][j.val] = some z ∧
-      absQ (z - t.output.value) ≤ tol
-```
+<details>
+<summary>Definitions and types</summary>
 
-**[TensorCore.gemmAnalysisCheck_sound](tensor-core/TensorCore/Programs/GemmAnalysis.lean#L83)** (theorem; namespace `TensorCore`).
+[TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.DenseMatrix.ofFn](docs/proofs/Gemm/Matrix.md#decl-5bd40ba4904179d3), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.GemmCell](docs/proofs/Gemm/Defs.md#decl-36e8239d9f1fd59e), [TensorCore.GemmEpilogue](docs/proofs/Gemm/ScaledGemm.md#decl-88c6d32ebe9ea7bf), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PaperSpec.Matrix](docs/proofs/Gemm/Specification/Matrix.md#decl-0b93e30a9665e8db), [TensorCore.PaperSpec.MatrixCell](docs/proofs/Gemm/Specification/Matrix.md#decl-78b1933617aed7a4), [TensorCore.PaperSpec.ScalarEpilogue](docs/proofs/Gemm/Specification/Scalar.md#decl-cf56fde55dfdad5a), [TensorCore.PaperSpec.ScalarStage](docs/proofs/Gemm/Specification/Scalar.md#decl-cd13f1ba691467e5), [TensorCore.PaperSpec.ScaledMatrixCell](docs/proofs/Gemm/Specification/Scalar.md#decl-1ccbb0740d01c0df), [TensorCore.PaperSpec.epilogueOf](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-1e5f134635c2454c), [TensorCore.PaperSpec.gemmCellObservation](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-c61a953641cc1967), [TensorCore.PaperSpec.layoutOf](docs/proofs/TC/Specification/Stages.md#decl-04255acd1d57f3f3), [TensorCore.PaperSpec.scalarEpilogue](docs/proofs/Gemm/Specification/Scalar.md#decl-f83371a35c17d449), [TensorCore.PaperSpec.scaledCellObservation](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-a319b456fbf50ad5), [TensorCore.PaperSpec.scaledMatrix](docs/proofs/Gemm/Specification/Scalar.md#decl-eb73cbc06da59e62), [TensorCore.PaperSpec.wmmaGemm](docs/proofs/Gemm/Specification/Matrix.md#decl-66a4e74e5f4e4b6c), [TensorCore.PaperSpec.wmmaModel](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-419ac65204c32de1), [TensorCore.ScaledGemmCell](docs/proofs/Gemm/ScaledGemm.md#decl-37e2cfa554d68ad1), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.gemm](docs/proofs/Gemm/Defs.md#decl-9b05da03dbb16cdd), [TensorCore.gemmEpilogue](docs/proofs/Gemm/ScaledGemm.md#decl-830c6be1cd273929), [TensorCore.scaledGemm](docs/proofs/Gemm/ScaledGemm.md#decl-aee47dc0721f3c2d)
 
-Proves that an accepted raw FP16 GEMM analysis certificate guarantees the entrywise
-accuracy predicate, including successful execution.
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C12. Input-derived error certificates</summary>
+
+Acceptance proves successful execution and error relative to original decoded inputs, including conversion perturbations and scalar stages. Per-entry bounds sum to a matrix absolute-entry-sum bound. Inference is conservative.
+
+<details>
+<summary><code>TensorCore.gemmAnalysisCheck_sound</code></summary>
+
+[Lean source](TensorCore/Gemm/Analysis.lean#L85) · [Full dependency node](docs/proofs/Gemm/Analysis.md#decl-9853d7ce970a5d1d)
 
 ```lean
 theorem gemmAnalysisCheck_sound (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
     (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n)
-    (witness : DenseMatrix (List GroupWitness) m n) (tolerance : Rat)
+    (witness : DenseMatrix (List GroupWitness) m n) (tolerance : ℚ)
     (h : gemmAnalysisCheck model A B C witness tolerance = true) :
     GemmAccurate model A B C tolerance := by
   simp only [gemmAnalysisCheck, Bool.and_eq_true, decide_eq_true_eq] at h
@@ -1715,16 +2993,69 @@ theorem gemmAnalysisCheck_sound (model : WmmaGemmModel) (A : DenseMatrix F16 m k
     · simp [gemmIdeal, DenseMatrix.ofFn, hv, hp]
 ```
 
-**[TensorCore.convertedAnalysisCheck_paper](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean#L150)** (theorem; namespace `TensorCore`).
+```mermaid
+flowchart TD
+  root["gemmAnalysisCheck_sound"]
+  p0["checkGemmCell_sound"]
+  root --> p0
+  p1["gemm_entry"]
+  root --> p1
+```
 
-Transfers an accepted source-converted FP16 analysis certificate to successful
-independent-specification outputs and the requested source-relative error bound.
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.checkGemmCell_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Analysis.md#decl-623f3bbd7dca9d5a)
+
+```lean
+theorem checkGemmCell_sound (model : WmmaGemmModel) (pairs : List (F16 × F16)) (c : F32)
+    (ws : List GroupWitness) (b : AnalysisBound) (h : checkGemmCell model pairs c ws = some b) :
+    ∃ cell products, simulateGemmCell model pairs c = .ok cell ∧
+      idealProducts v100F16F32 pairs = some products ∧ value32 c = some cell.initial.value ∧
+      absQ cell.output.value ≤ b.magnitude ∧
+      absQ (cell.initial.value + products - cell.output.value) ≤ b.error
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.gemm_entry</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Defs.md#decl-e24588ca0d6e9549)
+
+```lean
+@[simp] theorem gemm_entry (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
+    (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) (i : Fin m) (j : Fin n) :
+    (gemm model A B C)[i.val][j.val] =
+      simulateGemmCell model (gemmPairs A B i j) C[i.val][j.val]
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.AnalysisBound](docs/proofs/TC/Program/GroupAnalysis.md#decl-b8d00c6cb811c77e), [TensorCore.AnalysisBound.error](docs/proofs/TC/Program/GroupAnalysis.md#decl-51f6228293fd16fa), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.GemmAccurate](docs/proofs/Gemm/Analysis.md#decl-3560e57078a6df2b), [TensorCore.GemmCell](docs/proofs/Gemm/Defs.md#decl-36e8239d9f1fd59e), [TensorCore.GemmCell.output](docs/proofs/Gemm/Defs.md#decl-d8688321b8d2ae7f), [TensorCore.GroupWitness](docs/proofs/TC/Program/GroupAnalysis.md#decl-f08d46262601f09c), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.analyzeGemm](docs/proofs/Gemm/Analysis.md#decl-8b640af4e4509e78), [TensorCore.checkGemmCell](docs/proofs/Gemm/Analysis.md#decl-b2d9a6ca1b8ee691), [TensorCore.gemm](docs/proofs/Gemm/Defs.md#decl-9b05da03dbb16cdd), [TensorCore.gemmAnalysisCheck](docs/proofs/Gemm/Analysis.md#decl-6640feb1a0c523f2), [TensorCore.gemmIdeal](docs/proofs/Gemm/Defs.md#decl-1f55842952d81ccc), [TensorCore.gemmPairs](docs/proofs/Gemm/Defs.md#decl-5a2664b8ab0c94ef), [TensorCore.idealProducts](docs/proofs/TC/Program/Defs.md#decl-5d908ac035267580), [TensorCore.simulateGemmCell](docs/proofs/Gemm/Defs.md#decl-f667f4469749d691), [TensorCore.v100F16F32](docs/proofs/TC/Defs.md#decl-71711e48d14142e0), [TensorCore.value32](docs/proofs/Core/Encoding.md#decl-72aed83a98321df4)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.convertedAnalysisCheck_paper</code></summary>
+
+[Lean source](TensorCore/Gemm/ConvertedGemmAnalysis.lean#L152) · [Full dependency node](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-6a4213fedaaf8e39)
 
 ```lean
 theorem convertedAnalysisCheck_paper (source : Format) (mode : BinaryRoundingMode)
     (model : WmmaGemmModel) (cfg : GemmEpilogue) (alpha beta : F32)
     (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
-    (C : DenseMatrix F32 m n) (w : DenseMatrix ScaledWitness m n) (tol : Rat)
+    (C : DenseMatrix F32 m n) (w : DenseMatrix ScaledWitness m n) (tol : ℚ)
     (h : convertedAnalysisCheck source mode model cfg alpha beta A B C w tol = true) :
     ∃ D, PaperSpec.convertedMatrix (PaperSpec.layoutOf source) (PaperSpec.scalarModeOf mode)
         (PaperSpec.wmmaModel model) (PaperSpec.epilogueOf cfg) alpha beta A B C = some D ∧
@@ -1742,10 +3073,60 @@ theorem convertedAnalysisCheck_paper (source : Format) (mode : BinaryRoundingMod
     · simp [PaperSpec.scaledCellObservation, binaryValue, t.output.valid, FiniteBinary.value]
 ```
 
-**[TensorCore.analyzeConvertedGemm_matrix_error](tensor-core/TensorCore/Programs/ConvertedGemmAnalysis.lean#L173)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-With successful analysis at every cell and matrices identifying actual and ideal values,
-bounds the total absolute entry error by the inferred entry budgets.
+<details>
+<summary><code>TensorCore.PaperSpec.convertedGemm_eq_independent</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-cf7e09c03287eb25)
+
+```lean
+/-- Complete source-format pipeline equality, including whole-input-conversion
+failure and per-entry scalar/tensor-core failure. Empty dimensions remain explicit. -/
+theorem convertedGemm_eq_independent (source : Format) (inputMode : BinaryRoundingMode)
+    (model : WmmaGemmModel) (cfg : GemmEpilogue) (alpha beta : F32)
+    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
+    (C : DenseMatrix F32 m n) :
+    (convertedGemm source inputMode model cfg alpha beta A B C).map
+      (fun D => D.map fun row => row.map fun cell => cell.map scaledCellObservation) =
+      convertedMatrix (layoutOf source) (scalarModeOf inputMode) (wmmaModel model)
+        (epilogueOf cfg) alpha beta A B C
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.convertedAnalysisCheck_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-4fef0511ab9972bb)
+
+```lean
+theorem convertedAnalysisCheck_sound (source : Format) (mode : BinaryRoundingMode)
+    (model : WmmaGemmModel) (cfg : GemmEpilogue) (alpha beta : F32)
+    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
+    (C : DenseMatrix F32 m n) (w : DenseMatrix ScaledWitness m n) (tol : ℚ)
+    (h : convertedAnalysisCheck source mode model cfg alpha beta A B C w tol = true) :
+    ConvertedGemmAccurate source mode model cfg alpha beta A B C tol
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Classification.finite](docs/proofs/Core/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.ConvertedGemmAccurate](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-63f5f66fca4e28d5), [TensorCore.Decoded](docs/proofs/Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](docs/proofs/Core/Defs.md#decl-c988858af545448a), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.FiniteBinary](docs/proofs/Core/Conversion.md#decl-819c01227290b53b), [TensorCore.FiniteBinary.value](docs/proofs/Core/Conversion.md#decl-91103d704c4a7c32), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.GemmEpilogue](docs/proofs/Gemm/ScaledGemm.md#decl-88c6d32ebe9ea7bf), [TensorCore.PaperSpec.Matrix](docs/proofs/Gemm/Specification/Matrix.md#decl-0b93e30a9665e8db), [TensorCore.PaperSpec.ScalarEpilogue](docs/proofs/Gemm/Specification/Scalar.md#decl-cf56fde55dfdad5a), [TensorCore.PaperSpec.ScalarStage](docs/proofs/Gemm/Specification/Scalar.md#decl-cd13f1ba691467e5), [TensorCore.PaperSpec.ScaledMatrixCell](docs/proofs/Gemm/Specification/Scalar.md#decl-1ccbb0740d01c0df), [TensorCore.PaperSpec.convertedMatrix](docs/proofs/Gemm/Specification/Scalar.md#decl-e146d465c52d904e), [TensorCore.PaperSpec.epilogueOf](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-1e5f134635c2454c), [TensorCore.PaperSpec.layoutOf](docs/proofs/TC/Specification/Stages.md#decl-04255acd1d57f3f3), [TensorCore.PaperSpec.scalarModeOf](docs/proofs/Gemm/Specification/ScalarRounding.md#decl-d2db74b0263bc16a), [TensorCore.PaperSpec.scaledCellObservation](docs/proofs/Gemm/Specification/ScaledGemmEquivalence.md#decl-a319b456fbf50ad5), [TensorCore.PaperSpec.wmmaModel](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-419ac65204c32de1), [TensorCore.ScaledGemmCell](docs/proofs/Gemm/ScaledGemm.md#decl-37e2cfa554d68ad1), [TensorCore.ScaledWitness](docs/proofs/Gemm/ScaledGemmAnalysis.md#decl-689b6d14860c84bb), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.analyzeConvertedGemm](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-373563c7ab17b86a), [TensorCore.binaryValue](docs/proofs/Core/Binary/RoundOp.md#decl-45dceb4f1deb9b75), [TensorCore.classify](docs/proofs/Core/Encoding.md#decl-793c375a3325b7e3), [TensorCore.convertedAnalysisCheck](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-bc39b43acd1fa4bf), [TensorCore.convertedGemm](docs/proofs/Gemm/ScaledGemm.md#decl-f354aa226c12ed99), [TensorCore.sourceGemmIdeal](docs/proofs/Gemm/InputBounds.md#decl-f22289384470bd38)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.analyzeConvertedGemm_matrix_error</code></summary>
+
+[Lean source](TensorCore/Gemm/ConvertedGemmAnalysis.lean#L175) · [Full dependency node](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-ed9b066ca6295243)
 
 ```lean
 theorem analyzeConvertedGemm_matrix_error (source : Format) (mode : BinaryRoundingMode)
@@ -1754,7 +3135,7 @@ theorem analyzeConvertedGemm_matrix_error (source : Format) (mode : BinaryRoundi
     (C : DenseMatrix F32 m n) (cells : DenseMatrix (Option ScaledAnalysis) m n)
     (h : analyzeConvertedGemm source mode model cfg alpha beta A B C = some cells)
     (hcells : ∀ i : Fin m, ∀ j : Fin n, ∃ cell, cells[i.val][j.val] = some cell)
-    (D Z : DenseMatrix Rat m n)
+    (D Z : DenseMatrix ℚ m n)
     (hd : ∀ out, convertedGemm source mode model cfg alpha beta A B C = some out →
       ∀ i : Fin m, ∀ j : Fin n, ∀ t, out[i.val][j.val] = some t → D[i.val][j.val] = t.output.value)
     (hz : ∀ i : Fin m, ∀ j : Fin n,
@@ -1781,31 +3162,130 @@ theorem analyzeConvertedGemm_matrix_error (source : Format) (mode : BinaryRoundi
       simpa [DenseMatrix.ofFn, pipelineEntryBounds, hcell, hd _ hr i j t ht] using he
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.analyzeConvertedGemm_checked</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-3e25466cb1f5da5e)
+
+```lean
+theorem analyzeConvertedGemm_checked (source : Format) (mode : BinaryRoundingMode)
+    (model : WmmaGemmModel) (cfg : GemmEpilogue) (alpha beta : F32)
+    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
+    (C : DenseMatrix F32 m n) (cells : DenseMatrix (Option ScaledAnalysis) m n)
+    (h : analyzeConvertedGemm source mode model cfg alpha beta A B C = some cells)
+    (a : DenseMatrix F16 m k) (b : DenseMatrix F16 k n)
+    (ha : convertGemmInput source mode A = some a) (hb : convertGemmInput source mode B = some b)
+    (i : Fin m) (j : Fin n) (cell : ScaledAnalysis) (hc : cells[i.val][j.val] = some cell) :
+    checkConvertedCell source mode model cfg alpha beta C[i.val][j.val]
+      (gemmPairs a b i j) (sourceGemmPairs source A B i j) cell.witness = some cell.bound
+```
+
 </details>
 
 <details>
-<summary>C13. Tighter bounds — Lean declarations</summary>
+<summary><code>TensorCore.checkConvertedCell_sound</code></summary>
 
-**[TensorCore.scaledGemmTightError_le](tensor-core/TensorCore/Programs/GemmTightBounds.lean#L147)** (theorem; namespace `TensorCore`).
+[Expand this proof and its dependencies](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-aacb76261a0f16bf)
 
-Proves that the tighter scaled FP16 GEMM error budget is no larger than the earlier
-budget for the same configuration.
+```lean
+theorem checkConvertedCell_sound (source : Format) (mode : BinaryRoundingMode)
+    (model : WmmaGemmModel) (cfg : GemmEpilogue) (alpha beta : F32)
+    (A : DenseMatrix (BitVec source.width) m k) (B : DenseMatrix (BitVec source.width) k n)
+    (C : DenseMatrix F32 m n) (a : DenseMatrix F16 m k) (b : DenseMatrix F16 k n)
+    (ha : convertGemmInput source mode A = some a) (hb : convertGemmInput source mode B = some b)
+    (i : Fin m) (j : Fin n) (w : ScaledWitness) (bound : PipelineBound)
+    (h : checkConvertedCell source mode model cfg alpha beta C[i.val][j.val]
+      (gemmPairs a b i j) (sourceGemmPairs source A B i j) w = some bound) :
+    ∃ t z, (scaledGemm model cfg alpha beta a b C)[i.val][j.val] = some t ∧
+      (sourceGemmIdeal source alpha beta A B C)[i.val][j.val] = some z ∧
+      absQ t.output.value ≤ bound.magnitude ∧ absQ (z - t.output.value) ≤ bound.error
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.matrixAbsSum_le_entry_bounds</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/InputBounds.md#decl-46e7ff540915c07d)
+
+```lean
+/-- Sum varying entry budgets, rather than multiplying by a worst-case entry. -/
+theorem matrixAbsSum_le_entry_bounds (X E : DenseMatrix ℚ m n)
+    (h : ∀ i : Fin m, ∀ j : Fin n, absQ X[i.val][j.val] ≤ E[i.val][j.val]) :
+    matrixAbsSum X ≤ matrixAbsSum E
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.DenseMatrix.ofFn](docs/proofs/Gemm/Matrix.md#decl-5bd40ba4904179d3), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.FiniteBinary.value](docs/proofs/Core/Conversion.md#decl-91103d704c4a7c32), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.GemmEpilogue](docs/proofs/Gemm/ScaledGemm.md#decl-88c6d32ebe9ea7bf), [TensorCore.PipelineBound](docs/proofs/Gemm/ScaledGemmAnalysis.md#decl-6cb812882dfa62f2), [TensorCore.PipelineBound.error](docs/proofs/Gemm/ScaledGemmAnalysis.md#decl-7e75458ed410184c), [TensorCore.ScaledAnalysis](docs/proofs/Gemm/ScaledGemmAnalysis.md#decl-e3e466f30da2b9b7), [TensorCore.ScaledGemmCell](docs/proofs/Gemm/ScaledGemm.md#decl-37e2cfa554d68ad1), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.analyzeConvertedGemm](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-373563c7ab17b86a), [TensorCore.analyzeScaledCell](docs/proofs/Gemm/ScaledGemmAnalysis.md#decl-41a297c61c8a49d2), [TensorCore.checkConvertedCell](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-f8060bc8fd76f1ba), [TensorCore.convertGemmInput](docs/proofs/Gemm/ScaledGemm.md#decl-02d35e3c713c1e24), [TensorCore.convertedGemm](docs/proofs/Gemm/ScaledGemm.md#decl-f354aa226c12ed99), [TensorCore.gemmPairs](docs/proofs/Gemm/Defs.md#decl-5a2664b8ab0c94ef), [TensorCore.matrixAbsSum](docs/proofs/Gemm/Bounds.md#decl-3500b8a4ffeefc9e), [TensorCore.pipelineEntryBounds](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-2800a71c520f2518), [TensorCore.scaledGemm](docs/proofs/Gemm/ScaledGemm.md#decl-aee47dc0721f3c2d), [TensorCore.sourceAnalysisCell](docs/proofs/Gemm/ConvertedGemmAnalysis.md#decl-9df6da962c5020b7), [TensorCore.sourceGemmIdeal](docs/proofs/Gemm/InputBounds.md#decl-f22289384470bd38), [TensorCore.sourceGemmPairs](docs/proofs/Gemm/InputBounds.md#decl-2fa90183da38c041)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C13. Tighter bounds</summary>
+
+Tighter scalar/input budgets are proved no larger than the earlier budgets. Finite multiplication by ±1 and addition with a zero-magnitude operand receive zero rounding error in every mode.
+
+<details>
+<summary><code>TensorCore.scaledGemmTightError_le</code></summary>
+
+[Lean source](TensorCore/Gemm/TightBounds.lean#L147) · [Full dependency node](docs/proofs/Gemm/TightBounds.md#decl-75e41d5600ed7daf)
 
 ```lean
 theorem scaledGemmTightError_le (model : WmmaGemmModel) (cfg : GemmEpilogue)
-    (b : ScaledGemmBoundConfig) (alpha : F32) (k : Nat) :
+    (b : ScaledGemmBoundConfig) (alpha : F32) (k : ℕ) :
     scaledGemmTightError model cfg b alpha k ≤ scaledGemmStaticError model cfg b alpha k := by
   have := scaledGemmTightScalarBudget_le cfg b
   unfold scaledGemmTightError scaledGemmStaticError
   grind
 ```
 
-**[TensorCore.gemmInputPairTightError_le](tensor-core/TensorCore/Programs/GemmTightInputBounds.lean#L58)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that the tighter input-conversion error budget for one product is no larger than
-the earlier budget.
+<details>
+<summary><code>TensorCore.scaledGemmTightScalarBudget_le</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/TightBounds.md#decl-e47a9cfbc68a88aa)
 
 ```lean
+/-- The new scalar budget is never larger, for any mixture of rounding modes. -/
+theorem scaledGemmTightScalarBudget_le (cfg : GemmEpilogue) (b : ScaledGemmBoundConfig) :
+    scaledGemmTightScalarBudget cfg b ≤ scaledGemmScalarBudget cfg b
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.GemmEpilogue](docs/proofs/Gemm/ScaledGemm.md#decl-88c6d32ebe9ea7bf), [TensorCore.ScaledGemmBoundConfig](docs/proofs/Gemm/ScaledGemmBounds.md#decl-ed7a52391e93046c), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.gemmStaticError](docs/proofs/Gemm/Bounds.md#decl-f2b1a703f1fc6bcf), [TensorCore.scaledGemmScalarBudget](docs/proofs/Gemm/ScaledGemmBounds.md#decl-c3595866ddc74b7a), [TensorCore.scaledGemmStaticError](docs/proofs/Gemm/ScaledGemmBounds.md#decl-8510b7f8fc18dc85), [TensorCore.scaledGemmTightError](docs/proofs/Gemm/TightBounds.md#decl-4ac591737d634082), [TensorCore.scaledGemmTightScalarBudget](docs/proofs/Gemm/TightBounds.md#decl-0f32a9163e5eb52b), [TensorCore.value32](docs/proofs/Core/Encoding.md#decl-72aed83a98321df4)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.gemmInputPairTightError_le</code></summary>
+
+[Lean source](TensorCore/Gemm/TightInputBounds.lean#L58) · [Full dependency node](docs/proofs/Gemm/TightInputBounds.md#decl-8ffbd0992c010ee1)
+
+```lean
+/-- The tighter perturbation budget never exceeds the previous cross-term bound. -/
 theorem gemmInputPairTightError_le (a b : GemmInputDatum) :
     gemmInputPairTightError a b ≤ gemmInputPairError a b := by
   have hb := absQ_add_le b.value (b.converted - b.value)
@@ -1817,16 +3297,62 @@ theorem gemmInputPairTightError_le (a b : GemmInputDatum) :
   split <;> grind
 ```
 
-**[TensorCore.checkFiniteMultiply_sound](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean#L8)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-For any finite FP32 operand within the supplied magnitude cap, an accepted
-multiplication check guarantees a rounded result within its reported magnitude and error
-bounds.
+<details>
+<summary><code>TensorCore.absQ_add_le</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-5c1117bc0bcece80)
 
 ```lean
-theorem checkFiniteMultiply_sound (mode : BinaryRoundingMode) (a M : Rat) (E : Int)
+theorem absQ_add_le (x y : ℚ) : absQ (x + y) ≤ absQ x + absQ y
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.absQ_nonneg</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-137ea017d6c4d0cd)
+
+```lean
+theorem absQ_nonneg (x : ℚ) : 0 ≤ absQ x
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.absQ_sub_comm</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-a632fad01d9c884a)
+
+```lean
+theorem absQ_sub_comm (x y : ℚ) : absQ (x - y) = absQ (y - x)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.GemmInputDatum](docs/proofs/Gemm/InputBounds.md#decl-8b1ea358e6bcaa87), [TensorCore.GemmInputDatum.error](docs/proofs/Gemm/InputBounds.md#decl-8d5afe3c429da546), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.gemmInputPairError](docs/proofs/Gemm/InputBounds.md#decl-85a247fb58310475), [TensorCore.gemmInputPairTightError](docs/proofs/Gemm/TightInputBounds.md#decl-1a5881f86db47f83)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.checkFiniteMultiply_sound</code></summary>
+
+[Lean source](TensorCore/Gemm/ExactScalarAnalysis.lean#L10) · [Full dependency node](docs/proofs/Gemm/ExactScalarAnalysis.md#decl-77bbe6e519422fdb)
+
+```lean
+theorem checkFiniteMultiply_sound (mode : BinaryRoundingMode) (a M : ℚ) (E : ℤ)
     (b : ScalarBound) (h : checkFiniteMultiply mode a M E = some b)
-    (x : Rat) (hf : fp32.FiniteValue x) (hx : absQ x ≤ M) :
+    (x : ℚ) (hf : fp32.FiniteValue x) (hx : absQ x ≤ M) :
     ∃ d, (ConversionStage.mk fp32 mode).convert (a * x) = some d ∧
       absQ d.value ≤ b.magnitude ∧ absQ (a * x - d.value) ≤ b.error := by
   unfold checkFiniteMultiply at h
@@ -1847,13 +3373,98 @@ theorem checkFiniteMultiply_sound (mode : BinaryRoundingMode) (a M : Rat) (E : I
       exact Rat.mul_le_mul_of_nonneg_left hx (absQ_nonneg a))
 ```
 
-**[TensorCore.checkFiniteAdd_sound](tensor-core/TensorCore/Programs/ExactScalarAnalysis.lean#L33)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-For finite FP32 operands within the supplied caps, an accepted addition check guarantees
-a rounded result within its reported magnitude and error bounds.
+<details>
+<summary><code>TensorCore.Format.finiteValue_neg</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/CorrectRounding.md#decl-31d0c738bfc17cd1)
 
 ```lean
-theorem checkFiniteAdd_sound (mode : BinaryRoundingMode) (A B : Rat) (E : Int)
+theorem Format.finiteValue_neg (f : Format) {y : ℚ} (h : f.FiniteValue y) :
+    f.FiniteValue (-y)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.absQ_neg</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-5fcbb1ea121d8a53)
+
+```lean
+theorem absQ_neg (x : ℚ) : absQ (-x) = absQ x
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.absQ_nonneg</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-137ea017d6c4d0cd)
+
+```lean
+theorem absQ_nonneg (x : ℚ) : 0 ≤ absQ x
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.checkScalar_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/ScalarAnalysis.md#decl-fde6315e382f7314)
+
+```lean
+theorem checkScalar_sound (s : ConversionStage) (M : ℚ) (E : ℤ) (b : ScalarBound)
+    (h : checkScalar s M E = some b) (x : ℚ) (hx : absQ x ≤ M) :
+    ∃ d, s.convert x = some d ∧ absQ d.value ≤ b.magnitude ∧ absQ (x - d.value) ≤ b.error
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.conversion_exact_value</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/ScalarAnalysis.md#decl-4af01d3e1e19ed79)
+
+```lean
+theorem conversion_exact_value (s : ConversionStage) (hf : s.format.WellFormed)
+    (x : ℚ) (hx : s.format.FiniteValue x) :
+    ∃ d, s.convert x = some d ∧ d.value = x
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.gemmAbs_mul</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/ScaledGemm.md#decl-be05cc60206155ae)
+
+```lean
+theorem gemmAbs_mul (x y : ℚ) : absQ (x * y) = absQ x * absQ y
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.ConversionStage.convert](docs/proofs/Core/Conversion.md#decl-5e2170b37d7e10f7), [TensorCore.FiniteBinary](docs/proofs/Core/Conversion.md#decl-819c01227290b53b), [TensorCore.FiniteBinary.value](docs/proofs/Core/Conversion.md#decl-91103d704c4a7c32), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.FiniteValue](docs/proofs/Core/Defs.md#decl-e3dc9cecad983d99), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.ScalarBound](docs/proofs/Gemm/ScalarAnalysis.md#decl-4226e8a52e034c11), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.checkFiniteMultiply](docs/proofs/Gemm/ExactScalarAnalysis.md#decl-9da785799450b67e), [TensorCore.checkScalar](docs/proofs/Gemm/ScalarAnalysis.md#decl-96e8393f74f6c382), [TensorCore.fp32](docs/proofs/Core/Defs.md#decl-1a6343dd8d7b7ab4)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.checkFiniteAdd_sound</code></summary>
+
+[Lean source](TensorCore/Gemm/ExactScalarAnalysis.lean#L35) · [Full dependency node](docs/proofs/Gemm/ExactScalarAnalysis.md#decl-21c48024d8e4f9e0)
+
+```lean
+theorem checkFiniteAdd_sound (mode : BinaryRoundingMode) (A B : ℚ) (E : ℤ)
     (b : ScalarBound) (h : checkFiniteAdd mode A B E = some b)
     (x y : FiniteBinary fp32) (hx : absQ x.value ≤ A) (hy : absQ y.value ≤ B) :
     ∃ d, (ConversionStage.mk fp32 mode).convert (x.value + y.value) = some d ∧
@@ -1878,39 +3489,96 @@ theorem checkFiniteAdd_sound (mode : BinaryRoundingMode) (A B : Rat) (E : Int)
   next _ => exact checkScalar_sound _ _ _ b h _ hm
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.absQ_add_le</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-5c1117bc0bcece80)
+
+```lean
+theorem absQ_add_le (x y : ℚ) : absQ (x + y) ≤ absQ x + absQ y
+```
+
 </details>
 
 <details>
-<summary>C14. Quantified families — Lean declarations</summary>
+<summary><code>TensorCore.absQ_le_iff</code></summary>
 
-**[TensorCore.GemmFamilyAccurate](tensor-core/TensorCore/Programs/GemmFamily.lean#L132)** (def; namespace `TensorCore`).
-
-Defines accuracy for every matrix triple satisfying the family's uniform finite-value
-magnitude caps.
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-3513a75c8e3035b2)
 
 ```lean
-def GemmFamilyAccurate (model : WmmaGemmModel) (f : GemmFamily) (m n k : Nat) (tol : Rat) : Prop :=
-  ∀ (A : DenseMatrix F16 m k) (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n),
-    f.Contains A B C → GemmAccurate model A B C tol
+theorem absQ_le_iff (x c : ℚ) : absQ x ≤ c ↔ -c ≤ x ∧ x ≤ c
 ```
 
-**[TensorCore.EntryFamilyAccurate](tensor-core/TensorCore/Programs/EntryFamily.lean#L50)** (def; namespace `TensorCore`).
+</details>
 
-Defines accuracy for every matrix triple satisfying the family's individual entry caps.
+<details>
+<summary><code>TensorCore.checkScalar_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/ScalarAnalysis.md#decl-fde6315e382f7314)
 
 ```lean
-def EntryFamilyAccurate (model : WmmaGemmModel) (f : EntryFamily m n k) (tol : Rat) : Prop :=
-  ∀ A B C, f.Contains A B C → GemmAccurate model A B C tol
+theorem checkScalar_sound (s : ConversionStage) (M : ℚ) (E : ℤ) (b : ScalarBound)
+    (h : checkScalar s M E = some b) (x : ℚ) (hx : absQ x ≤ M) :
+    ∃ d, s.convert x = some d ∧ absQ d.value ≤ b.magnitude ∧ absQ (x - d.value) ≤ b.error
 ```
 
-**[TensorCore.familyCheck_sound](tensor-core/TensorCore/Programs/GemmFamily.lean#L136)** (theorem; namespace `TensorCore`).
+</details>
 
-Proves that one accepted uniform-family certificate guarantees the requested GEMM
-accuracy for every member of that family.
+<details>
+<summary><code>TensorCore.classifyNat_finiteValue</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/Encoding.md#decl-1caf128b0fdea826)
+
+```lean
+/-- Every finite decoded value of a well-formed format has the arithmetic form. -/
+theorem classifyNat_finiteValue (f : Format) (hf : f.WellFormed) (n : ℕ) (d : Decoded)
+    (h : (classifyNat f n).finite = some d) : f.FiniteValue d.value
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.conversion_exact_value</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/ScalarAnalysis.md#decl-4af01d3e1e19ed79)
+
+```lean
+theorem conversion_exact_value (s : ConversionStage) (hf : s.format.WellFormed)
+    (x : ℚ) (hx : s.format.FiniteValue x) :
+    ∃ d, s.convert x = some d ∧ d.value = x
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](docs/proofs/Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.ConversionStage.convert](docs/proofs/Core/Conversion.md#decl-5e2170b37d7e10f7), [TensorCore.FiniteBinary](docs/proofs/Core/Conversion.md#decl-819c01227290b53b), [TensorCore.FiniteBinary.value](docs/proofs/Core/Conversion.md#decl-91103d704c4a7c32), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.FiniteValue](docs/proofs/Core/Defs.md#decl-e3dc9cecad983d99), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.ScalarBound](docs/proofs/Gemm/ScalarAnalysis.md#decl-4226e8a52e034c11), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.checkFiniteAdd](docs/proofs/Gemm/ExactScalarAnalysis.md#decl-6c901d609e08abd9), [TensorCore.checkScalar](docs/proofs/Gemm/ScalarAnalysis.md#decl-96e8393f74f6c382), [TensorCore.fp32](docs/proofs/Core/Defs.md#decl-1a6343dd8d7b7ab4)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C14. Quantified families</summary>
+
+One accepted witness covers every finite FP16 A/B and FP32 C matrix satisfying uniform or per-entry magnitude caps. Per-entry analysis uses row/column maxima; zero caps permit both zero encodings.
+
+<details>
+<summary><code>TensorCore.familyCheck_sound</code></summary>
+
+[Lean source](TensorCore/Gemm/Family.lean#L138) · [Full dependency node](docs/proofs/Gemm/Family.md#decl-f329ec5471dc4d5e)
 
 ```lean
 theorem familyCheck_sound (model : WmmaGemmModel) (f : GemmFamily) (cfg : GemmBoundConfig)
-    (m n k : Nat) (tol : Rat) (h : familyCheck model k f cfg tol = true) :
+    (m n k : ℕ) (tol : ℚ) (h : familyCheck model k f cfg tol = true) :
     GemmFamilyAccurate model f m n k tol := by
   simp only [familyCheck, Bool.and_eq_true, Bool.or_eq_true, beq_iff_eq, decide_eq_true_eq] at h
   intro A B C hmem i j
@@ -1937,31 +3605,133 @@ theorem familyCheck_sound (model : WmmaGemmModel) (f : GemmFamily) (cfg : GemmBo
     simpa [familyError, hk] using h.2
 ```
 
-**[TensorCore.entryFamilyCheck_sound](tensor-core/TensorCore/Programs/EntryFamily.lean#L84)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that an accepted set of per-cell family witnesses guarantees accuracy for every
-matrix triple satisfying the entry caps.
+<details>
+<summary><code>TensorCore.familyConditions_gemmCheck</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Family.md#decl-56c849a6d64aa7bf)
+
+```lean
+theorem familyConditions_gemmCheck (model : WmmaGemmModel) (f : GemmFamily)
+    (cfg : GemmBoundConfig) (A : DenseMatrix F16 m k) (B : DenseMatrix F16 k n)
+    (C : DenseMatrix F32 m n) (hf : familyConditions model k f cfg = true)
+    (h : f.Contains A B C) : gemmCheck model cfg A B C = true
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.finite32_of_value32</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Encoding.md#decl-e85cafbe6e246ed5)
+
+```lean
+theorem finite32_of_value32 (b : F32) (v : ℚ) (h : value32 b = some v) :
+    ∃ f : Finite32, finite32 b = some f ∧ f.bits = b ∧ f.value = v
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.gemmCheck_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Bounds.md#decl-3d79dbcc8fc2e521)
+
+```lean
+/-- A successful certificate guarantees every logical output exists and meets a
+uniform error bound. Neither model acceptance nor a trace is a premise. -/
+theorem gemmCheck_sound (model : WmmaGemmModel) (cfg : GemmBoundConfig)
+    (A : DenseMatrix F16 m k) (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n)
+    (h : gemmCheck model cfg A B C = true) (i : Fin m) (j : Fin n) :
+    ∃ cell z, (gemm model A B C)[i.val][j.val] = .ok cell ∧
+      (gemmIdeal A B C)[i.val][j.val] = some z ∧
+      absQ (z - cell.output.value) ≤ gemmStaticError model cfg k
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.gemm_entry</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Defs.md#decl-e24588ca0d6e9549)
+
+```lean
+@[simp] theorem gemm_entry (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
+    (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) (i : Fin m) (j : Fin n) :
+    (gemm model A B C)[i.val][j.val] =
+      simulateGemmCell model (gemmPairs A B i j) C[i.val][j.val]
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BlockOperands](docs/proofs/TC/Program/Defs.md#decl-f76df1e9b7515342), [TensorCore.BlockTrace](docs/proofs/TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.Classification.finite](docs/proofs/Core/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.Decoded](docs/proofs/Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](docs/proofs/Core/Defs.md#decl-c988858af545448a), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](docs/proofs/Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.GemmBoundConfig](docs/proofs/Gemm/Bounds.md#decl-67b679b61e10d595), [TensorCore.GemmCell](docs/proofs/Gemm/Defs.md#decl-36e8239d9f1fd59e), [TensorCore.GemmCell.output](docs/proofs/Gemm/Defs.md#decl-d8688321b8d2ae7f), [TensorCore.GemmFamily](docs/proofs/Gemm/Family.md#decl-af56fb1d41ab54f1), [TensorCore.GemmFamily.Contains](docs/proofs/Gemm/Family.md#decl-eaee8494d54b2afc), [TensorCore.GemmFamilyAccurate](docs/proofs/Gemm/Family.md#decl-6a51b2e27db67ff4), [TensorCore.MatrixWithin](docs/proofs/Gemm/Family.md#decl-71221945e17a1cdc), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.OrderedPartition](docs/proofs/TC/Program/DotProduct.md#decl-282172656fc8b089), [TensorCore.Profile](docs/proofs/TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](docs/proofs/TC/Defs.md#decl-3bca3de3cb04fb71), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.WmmaGemmModel.path](docs/proofs/Gemm/Defs.md#decl-860954743cbdf9bb), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.analyzeGemm](docs/proofs/Gemm/Analysis.md#decl-8b640af4e4509e78), [TensorCore.canonicalPartition](docs/proofs/TC/Program/Partition.md#decl-7e49132d90b040d5), [TensorCore.classify](docs/proofs/Core/Encoding.md#decl-793c375a3325b7e3), [TensorCore.decode32](docs/proofs/Core/Encoding.md#decl-a4001029898e709f), [TensorCore.familyCheck](docs/proofs/Gemm/Family.md#decl-43a043749bf35c52), [TensorCore.familyConditions](docs/proofs/Gemm/Family.md#decl-b456e480e468a315), [TensorCore.familyError](docs/proofs/Gemm/Family.md#decl-966b1b857128f203), [TensorCore.finite32](docs/proofs/Core/Encoding.md#decl-82d0e30146423be5), [TensorCore.fp16](docs/proofs/Core/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.fp16Fp32Profile](docs/proofs/TC/CanonicalDefs.md#decl-00203670fbae3212), [TensorCore.fp32](docs/proofs/Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.gemm](docs/proofs/Gemm/Defs.md#decl-9b05da03dbb16cdd), [TensorCore.gemmCheck](docs/proofs/Gemm/Bounds.md#decl-6dd15d2054647056), [TensorCore.gemmIdeal](docs/proofs/Gemm/Defs.md#decl-1f55842952d81ccc), [TensorCore.gemmInstructions](docs/proofs/Gemm/Defs.md#decl-20dedfe15b3a55c3), [TensorCore.gemmPairs](docs/proofs/Gemm/Defs.md#decl-5a2664b8ab0c94ef), [TensorCore.gemmStaticError](docs/proofs/Gemm/Bounds.md#decl-f2b1a703f1fc6bcf), [TensorCore.groupCount](docs/proofs/TC/Program/Partition.md#decl-b7760ff5c737d355), [TensorCore.idealProducts](docs/proofs/TC/Program/Defs.md#decl-5d908ac035267580), [TensorCore.padFp16Pairs](docs/proofs/TC/Program/Partition.md#decl-69dc55e3030be48b), [TensorCore.partitionExact](docs/proofs/TC/Program/Partition.md#decl-4082e3bf596a58d7), [TensorCore.runGemmInstructions](docs/proofs/Gemm/Defs.md#decl-fa58899497fedd29), [TensorCore.simulateGemmCell](docs/proofs/Gemm/Defs.md#decl-f667f4469749d691), [TensorCore.v100F16F32](docs/proofs/TC/Defs.md#decl-71711e48d14142e0), [TensorCore.value32](docs/proofs/Core/Encoding.md#decl-72aed83a98321df4)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.entryFamilyCheck_sound</code></summary>
+
+[Lean source](TensorCore/Gemm/EntryFamily.lean#L86) · [Full dependency node](docs/proofs/Gemm/EntryFamily.md#decl-5ccddaa83f68c97e)
 
 ```lean
 theorem entryFamilyCheck_sound (model : WmmaGemmModel) (f : EntryFamily m n k)
-    (ws : DenseMatrix GemmBoundConfig m n) (tol : Rat)
+    (ws : DenseMatrix GemmBoundConfig m n) (tol : ℚ)
     (h : entryFamilyCheck model f ws tol = true) : EntryFamilyAccurate model f tol := by
   simp only [entryFamilyCheck, Bool.and_eq_true, decide_eq_true_eq] at h
   intro A B C hm i j
   exact entryFamily_cell_sound model f A B C hm i j ws[i.val][j.val] tol (h.2 i j)
 ```
 
-**[TensorCore.entryFamilyCheck_matrix_error](tensor-core/TensorCore/Programs/EntryFamily.lean#L91)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-For an accepted entry-family certificate and any member matrices, bounds total absolute
-entry error by the sum of the family error budgets.
+<details>
+<summary><code>TensorCore.entryFamily_cell_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/EntryFamily.md#decl-b68ab7db018b70c1)
+
+```lean
+theorem entryFamily_cell_sound (model : WmmaGemmModel) (f : EntryFamily m n k)
+    (A : DenseMatrix F16 m k) (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n)
+    (hm : f.Contains A B C) (i : Fin m) (j : Fin n) (cfg : GemmBoundConfig) (tol : ℚ)
+    (h : familyCheck model k (f.cell i j) cfg tol = true) :
+    ∃ cell z, (gemm model A B C)[i.val][j.val] = .ok cell ∧
+      (gemmIdeal A B C)[i.val][j.val] = some z ∧ absQ (z - cell.output.value) ≤ tol
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.EntryFamily](docs/proofs/Gemm/EntryFamily.md#decl-36d7465bd66a40c1), [TensorCore.EntryFamily.Contains](docs/proofs/Gemm/EntryFamily.md#decl-28a8fff314d8cbd1), [TensorCore.EntryFamily.cell](docs/proofs/Gemm/EntryFamily.md#decl-33fd8cf1e08ae145), [TensorCore.EntryFamilyAccurate](docs/proofs/Gemm/EntryFamily.md#decl-22c40ef3de1a8d0f), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.GemmBoundConfig](docs/proofs/Gemm/Bounds.md#decl-67b679b61e10d595), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.entryFamilyCheck](docs/proofs/Gemm/EntryFamily.md#decl-83587c4b60dbe91d), [TensorCore.familyCheck](docs/proofs/Gemm/Family.md#decl-43a043749bf35c52)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.entryFamilyCheck_matrix_error</code></summary>
+
+[Lean source](TensorCore/Gemm/EntryFamily.lean#L93) · [Full dependency node](docs/proofs/Gemm/EntryFamily.md#decl-989115036d6b8544)
 
 ```lean
 theorem entryFamilyCheck_matrix_error (model : WmmaGemmModel) (f : EntryFamily m n k)
-    (ws : DenseMatrix GemmBoundConfig m n) (tol : Rat)
+    (ws : DenseMatrix GemmBoundConfig m n) (tol : ℚ)
     (h : entryFamilyCheck model f ws tol = true)
     (A : DenseMatrix F16 m k) (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n)
-    (hm : f.Contains A B C) (D Z : DenseMatrix Rat m n)
+    (hm : f.Contains A B C) (D Z : DenseMatrix ℚ m n)
     (hd : ∀ i : Fin m, ∀ j : Fin n, ∀ cell,
       (gemm model A B C)[i.val][j.val] = .ok cell → D[i.val][j.val] = cell.output.value)
     (hz : ∀ i : Fin m, ∀ j : Fin n, (gemmIdeal A B C)[i.val][j.val] = some Z[i.val][j.val]) :
@@ -1977,80 +3747,207 @@ theorem entryFamilyCheck_matrix_error (model : WmmaGemmModel) (f : EntryFamily m
   simpa [DenseMatrix.ofFn, hd i j cell hr] using he
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.entryFamily_cell_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/EntryFamily.md#decl-b68ab7db018b70c1)
+
+```lean
+theorem entryFamily_cell_sound (model : WmmaGemmModel) (f : EntryFamily m n k)
+    (A : DenseMatrix F16 m k) (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n)
+    (hm : f.Contains A B C) (i : Fin m) (j : Fin n) (cfg : GemmBoundConfig) (tol : ℚ)
+    (h : familyCheck model k (f.cell i j) cfg tol = true) :
+    ∃ cell z, (gemm model A B C)[i.val][j.val] = .ok cell ∧
+      (gemmIdeal A B C)[i.val][j.val] = some z ∧ absQ (z - cell.output.value) ≤ tol
+```
+
 </details>
 
 <details>
-<summary>C15. Certified decisions — Lean declarations</summary>
+<summary><code>TensorCore.familyCheck_at_bound</code></summary>
 
-**[TensorCore.GemmProblem.Accurate](tensor-core/TensorCore/Programs/GemmSelection.lean#L41)** (def; namespace `TensorCore`).
-
-Selects the accuracy contract appropriate to a workload: raw, converted, quantified
-family, or native-precision GEMM.
+[Expand this proof and its dependencies](docs/proofs/Gemm/Family.md#decl-d941bddfda43e9d1)
 
 ```lean
-def GemmProblem.Accurate (p : GemmProblem m n k) (c : GemmCandidate) (tol : Rat) : Prop :=
-  match p with
-  | .raw A B C => GemmAccurate c.model A B C tol
-  | .scaled source alpha beta A B C =>
-    ConvertedGemmAccurate source c.inputMode c.model c.epilogue alpha beta A B C tol
-  | .family f => GemmFamilyAccurate c.model f m n k tol
-  | .entryFamily f => EntryFamilyAccurate c.model f tol
-  | .native precision A B C => ∃ model, c.nativeModel precision = some model ∧ NativeGemmAccurate model A B C tol
-  | .nativeScaled precision source outputMode alpha beta A B C => ∃ model,
-    c.nativeModel precision = some model ∧
-    NativeConvertedGemmAccurate source c.inputMode model (c.nativeEpilogue outputMode) alpha beta A B C tol
+theorem familyCheck_at_bound (model : WmmaGemmModel) (k : ℕ) (f : GemmFamily)
+    (cfg : GemmBoundConfig) (tol : ℚ) (h : familyCheck model k f cfg tol = true) :
+    familyCheck model k f cfg (familyError model k cfg) = true
 ```
 
-**[TensorCore.selectGemm_sound](tensor-core/TensorCore/Programs/GemmSelection.lean#L131)** (theorem; namespace `TensorCore`).
+</details>
 
-Proves that a selected candidate satisfies the requested accuracy and that every earlier
-candidate failed certification.
+<details>
+<summary><code>TensorCore.matrixAbsSum_le_entry_bounds</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/InputBounds.md#decl-46e7ff540915c07d)
 
 ```lean
-theorem selectGemm_sound (p : GemmProblem m n k) (candidates : List GemmCandidate) (tol : Rat)
-    (i : Nat) (h : selectGemm p candidates tol = some i) :
+/-- Sum varying entry budgets, rather than multiplying by a worst-case entry. -/
+theorem matrixAbsSum_le_entry_bounds (X E : DenseMatrix ℚ m n)
+    (h : ∀ i : Fin m, ∀ j : Fin n, absQ X[i.val][j.val] ≤ E[i.val][j.val]) :
+    matrixAbsSum X ≤ matrixAbsSum E
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.DenseMatrix.ofFn](docs/proofs/Gemm/Matrix.md#decl-5bd40ba4904179d3), [TensorCore.EntryFamily](docs/proofs/Gemm/EntryFamily.md#decl-36d7465bd66a40c1), [TensorCore.EntryFamily.Contains](docs/proofs/Gemm/EntryFamily.md#decl-28a8fff314d8cbd1), [TensorCore.EntryFamily.cell](docs/proofs/Gemm/EntryFamily.md#decl-33fd8cf1e08ae145), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.GemmBoundConfig](docs/proofs/Gemm/Bounds.md#decl-67b679b61e10d595), [TensorCore.GemmCell](docs/proofs/Gemm/Defs.md#decl-36e8239d9f1fd59e), [TensorCore.GemmCell.output](docs/proofs/Gemm/Defs.md#decl-d8688321b8d2ae7f), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.entryFamilyCheck](docs/proofs/Gemm/EntryFamily.md#decl-83587c4b60dbe91d), [TensorCore.familyCheck](docs/proofs/Gemm/Family.md#decl-43a043749bf35c52), [TensorCore.familyError](docs/proofs/Gemm/Family.md#decl-966b1b857128f203), [TensorCore.gemm](docs/proofs/Gemm/Defs.md#decl-9b05da03dbb16cdd), [TensorCore.gemmIdeal](docs/proofs/Gemm/Defs.md#decl-1f55842952d81ccc), [TensorCore.matrixAbsSum](docs/proofs/Gemm/Bounds.md#decl-3500b8a4ffeefc9e), [TensorCore.sourceGemmPairs](docs/proofs/Gemm/InputBounds.md#decl-2fa90183da38c041)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C15. Certified decisions</summary>
+
+Selection proves accuracy and either earliest certified preference or minimum supplied rational cost among certified candidates. Refusal means no candidate was certified. Native precision is fixed per workload.
+
+<details>
+<summary><code>TensorCore.selectGemm_sound</code></summary>
+
+[Lean source](TensorCore/Gemm/Selection.lean#L133) · [Full dependency node](docs/proofs/Gemm/Selection.md#decl-5e96e7835b692828)
+
+```lean
+theorem selectGemm_sound (p : GemmProblem m n k) (candidates : List GemmCandidate) (tol : ℚ)
+    (i : ℕ) (h : selectGemm p candidates tol = some i) :
     ∃ hi : i < candidates.length, p.Accurate candidates[i] tol ∧
       ∀ j (hj : j < i), candidateCertified p tol candidates[j] = false := by
   obtain ⟨hi, hc, hp⟩ := List.findIdx?_eq_some_iff_getElem.mp h
   exact ⟨hi, candidateCertified_sound p tol candidates[i] hc, fun j hj => by simpa using hp j hj⟩
 ```
 
-**[TensorCore.selectGemm_none](tensor-core/TensorCore/Programs/GemmSelection.lean#L145)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that selection returns no candidate exactly when every candidate fails
-certification. It does not conclude that those candidates are inaccurate.
+<details>
+<summary><code>TensorCore.candidateCertified_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Selection.md#decl-a02dc0d0ac1bf80b)
 
 ```lean
-theorem selectGemm_none (p : GemmProblem m n k) (candidates : List GemmCandidate) (tol : Rat) :
+theorem candidateCertified_sound (p : GemmProblem m n k) (tol : ℚ) (c : GemmCandidate)
+    (h : candidateCertified p tol c = true) : p.Accurate c tol
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.GemmCandidate](docs/proofs/Gemm/Selection.md#decl-633698ca3b748695), [TensorCore.GemmProblem](docs/proofs/Gemm/Selection.md#decl-cbf3e8441a848a8f), [TensorCore.GemmProblem.Accurate](docs/proofs/Gemm/Selection.md#decl-8c9d3458097dac77), [TensorCore.candidateCertified](docs/proofs/Gemm/Selection.md#decl-658719161ad7081e), [TensorCore.selectGemm](docs/proofs/Gemm/Selection.md#decl-ac87128da56c0502)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.selectGemm_none</code></summary>
+
+[Lean source](TensorCore/Gemm/Selection.lean#L147) · [Full dependency node](docs/proofs/Gemm/Selection.md#decl-c680323aca69a763)
+
+```lean
+theorem selectGemm_none (p : GemmProblem m n k) (candidates : List GemmCandidate) (tol : ℚ) :
     selectGemm p candidates tol = none ↔ ∀ c ∈ candidates, candidateCertified p tol c = false := by
   exact List.findIdx?_eq_none_iff
 ```
 
-**[TensorCore.selectGemmCost_sound](tensor-core/TensorCore/Programs/CostSelection.lean#L31)** (theorem; namespace `TensorCore`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that the chosen candidate belongs to the supplied list, is accurate, and has
-minimum supplied cost among certified candidates.
+No supporting source theorem in this repository.
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.GemmCandidate](docs/proofs/Gemm/Selection.md#decl-633698ca3b748695), [TensorCore.GemmProblem](docs/proofs/Gemm/Selection.md#decl-cbf3e8441a848a8f), [TensorCore.candidateCertified](docs/proofs/Gemm/Selection.md#decl-658719161ad7081e), [TensorCore.selectGemm](docs/proofs/Gemm/Selection.md#decl-ac87128da56c0502)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.selectGemmCost_sound</code></summary>
+
+[Lean source](TensorCore/Gemm/CostSelection.lean#L33) · [Full dependency node](docs/proofs/Gemm/CostSelection.md#decl-aa59b068120a3e6e)
 
 ```lean
 theorem selectGemmCost_sound (p : GemmProblem m n k) (candidates : List CostedCandidate)
-    (tol : Rat) (chosen : CostedCandidate) (h : selectGemmCost p candidates tol = some chosen) :
+    (tol : ℚ) (chosen : CostedCandidate) (h : selectGemmCost p candidates tol = some chosen) :
     chosen ∈ candidates ∧ p.Accurate chosen.configuration tol ∧
       ∀ c ∈ candidates, candidateCertified p tol c.configuration = true → chosen.cost ≤ c.cost := by
   obtain ⟨hm, hc, hmin⟩ := selectMinimumCost_sound _ _ candidates chosen h
   exact ⟨hm, candidateCertified_sound p tol chosen.configuration hc, hmin⟩
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.candidateCertified_sound</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Selection.md#decl-a02dc0d0ac1bf80b)
+
+```lean
+theorem candidateCertified_sound (p : GemmProblem m n k) (tol : ℚ) (c : GemmCandidate)
+    (h : candidateCertified p tol c = true) : p.Accurate c tol
+```
+
 </details>
 
 <details>
-<summary>C16. Pinned CUTLASS connection — Lean declarations</summary>
+<summary><code>TensorCore.selectMinimumCost_sound</code></summary>
 
-**[TensorCore.CutlassWmma.project_eq_gemm](tensor-core/TensorCore/Kernels/CutlassWmma.lean#L118)** (theorem; namespace `TensorCore.CutlassWmma`).
-
-Proves that the pinned CUTLASS arithmetic projection agrees with V100 GEMM using zero
-`C` and a reduction dimension of `16 * tiles`.
+[Expand this proof and its dependencies](docs/proofs/Gemm/CostSelection.md#decl-99ecb013d7634ef8)
 
 ```lean
+theorem selectMinimumCost_sound (check : α → Bool) (cost : α → ℚ) (candidates : List α)
+    (chosen : α) (h : selectMinimumCost check cost candidates = some chosen) :
+    chosen ∈ candidates ∧ check chosen = true ∧
+      ∀ c ∈ candidates, check c = true → cost chosen ≤ cost c
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.CostedCandidate](docs/proofs/Gemm/CostSelection.md#decl-9ac085fec2b9defd), [TensorCore.GemmProblem](docs/proofs/Gemm/Selection.md#decl-cbf3e8441a848a8f), [TensorCore.GemmProblem.Accurate](docs/proofs/Gemm/Selection.md#decl-8c9d3458097dac77), [TensorCore.candidateCertified](docs/proofs/Gemm/Selection.md#decl-658719161ad7081e), [TensorCore.selectGemmCost](docs/proofs/Gemm/CostSelection.md#decl-11498eca158bf117)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C16. Pinned CUTLASS connection</summary>
+
+The reviewed arithmetic projection agrees with FP16 GEMM and inherits its accuracy checker. The selected K is divisible by 16; C++ execution, memory, compilation, and GPU correspondence are separate obligations.
+
+<details>
+<summary><code>TensorCore.CutlassWmma.project_eq_gemm</code></summary>
+
+[Lean source](TensorCore/Gemm/Kernels/CutlassWmma.lean#L118) · [Full dependency node](docs/proofs/Gemm/Kernels/CutlassWmma.md#decl-605b9db02c373842)
+
+```lean
+/-- Unconditional finite-model equality for the audited arithmetic projection.
+This supplies the arithmetic schedule bridge; physical WMMA conformance and
+source-transcription correctness are the explicitly documented external boundary. -/
 theorem project_eq_gemm (A : DenseMatrix F16 m (16 * tiles))
     (B : DenseMatrix F16 (16 * tiles) n) :
     project A B = (gemm .v100 A B (DenseMatrix.ofFn fun _ _ => 0)).map
@@ -2065,12 +3962,58 @@ theorem project_eq_gemm (A : DenseMatrix F16 m (16 * tiles))
   rfl
 ```
 
-**[TensorCore.CutlassWmma.project_check_sound](tensor-core/TensorCore/Kernels/CutlassWmma.lean#L133)** (theorem; namespace `TensorCore.CutlassWmma`).
+<details>
+<summary>Supporting proofs</summary>
 
-Transfers an accepted V100 GEMM check to the CUTLASS arithmetic projection, proving a
-defined ideal, successful cell result, and the stated error bound.
+<details>
+<summary><code>TensorCore.CutlassWmma.instructions_eq_paper</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Kernels/CutlassWmma.md#decl-310bb61e7c6578a2)
 
 ```lean
+theorem instructions_eq_paper (A : DenseMatrix F16 m (16 * tiles))
+    (B : DenseMatrix F16 (16 * tiles) n) (i : Fin m) (j : Fin n) :
+    instructions (loads A B i.val j.val) 0 tiles =
+      PaperSpec.matrixInstructions (PaperSpec.matrixPairs A B i j)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.PaperSpec.gemm_eq_paper</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-5c9e12476c94c50c)
+
+```lean
+/-- Universal matrix equality, including dimensions, output cropping, tail padding,
+initial C, every encoded group/instruction boundary, and rejection as none. -/
+theorem gemm_eq_paper (model : WmmaGemmModel) (A : DenseMatrix F16 m k)
+    (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n) :
+    (gemm model A B C).map (fun row => row.map fun cell =>
+      cell.toOption.map gemmCellObservation) = wmmaGemm (wmmaModel model) A B C
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.CutlassWmma.instructions](docs/proofs/Gemm/Kernels/CutlassWmma.md#decl-04ead765ade3cda7), [TensorCore.CutlassWmma.loads](docs/proofs/Gemm/Kernels/CutlassWmma.md#decl-b59b466e5737993b), [TensorCore.CutlassWmma.project](docs/proofs/Gemm/Kernels/CutlassWmma.md#decl-19db5ceb24fc59f4), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.DenseMatrix.ofFn](docs/proofs/Gemm/Matrix.md#decl-5bd40ba4904179d3), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.GemmCell](docs/proofs/Gemm/Defs.md#decl-36e8239d9f1fd59e), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PaperSpec.Matrix](docs/proofs/Gemm/Specification/Matrix.md#decl-0b93e30a9665e8db), [TensorCore.PaperSpec.MatrixCell](docs/proofs/Gemm/Specification/Matrix.md#decl-78b1933617aed7a4), [TensorCore.PaperSpec.WmmaModel](docs/proofs/Gemm/Specification/Matrix.md#decl-9f438a42365ca5b2), [TensorCore.PaperSpec.gemmCellObservation](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-c61a953641cc1967), [TensorCore.PaperSpec.matrixCell](docs/proofs/Gemm/Specification/Matrix.md#decl-0760d932c690b0cb), [TensorCore.PaperSpec.matrixInstructions](docs/proofs/Gemm/Specification/Matrix.md#decl-41c588bee8af8a91), [TensorCore.PaperSpec.matrixPairs](docs/proofs/Gemm/Specification/Matrix.md#decl-a2b1744a02af852c), [TensorCore.PaperSpec.runMatrixInstructions](docs/proofs/Gemm/Specification/Matrix.md#decl-70ab1b5e8c6e625e), [TensorCore.PaperSpec.wmmaGemm](docs/proofs/Gemm/Specification/Matrix.md#decl-66a4e74e5f4e4b6c), [TensorCore.PaperSpec.wmmaModel](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-419ac65204c32de1), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.gemm](docs/proofs/Gemm/Defs.md#decl-9b05da03dbb16cdd)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.CutlassWmma.project_check_sound</code></summary>
+
+[Lean source](TensorCore/Gemm/Kernels/CutlassWmma.lean#L133) · [Full dependency node](docs/proofs/Gemm/Kernels/CutlassWmma.md#decl-2566ff4a51e98b33)
+
+```lean
+/-- The existing input-only certificate supplies a complete accuracy guarantee
+for this projection, without requiring a successful run or output-error premise. -/
 theorem project_check_sound (A : DenseMatrix F16 m (16 * tiles))
     (B : DenseMatrix F16 (16 * tiles) n) (cfg : GemmBoundConfig)
     (h : gemmCheck .v100 cfg A B (DenseMatrix.ofFn fun _ _ => 0) = true)
@@ -2085,120 +4028,68 @@ theorem project_check_sound (A : DenseMatrix F16 m (16 * tiles))
   rfl
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.CutlassWmma.project_eq_gemm</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Gemm/Kernels/CutlassWmma.md#decl-605b9db02c373842)
+
+```lean
+/-- Unconditional finite-model equality for the audited arithmetic projection.
+This supplies the arithmetic schedule bridge; physical WMMA conformance and
+source-transcription correctness are the explicitly documented external boundary. -/
+theorem project_eq_gemm (A : DenseMatrix F16 m (16 * tiles))
+    (B : DenseMatrix F16 (16 * tiles) n) :
+    project A B = (gemm .v100 A B (DenseMatrix.ofFn fun _ _ => 0)).map
+      (fun row => row.map fun cell => cell.toOption.map PaperSpec.gemmCellObservation)
+```
+
 </details>
 
 <details>
-<summary>C17. IEEE scalar results — Lean declarations</summary>
+<summary><code>TensorCore.gemmCheck_sound</code></summary>
 
-**[TensorCore.IEEE.InfinitySpec](tensor-core/TensorCore/IEEE/Specification.lean#L9)** (def; namespace `TensorCore.IEEE`).
-
-Defines an infinity result with the requested sign and all exception flags clear.
+[Expand this proof and its dependencies](docs/proofs/Gemm/Bounds.md#decl-3d79dbcc8fc2e521)
 
 ```lean
-def InfinitySpec (f : BinaryFormat) (s : Bool) (r : Result f) : Prop :=
-  decode f r.bits = .infinity s ∧ r.flags = {}
+/-- A successful certificate guarantees every logical output exists and meets a
+uniform error bound. Neither model acceptance nor a trace is a premise. -/
+theorem gemmCheck_sound (model : WmmaGemmModel) (cfg : GemmBoundConfig)
+    (A : DenseMatrix F16 m k) (B : DenseMatrix F16 k n) (C : DenseMatrix F32 m n)
+    (h : gemmCheck model cfg A B C = true) (i : Fin m) (j : Fin n) :
+    ∃ cell z, (gemm model A B C)[i.val][j.val] = .ok cell ∧
+      (gemmIdeal A B C)[i.val][j.val] = some z ∧
+      absQ (z - cell.output.value) ≤ gemmStaticError model cfg k
 ```
 
-**[TensorCore.IEEE.InvalidSpec](tensor-core/TensorCore/IEEE/Specification.lean#L12)** (def; namespace `TensorCore.IEEE`).
+</details>
 
-Defines an invalid-operation result as a quiet NaN with only the invalid flag set.
+</details>
 
-```lean
-def InvalidSpec (f : BinaryFormat) (r : Result f) : Prop :=
-  (∃ s p, decode f r.bits = .nan s false p) ∧ r.flags = { invalid := true }
-```
+<details>
+<summary>Definitions and types</summary>
 
-**[TensorCore.IEEE.NaNSpec](tensor-core/TensorCore/IEEE/Specification.lean#L15)** (def; namespace `TensorCore.IEEE`).
+[TensorCore.CutlassWmma.project](docs/proofs/Gemm/Kernels/CutlassWmma.md#decl-19db5ceb24fc59f4), [TensorCore.DenseMatrix](docs/proofs/Gemm/Matrix.md#decl-b089377bd907619f), [TensorCore.DenseMatrix.ofFn](docs/proofs/Gemm/Matrix.md#decl-5bd40ba4904179d3), [TensorCore.F16](docs/proofs/Core/Defs.md#decl-7a3b8058d443c561), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](docs/proofs/Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.GemmBoundConfig](docs/proofs/Gemm/Bounds.md#decl-67b679b61e10d595), [TensorCore.GemmCell](docs/proofs/Gemm/Defs.md#decl-36e8239d9f1fd59e), [TensorCore.GemmCell.output](docs/proofs/Gemm/Defs.md#decl-d8688321b8d2ae7f), [TensorCore.ModelError](docs/proofs/TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PaperSpec.MatrixCell](docs/proofs/Gemm/Specification/Matrix.md#decl-78b1933617aed7a4), [TensorCore.PaperSpec.gemmCellObservation](docs/proofs/Gemm/Specification/GemmEquivalence.md#decl-c61a953641cc1967), [TensorCore.WmmaGemmModel](docs/proofs/Gemm/Defs.md#decl-a44ab2c261ff842b), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.gemm](docs/proofs/Gemm/Defs.md#decl-9b05da03dbb16cdd), [TensorCore.gemmCheck](docs/proofs/Gemm/Bounds.md#decl-6dd15d2054647056), [TensorCore.gemmIdeal](docs/proofs/Gemm/Defs.md#decl-1f55842952d81ccc), [TensorCore.gemmStaticError](docs/proofs/Gemm/Bounds.md#decl-f2b1a703f1fc6bcf)
 
-Defines the selected NaN sign and payload, quieting behavior, and invalid flag from
-signaling inputs or an additional invalid condition.
+</details>
 
-```lean
-def NaNSpec (f : BinaryFormat) (xs : List Datum) (extra : Bool) (r : Result f) : Prop :=
-  let n := (chooseNaN xs).getD ⟨false, false, 0⟩
-  decode f r.bits = .nan n.negative false (n.payload % quietBit f) ∧
-  r.flags = { invalid := extra || xs.any Datum.isSignaling }
-```
+</details>
 
-**[TensorCore.IEEE.ConvertSpec](tensor-core/TensorCore/IEEE/Specification.lean#L69)** (def; namespace `TensorCore.IEEE`).
+</details>
 
-Defines conversion for finite values, infinities, and NaNs, including rounding, sign,
-payload conversion, and signaling-NaN flags.
+### IEEE scalar refinement
 
-```lean
-def ConvertSpec (source target : BinaryFormat) (cfg : Context) (a : Datum) (r : Result target) : Prop :=
-  match a with
-  | .finite s x => RoundSpec target cfg s x r
-  | .infinity s => InfinitySpec target s r
-  | .nan s sig p =>
-      decode target r.bits = .nan s false (convertPayload source target p % quietBit target) ∧
-      r.flags = { invalid := sig }
-```
+<details>
+<summary>C17. IEEE scalar results</summary>
 
-**[TensorCore.IEEE.AddSpec](tensor-core/TensorCore/IEEE/Specification.lean#L30)** (def; namespace `TensorCore.IEEE`).
+Every FP16/FP32/FP64 encoding, conversions/add/subtract/multiply/FMA, four modes, both tininess policies, exact zero signs, infinity and NaN cases, and default flags. One exact product plus addend is rounded only once.
 
-Defines addition's full case contract: rounded exact finite sums, infinity handling, NaN
-propagation, and invalid opposite infinities.
+<details>
+<summary><code>TensorCore.IEEE.convert_correct</code></summary>
 
-```lean
-def AddSpec (f : BinaryFormat) (cfg : Context) (a b : Datum) (r : Result f) : Prop :=
-  if a.isNaN || b.isNaN then NaNSpec f [a, b] false r else
-  match a, b with
-  | .finite sa x, .finite sb y => RoundSpec f cfg (sumZeroSign cfg.mode sa sb) (x + y) r
-  | .infinity sa, .infinity sb =>
-      if sa = sb then InfinitySpec f sa r else InvalidSpec f r
-  | .infinity s, _ | _, .infinity s => InfinitySpec f s r
-  | _, _ => False
-```
-
-**[TensorCore.IEEE.MulSpec](tensor-core/TensorCore/IEEE/Specification.lean#L39)** (def; namespace `TensorCore.IEEE`).
-
-Defines multiplication's full case contract, including exact finite products, result
-signs, NaN propagation, and invalid zero-times-infinity cases.
-
-```lean
-def MulSpec (f : BinaryFormat) (cfg : Context) (a b : Datum) (r : Result f) : Prop :=
-  if a.isNaN || b.isNaN then NaNSpec f [a, b] false r else
-  match a, b with
-  | .finite sa x, .finite sb y => RoundSpec f cfg (xor sa sb) (x * y) r
-  | .infinity sa, .infinity sb => InfinitySpec f (xor sa sb) r
-  | .infinity sa, .finite sb y =>
-      if y = 0 then InvalidSpec f r else InfinitySpec f (xor sa sb) r
-  | .finite sa x, .infinity sb =>
-      if x = 0 then InvalidSpec f r else InfinitySpec f (xor sa sb) r
-  | _, _ => False
-```
-
-**[TensorCore.IEEE.FmaSpec](tensor-core/TensorCore/IEEE/Specification.lean#L50)** (def; namespace `TensorCore.IEEE`).
-
-Defines fused multiply-add with one rounding of the exact finite product plus addend,
-together with its complete infinity, NaN, and invalid-operation cases.
-
-```lean
-def FmaSpec (f : BinaryFormat) (cfg : Context) (a b c : Datum) (r : Result f) : Prop :=
-  if a.isNaN || b.isNaN || c.isNaN then NaNSpec f [a, b, c] (invalidProduct a b) r else
-  match a, b, c with
-  | .finite sa x, .finite sb y, .finite sc z =>
-      RoundSpec f cfg (sumZeroSign cfg.mode (xor sa sb) sc) (x * y + z) r
-  | .finite _ _, .finite _ _, .infinity sc => InfinitySpec f sc r
-  | .infinity sa, .finite sb y, c =>
-      if y = 0 then InvalidSpec f r else
-      if c.isInfinite && xor sa sb != c.negative then InvalidSpec f r
-      else InfinitySpec f (xor sa sb) r
-  | .finite sa x, .infinity sb, c =>
-      if x = 0 then InvalidSpec f r else
-      if c.isInfinite && xor sa sb != c.negative then InvalidSpec f r
-      else InfinitySpec f (xor sa sb) r
-  | .infinity sa, .infinity sb, c =>
-      if c.isInfinite && xor sa sb != c.negative then InvalidSpec f r
-      else InfinitySpec f (xor sa sb) r
-  | _, _, _ => False
-```
-
-**[TensorCore.IEEE.convert_correct](tensor-core/TensorCore/IEEE/Specification.lean#L125)** (theorem; namespace `TensorCore.IEEE`).
-
-Proves that conversion satisfies its complete case contract for every encoded input,
-source and target format, and rounding context.
+[Lean source](TensorCore/IEEE/Specification.lean#L125) · [Full dependency node](docs/proofs/IEEE/Specification.md#decl-b4246bf9e7d785bb)
 
 ```lean
 theorem convert_correct (source target : BinaryFormat) (cfg : Context) (a : Word source) :
@@ -2206,118 +4097,194 @@ theorem convert_correct (source target : BinaryFormat) (cfg : Context) (a : Word
   convertDatum_correct _ _ _ _
 ```
 
-**[TensorCore.IEEE.add_correct](tensor-core/TensorCore/IEEE/Specification.lean#L111)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that every encoded addition satisfies `AddSpec`, including numerical results and
-exception flags.
+<details>
+<summary><code>TensorCore.IEEE.convertDatum_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Specification.md#decl-fe25c16c8855e864)
 
 ```lean
+theorem convertDatum_correct (source target : BinaryFormat) (cfg : Context) (a : Datum) :
+    ConvertSpec source target cfg a (convertDatum source target cfg a)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.ConvertSpec](docs/proofs/IEEE/Specification.md#decl-e9f80536d82b3d98), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.convert](docs/proofs/IEEE/Operations.md#decl-4f62188c5500d3b7), [TensorCore.IEEE.decode](docs/proofs/IEEE/Basic.md#decl-2beaccf900e5635c)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.add_correct</code></summary>
+
+[Lean source](TensorCore/IEEE/Specification.lean#L111) · [Full dependency node](docs/proofs/IEEE/Specification.md#decl-919fdc4a27c1c36c)
+
+```lean
+/-- Every pair of encoded inputs satisfies the complete addition contract. -/
 theorem add_correct (f : BinaryFormat) (cfg : Context) (a b : Word f) :
     AddSpec f cfg (decode f a) (decode f b) (add f cfg a b) := addDatum_correct _ _ _ _
 ```
 
-**[TensorCore.IEEE.sub_correct](tensor-core/TensorCore/IEEE/Specification.lean#L114)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves subtraction satisfies the addition contract with the second decoded operand
-negated, for every encoding and context.
+<details>
+<summary><code>TensorCore.IEEE.addDatum_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Specification.md#decl-e6d467aa78f03a70)
+
+```lean
+theorem addDatum_correct (f : BinaryFormat) (cfg : Context) (a b : Datum) :
+    AddSpec f cfg a b (addDatum f cfg a b)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.IEEE.AddSpec](docs/proofs/IEEE/Specification.md#decl-03d998fb20725223), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.add](docs/proofs/IEEE/Operations.md#decl-7e1f336bdb43c1b4), [TensorCore.IEEE.decode](docs/proofs/IEEE/Basic.md#decl-2beaccf900e5635c)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.sub_correct</code></summary>
+
+[Lean source](TensorCore/IEEE/Specification.lean#L114) · [Full dependency node](docs/proofs/IEEE/Specification.md#decl-442d19c4ff74e229)
 
 ```lean
 theorem sub_correct (f : BinaryFormat) (cfg : Context) (a b : Word f) :
     AddSpec f cfg (decode f a) (decode f b).negate (sub f cfg a b) := addDatum_correct _ _ _ _
 ```
 
-**[TensorCore.IEEE.mul_correct](tensor-core/TensorCore/IEEE/Specification.lean#L117)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that every encoded multiplication satisfies `MulSpec`, including nonfinite cases
-and exception flags.
+<details>
+<summary><code>TensorCore.IEEE.addDatum_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Specification.md#decl-e6d467aa78f03a70)
+
+```lean
+theorem addDatum_correct (f : BinaryFormat) (cfg : Context) (a b : Datum) :
+    AddSpec f cfg a b (addDatum f cfg a b)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.IEEE.AddSpec](docs/proofs/IEEE/Specification.md#decl-03d998fb20725223), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.Datum.negate](docs/proofs/IEEE/Basic.md#decl-3b85b36e89bf5a7b), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.decode](docs/proofs/IEEE/Basic.md#decl-2beaccf900e5635c), [TensorCore.IEEE.sub](docs/proofs/IEEE/Operations.md#decl-c0ce25b051e73b2b)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.mul_correct</code></summary>
+
+[Lean source](TensorCore/IEEE/Specification.lean#L117) · [Full dependency node](docs/proofs/IEEE/Specification.md#decl-e6f4b1f0809e4557)
 
 ```lean
 theorem mul_correct (f : BinaryFormat) (cfg : Context) (a b : Word f) :
     MulSpec f cfg (decode f a) (decode f b) (mul f cfg a b) := mulDatum_correct _ _ _ _
 ```
 
-**[TensorCore.IEEE.fma_correct](tensor-core/TensorCore/IEEE/Specification.lean#L121)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that every encoded fused multiply-add satisfies `FmaSpec`, including single
-rounding and all special-value cases.
+<details>
+<summary><code>TensorCore.IEEE.mulDatum_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Specification.md#decl-360e50b0170b46a2)
 
 ```lean
+theorem mulDatum_correct (f : BinaryFormat) (cfg : Context) (a b : Datum) :
+    MulSpec f cfg a b (mulDatum f cfg a b)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.MulSpec](docs/proofs/IEEE/Specification.md#decl-19709ea904a2d2db), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.decode](docs/proofs/IEEE/Basic.md#decl-2beaccf900e5635c), [TensorCore.IEEE.mul](docs/proofs/IEEE/Operations.md#decl-c121f20d96d6a64e)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.fma_correct</code></summary>
+
+[Lean source](TensorCore/IEEE/Specification.lean#L121) · [Full dependency node](docs/proofs/IEEE/Specification.md#decl-dda77d4975712ce3)
+
+```lean
+/-- Exactly one rounding of the original decoded product plus addend. -/
 theorem fma_correct (f : BinaryFormat) (cfg : Context) (a b c : Word f) :
     FmaSpec f cfg (decode f a) (decode f b) (decode f c) (fma f cfg a b c) :=
   fmaDatum_correct _ _ _ _ _
 ```
 
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.IEEE.fmaDatum_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Specification.md#decl-541a331629cf005e)
+
+```lean
+theorem fmaDatum_correct (f : BinaryFormat) (cfg : Context) (a b c : Datum) :
+    FmaSpec f cfg a b c (fmaDatum f cfg a b c)
+```
+
+</details>
+
 </details>
 
 <details>
-<summary>C18. IEEE precision and flags — Lean declarations</summary>
+<summary>Definitions and types</summary>
 
-**[TensorCore.IEEE.IntegerRound](tensor-core/TensorCore/IEEE/Precision.lean#L10)** (def; namespace `TensorCore.IEEE`).
+[TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.FmaSpec](docs/proofs/IEEE/Specification.md#decl-25cf556b40ff39bc), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.decode](docs/proofs/IEEE/Basic.md#decl-2beaccf900e5635c), [TensorCore.IEEE.fma](docs/proofs/IEEE/Operations.md#decl-5173f8a4ff82ac61)
 
-Defines integer rounding by optimality in the requested direction, using the original
-sign to interpret directed magnitude rounding and even tie breaking for nearest mode.
+</details>
 
-```lean
-def IntegerRound (mode : BinaryRoundingMode) (negative : Bool) (t : Rat) (k : Int) : Prop :=
-  match mode with
-  | .nearestEven =>
-      (∀ j : Int, absQ (t - k) ≤ absQ (t - j)) ∧
-      (∀ j : Int, j ≠ k → absQ (t - j) = absQ (t - k) → k % 2 = 0)
-  | .towardZero => (k : Rat) ≤ t ∧ ∀ j : Int, (j : Rat) ≤ t → j ≤ k
-  | .towardNegative => if negative then
-      t ≤ (k : Rat) ∧ ∀ j : Int, t ≤ (j : Rat) → k ≤ j
-    else (k : Rat) ≤ t ∧ ∀ j : Int, (j : Rat) ≤ t → j ≤ k
-  | .towardPositive => if negative then
-      (k : Rat) ≤ t ∧ ∀ j : Int, (j : Rat) ≤ t → j ≤ k
-    else t ≤ (k : Rat) ∧ ∀ j : Int, t ≤ (j : Rat) → k ≤ j
-```
+</details>
 
-**[TensorCore.IEEE.PrecisionRound](tensor-core/TensorCore/IEEE/Precision.lean#L78)** (def; namespace `TensorCore.IEEE`).
+</details>
 
-Defines rounding to the format's significand precision with an unrestricted exponent,
-using binade inequalities and the integer-rounding predicate.
+<details>
+<summary>C18. IEEE precision and flags</summary>
 
-```lean
-def PrecisionRound (f : Format) (mode : BinaryRoundingMode) (negative : Bool)
-    (m u : Rat) : Prop :=
-  (m = 0 ∧ u = 0) ∨
-  ∃ e : Int, ∃ k : Int, pow2 e ≤ m ∧ m < pow2 (e + 1) ∧
-    IntegerRound mode negative (m / pow2 (e - f.fractionBits)) k ∧
-    u = (k : Rat) * pow2 (e - f.fractionBits)
-```
+Unbounded-exponent precision rounding satisfies independently specified integer optimality, is unique, and determines overflow. Nearest and directed magnitude results compare against all bounded-significand dyadic competitors.
 
-**[TensorCore.IEEE.RoundSpec](tensor-core/TensorCore/IEEE/Rounding.lean#L57)** (def; namespace `TensorCore.IEEE`).
+<details>
+<summary><code>TensorCore.IEEE.precisionMagnitude_correct</code></summary>
 
-Defines the complete rational-to-IEEE rounding contract, including finite optimality,
-exact-zero sign, overflow results, inexactness, and the chosen tininess policy.
-
-```lean
-def RoundSpec (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : Rat)
-    (r : Result f) : Prop :=
-  if x = 0 then r.bits = zero f zeroSign ∧ r.flags = {} else
-  ∃ u : Rat, PrecisionRound f.layout cfg.mode (decide (x < 0)) (absQ x) u ∧
-    if absQ x ≤ f.layout.maxFinite then
-      BinaryRoundSpec f.layout cfg.mode x r.bits ∧
-      sign f r.bits = decide (x < 0) ∧
-      r.flags.invalid = false ∧ r.flags.divideByZero = false ∧ r.flags.overflow = false ∧
-      (r.flags.inexact = true ↔ binaryValue f.layout r.bits ≠ some x) ∧
-      (r.flags.underflow = true ↔ tiny f cfg (absQ x) u = true ∧ r.flags.inexact = true)
-    else
-      (r.flags.overflow = true ↔ f.layout.maxFinite < u) ∧
-      r.flags.invalid = false ∧ r.flags.divideByZero = false ∧ r.flags.underflow = false ∧
-      r.flags.inexact = true ∧
-      r.bits = if f.layout.maxFinite < u ∧ overflowToInfinity cfg.mode (decide (x < 0)) = true
-        then infinity f (decide (x < 0)) else maxFiniteWord f (decide (x < 0))
-```
-
-**[TensorCore.IEEE.precisionMagnitude_correct](tensor-core/TensorCore/IEEE/Precision.lean#L85)** (theorem; namespace `TensorCore.IEEE`).
-
-For every nonnegative magnitude, proves that the computed precision-only result
-satisfies the independent precision-rounding predicate.
+[Lean source](TensorCore/IEEE/Precision.lean#L85) · [Full dependency node](docs/proofs/IEEE/Precision.md#decl-248cb65f71cd879e)
 
 ```lean
 theorem precisionMagnitude_correct (f : Format) (mode : BinaryRoundingMode)
-    (negative : Bool) (m : Rat) (hm : 0 ≤ m) :
+    (negative : Bool) (m : ℚ) (hm : 0 ≤ m) :
     PrecisionRound f mode negative m (precisionMagnitude f mode negative m) := by
   by_cases hz : m = 0
   · exact Or.inl ⟨hz, by simp [precisionMagnitude, hz]⟩
@@ -2326,14 +4293,54 @@ theorem precisionMagnitude_correct (f : Format) (mode : BinaryRoundingMode)
       by simp [precisionMagnitude, hz]⟩
 ```
 
-**[TensorCore.IEEE.precisionRound_unique](tensor-core/TensorCore/IEEE/Precision.lean#L95)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that any value satisfying the precision-rounding predicate equals the computed
-precision-only result.
+<details>
+<summary><code>TensorCore.IEEE.coefficient_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Precision.md#decl-9de0c69639190f6d)
 
 ```lean
+theorem coefficient_correct (mode : BinaryRoundingMode) (negative : Bool) (t : ℚ) :
+    IntegerRound mode negative t (binaryCoefficient mode negative t)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.magnitudeExponent_spec</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Rounding.md#decl-22960168891fe5d1)
+
+```lean
+/-- For positive x, `magnitudeExponent x` is the binary exponent: `2^e ≤ x < 2^(e+1)`. -/
+theorem magnitudeExponent_spec (x : ℚ) (hx : 0 < x) :
+    pow2 (magnitudeExponent x) ≤ x ∧ x < pow2 (magnitudeExponent x + 1)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.IEEE.IntegerRound](docs/proofs/IEEE/Precision.md#decl-c1146843cf5e28a6), [TensorCore.IEEE.PrecisionRound](docs/proofs/IEEE/Precision.md#decl-ac46ea0f0a5d7f56), [TensorCore.IEEE.precisionMagnitude](docs/proofs/IEEE/Precision.md#decl-273af52c676de10a), [TensorCore.binaryCoefficient](docs/proofs/Core/Binary/RoundOp.md#decl-f5dc97045520b8c7), [TensorCore.magnitudeExponent](docs/proofs/Core/RoundOp.md#decl-d0b00fe98f5e4d15), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.precisionRound_unique</code></summary>
+
+[Lean source](TensorCore/IEEE/Precision.lean#L95) · [Full dependency node](docs/proofs/IEEE/Precision.md#decl-a293a5d8f23d9070)
+
+```lean
+/-- The relational precision specification has exactly the computed magnitude. -/
 theorem precisionRound_unique (f : Format) (mode : BinaryRoundingMode) (negative : Bool)
-    (m u : Rat) (h : PrecisionRound f mode negative m u) :
+    (m u : ℚ) (h : PrecisionRound f mode negative m u) :
     u = precisionMagnitude f mode negative m := by
   rcases h with ⟨hm, hu⟩ | ⟨e, k, hl, hh, hk, hu⟩
   · simp [precisionMagnitude, hm, hu]
@@ -2343,13 +4350,68 @@ theorem precisionRound_unique (f : Format) (mode : BinaryRoundingMode) (negative
     simp [precisionMagnitude, Rat.ne_of_gt hm, he, ← hc, hu]
 ```
 
-**[TensorCore.IEEE.round_correct](tensor-core/TensorCore/IEEE/Rounding.lean#L76)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves the full rounding contract for every rational input, including zero, finite
-results, overflow, gradual underflow, and flags.
+<details>
+<summary><code>TensorCore.IEEE.integerRound_unique</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Precision.md#decl-5643af5ce25bcc8c)
 
 ```lean
-theorem round_correct (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : Rat) :
+/-- Optimality plus even tie breaking determines one integer, not a set of
+convenient witnesses that could alter exception behavior. -/
+theorem integerRound_unique (mode : BinaryRoundingMode) (negative : Bool) (t : ℚ)
+    (k : ℤ) (h : IntegerRound mode negative t k) :
+    k = binaryCoefficient mode negative t
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.magnitudeExponent_eq_of_bounds</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Rounding.md#decl-bf009f29f695c88d)
+
+```lean
+/-- Every finite value with exponent at least `e` is an integer multiple of `2^(e-23)`. -/
+theorem magnitudeExponent_eq_of_bounds (x : ℚ) (e : ℤ) (h1 : pow2 e ≤ x)
+    (h2 : x < pow2 (e + 1)) : magnitudeExponent x = e
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.pow2_pos</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-8f231b6648575120)
+
+```lean
+theorem pow2_pos (e : ℤ) : 0 < pow2 e
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.IEEE.IntegerRound](docs/proofs/IEEE/Precision.md#decl-c1146843cf5e28a6), [TensorCore.IEEE.PrecisionRound](docs/proofs/IEEE/Precision.md#decl-ac46ea0f0a5d7f56), [TensorCore.IEEE.precisionMagnitude](docs/proofs/IEEE/Precision.md#decl-273af52c676de10a), [TensorCore.binaryCoefficient](docs/proofs/Core/Binary/RoundOp.md#decl-f5dc97045520b8c7), [TensorCore.magnitudeExponent](docs/proofs/Core/RoundOp.md#decl-d0b00fe98f5e4d15), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.round_correct</code></summary>
+
+[Lean source](TensorCore/IEEE/Rounding.lean#L76) · [Full dependency node](docs/proofs/IEEE/Rounding.md#decl-c507d7376a5b55ac)
+
+```lean
+/-- All finite rational inputs have a specified result, including zero,
+overflow, gradual underflow, and precision loss; no success premise is assumed. -/
+theorem round_correct (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : ℚ) :
     RoundSpec f cfg zeroSign x (round f cfg zeroSign x) := by
   by_cases hz : x = 0
   · simp [RoundSpec, round, hz]
@@ -2367,13 +4429,94 @@ theorem round_correct (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : 
       simp
 ```
 
-**[TensorCore.IEEE.round_overflow_iff](tensor-core/TensorCore/IEEE/Rounding.lean#L118)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that the overflow flag is set exactly when precision rounding with unrestricted
-exponent exceeds the maximum finite magnitude.
+<details>
+<summary><code>TensorCore.IEEE.finiteBits_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Rounding.md#decl-95af8d895fd749ac)
 
 ```lean
-theorem round_overflow_iff (f : BinaryFormat) (cfg : Context) (s : Bool) (x : Rat) :
+theorem finiteBits_correct (f : BinaryFormat) (mode : BinaryRoundingMode) (x : ℚ)
+    (hr : absQ x ≤ f.layout.maxFinite) :
+    BinaryRoundSpec f.layout mode x (finiteBits f mode x hr)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.finiteBits_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Rounding.md#decl-00e71abfcdfd8abb)
+
+```lean
+theorem finiteBits_eq (f : BinaryFormat) (mode : BinaryRoundingMode) (x : ℚ)
+    (hr : absQ x ≤ f.layout.maxFinite) :
+    roundBinary f.layout mode x = some (finiteBits f mode x hr)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.precisionMagnitude_correct</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Precision.md#decl-248cb65f71cd879e)
+
+```lean
+theorem precisionMagnitude_correct (f : Format) (mode : BinaryRoundingMode)
+    (negative : Bool) (m : ℚ) (hm : 0 ≤ m) :
+    PrecisionRound f mode negative m (precisionMagnitude f mode negative m)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.absQ_nonneg</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-137ea017d6c4d0cd)
+
+```lean
+theorem absQ_nonneg (x : ℚ) : 0 ≤ absQ x
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_sign</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/RoundingContract.md#decl-89538250b2c31eac)
+
+```lean
+/-- The output sign is the input's strict negativity, even when it underflows to zero.
+Exact rational zero therefore has a positive sign in every mode. -/
+theorem roundBinary_sign (f : Format) (mode : BinaryRoundingMode) (x : ℚ)
+    (bits : BitVec f.width) (h : roundBinary f mode x = some bits) :
+    binarySign f bits = decide (x < 0)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundSpec](docs/proofs/Core/Binary/RoundingContract.md#decl-88c3ff9da8e0df3a), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.BinaryFormat.layout](docs/proofs/IEEE/Basic.md#decl-a8e62c5be0ff5328), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.Flags](docs/proofs/IEEE/Basic.md#decl-7fb0da58f8de59d1), [TensorCore.IEEE.PrecisionRound](docs/proofs/IEEE/Precision.md#decl-ac46ea0f0a5d7f56), [TensorCore.IEEE.Result](docs/proofs/IEEE/Basic.md#decl-24fb6631bfd8efcf), [TensorCore.IEEE.RoundSpec](docs/proofs/IEEE/Rounding.md#decl-b049ff2d5079187f), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.finiteBits](docs/proofs/IEEE/Rounding.md#decl-1cdd013ea2ce0dce), [TensorCore.IEEE.infinity](docs/proofs/IEEE/Basic.md#decl-6135d610bb0efb93), [TensorCore.IEEE.maxFiniteWord](docs/proofs/IEEE/Basic.md#decl-6ddaa725b7fd2551), [TensorCore.IEEE.overflowToInfinity](docs/proofs/IEEE/Rounding.md#decl-060b290d21f2ceee), [TensorCore.IEEE.precisionMagnitude](docs/proofs/IEEE/Precision.md#decl-273af52c676de10a), [TensorCore.IEEE.round](docs/proofs/IEEE/Rounding.md#decl-e686eb7fa2b669b5), [TensorCore.IEEE.sign](docs/proofs/IEEE/Basic.md#decl-f3f376a13829bc9f), [TensorCore.IEEE.tiny](docs/proofs/IEEE/Rounding.md#decl-33fe2598430cb212), [TensorCore.IEEE.zero](docs/proofs/IEEE/Basic.md#decl-8e1c4a10ad1ad419), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.binarySign](docs/proofs/Core/Binary/Encoding.md#decl-a5de0a69a17e78c5), [TensorCore.binaryValue](docs/proofs/Core/Binary/RoundOp.md#decl-45dceb4f1deb9b75)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.round_overflow_iff</code></summary>
+
+[Lean source](TensorCore/IEEE/Rounding.lean#L118) · [Full dependency node](docs/proofs/IEEE/Rounding.md#decl-fd83276c6eaa7219)
+
+```lean
+/-- The overflow flag exactly matches unbounded-exponent precision rounding,
+including inputs just above the largest finite value that do not overflow. -/
+theorem round_overflow_iff (f : BinaryFormat) (cfg : Context) (s : Bool) (x : ℚ) :
     (round f cfg s x).flags.overflow = true ↔
       f.layout.maxFinite < precisionMagnitude f.layout cfg.mode (decide (x < 0)) (absQ x) := by
   by_cases hz : x = 0
@@ -2386,122 +4529,85 @@ theorem round_overflow_iff (f : BinaryFormat) (cfg : Context) (s : Bool) (x : Ra
     · simp [round, hz, hr]
 ```
 
-**[TensorCore.IEEE.precision_nearest_all](tensor-core/TensorCore/IEEE/Precision.lean#L162)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-For a positive magnitude, proves that nearest-even precision rounding is at least as
-close as every dyadic competitor satisfying the significand-width bound.
+<details>
+<summary><code>TensorCore.IEEE.BinaryFormat.valid</code></summary>
 
-```lean
-theorem precision_nearest_all (f : Format) (m : Rat) (hm : 0 < m)
-    (j e : Int) (hj : j.natAbs < 2 ^ (f.fractionBits + 1)) :
-    absQ (m - precisionMagnitude f .nearestEven false m) ≤
-      absQ (m - (j : Rat) * pow2 (e - f.fractionBits)) := by
-  let b := magnitudeExponent m
-  have hs := magnitudeExponent_spec m hm
-  by_cases he : b ≤ e
-  · obtain ⟨z, hz⟩ := f.finite_on_grid j e b he
-    rw [hz, precisionMagnitude, if_neg (Rat.ne_of_gt hm)]
-    exact rne_grid_nearest_q m _ (pow2_pos _) z
-  · have hsmall := f.finite_below_binade j e b hj (by omega)
-    have hsmall' := (absQ_le_iff _ _).mp hsmall
-    have hq := pow2_pos (b - f.fractionBits - 1)
-    have hn := rne_grid_nearest_q m (pow2 (b - f.fractionBits)) (pow2_pos _)
-      ((2 ^ f.fractionBits : Nat) : Int)
-    rw [Rat.intCast_natCast, ← f.binade_grid] at hn
-    change absQ (m - (rneInt (m / pow2 (b - f.fractionBits)) : Rat) *
-      pow2 (b - f.fractionBits)) ≤ absQ (m - pow2 b) at hn
-    rw [precisionMagnitude, if_neg (Rat.ne_of_gt hm)]
-    change absQ (m - (rneInt (m / pow2 (b - f.fractionBits)) : Rat) *
-      pow2 (b - f.fractionBits)) ≤ _
-    have h1 : 0 ≤ m - pow2 b := by grind
-    have h2 : 0 ≤ m - (j : Rat) * pow2 (e - f.fractionBits) := by grind
-    rw [absQ_of_nonneg h1] at hn
-    rw [absQ_of_nonneg h2]
-    grind
-```
-
-**[TensorCore.IEEE.precision_floor_all](tensor-core/TensorCore/IEEE/Precision.lean#L191)** (theorem; namespace `TensorCore.IEEE`).
-
-For a positive magnitude, proves that downward magnitude rounding is the greatest
-allowed-precision dyadic value at or below the input.
+[Expand this proof and its dependencies](docs/proofs/IEEE/Basic.md#decl-bb1825a12b957cb8)
 
 ```lean
-theorem precision_floor_all (f : Format) (m : Rat) (hm : 0 < m) :
-    precisionMagnitude f .towardZero false m ≤ m ∧
-    ∀ j e : Int, j.natAbs < 2 ^ (f.fractionBits + 1) →
-      (j : Rat) * pow2 (e - f.fractionBits) ≤ m →
-      (j : Rat) * pow2 (e - f.fractionBits) ≤ precisionMagnitude f .towardZero false m := by
-  let b := magnitudeExponent m
-  let q := pow2 (b - f.fractionBits)
-  have hq : 0 < q := pow2_pos _
-  constructor
-  · have h := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (m / q)) (Rat.le_of_lt hq)
-    rw [Rat.div_mul_cancel (Rat.ne_of_gt hq)] at h
-    simpa [precisionMagnitude, Rat.ne_of_gt hm, binaryCoefficient] using h
-  · intro j e hj hjm
-    by_cases he : b ≤ e
-    · obtain ⟨z, hz⟩ := f.finite_on_grid j e b he
-      rw [hz] at hjm ⊢
-      have hc : z ≤ (m / q).floor := Rat.le_floor_iff.mpr
-        (le_div_of_mul_le _ _ _ hq hjm)
-      have h := Rat.mul_le_mul_of_nonneg_right (Rat.intCast_le_intCast.mpr hc) (Rat.le_of_lt hq)
-      simpa [precisionMagnitude, Rat.ne_of_gt hm, binaryCoefficient] using h
-    · have hsmall := f.finite_below_binade j e b hj (by omega)
-      have hsmall' := (absQ_le_iff _ _).mp hsmall
-      have hl := precisionMagnitude_lower f .towardZero false m hm
-      have hp := pow2_pos (b - f.fractionBits - 1)
-      grind
-```
-
-**[TensorCore.IEEE.precision_ceil_all](tensor-core/TensorCore/IEEE/Precision.lean#L218)** (theorem; namespace `TensorCore.IEEE`).
-
-For a positive magnitude, proves that upward magnitude rounding is the least
-allowed-precision dyadic value at or above the input.
-
-```lean
-theorem precision_ceil_all (f : Format) (m : Rat) (hm : 0 < m) :
-    m ≤ precisionMagnitude f .towardPositive false m ∧
-    ∀ j e : Int, j.natAbs < 2 ^ (f.fractionBits + 1) →
-      m ≤ (j : Rat) * pow2 (e - f.fractionBits) →
-      precisionMagnitude f .towardPositive false m ≤ (j : Rat) * pow2 (e - f.fractionBits) := by
-  let b := magnitudeExponent m
-  let q := pow2 (b - f.fractionBits)
-  have hq : 0 < q := pow2_pos _
-  constructor
-  · have h := Rat.mul_le_mul_of_nonneg_right (Rat.le_ceil (x := m / q)) (Rat.le_of_lt hq)
-    rw [Rat.div_mul_cancel (Rat.ne_of_gt hq)] at h
-    simpa [precisionMagnitude, Rat.ne_of_gt hm, binaryCoefficient] using h
-  · intro j e hj hmj
-    by_cases he : b ≤ e
-    · obtain ⟨z, hz⟩ := f.finite_on_grid j e b he
-      rw [hz] at hmj ⊢
-      have hdiv : m / q ≤ (z : Rat) := by
-        apply Rat.le_of_mul_le_mul_right (c := q) _ hq
-        rw [Rat.div_mul_cancel (Rat.ne_of_gt hq)]
-        exact hmj
-      have hc : (m / q).ceil ≤ z := Rat.ceil_le_iff.mpr hdiv
-      have h := Rat.mul_le_mul_of_nonneg_right (Rat.intCast_le_intCast.mpr hc) (Rat.le_of_lt hq)
-      simpa [precisionMagnitude, Rat.ne_of_gt hm, binaryCoefficient] using h
-    · have hsmall := f.finite_below_binade j e b hj (by omega)
-      have hsmall' := (absQ_le_iff _ _).mp hsmall
-      have hl := (magnitudeExponent_spec m hm).1
-      have hp := pow2_pos (b - f.fractionBits - 1)
-      grind
+theorem BinaryFormat.valid (f : BinaryFormat) : f.layout.WellFormed
 ```
 
 </details>
 
 <details>
-<summary>C19. IEEE compatibility — Lean declarations</summary>
+<summary><code>TensorCore.IEEE.maxFinite_positive</code></summary>
 
-**[TensorCore.IEEE.convert_self_finite](tensor-core/TensorCore/IEEE/Compatibility.lean#L7)** (theorem; namespace `TensorCore.IEEE`).
-
-Proves that converting a finite encoding to its own format preserves every bit,
-including signed zero, and clears all operation flags.
+[Expand this proof and its dependencies](docs/proofs/IEEE/Basic.md#decl-33b32196fb355d13)
 
 ```lean
+theorem maxFinite_positive (f : BinaryFormat) : 0 < f.layout.maxFinite
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.precisionMagnitude_le_max</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Precision.md#decl-c4d94067e704664f)
+
+```lean
+/-- Rounding a magnitude already inside the finite range cannot signal overflow. -/
+theorem precisionMagnitude_le_max (f : Format) (hf : f.WellFormed)
+    (mode : BinaryRoundingMode) (negative : Bool) (m : ℚ)
+    (hm : 0 ≤ m) (hr : m ≤ f.maxFinite) :
+    precisionMagnitude f mode negative m ≤ f.maxFinite
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.absQ_nonneg</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Exact.md#decl-137ea017d6c4d0cd)
+
+```lean
+theorem absQ_nonneg (x : ℚ) : 0 ≤ absQ x
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.BinaryFormat.layout](docs/proofs/IEEE/Basic.md#decl-a8e62c5be0ff5328), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.Flags](docs/proofs/IEEE/Basic.md#decl-7fb0da58f8de59d1), [TensorCore.IEEE.Result](docs/proofs/IEEE/Basic.md#decl-24fb6631bfd8efcf), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.finiteBits](docs/proofs/IEEE/Rounding.md#decl-1cdd013ea2ce0dce), [TensorCore.IEEE.infinity](docs/proofs/IEEE/Basic.md#decl-6135d610bb0efb93), [TensorCore.IEEE.maxFiniteWord](docs/proofs/IEEE/Basic.md#decl-6ddaa725b7fd2551), [TensorCore.IEEE.overflowToInfinity](docs/proofs/IEEE/Rounding.md#decl-060b290d21f2ceee), [TensorCore.IEEE.precisionMagnitude](docs/proofs/IEEE/Precision.md#decl-273af52c676de10a), [TensorCore.IEEE.round](docs/proofs/IEEE/Rounding.md#decl-e686eb7fa2b669b5), [TensorCore.IEEE.tiny](docs/proofs/IEEE/Rounding.md#decl-33fe2598430cb212), [TensorCore.IEEE.zero](docs/proofs/IEEE/Basic.md#decl-8e1c4a10ad1ad419), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.binaryCoefficient](docs/proofs/Core/Binary/RoundOp.md#decl-f5dc97045520b8c7), [TensorCore.binaryValue](docs/proofs/Core/Binary/RoundOp.md#decl-45dceb4f1deb9b75), [TensorCore.magnitudeExponent](docs/proofs/Core/RoundOp.md#decl-d0b00fe98f5e4d15), [TensorCore.pow2](docs/proofs/Core/Exact.md#decl-b52a0281b35514e3)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C19. IEEE compatibility</summary>
+
+Same-format finite conversion preserves every encoding and raises no flags; quiet NaN payloads survive widening/narrowing. Nonzero in-range rounding agrees with the existing finite converter.
+
+<details>
+<summary><code>TensorCore.IEEE.convert_self_finite</code></summary>
+
+[Lean source](TensorCore/IEEE/Compatibility.lean#L9) · [Full dependency node](docs/proofs/IEEE/Compatibility.md#decl-78bff244af6cfb2c)
+
+```lean
+/-- Same-format IEEE conversion fixes every finite encoding, including both
+zero encodings, and raises no exception in any rounding direction. -/
 theorem convert_self_finite (f : BinaryFormat) (cfg : Context) (a : Word f)
-    (s : Bool) (x : Rat) (hd : decode f a = .finite s x) :
+    (s : Bool) (x : ℚ) (hd : decode f a = .finite s x) :
     convert f f cfg a = ⟨a, {}⟩ := by
   obtain ⟨hv, hs⟩ := (decode_finite_iff f a s x).mp hd
   by_cases hx : x = 0
@@ -2524,14 +4630,130 @@ theorem convert_self_finite (f : BinaryFormat) (cfg : Context) (a : Word f)
     simp [convert, convertDatum, hd, round, hx, hr, he, hv]
 ```
 
-**[TensorCore.IEEE.convert_quietNaN_roundtrip](tensor-core/TensorCore/IEEE/Compatibility.lean#L42)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-For a valid quiet-NaN payload, proves that widening to a format with at least as many
-fraction bits and converting back preserves its encoding without flags.
+<details>
+<summary><code>TensorCore.IEEE.BinaryFormat.valid</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Basic.md#decl-bb1825a12b957cb8)
 
 ```lean
+theorem BinaryFormat.valid (f : BinaryFormat) : f.layout.WellFormed
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.decode_finite_iff</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Basic.md#decl-e921ec9072a7db34)
+
+```lean
+/-- The IEEE finite projection preserves the old numerical value and adds its sign bit. -/
+theorem decode_finite_iff (f : BinaryFormat) (b : Word f) (s : Bool) (v : ℚ) :
+    decode f b = .finite s v ↔ binaryValue f.layout b = some v ∧ sign f b = s
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.finiteBits_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Rounding.md#decl-00e71abfcdfd8abb)
+
+```lean
+theorem finiteBits_eq (f : BinaryFormat) (mode : BinaryRoundingMode) (x : ℚ)
+    (hr : absQ x ≤ f.layout.maxFinite) :
+    roundBinary f.layout mode x = some (finiteBits f mode x hr)
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.zero_sign</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Basic.md#decl-a55f8f28a95986bc)
+
+```lean
+theorem zero_sign (f : BinaryFormat) (s : Bool) : sign f (zero f s) = s
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.zero_value</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Basic.md#decl-42575e26b6696b19)
+
+```lean
+theorem zero_value (f : BinaryFormat) (s : Bool) :
+    binaryValue f.layout (zero f s) = some 0
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.binaryValue_roundBinary</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/RoundTrip.md#decl-9a5b73ab13b18c71)
+
+```lean
+theorem binaryValue_roundBinary (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
+    (b : BitVec f.width) (v : ℚ) (hv : binaryValue f b = some v) (hnz : v ≠ 0) :
+    roundBinary f mode v = some b
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.binaryValue_sign_injective</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/SignedBijection.md#decl-9cff42a1aec63f03)
+
+```lean
+/-- Equal rational values and equal sign bits identify finite words, including zero. -/
+theorem binaryValue_sign_injective (f : Format) (hf : f.WellFormed)
+    (b₁ b₂ : FiniteBinaryWord f) (v : ℚ) (h₁ : binaryValue f b₁.val = some v)
+    (h₂ : binaryValue f b₂.val = some v) (hs : binarySign f b₁.val = binarySign f b₂.val) :
+    b₁ = b₂
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.roundBinary_range</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/Core/Binary/RoundOp.md#decl-0877ce0e6eb40a61)
+
+```lean
+theorem roundBinary_range {f : Format} {mode : BinaryRoundingMode} {x : ℚ}
+    {bits : BitVec f.width} (h : roundBinary f mode x = some bits) :
+    f.WellFormed ∧ absQ x ≤ f.maxFinite
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRep.zero](docs/proofs/Core/Binary/SignedBijection.md#decl-88b6b09937a229a9), [TensorCore.Classification.finite](docs/proofs/Core/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.Decoded](docs/proofs/Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](docs/proofs/Core/Defs.md#decl-c988858af545448a), [TensorCore.FiniteBinaryWord](docs/proofs/Core/Binary/Defs.md#decl-b1ebef5bf580ea01), [TensorCore.Format.WellFormed](docs/proofs/Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.BinaryFormat.layout](docs/proofs/IEEE/Basic.md#decl-a8e62c5be0ff5328), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.Datum](docs/proofs/IEEE/Basic.md#decl-85a736cf96780149), [TensorCore.IEEE.Flags](docs/proofs/IEEE/Basic.md#decl-7fb0da58f8de59d1), [TensorCore.IEEE.Result](docs/proofs/IEEE/Basic.md#decl-24fb6631bfd8efcf), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.convert](docs/proofs/IEEE/Operations.md#decl-4f62188c5500d3b7), [TensorCore.IEEE.convertDatum](docs/proofs/IEEE/Operations.md#decl-ead5be4619d6f294), [TensorCore.IEEE.convertPayload](docs/proofs/IEEE/Operations.md#decl-e35efe8a503f3ae3), [TensorCore.IEEE.decode](docs/proofs/IEEE/Basic.md#decl-2beaccf900e5635c), [TensorCore.IEEE.finiteBits](docs/proofs/IEEE/Rounding.md#decl-1cdd013ea2ce0dce), [TensorCore.IEEE.infinity](docs/proofs/IEEE/Basic.md#decl-6135d610bb0efb93), [TensorCore.IEEE.infinityResult](docs/proofs/IEEE/Operations.md#decl-14941c0c62b980d6), [TensorCore.IEEE.maxFiniteWord](docs/proofs/IEEE/Basic.md#decl-6ddaa725b7fd2551), [TensorCore.IEEE.nan](docs/proofs/IEEE/Basic.md#decl-3fa748041e6ba03e), [TensorCore.IEEE.overflowToInfinity](docs/proofs/IEEE/Rounding.md#decl-060b290d21f2ceee), [TensorCore.IEEE.precisionMagnitude](docs/proofs/IEEE/Precision.md#decl-273af52c676de10a), [TensorCore.IEEE.round](docs/proofs/IEEE/Rounding.md#decl-e686eb7fa2b669b5), [TensorCore.IEEE.sign](docs/proofs/IEEE/Basic.md#decl-f3f376a13829bc9f), [TensorCore.IEEE.tiny](docs/proofs/IEEE/Rounding.md#decl-33fe2598430cb212), [TensorCore.IEEE.zero](docs/proofs/IEEE/Basic.md#decl-8e1c4a10ad1ad419), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.binarySign](docs/proofs/Core/Binary/Encoding.md#decl-a5de0a69a17e78c5), [TensorCore.binaryValue](docs/proofs/Core/Binary/RoundOp.md#decl-45dceb4f1deb9b75), [TensorCore.classify](docs/proofs/Core/Encoding.md#decl-793c375a3325b7e3), [TensorCore.encodeBinaryRep](docs/proofs/Core/Binary/Bijection.md#decl-abc077f61bbca602), [TensorCore.roundBinary](docs/proofs/Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.convert_quietNaN_roundtrip</code></summary>
+
+[Lean source](TensorCore/IEEE/Compatibility.lean#L44) · [Full dependency node](docs/proofs/IEEE/Compatibility.md#decl-11ef56fd93e042f2)
+
+```lean
+/-- Widening then narrowing a quiet NaN preserves sign and payload. -/
 theorem convert_quietNaN_roundtrip (source target : BinaryFormat) (cfg : Context)
-    (s : Bool) (p : Nat) (hp : p < quietBit source)
+    (s : Bool) (p : ℕ) (hp : p < quietBit source)
     (hw : source.layout.fractionBits ≤ target.layout.fractionBits) :
     convert target source cfg (convert source target cfg (nan source s p)).bits =
       ⟨nan source s p, {}⟩ := by
@@ -2540,47 +4762,112 @@ theorem convert_quietNaN_roundtrip (source target : BinaryFormat) (cfg : Context
     convertPayload_roundtrip source target p hw]
 ```
 
-**[TensorCore.IEEE.round_agrees_finite](tensor-core/TensorCore/IEEE/Rounding.lean#L95)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-For a nonzero exact input within the finite range, proves that IEEE rounding bits agree
-with the original finite converter.
+<details>
+<summary><code>TensorCore.IEEE.convertPayload_bounded</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Compatibility.md#decl-78bff6c53f7ce3d2)
 
 ```lean
-theorem round_agrees_finite (f : BinaryFormat) (cfg : Context) (s : Bool) (x : Rat)
-    (hx : x ≠ 0) (hr : absQ x ≤ f.layout.maxFinite) :
-    roundBinary f.layout cfg.mode x = some (round f cfg s x).bits := by
-  simpa [round, hx, hr] using finiteBits_eq f cfg.mode x hr
+theorem convertPayload_bounded (source target : BinaryFormat) (p : ℕ)
+    (hp : p < quietBit source) : convertPayload source target p < quietBit target
 ```
 
 </details>
 
 <details>
-<summary>C20. Lean native migration — Lean declarations</summary>
+<summary><code>TensorCore.IEEE.convertPayload_roundtrip</code></summary>
 
-**[TensorCore.IEEE.LeanBridge.NonzeroFinite32](tensor-core/TensorCore/IEEE/LeanBridge.lean#L81)** (def; namespace `TensorCore.IEEE.LeanBridge`).
-
-Defines the FP32 native arithmetic domain: a finite exponent field and a nonzero decoded
-significand.
+[Expand this proof and its dependencies](docs/proofs/IEEE/Compatibility.md#decl-9386b7dd0de650fe)
 
 ```lean
-def NonzeroFinite32 (a : F32) : Prop := a.toNat / 8388608 % 256 < 255 ∧ 0 < mantissa32 a
+theorem convertPayload_roundtrip (source target : BinaryFormat) (p : ℕ)
+    (hw : source.layout.fractionBits ≤ target.layout.fractionBits) :
+    convertPayload target source (convertPayload source target p) = p
 ```
 
-**[TensorCore.IEEE.LeanBridge.NonzeroFinite64](tensor-core/TensorCore/IEEE/LeanBridge64.lean#L77)** (def; namespace `TensorCore.IEEE.LeanBridge`).
+</details>
 
-Defines the FP64 native arithmetic domain: a finite exponent field and a nonzero decoded
-significand.
+<details>
+<summary><code>TensorCore.IEEE.decode_nan</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Basic.md#decl-4f5c3082603585a7)
 
 ```lean
-def NonzeroFinite64 (a : F64) : Prop := a.toNat / 4503599627370496 % 2048 < 2047 ∧ 0 < mantissa64 a
+theorem decode_nan (f : BinaryFormat) (s : Bool) (p : ℕ) :
+    decode f (nan f s p) = .nan s false (p % quietBit f)
 ```
 
-**[TensorCore.IEEE.addWithLean_eq](tensor-core/TensorCore/IEEE/NativeOperations.lean#L168)** (theorem; namespace `TensorCore.IEEE`).
+</details>
 
-Proves that the native addition wrapper preserves every reference result bit and flag
-for all formats, encodings, and contexts, including reference fallbacks.
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.Format](docs/proofs/Core/Defs.md#decl-db780180792c6817), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.BinaryFormat.layout](docs/proofs/IEEE/Basic.md#decl-a8e62c5be0ff5328), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.Datum](docs/proofs/IEEE/Basic.md#decl-85a736cf96780149), [TensorCore.IEEE.Flags](docs/proofs/IEEE/Basic.md#decl-7fb0da58f8de59d1), [TensorCore.IEEE.Result](docs/proofs/IEEE/Basic.md#decl-24fb6631bfd8efcf), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.convert](docs/proofs/IEEE/Operations.md#decl-4f62188c5500d3b7), [TensorCore.IEEE.convertDatum](docs/proofs/IEEE/Operations.md#decl-ead5be4619d6f294), [TensorCore.IEEE.convertPayload](docs/proofs/IEEE/Operations.md#decl-e35efe8a503f3ae3), [TensorCore.IEEE.decode](docs/proofs/IEEE/Basic.md#decl-2beaccf900e5635c), [TensorCore.IEEE.infinityResult](docs/proofs/IEEE/Operations.md#decl-14941c0c62b980d6), [TensorCore.IEEE.nan](docs/proofs/IEEE/Basic.md#decl-3fa748041e6ba03e), [TensorCore.IEEE.quietBit](docs/proofs/IEEE/Basic.md#decl-7fc4ab022f9af5d1), [TensorCore.IEEE.round](docs/proofs/IEEE/Rounding.md#decl-e686eb7fa2b669b5)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.round_agrees_finite</code></summary>
+
+[Lean source](TensorCore/IEEE/Rounding.lean#L95) · [Full dependency node](docs/proofs/IEEE/Rounding.md#decl-8c10d9eec6663da4)
 
 ```lean
+/-- On the original domain the new and old numeric encodings coincide whenever
+the exact result is nonzero. IEEE zero signs are governed by the operation. -/
+theorem round_agrees_finite (f : BinaryFormat) (cfg : Context) (s : Bool) (x : ℚ)
+    (hx : x ≠ 0) (hr : absQ x ≤ f.layout.maxFinite) :
+    roundBinary f.layout cfg.mode x = some (round f cfg s x).bits := by
+  simpa [round, hx, hr] using finiteBits_eq f cfg.mode x hr
+```
+
+<details>
+<summary>Supporting proofs</summary>
+
+<details>
+<summary><code>TensorCore.IEEE.finiteBits_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/Rounding.md#decl-00e71abfcdfd8abb)
+
+```lean
+theorem finiteBits_eq (f : BinaryFormat) (mode : BinaryRoundingMode) (x : ℚ)
+    (hr : absQ x ≤ f.layout.maxFinite) :
+    roundBinary f.layout mode x = some (finiteBits f mode x hr)
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.Format.width](docs/proofs/Core/Defs.md#decl-950f9d663ce32954), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.BinaryFormat.layout](docs/proofs/IEEE/Basic.md#decl-a8e62c5be0ff5328), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.Flags](docs/proofs/IEEE/Basic.md#decl-7fb0da58f8de59d1), [TensorCore.IEEE.Result](docs/proofs/IEEE/Basic.md#decl-24fb6631bfd8efcf), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.finiteBits](docs/proofs/IEEE/Rounding.md#decl-1cdd013ea2ce0dce), [TensorCore.IEEE.infinity](docs/proofs/IEEE/Basic.md#decl-6135d610bb0efb93), [TensorCore.IEEE.maxFiniteWord](docs/proofs/IEEE/Basic.md#decl-6ddaa725b7fd2551), [TensorCore.IEEE.overflowToInfinity](docs/proofs/IEEE/Rounding.md#decl-060b290d21f2ceee), [TensorCore.IEEE.precisionMagnitude](docs/proofs/IEEE/Precision.md#decl-273af52c676de10a), [TensorCore.IEEE.round](docs/proofs/IEEE/Rounding.md#decl-e686eb7fa2b669b5), [TensorCore.IEEE.tiny](docs/proofs/IEEE/Rounding.md#decl-33fe2598430cb212), [TensorCore.IEEE.zero](docs/proofs/IEEE/Basic.md#decl-8e1c4a10ad1ad419), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.binaryValue](docs/proofs/Core/Binary/RoundOp.md#decl-45dceb4f1deb9b75), [TensorCore.roundBinary](docs/proofs/Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed)
+
+</details>
+
+</details>
+
+</details>
+
+<details>
+<summary>C20. Lean native migration</summary>
+
+FP32/FP64 nearest-even add/sub/mul agree with Lean's logical operations for nonzero finite operands with an in-range exact result. Wrappers preserve the original bits and every flag for all formats, inputs, rounding modes, and tininess policies by retaining reference fallbacks.
+
+<details>
+<summary><code>TensorCore.IEEE.addWithLean_eq</code></summary>
+
+[Lean source](TensorCore/IEEE/NativeOperations.lean#L168) · [Full dependency node](docs/proofs/IEEE/NativeOperations.md#decl-2635635840e5f106)
+
+```lean
+/-- Total public-contract preservation, including every fallback case. -/
 theorem addWithLean_eq (f : BinaryFormat) (cfg : Context) (a b : Word f) :
     addWithLean f cfg a b = add f cfg a b := by
   cases f with
@@ -2601,12 +4888,56 @@ theorem addWithLean_eq (f : BinaryFormat) (cfg : Context) (a b : Word f) :
     exact nativeAddResult64_eq _ _ _ ‹_› ‹_› ‹_› ‹_›
 ```
 
-**[TensorCore.IEEE.subWithLean_eq](tensor-core/TensorCore/IEEE/NativeOperations.lean#L254)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that the native subtraction wrapper preserves every reference result bit and flag
-for all formats, encodings, and contexts, including reference fallbacks.
+<details>
+<summary><code>TensorCore.IEEE.nativeAddResult32_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/NativeOperations.md#decl-b351d9aefeea34de)
 
 ```lean
+/-- The native path preserves every observable bit and exception flag. -/
+theorem nativeAddResult32_eq (cfg : Context) (a b : F32)
+    (hm : cfg.mode = .nearestEven) (ha : NonzeroFinite32 a) (hb : NonzeroFinite32 b)
+    (hr : absQ (finiteValue32 a + finiteValue32 b) ≤ fp32.maxFinite) :
+    nativeAddResult32 cfg a b ha hb = add .binary32 cfg a b
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.nativeAddResult64_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/NativeOperations.md#decl-5c0f5f79d45b4858)
+
+```lean
+theorem nativeAddResult64_eq (cfg : Context) (a b : F64)
+    (hm : cfg.mode = .nearestEven) (ha : NonzeroFinite64 a) (hb : NonzeroFinite64 b)
+    (hr : absQ (finiteValue64 a + finiteValue64 b) ≤ fp64.maxFinite) :
+    nativeAddResult64 cfg a b ha hb = add .binary64 cfg a b
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.LeanBridge.F64](docs/proofs/IEEE/LeanBridge64.md#decl-5e4c6b31b1817a74), [TensorCore.IEEE.LeanBridge.NonzeroFinite32](docs/proofs/IEEE/LeanBridge.md#decl-934581d157f94b85), [TensorCore.IEEE.LeanBridge.NonzeroFinite64](docs/proofs/IEEE/LeanBridge64.md#decl-ba104ae2a8389734), [TensorCore.IEEE.LeanBridge.finiteValue32](docs/proofs/IEEE/LeanBridge.md#decl-ec545ce67195b15f), [TensorCore.IEEE.LeanBridge.finiteValue64](docs/proofs/IEEE/LeanBridge64.md#decl-719acb811d540de8), [TensorCore.IEEE.LeanBridge.mantissa32](docs/proofs/IEEE/LeanBridge.md#decl-386e42fa55e98031), [TensorCore.IEEE.LeanBridge.mantissa64](docs/proofs/IEEE/LeanBridge64.md#decl-aae21efd45125e0b), [TensorCore.IEEE.Result](docs/proofs/IEEE/Basic.md#decl-24fb6631bfd8efcf), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.add](docs/proofs/IEEE/Operations.md#decl-7e1f336bdb43c1b4), [TensorCore.IEEE.addWithLean](docs/proofs/IEEE/NativeOperations.md#decl-69353adf32ad8f12), [TensorCore.IEEE.nativeAddResult32](docs/proofs/IEEE/NativeOperations.md#decl-ec1af70180857547), [TensorCore.IEEE.nativeAddResult64](docs/proofs/IEEE/NativeOperations.md#decl-f03febed232c86ff), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.fp32](docs/proofs/Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.fp64](docs/proofs/Core/Defs.md#decl-a9439171a8dcf9cb)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.subWithLean_eq</code></summary>
+
+[Lean source](TensorCore/IEEE/NativeOperations.lean#L254) · [Full dependency node](docs/proofs/IEEE/NativeOperations.md#decl-fe6bb7e80b5ded0b)
+
+```lean
+/-- Total public-contract preservation, including every fallback case. -/
 theorem subWithLean_eq (f : BinaryFormat) (cfg : Context) (a b : Word f) :
     subWithLean f cfg a b = sub f cfg a b := by
   cases f with
@@ -2627,12 +4958,56 @@ theorem subWithLean_eq (f : BinaryFormat) (cfg : Context) (a b : Word f) :
     exact nativeSubResult64_eq _ _ _ ‹_› ‹_› ‹_› ‹_›
 ```
 
-**[TensorCore.IEEE.mulWithLean_eq](tensor-core/TensorCore/IEEE/NativeOperations.lean#L338)** (theorem; namespace `TensorCore.IEEE`).
+<details>
+<summary>Supporting proofs</summary>
 
-Proves that the native multiplication wrapper preserves every reference result bit and
-flag for all formats, encodings, and contexts, including reference fallbacks.
+<details>
+<summary><code>TensorCore.IEEE.nativeSubResult32_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/NativeOperations.md#decl-67c867c299bfa458)
 
 ```lean
+/-- The native path preserves every observable bit and exception flag. -/
+theorem nativeSubResult32_eq (cfg : Context) (a b : F32)
+    (hm : cfg.mode = .nearestEven) (ha : NonzeroFinite32 a) (hb : NonzeroFinite32 b)
+    (hr : absQ (finiteValue32 a - finiteValue32 b) ≤ fp32.maxFinite) :
+    nativeSubResult32 cfg a b ha hb = sub .binary32 cfg a b
+```
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.nativeSubResult64_eq</code></summary>
+
+[Expand this proof and its dependencies](docs/proofs/IEEE/NativeOperations.md#decl-6eabc2e456b7b9e2)
+
+```lean
+theorem nativeSubResult64_eq (cfg : Context) (a b : F64)
+    (hm : cfg.mode = .nearestEven) (ha : NonzeroFinite64 a) (hb : NonzeroFinite64 b)
+    (hr : absQ (finiteValue64 a - finiteValue64 b) ≤ fp64.maxFinite) :
+    nativeSubResult64 cfg a b ha hb = sub .binary64 cfg a b
+```
+
+</details>
+
+</details>
+
+<details>
+<summary>Definitions and types</summary>
+
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.LeanBridge.F64](docs/proofs/IEEE/LeanBridge64.md#decl-5e4c6b31b1817a74), [TensorCore.IEEE.LeanBridge.NonzeroFinite32](docs/proofs/IEEE/LeanBridge.md#decl-934581d157f94b85), [TensorCore.IEEE.LeanBridge.NonzeroFinite64](docs/proofs/IEEE/LeanBridge64.md#decl-ba104ae2a8389734), [TensorCore.IEEE.LeanBridge.finiteValue32](docs/proofs/IEEE/LeanBridge.md#decl-ec545ce67195b15f), [TensorCore.IEEE.LeanBridge.finiteValue64](docs/proofs/IEEE/LeanBridge64.md#decl-719acb811d540de8), [TensorCore.IEEE.LeanBridge.mantissa32](docs/proofs/IEEE/LeanBridge.md#decl-386e42fa55e98031), [TensorCore.IEEE.LeanBridge.mantissa64](docs/proofs/IEEE/LeanBridge64.md#decl-aae21efd45125e0b), [TensorCore.IEEE.Result](docs/proofs/IEEE/Basic.md#decl-24fb6631bfd8efcf), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.nativeSubResult32](docs/proofs/IEEE/NativeOperations.md#decl-32af219c859af336), [TensorCore.IEEE.nativeSubResult64](docs/proofs/IEEE/NativeOperations.md#decl-230fd7d0364069c2), [TensorCore.IEEE.sub](docs/proofs/IEEE/Operations.md#decl-c0ce25b051e73b2b), [TensorCore.IEEE.subWithLean](docs/proofs/IEEE/NativeOperations.md#decl-9d4b383e5cf47f67), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.fp32](docs/proofs/Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.fp64](docs/proofs/Core/Defs.md#decl-a9439171a8dcf9cb)
+
+</details>
+
+</details>
+
+<details>
+<summary><code>TensorCore.IEEE.mulWithLean_eq</code></summary>
+
+[Lean source](TensorCore/IEEE/NativeOperations.lean#L338) · [Full dependency node](docs/proofs/IEEE/NativeOperations.md#decl-5d277c7bbd841070)
+
+```lean
+/-- Total public-contract preservation, including every fallback case. -/
 theorem mulWithLean_eq (f : BinaryFormat) (cfg : Context) (a b : Word f) :
     mulWithLean f cfg a b = mul f cfg a b := by
   cases f with
@@ -2653,597 +5028,49 @@ theorem mulWithLean_eq (f : BinaryFormat) (cfg : Context) (a b : Word f) :
     exact nativeMulResult64_eq _ _ _ ‹_› ‹_› ‹_› ‹_›
 ```
 
-**[TensorCore.IEEE.LeanBridge.nativeAdd32_reference](tensor-core/TensorCore/IEEE/LeanBridge.lean#L380)** (theorem; namespace `TensorCore.IEEE.LeanBridge`).
+<details>
+<summary>Supporting proofs</summary>
 
-For nonzero finite FP32 operands with an in-range exact result, proves that Lean-native
-nearest-even addition produces the reference bits. This bridge compares bits; wrapper
-theorems also preserve flags.
+<details>
+<summary><code>TensorCore.IEEE.nativeMulResult32_eq</code></summary>
 
-```lean
-theorem nativeAdd32_reference (a b : F32) (ha : NonzeroFinite32 a) (hb : NonzeroFinite32 b)
-    (tinyMode : Tininess) (hr : absQ (finiteValue32 a + finiteValue32 b) ≤ fp32.maxFinite) :
-    nativeAdd32 a b (native32Valid_finite a ha.1) (native32Valid_finite b hb.1) =
-      (TensorCore.IEEE.add .binary32 ⟨.nearestEven, tinyMode⟩ a b).bits := by
-  change pack Float.Model.Format.binary32
-    (Float.Model.UnpackedFloat.add Float.Model.Format.binary32
-      (unpack Float.Model.Format.binary32 a) (unpack Float.Model.Format.binary32 b)) = _
-  rw [unpack32_nonzero a ha, unpack32_nonzero b hb]
-  simp only [Float.Model.UnpackedFloat.add]
-  have hv := aligned_add_value (nativeSign (sign32 a)) (nativeSign (sign32 b))
-    (mantissa32 a) (mantissa32 b) (exponent32 a) (exponent32 b)
-  have hround := packNormalize32_reference
-    ((nativeSign (sign32 a)).apply
-      (decreaseExponent (mantissa32 a) (exponent32 a) (min (exponent32 a) (exponent32 b))).1 +
-     (nativeSign (sign32 b)).apply
-      (decreaseExponent (mantissa32 b) (exponent32 b) (min (exponent32 a) (exponent32 b))).1)
-    (min (exponent32 a) (exponent32 b)) tinyMode (by simpa only [hv, finiteValue32] using hr)
-  rw [hround, hv]
-  change (TensorCore.IEEE.round .binary32 ⟨.nearestEven, tinyMode⟩ false
-      (finiteValue32 a + finiteValue32 b)).bits =
-    (addDatum .binary32 ⟨.nearestEven, tinyMode⟩ (decode .binary32 a) (decode .binary32 b)).bits
-  rw [decode32_nonzero a ha, decode32_nonzero b hb]
-  change (TensorCore.IEEE.round .binary32 ⟨.nearestEven, tinyMode⟩ false
-    (finiteValue32 a + finiteValue32 b)).bits =
-      (TensorCore.IEEE.round .binary32 ⟨.nearestEven, tinyMode⟩
-        (sumZeroSign .nearestEven (sign32 a) (sign32 b))
-        (finiteValue32 a + finiteValue32 b)).bits
-  cases sa : sign32 a <;> cases sb : sign32 b
-  all_goals try rfl
-  have hpa : 0 < (mantissa32 a : Rat) * pow2 (exponent32 a) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr ha.2) (pow2_pos _)
-  have hpb : 0 < (mantissa32 b : Rat) * pow2 (exponent32 b) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr hb.2) (pow2_pos _)
-  have hne : finiteValue32 a + finiteValue32 b ≠ 0 := by
-    simp only [finiteValue32, sa, sb, nativeSign, ↓reduceIte, Sign.apply,
-      Rat.intCast_neg, Rat.intCast_natCast]
-    grind
-  simp only [TensorCore.IEEE.round, hne, ↓reduceIte]
-```
-
-**[TensorCore.IEEE.LeanBridge.nativeSub32_reference](tensor-core/TensorCore/IEEE/LeanBridge.lean#L443)** (theorem; namespace `TensorCore.IEEE.LeanBridge`).
-
-For nonzero finite FP32 operands with an in-range exact result, proves that Lean-native
-nearest-even subtraction produces the reference bits. This bridge compares bits; wrapper
-theorems also preserve flags.
+[Expand this proof and its dependencies](docs/proofs/IEEE/NativeOperations.md#decl-b72459f5eb7df15f)
 
 ```lean
-theorem nativeSub32_reference (a b : F32) (ha : NonzeroFinite32 a) (hb : NonzeroFinite32 b)
-    (tinyMode : Tininess) (hr : absQ (finiteValue32 a - finiteValue32 b) ≤ fp32.maxFinite) :
-    nativeSub32 a b (native32Valid_finite a ha.1) (native32Valid_finite b hb.1) =
-      (TensorCore.IEEE.sub .binary32 ⟨.nearestEven, tinyMode⟩ a b).bits := by
-  change pack Float.Model.Format.binary32
-    (Float.Model.UnpackedFloat.sub Float.Model.Format.binary32
-      (unpack Float.Model.Format.binary32 a) (unpack Float.Model.Format.binary32 b)) = _
-  rw [unpack32_nonzero a ha, unpack32_nonzero b hb]
-  simp only [Float.Model.UnpackedFloat.sub]
-  have hv := aligned_sub_value (nativeSign (sign32 a)) (nativeSign (sign32 b))
-    (mantissa32 a) (mantissa32 b) (exponent32 a) (exponent32 b)
-  have hround := packNormalize32_reference
-    ((nativeSign (sign32 a)).apply
-      (decreaseExponent (mantissa32 a) (exponent32 a) (min (exponent32 a) (exponent32 b))).1 -
-     (nativeSign (sign32 b)).apply
-      (decreaseExponent (mantissa32 b) (exponent32 b) (min (exponent32 a) (exponent32 b))).1)
-    (min (exponent32 a) (exponent32 b)) tinyMode (by simpa only [hv, finiteValue32] using hr)
-  rw [hround, hv]
-  change (TensorCore.IEEE.round .binary32 ⟨.nearestEven, tinyMode⟩ false
-      (finiteValue32 a - finiteValue32 b)).bits =
-    (addDatum .binary32 ⟨.nearestEven, tinyMode⟩ (decode .binary32 a) (decode .binary32 b).negate).bits
-  rw [decode32_nonzero a ha, decode32_nonzero b hb]
-  simp only [Datum.negate, addDatum, Datum.isNaN, Bool.false_or, Bool.false_eq_true, ↓reduceIte]
-  rw [← Rat.sub_eq_add_neg]
-  change (TensorCore.IEEE.round .binary32 ⟨.nearestEven, tinyMode⟩ false
-    (finiteValue32 a - finiteValue32 b)).bits =
-      (TensorCore.IEEE.round .binary32 ⟨.nearestEven, tinyMode⟩
-        (sumZeroSign .nearestEven (sign32 a) (!(sign32 b)))
-        (finiteValue32 a - finiteValue32 b)).bits
-  cases sa : sign32 a <;> cases sb : sign32 b
-  all_goals try rfl
-  have hpa : 0 < (mantissa32 a : Rat) * pow2 (exponent32 a) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr ha.2) (pow2_pos _)
-  have hpb : 0 < (mantissa32 b : Rat) * pow2 (exponent32 b) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr hb.2) (pow2_pos _)
-  have hne : finiteValue32 a - finiteValue32 b ≠ 0 := by
-    simp only [finiteValue32, sa, sb, nativeSign, Bool.false_eq_true, ↓reduceIte, Sign.apply,
-      Rat.intCast_neg, Rat.intCast_natCast]
-    grind
-  simp only [TensorCore.IEEE.round, hne, ↓reduceIte]
-```
-
-**[TensorCore.IEEE.LeanBridge.nativeMul32_reference](tensor-core/TensorCore/IEEE/LeanBridge.lean#L535)** (theorem; namespace `TensorCore.IEEE.LeanBridge`).
-
-For nonzero finite FP32 operands with an in-range exact result, proves that Lean-native
-nearest-even multiplication produces the reference bits. This bridge compares bits;
-wrapper theorems also preserve flags.
-
-```lean
-theorem nativeMul32_reference (a b : F32) (ha : NonzeroFinite32 a) (hb : NonzeroFinite32 b)
-    (tinyMode : Tininess) (hr : absQ (finiteValue32 a * finiteValue32 b) ≤ fp32.maxFinite) :
-    nativeMul32 a b (native32Valid_finite a ha.1) (native32Valid_finite b hb.1) =
-      (TensorCore.IEEE.mul .binary32 ⟨.nearestEven, tinyMode⟩ a b).bits := by
-  have hm := Nat.mul_pos ha.2 hb.2
-  have hp : 0 < ((mantissa32 a * mantissa32 b : Nat) : Rat) * pow2 (exponent32 a + exponent32 b) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr hm) (pow2_pos _)
-  have hrange : ((mantissa32 a * mantissa32 b : Nat) : Rat) *
-      pow2 (exponent32 a + exponent32 b) ≤ fp32.maxFinite := by
-    rw [finiteValue32_mul] at hr
-    split at hr <;> simpa only [absQ_neg, absQ_of_nonneg (Rat.le_of_lt hp)] using hr
-  change pack Float.Model.Format.binary32
-    (Float.Model.UnpackedFloat.mul Float.Model.Format.binary32
-      (unpack Float.Model.Format.binary32 a) (unpack Float.Model.Format.binary32 b)) = _
-  rw [unpack32_nonzero a ha, unpack32_nonzero b hb]
-  simp only [Float.Model.UnpackedFloat.mul]
-  rw [nativeSign_mul, roundWithAccuracy_eq_round32 _ _ _ (product32_no_leftshift a b ha hb),
-    packRound32_reference _ _ _ hm tinyMode hrange, ← finiteValue32_mul]
-  change (round .binary32 ⟨.nearestEven, tinyMode⟩ (xor (sign32 a) (sign32 b))
-    (finiteValue32 a * finiteValue32 b)).bits =
-      (mulDatum .binary32 ⟨.nearestEven, tinyMode⟩ (decode .binary32 a) (decode .binary32 b)).bits
-  rw [decode32_nonzero a ha, decode32_nonzero b hb]
-  rfl
-```
-
-**[TensorCore.IEEE.LeanBridge.nativeAdd64_reference](tensor-core/TensorCore/IEEE/LeanBridge64.lean#L351)** (theorem; namespace `TensorCore.IEEE.LeanBridge`).
-
-For nonzero finite FP64 operands with an in-range exact result, proves that Lean-native
-nearest-even addition produces the reference bits. This bridge compares bits; wrapper
-theorems also preserve flags.
-
-```lean
-theorem nativeAdd64_reference (a b : F64) (ha : NonzeroFinite64 a) (hb : NonzeroFinite64 b)
-    (tinyMode : Tininess) (hr : absQ (finiteValue64 a + finiteValue64 b) ≤ fp64.maxFinite) :
-    nativeAdd64 a b (native64Valid_finite a ha.1) (native64Valid_finite b hb.1) =
-      (TensorCore.IEEE.add .binary64 ⟨.nearestEven, tinyMode⟩ a b).bits := by
-  change pack Float.Model.Format.binary64
-    (Float.Model.UnpackedFloat.add Float.Model.Format.binary64
-      (unpack Float.Model.Format.binary64 a) (unpack Float.Model.Format.binary64 b)) = _
-  rw [unpack64_nonzero a ha, unpack64_nonzero b hb]
-  simp only [Float.Model.UnpackedFloat.add]
-  have hv := aligned_add_value (nativeSign (sign64 a)) (nativeSign (sign64 b))
-    (mantissa64 a) (mantissa64 b) (exponent64 a) (exponent64 b)
-  have hround := packNormalize64_reference
-    ((nativeSign (sign64 a)).apply
-      (decreaseExponent (mantissa64 a) (exponent64 a) (min (exponent64 a) (exponent64 b))).1 +
-     (nativeSign (sign64 b)).apply
-      (decreaseExponent (mantissa64 b) (exponent64 b) (min (exponent64 a) (exponent64 b))).1)
-    (min (exponent64 a) (exponent64 b)) tinyMode (by simpa only [hv, finiteValue64] using hr)
-  rw [hround, hv]
-  change (TensorCore.IEEE.round .binary64 ⟨.nearestEven, tinyMode⟩ false
-      (finiteValue64 a + finiteValue64 b)).bits =
-    (addDatum .binary64 ⟨.nearestEven, tinyMode⟩ (decode .binary64 a) (decode .binary64 b)).bits
-  rw [decode64_nonzero a ha, decode64_nonzero b hb]
-  change (TensorCore.IEEE.round .binary64 ⟨.nearestEven, tinyMode⟩ false
-    (finiteValue64 a + finiteValue64 b)).bits =
-      (TensorCore.IEEE.round .binary64 ⟨.nearestEven, tinyMode⟩
-        (sumZeroSign .nearestEven (sign64 a) (sign64 b))
-        (finiteValue64 a + finiteValue64 b)).bits
-  cases sa : sign64 a <;> cases sb : sign64 b
-  all_goals try rfl
-  have hpa : 0 < (mantissa64 a : Rat) * pow2 (exponent64 a) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr ha.2) (pow2_pos _)
-  have hpb : 0 < (mantissa64 b : Rat) * pow2 (exponent64 b) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr hb.2) (pow2_pos _)
-  have hne : finiteValue64 a + finiteValue64 b ≠ 0 := by
-    simp only [finiteValue64, sa, sb, nativeSign, ↓reduceIte, Sign.apply,
-      Rat.intCast_neg, Rat.intCast_natCast]
-    grind
-  simp only [TensorCore.IEEE.round, hne, ↓reduceIte]
-```
-
-**[TensorCore.IEEE.LeanBridge.nativeSub64_reference](tensor-core/TensorCore/IEEE/LeanBridge64.lean#L393)** (theorem; namespace `TensorCore.IEEE.LeanBridge`).
-
-For nonzero finite FP64 operands with an in-range exact result, proves that Lean-native
-nearest-even subtraction produces the reference bits. This bridge compares bits; wrapper
-theorems also preserve flags.
-
-```lean
-theorem nativeSub64_reference (a b : F64) (ha : NonzeroFinite64 a) (hb : NonzeroFinite64 b)
-    (tinyMode : Tininess) (hr : absQ (finiteValue64 a - finiteValue64 b) ≤ fp64.maxFinite) :
-    nativeSub64 a b (native64Valid_finite a ha.1) (native64Valid_finite b hb.1) =
-      (TensorCore.IEEE.sub .binary64 ⟨.nearestEven, tinyMode⟩ a b).bits := by
-  change pack Float.Model.Format.binary64
-    (Float.Model.UnpackedFloat.sub Float.Model.Format.binary64
-      (unpack Float.Model.Format.binary64 a) (unpack Float.Model.Format.binary64 b)) = _
-  rw [unpack64_nonzero a ha, unpack64_nonzero b hb]
-  simp only [Float.Model.UnpackedFloat.sub]
-  have hv := aligned_sub_value (nativeSign (sign64 a)) (nativeSign (sign64 b))
-    (mantissa64 a) (mantissa64 b) (exponent64 a) (exponent64 b)
-  have hround := packNormalize64_reference
-    ((nativeSign (sign64 a)).apply
-      (decreaseExponent (mantissa64 a) (exponent64 a) (min (exponent64 a) (exponent64 b))).1 -
-     (nativeSign (sign64 b)).apply
-      (decreaseExponent (mantissa64 b) (exponent64 b) (min (exponent64 a) (exponent64 b))).1)
-    (min (exponent64 a) (exponent64 b)) tinyMode (by simpa only [hv, finiteValue64] using hr)
-  rw [hround, hv]
-  change (TensorCore.IEEE.round .binary64 ⟨.nearestEven, tinyMode⟩ false
-      (finiteValue64 a - finiteValue64 b)).bits =
-    (addDatum .binary64 ⟨.nearestEven, tinyMode⟩ (decode .binary64 a) (decode .binary64 b).negate).bits
-  rw [decode64_nonzero a ha, decode64_nonzero b hb]
-  simp only [Datum.negate, addDatum, Datum.isNaN, Bool.false_or, Bool.false_eq_true, ↓reduceIte]
-  rw [← Rat.sub_eq_add_neg]
-  change (TensorCore.IEEE.round .binary64 ⟨.nearestEven, tinyMode⟩ false
-    (finiteValue64 a - finiteValue64 b)).bits =
-      (TensorCore.IEEE.round .binary64 ⟨.nearestEven, tinyMode⟩
-        (sumZeroSign .nearestEven (sign64 a) (!(sign64 b)))
-        (finiteValue64 a - finiteValue64 b)).bits
-  cases sa : sign64 a <;> cases sb : sign64 b
-  all_goals try rfl
-  have hpa : 0 < (mantissa64 a : Rat) * pow2 (exponent64 a) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr ha.2) (pow2_pos _)
-  have hpb : 0 < (mantissa64 b : Rat) * pow2 (exponent64 b) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr hb.2) (pow2_pos _)
-  have hne : finiteValue64 a - finiteValue64 b ≠ 0 := by
-    simp only [finiteValue64, sa, sb, nativeSign, Bool.false_eq_true, ↓reduceIte, Sign.apply,
-      Rat.intCast_neg, Rat.intCast_natCast]
-    grind
-  simp only [TensorCore.IEEE.round, hne, ↓reduceIte]
-```
-
-**[TensorCore.IEEE.LeanBridge.nativeMul64_reference](tensor-core/TensorCore/IEEE/LeanBridge64.lean#L482)** (theorem; namespace `TensorCore.IEEE.LeanBridge`).
-
-For nonzero finite FP64 operands with an in-range exact result, proves that Lean-native
-nearest-even multiplication produces the reference bits. This bridge compares bits;
-wrapper theorems also preserve flags.
-
-```lean
-theorem nativeMul64_reference (a b : F64) (ha : NonzeroFinite64 a) (hb : NonzeroFinite64 b)
-    (tinyMode : Tininess) (hr : absQ (finiteValue64 a * finiteValue64 b) ≤ fp64.maxFinite) :
-    nativeMul64 a b (native64Valid_finite a ha.1) (native64Valid_finite b hb.1) =
-      (TensorCore.IEEE.mul .binary64 ⟨.nearestEven, tinyMode⟩ a b).bits := by
-  have hm := Nat.mul_pos ha.2 hb.2
-  have hp : 0 < ((mantissa64 a * mantissa64 b : Nat) : Rat) * pow2 (exponent64 a + exponent64 b) :=
-    Rat.mul_pos (Rat.natCast_pos.mpr hm) (pow2_pos _)
-  have hrange : ((mantissa64 a * mantissa64 b : Nat) : Rat) *
-      pow2 (exponent64 a + exponent64 b) ≤ fp64.maxFinite := by
-    rw [finiteValue64_mul] at hr
-    split at hr <;> simpa only [absQ_neg, absQ_of_nonneg (Rat.le_of_lt hp)] using hr
-  change pack Float.Model.Format.binary64
-    (Float.Model.UnpackedFloat.mul Float.Model.Format.binary64
-      (unpack Float.Model.Format.binary64 a) (unpack Float.Model.Format.binary64 b)) = _
-  rw [unpack64_nonzero a ha, unpack64_nonzero b hb]
-  simp only [Float.Model.UnpackedFloat.mul]
-  rw [nativeSign_mul, roundWithAccuracy_eq_round64 _ _ _ (product64_no_leftshift a b ha hb),
-    packRound64_reference _ _ _ hm tinyMode hrange, ← finiteValue64_mul]
-  change (round .binary64 ⟨.nearestEven, tinyMode⟩ (xor (sign64 a) (sign64 b))
-    (finiteValue64 a * finiteValue64 b)).bits =
-      (mulDatum .binary64 ⟨.nearestEven, tinyMode⟩ (decode .binary64 a) (decode .binary64 b)).bits
-  rw [decode64_nonzero a ha, decode64_nonzero b hb]
-  rfl
-```
-
-**[TensorCore.IEEE.addWithLean_correct](tensor-core/TensorCore/IEEE/NativeOperations.lean#L187)** (theorem; namespace `TensorCore.IEEE`).
-
-Transfers the complete addition specification to the native wrapper for every encoding
-and context.
-
-```lean
-theorem addWithLean_correct (f : BinaryFormat) (cfg : Context) (a b : Word f) :
-    AddSpec f cfg (decode f a) (decode f b) (addWithLean f cfg a b) := by
-  rw [addWithLean_eq]
-  exact add_correct f cfg a b
-```
-
-**[TensorCore.IEEE.subWithLean_correct](tensor-core/TensorCore/IEEE/NativeOperations.lean#L273)** (theorem; namespace `TensorCore.IEEE`).
-
-Transfers the complete subtraction specification to the native wrapper for every
-encoding and context.
-
-```lean
-theorem subWithLean_correct (f : BinaryFormat) (cfg : Context) (a b : Word f) :
-    AddSpec f cfg (decode f a) (decode f b).negate (subWithLean f cfg a b) := by
-  rw [subWithLean_eq]
-  exact sub_correct f cfg a b
-```
-
-**[TensorCore.IEEE.mulWithLean_correct](tensor-core/TensorCore/IEEE/NativeOperations.lean#L357)** (theorem; namespace `TensorCore.IEEE`).
-
-Transfers the complete multiplication specification to the native wrapper for every
-encoding and context.
-
-```lean
-theorem mulWithLean_correct (f : BinaryFormat) (cfg : Context) (a b : Word f) :
-    MulSpec f cfg (decode f a) (decode f b) (mulWithLean f cfg a b) := by
-  rw [mulWithLean_eq]
-  exact mul_correct f cfg a b
+/-- The native path preserves every observable bit and exception flag. -/
+theorem nativeMulResult32_eq (cfg : Context) (a b : F32)
+    (hm : cfg.mode = .nearestEven) (ha : NonzeroFinite32 a) (hb : NonzeroFinite32 b)
+    (hr : absQ (finiteValue32 a * finiteValue32 b) ≤ fp32.maxFinite) :
+    nativeMulResult32 cfg a b ha hb = mul .binary32 cfg a b
 ```
 
 </details>
 
 <details>
-<summary>C21. Native EFT scalar execution — Lean declarations</summary>
+<summary><code>TensorCore.IEEE.nativeMulResult64_eq</code></summary>
 
-**[TensorCore.IEEE.LeanBridge.nativeFiniteAdd32_round](tensor-core/TensorCore/IEEE/LeanFiniteAddition.lean#L145)** (theorem; namespace `TensorCore.IEEE.LeanBridge`).
-
-For finite FP32 operands with an in-range exact sum, proves that the native adapter
-agrees with finite nearest-even rounding, including EFT's positive exact-zero
-convention.
+[Expand this proof and its dependencies](docs/proofs/IEEE/NativeOperations.md#decl-a3394de6c86087f5)
 
 ```lean
-theorem nativeFiniteAdd32_round (a b : F32)
-    (ha : a.toNat / 8388608 % 256 < 255) (hb : b.toNat / 8388608 % 256 < 255)
-    (x y : Rat) (hx : TensorCore.value32 a = some x) (hy : TensorCore.value32 b = some y)
-    (hr : absQ (x + y) ≤ fp32.maxFinite) :
-    TensorCore.round32 .nearestEven (x + y) = some (nativeFiniteAdd32 a b ha hb) := by
-  rcases zero_or_nonzero32 a ha with rfl | rfl | ha'
-  all_goals rcases zero_or_nonzero32 b hb with rfl | rfl | hb'
-  case inl.inl | inl.inr.inl | inr.inl.inl | inr.inl.inr.inl =>
-    simp only [show TensorCore.value32 (0 : F32) = some 0 by decide +kernel,
-      show TensorCore.value32 (0x80000000 : F32) = some 0 by decide +kernel, Option.some.injEq] at hx hy
-    subst x
-    subst y
-    decide +kernel +revert
-  case inl.inr.inr | inr.inl.inr.inr =>
-    have hy' := Option.some.inj (hy.symm.trans (value32_nonzero _ hb'))
-    have hx' : x = 0 := Option.some.inj (hx.symm.trans (by decide +kernel))
-    rw [hx', hy', Rat.zero_add]
-    unfold nativeFiniteAdd32
-    rw [if_neg (fun h => nonzero32_ne_negative_zero _ hb' h.2),
-      nativeAdd32_zero_left _ hb' _ (by first | exact Or.inl rfl | exact Or.inr rfl)]
-    exact round32_finiteValue32 _ hb'
-  case inr.inr.inl | inr.inr.inr.inl =>
-    have hx' := Option.some.inj (hx.symm.trans (value32_nonzero _ ha'))
-    have hy' : y = 0 := Option.some.inj (hy.symm.trans (by decide +kernel))
-    rw [hx', hy', Rat.add_zero]
-    unfold nativeFiniteAdd32
-    rw [if_neg (fun h => nonzero32_ne_negative_zero _ ha' h.1),
-      nativeAdd32_zero_right _ ha' _ (by first | exact Or.inl rfl | exact Or.inr rfl)]
-    exact round32_finiteValue32 _ ha'
-  case inr.inr.inr.inr =>
-    have hx' := Option.some.inj (hx.symm.trans (value32_nonzero _ ha'))
-    have hy' := Option.some.inj (hy.symm.trans (value32_nonzero _ hb'))
-    rw [hx', hy'] at hr ⊢
-    unfold nativeFiniteAdd32
-    rw [if_neg (fun h => nonzero32_ne_negative_zero _ ha' h.1)]
-    exact nativeAdd32_round a b ha' hb' hr
-```
-
-**[TensorCore.EFMachine.add32WithLean_eq](tensor-core/TensorCore/Programs/NativeEFT.lean#L41)** (theorem; namespace `TensorCore.EFMachine`).
-
-Proves that the native EFT addition adapter preserves the original bounded adder for all
-encodings, including rejected inputs and range failures.
-
-```lean
-theorem add32WithLean_eq (a b : F32) : add32WithLean a b = add32 a b := by
-  cases hx : decode32Word a with
-  | none =>
-    simp only [add32WithLean, add32, hx]
-    split <;> (try rfl)
-    split <;> rfl
-  | some x =>
-    have hxa : TensorCore.value32 a = some x.value := by rw [← decode32Word_value, hx]; rfl
-    have ha := value32_finite_exponent hxa
-    cases hy : decode32Word b with
-    | none => simp [add32WithLean, add32, ha, hx, hy]
-    | some y =>
-      have hyb : TensorCore.value32 b = some y.value := by rw [← decode32Word_value, hy]; rfl
-      have hb := value32_finite_exponent hyb
-      simp only [add32WithLean, add32, ha, hb, ↓reduceDIte, hx, hy, Bind.bind, Option.bind]
-      cases hs : x.add y with
-      | none => rfl
-      | some s =>
-        simp only
-        by_cases hr : s.magnitude ≤ maxMagnitude32
-        · rw [if_pos hr, Word.round32_eq, Word.add_value hs]
-          exact (nativeFiniteAdd32_round a b ha hb x.value y.value hxa hyb (by
-            have h := s.range_iff.mpr hr
-            rwa [Word.add_value hs] at h)).symm
-        · have hgt : s.magnitude > maxMagnitude32 := by
-            change ¬ s.magnitude.toNat ≤ maxMagnitude32.toNat at hr
-            exact Nat.lt_of_not_ge hr
-          simp [hr, Word.round32, hgt]
-```
-
-**[TensorCore.EFMachine.naiveSum32WithLeanFrom_eq](tensor-core/TensorCore/Programs/NativeEFT.lean#L74)** (theorem; namespace `TensorCore.EFMachine`).
-
-Proves that the complete left-to-right native FP32 fold equals the original bounded fold
-for every list and starting encoding.
-
-```lean
-theorem naiveSum32WithLeanFrom_eq (acc : F32) (xs : List F32) :
-    naiveSum32WithLeanFrom acc xs = xs.foldlM add32 acc := by
-  simp only [naiveSum32WithLeanFrom, show add32WithLean = add32 from by funext a b; exact add32WithLean_eq a b]
-```
-
-**[TensorCore.EFMachine.algorithm1WithLean_eq](tensor-core/TensorCore/Programs/NativeEFT.lean#L113)** (theorem; namespace `TensorCore.EFMachine`).
-
-Proves that native EFT preserves the entire original bounded EFT result for every input,
-including output bits, branch choice, and errors.
-
-```lean
-theorem algorithm1WithLean_eq (path : Path) (x : BlockInput path.profile) (D : F32) :
-    algorithm1WithLean path x D = algorithm1 path x D := by
-  simp only [algorithm1WithLean, algorithm1, Components.scalarWithLean_eq]
-  rfl
-```
-
-**[TensorCore.EFMachine.algorithm1WithLean_correct](tensor-core/TensorCore/Programs/NativeEFT.lean#L118)** (theorem; namespace `TensorCore.EFMachine`).
-
-For shape-correct finite inputs and any finite supplied `D`, proves that EFT returns the
-directly rounded exact dot product. Its optional output bits also preserve range
-rejection.
-
-```lean
-theorem algorithm1WithLean_correct {path : Path} {x : BlockInput path.profile}
-    {D : F32} {s d : Rat} (hlen : x.products.length = path.profile.products)
-    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
-    ∃ r, algorithm1WithLean path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s := by
-  rw [algorithm1WithLean_eq]
-  exact algorithm1_correct hlen hx hD
-```
-
-**[TensorCore.EFMachine.algorithm1WithLean_range_iff](tensor-core/TensorCore/Programs/NativeEFT.lean#L133)** (theorem; namespace `TensorCore.EFMachine`).
-
-For shape-correct finite inputs and finite `D`, proves that native EFT returns output
-bits exactly when the original exact dot product is in range.
-
-```lean
-theorem algorithm1WithLean_range_iff {path : Path} {x : BlockInput path.profile}
-    {D : F32} {s d : Rat} (hlen : x.products.length = path.profile.products)
-    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
-    (∃ r b, algorithm1WithLean path x D = .ok r ∧ r.bits = some b) ↔ absQ s ≤ maxFinite32 := by
-  rw [algorithm1WithLean_eq]
-  exact algorithm1_range_iff hlen hx hD
-```
-
-**[TensorCore.EFMachine.scalarSumWithLean_eq](tensor-core/TensorCore/Programs/NativeEFT.lean#L82)** (theorem; namespace `TensorCore.EFMachine`).
-
-Proves that exact residual encoding followed by native accumulation preserves the
-original bounded scalar sum, including failure cases.
-
-```lean
-theorem scalarSumWithLean_eq (xs : List Word) : scalarSumWithLean xs = scalarSum xs := by
-  simp only [scalarSumWithLean, scalarSum, naiveSum32WithLeanFrom_eq]
-```
-
-**[TensorCore.EFMachine.Components.scalarWithLean_eq](tensor-core/TensorCore/Programs/NativeEFT.lean#L96)** (theorem; namespace `TensorCore.EFMachine`).
-
-Proves that the native scalar branch preserves the original scalar branch's optional
-output, including every guard and intermediate check.
-
-```lean
-theorem Components.scalarWithLean_eq (c : Components) : c.scalarWithLean = c.scalar := by
-  simp only [Components.scalarWithLean, Components.scalar, scalarSumWithLean_eq, add32WithLean_eq]
-```
-
-**[TensorCore.EFMachine.algorithm1WithLean_success](tensor-core/TensorCore/Programs/NativeEFT.lean#L125)** (theorem; namespace `TensorCore.EFMachine`).
-
-When the exact dot product is in the finite FP32 range, proves that native EFT returns
-actual bits satisfying nearest-even rounding.
-
-```lean
-theorem algorithm1WithLean_success {path : Path} {x : BlockInput path.profile}
-    {D : F32} {s d : Rat} (hlen : x.products.length = path.profile.products)
-    (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d)
-    (hrange : absQ s ≤ maxFinite32) :
-    ∃ r b, algorithm1WithLean path x D = .ok r ∧ r.bits = some b ∧ NearestEven32 s b := by
-  rw [algorithm1WithLean_eq]
-  exact algorithm1_success hlen hx hD hrange
+theorem nativeMulResult64_eq (cfg : Context) (a b : F64)
+    (hm : cfg.mode = .nearestEven) (ha : NonzeroFinite64 a) (hb : NonzeroFinite64 b)
+    (hr : absQ (finiteValue64 a * finiteValue64 b) ≤ fp64.maxFinite) :
+    nativeMulResult64 cfg a b ha hb = mul .binary64 cfg a b
 ```
 
 </details>
 
-<!-- END MAIN THEOREM CODE -->
+</details>
 
-### Substance and nonvacuity
+<details>
+<summary>Definitions and types</summary>
 
-The rounding relations compare against all representable competitors. Fixed-width
-refinement proves coefficient/carry capacity, and error bounds include alignment
-and final conversion losses. Residual recovery by itself is an elementary identity
-and does not establish the accuracy of an arbitrary supplied output.
+[TensorCore.BinaryRoundingMode](docs/proofs/Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.F32](docs/proofs/Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Format.maxFinite](docs/proofs/Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.IEEE.BinaryFormat](docs/proofs/IEEE/Basic.md#decl-d560501f21a28c67), [TensorCore.IEEE.Context](docs/proofs/IEEE/Basic.md#decl-72d4c54af38e23b8), [TensorCore.IEEE.LeanBridge.F64](docs/proofs/IEEE/LeanBridge64.md#decl-5e4c6b31b1817a74), [TensorCore.IEEE.LeanBridge.NonzeroFinite32](docs/proofs/IEEE/LeanBridge.md#decl-934581d157f94b85), [TensorCore.IEEE.LeanBridge.NonzeroFinite64](docs/proofs/IEEE/LeanBridge64.md#decl-ba104ae2a8389734), [TensorCore.IEEE.LeanBridge.finiteValue32](docs/proofs/IEEE/LeanBridge.md#decl-ec545ce67195b15f), [TensorCore.IEEE.LeanBridge.finiteValue64](docs/proofs/IEEE/LeanBridge64.md#decl-719acb811d540de8), [TensorCore.IEEE.LeanBridge.mantissa32](docs/proofs/IEEE/LeanBridge.md#decl-386e42fa55e98031), [TensorCore.IEEE.LeanBridge.mantissa64](docs/proofs/IEEE/LeanBridge64.md#decl-aae21efd45125e0b), [TensorCore.IEEE.Result](docs/proofs/IEEE/Basic.md#decl-24fb6631bfd8efcf), [TensorCore.IEEE.Word](docs/proofs/IEEE/Basic.md#decl-b814ad4fc9e848f5), [TensorCore.IEEE.mul](docs/proofs/IEEE/Operations.md#decl-c121f20d96d6a64e), [TensorCore.IEEE.mulWithLean](docs/proofs/IEEE/NativeOperations.md#decl-13fcf73d5e1341d3), [TensorCore.IEEE.nativeMulResult32](docs/proofs/IEEE/NativeOperations.md#decl-8a60d5b139a47392), [TensorCore.IEEE.nativeMulResult64](docs/proofs/IEEE/NativeOperations.md#decl-da7d8d0f36814d8f), [TensorCore.absQ](docs/proofs/Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.fp32](docs/proofs/Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.fp64](docs/proofs/Core/Defs.md#decl-a9439171a8dcf9cb)
 
-Accuracy predicates require existing results and defined ideals. Nonempty
-[review witnesses](tensor-core/TensorCore/Regression/ReviewClaims.lean) distinguish
-models with positive errors and establish distinct family members; empty matrix
-dimensions retain the usual vacuous entrywise guarantees. The
-[IEEE witnesses](tensor-core/TensorCore/IEEE/Regression.lean) cover negative zero,
-overflow thresholds, normal results carrying underflow, NaN policies, and fused
-cancellation after an out-of-range intermediate product.
-The [native-wrapper witnesses](tensor-core/TensorCore/IEEE/NativeRegression.lean)
-cover ties, cancellation, subnormal boundaries, signed underflow, and retained
-NaN/overflow paths. The equivalence bridges compare two separate definitions;
-the original reference is retained, and the general proofs cover every input
-satisfying their hypotheses.
+</details>
 
-This agreement, together with independent numerical comparisons, is strong
-evidence for the scalar implementation. Specification review must still establish
-that the written contracts capture the intended IEEE rules. The scalar proofs
-do not establish NVIDIA tensor-core conformance; the tensor-core and EFT theorems
-continue to depend on their stated profile, shape, and range assumptions.
+</details>
 
-### Review sign-off
+</details>
 
-Human sign-off remains pending. The [evaluation](EVALUATION.md) distinguishes the
-independent review of the original finite theory from this implementation's own
-proofs, tests, and critical assessment. No paper novelty or physical-device theorem
-is implied. The kernel checks Lean declarations; the parser, compiler, native
-executable, and hardware remain separate validation boundaries.
-
-## Validation and reproduction
-
-```sh
-./tc build
-./tc audit
-./tc check
-python3 tensor-core/scripts/check_ieee_softfloat.py --fetch
-```
-
-The clean suite builds from a fresh source copy and checks tensor-core, EFT,
-GEMM, certificate, rejection, and hardware-archive regressions, the independent
-IEEE oracle, the Lean logical/native comparison, and native EFT accumulation.
-Its [report](tensor-core/data/regressions/clean-build.json) includes commands,
-source hashes, warning counts, and snapshot stability. The
-[IEEE report](tensor-core/data/regressions/ieee-report.json) and
-[SoftFloat report](tensor-core/data/regressions/ieee-softfloat-report.json), together
-with the [Lean comparison](tensor-core/data/regressions/lean-ieee-report.json),
-record case counts, failures, fingerprints, and policy differences.
-
-The theorem audit permits only `propext`, `Classical.choice`, and `Quot.sound`.
-The IEEE/SoftFloat comparison covers 341,472 cases; the Lean logical/native
-comparison covers 28,032. Native EFT accumulation adds 7,988 comparisons,
-including 1,000 exact-grid residual sequences, and the bounded EFT gate compares
-3,953 complete original/native results, including error cases. The public wrappers must
-preserve exact bits and flags. Comparisons to external NaN policies explicitly
-allow their documented payload/sign differences; non-NaN numeric bits and all
-reported flags are checked exactly. See the [evaluation](EVALUATION.md) for the
-individual evidence and validation-snapshot provenance.
-
-To run the native comparisons from the repository root:
-
-```sh
-python3 tensor-core/scripts/check_lean_ieee.py
-python3 tensor-core/scripts/check_lean_eft.py
-python3 tensor-core/scripts/check_bounded_eft.py
-```
-
-The optional SoftFloat command fetches an unmodified pinned reference into `tmp/`,
-compiles it with a C compiler and make, then compares results and flags. It is
-not a dependency of the Lean theory or of the offline clean suite. The independent
-Python oracle searches ordered encodings and imports no implementation oracle.
-No CUDA compilation or new GPU execution is performed by these commands.
-
-The [earlier independent checks](reviews/2026-09-07/README.md) are historical
-artifacts pinned to the pre-IEEE theory. Their source manifest intentionally
-rejects later theory revisions; use the documented baseline checkout to replay
-that historical review. The current evaluation and current validation reports
-cover the IEEE extension, native migration, and native EFT execution; rerunning historical probes does
-not extend the independent review's scope to those additions.
-
-## Assessment and TODO
-
-The principal remaining obligations are:
-
-- Physical GPU and compiled-kernel correspondence, including memory and lane behavior.
-- Human specification review, including the IEEE contracts and NaN/tininess policies.
-- Complete FP8 and FP16-output tensor-core paths. FP16 final-stage order and the
-  L40S/Ada FP8 normalized precision remain unresolved; candidate agreement on
-  archived outputs does not determine every intermediate stage.
-- General IEEE scalar operations beyond the five implemented operations, and
-  wider IEEE 754 environment/format coverage.
-- Revalidate the native bridges on toolchain upgrades. Expanding their domains
-  or migrating retained operations requires additional preservation proofs.
-- Representative application evaluation, measured configuration costs, tighter
-  conversion/cancellation bounds, and more economical concrete certificate replay.
-- Scaled/native quantified families, cross-precision selection for one source
-  workload, adaptive programs, and globally corrected GEMM.
-
-The pinned CUTLASS connection is a manual arithmetic projection for positive K
-multiples of 16. Compiling the fixture, GPU comparisons, partial-K behavior,
-other epilogues, and split-K require additional work.
-
-## Sources and layout
-
-| Source | Pin or specification |
-| --- | --- |
-| Lean | `leanprover/lean4:v4.33.1`, standard library only |
-| IEEE scalar rules | IEEE 754-2019 §§3.4, 4.3, 5.4.1–5.4.2, 6.1–6.3, 7.1–7.6; [standard record](https://standards.ieee.org/ieee/754/6210/) |
-| Independent scalar reference | [Berkeley SoftFloat 3e](https://www.jhauser.us/arithmetic/SoftFloat-3/doc/SoftFloat.html), `f74b1e48110ac3a27dd49b787d164e55e42d81d1`, ARM-VFPv2 specialization |
-| Accurate Models | [arXiv:2512.07004v4](https://arxiv.org/abs/2512.07004v4) |
-| MATLAB Tensor Core | v0.5, `bbcf00a273868172494eaacaa8d6128ab0fb8704`; [manifest](tensor-core/vendor/SOURCES.json) |
-| CUTLASS | v3.5.1, `f7b19de32c5d1f3cedfc735c2849f12b537522ee`; [fixture pin](tensor-core/kernels/cutlass/pin.json) |
-| TC-EFT | [Validation provenance](tensor-core/vendor/tc-eft-validation/SOURCES.json); manuscript correspondence is separate from the current arithmetic evaluation |
-
-`tensor-core/TensorCore/Foundations`, `Semantics`, and `Theory` contain the numerical
-models and their proofs. `IEEE` contains the exact scalar reference, specifications,
-native bridges, and result-preserving wrappers; `Programs` contains
-composition and GEMM; `PaperSpec` provides separate model definitions and
-equivalence proofs; `Regression` and `examples` contain kernel-checked witnesses.
-The CLI lives in `Cli`, numerical validation in `scripts`, and machine-readable
-evidence in `data/regressions`.
+<!-- END GENERATED PROOF GUIDE -->

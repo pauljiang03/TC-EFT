@@ -8,7 +8,7 @@ import sys
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
-PROJECT = ROOT / "tensor-core"
+PROJECT = ROOT / "tensor-core" if (ROOT / "tensor-core").is_dir() else ROOT
 LOGS = HERE / "tmp"
 
 
@@ -56,10 +56,10 @@ def main():
     relative = HERE.relative_to(ROOT)
     for name in ("TrustAudit", "ScopeWitnesses", "RefusalWitness"):
         run(name, ["lake", "env", "lean", "-t", "0",
-                   str(Path("..") / relative / f"{name}.lean")], PROJECT)
+                   str(ROOT / relative / f"{name}.lean")], PROJECT)
     run("certificate", ["./tc", "verify", str(relative / "AccuracyCertificate.lean")], ROOT)
     run("negative_certificate", ["lake", "env", "lean", "-t", "0",
-                                 str(Path("..") / relative / "TamperedCertificate.lean")],
+                                 str(ROOT / relative / "TamperedCertificate.lean")],
         PROJECT, expect_failure=True)
     print(f"All independent review checks passed. Logs: {LOGS}")
 

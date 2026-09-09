@@ -1,0 +1,32 @@
+-- Foundational arithmetic, formats, encodings, and rounding.
+
+import TensorCore.Core.Binary.Bijection
+import TensorCore.Core.Binary.ConversionBounds
+import TensorCore.Core.Binary.CorrectRounding
+import TensorCore.Core.Binary.DirectedRounding
+import TensorCore.Core.Binary.Encoding
+import TensorCore.Core.Binary.MagnitudeScale
+import TensorCore.Core.Binary.ResidualBudget
+import TensorCore.Core.Binary.RoundOp
+import TensorCore.Core.Binary.RoundTrip
+import TensorCore.Core.Binary.RoundingContract
+import TensorCore.Core.Binary.ScalarSum
+import TensorCore.Core.Binary.SignedBijection
+import TensorCore.Core.Conversion
+import TensorCore.Core.ConversionBounds
+import TensorCore.Core.CorrectRounding
+import TensorCore.Core.Defs
+import TensorCore.Core.Encoding
+import TensorCore.Core.EncodingProperties
+import TensorCore.Core.Exact
+import TensorCore.Core.Format
+import TensorCore.Core.FormatProperties
+import TensorCore.Core.RawProduct
+import TensorCore.Core.RoundOp
+import TensorCore.Core.RoundTrip
+import TensorCore.Core.Rounding
+import TensorCore.Core.RoundingError
+import TensorCore.Core.ScalarSum
+import TensorCore.Core.Sum
+import TensorCore.Core.Truncation
+import TensorCore.Core.Binary.Defs

@@ -1,0 +1,120 @@
+{
+  "status": "passed",
+  "requests": 236,
+  "candidate_analyses": 1644,
+  "checked_output_cells": 2874,
+  "workload_sha256": "e274ed612ddaa1cffa497599d012a47613341d855b037b015973c0568c39f855",
+  "environment": {
+    "system": "Darwin",
+    "release": "25.6.0",
+    "machine": "arm64",
+    "python": "3.9.6",
+    "toolchain": "leanprover/lean4:v4.33.1"
+  },
+  "by_workload": {
+    "raw": {
+      "requests": 114,
+      "inconclusive": 75,
+      "later_candidate_selected": 11,
+      "candidate_analyses": 342,
+      "certified_candidates": 99,
+      "oracle_successful_candidates": 324,
+      "oracle_within_tolerance": 154,
+      "within_tolerance_but_uncertified": 55,
+      "selected": 39
+    },
+    "scaled": {
+      "requests": 104,
+      "selected": 67,
+      "later_candidate_selected": 2,
+      "candidate_analyses": 1248,
+      "certified_candidates": 796,
+      "oracle_successful_candidates": 1056,
+      "oracle_within_tolerance": 936,
+      "within_tolerance_but_uncertified": 140,
+      "inconclusive": 37
+    },
+    "family": {
+      "requests": 18,
+      "inconclusive": 9,
+      "later_candidate_selected": 0,
+      "candidate_analyses": 54,
+      "certified_candidates": 27,
+      "selected": 9
+    }
+  },
+  "native_selection_batch_seconds": 1.767,
+  "native_analysis_batch_seconds": 1.151,
+  "certificate_cases": 7,
+  "certificate_bytes": 12991,
+  "certificate_render_seconds": 0.004,
+  "kernel_replay_seconds": 1.719,
+  "kernel_replay": true,
+  "input_only_dependency_audit": true,
+  "negative_controls": [
+    "preference_order",
+    "duplicate_tie",
+    "tighter_tolerance",
+    "no_candidate",
+    "invalid_configuration_and_workload_rejected",
+    "selected-index_rejected_by_kernel",
+    "preference-order_rejected_by_kernel",
+    "tolerance_rejected_by_kernel",
+    "source-word_rejected_by_kernel",
+    "rounding-mode_rejected_by_kernel",
+    "family-range_rejected_by_kernel",
+    "stdin_file_agreement",
+    "invalid_family_caps",
+    "appended_commands_rejected",
+    "cli_export_and_replay",
+    "existing_export_preserved",
+    "inconclusive_export_refused",
+    "schema",
+    "transitive_input_only_audit"
+  ],
+  "scaling": [
+    {
+      "m": 1,
+      "n": 1,
+      "k": 64,
+      "candidates": 3,
+      "selected_index": 1,
+      "native_process_seconds": 0.2154
+    },
+    {
+      "m": 4,
+      "n": 4,
+      "k": 64,
+      "candidates": 3,
+      "selected_index": 1,
+      "native_process_seconds": 0.0819
+    },
+    {
+      "m": 16,
+      "n": 16,
+      "k": 64,
+      "candidates": 3,
+      "selected_index": 1,
+      "native_process_seconds": 0.9563
+    }
+  ],
+  "elapsed_seconds": 37.04,
+  "source_sha256": {
+    "TensorCore/Gemm/Selection.lean": "5ea1f30c72610e55f79b182baa2db2c152437bdac6ddd747afd0a8e8b5eeb5b7",
+    "TensorCore/Gemm/Cli/GemmSelection.lean": "3ff25b179593d49b0cafa3146001bdc2ed123e3ee89ea4afd826d3d8d73ce3e7",
+    "TensorCore/Gemm/Cli/GemmInput.lean": "577c869814fb7efd7049e727af717245545ea70558413acc844e76605ca4d596",
+    "TensorCore/Gemm/Regression/GemmSelection.lean": "d8d11c1744a819d82d51abbc35ecb19a0b7357e32759ab1be676fd9e4177ee26",
+    "scripts/select_gemm.py": "a26aafe9831b3a1f3c98fecc0f866bdff2a34e2f4fbfa63ae72db099a728f549",
+    "scripts/selection_certificate.py": "b7166a612bb09a6bbde635bd0a636029c5f8d9932fce7fe4a2eb5914a21932df",
+    "scripts/check_selection.py": "3d76c199610b62ff6edc64cf310f516261d61218bfda7cab421e19ca120dfbb2",
+    "data/examples/gemm.selection.jsonl": "2d5d5e9ffb1be640fff871b83965dc76dacc9a1db9925808fa29942cda175e80",
+    "data/schemas/selection.schema.json": "4bf3f254462c977fa21412ca093f334da25f7c554c23784011b4f438eb0353ca"
+  },
+  "limitations": [
+    "Deterministic synthetic and boundary workloads, not a representative application benchmark.",
+    "Counts depend on the supplied candidate lists and tolerances; they are not population estimates.",
+    "Oracle accuracy is checked on concrete encoded inputs; family guarantees use quantified Lean proofs.",
+    "Selection prioritizes the input order among certified candidates; it does not prove actual-error or GPU-speed optimality.",
+    "CPU timings include process startup; selection reports all candidates and reevaluates the selected prefix."
+  ]
+}

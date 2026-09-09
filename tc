@@ -11,7 +11,7 @@ import sys
 
 
 ROOT = Path(__file__).resolve().parent
-PROJECT = ROOT / "tensor-core"
+PROJECT = ROOT
 VERSION = "0.1.0"
 
 

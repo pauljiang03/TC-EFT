@@ -1,0 +1,60 @@
+{
+  "status": "passed",
+  "seed": 20260907,
+  "matrices": 114,
+  "checked_output_cells": 270,
+  "unavailable_cells": 12,
+  "certified_requests": 39,
+  "certificate_cases": 3,
+  "kernel_replay": true,
+  "negative_controls": [
+    "transitive_execution_and_ideal_dependencies_rejected",
+    "existing_certificate_preserved",
+    "extra_lean_commands_rejected",
+    "tolerance_rejected_by_kernel",
+    "group_scale_rejected_by_kernel",
+    "group_count_rejected_by_kernel",
+    "different_theory_rejected",
+    "inconclusive_not_exported",
+    "invalid_tolerances_rejected",
+    "native_rational_validation"
+  ],
+  "comparisons": [
+    {
+      "model": "v100",
+      "previous_bound": "21/1048576",
+      "inferred_bound": "33/8388608",
+      "improvement_factor": 5.090909090909091
+    },
+    {
+      "model": "ampere",
+      "previous_bound": "73/4194304",
+      "inferred_bound": "3/4194304",
+      "improvement_factor": 24.333333333333332
+    },
+    {
+      "model": "hopper",
+      "previous_bound": "273/16777216",
+      "inferred_bound": "5/16777216",
+      "improvement_factor": 54.6
+    }
+  ],
+  "input_only_dependency_audit": true,
+  "native_analysis_seconds": 0.105,
+  "elapsed_seconds": 11.892,
+  "source_sha256": {
+    "TensorCore/TC/Program/Bounds/Local.lean": "fa6fc76697e52d4d2cc519158971ebbfe63210846873eb49d83141a3455a0b28",
+    "TensorCore/TC/Program/GroupAnalysis.lean": "5f70bb691c7eecd51c6fce0470647ef81b23cd969bd4dc15f5e26ef746301fc3",
+    "TensorCore/Gemm/Analysis.lean": "a49a53fd2dd976a70194ec5f70a15ba0f1372355a639cc376ac253b6dd546aee",
+    "TensorCore/Gemm/Regression/GemmAnalysis.lean": "653efe805f850f0a8790560d49816976c2de0565cd52177584805df1400370d6",
+    "TensorCore/Gemm/Cli/Analysis.lean": "9ca82ce9b252c078014ce59dd6db75457e730dc1bb93d29db5f1259d54750437",
+    "scripts/analyze.py": "4cb473082dfda8dc2a18edd9696a5a37aa3b12afa282175ed21be0ccfc630972",
+    "scripts/analysis_certificate.py": "070e2bc00bf2ac52f2e70539c2bcdaee107b6d91ec877d85fedae46c10eb9794",
+    "scripts/check_analysis.py": "349c9d65a7f8e805787188743e380786b186f3ffa8678839aba7b96655ee26e2"
+  },
+  "limitations": [
+    "Concrete raw FP16-to-FP32 GEMM under three specified WMMA schedules.",
+    "Unsigned magnitude propagation can be conservative under cancellation.",
+    "Timing measures CPU analysis, not GPU kernel performance."
+  ]
+}

@@ -1,0 +1,37 @@
+-- Exact Alignment for the tensor-core model.
+
+import TensorCore.TC.Canonical
+
+namespace TensorCore
+
+/-- Sufficient alignment precision for this actual input, retaining raw metadata.
+Zero terms place no restriction on the grid. This is not a monotonicity claim. -/
+def PreparedBlock.AlignmentExact (b : PreparedBlock) : Prop :=
+  ∀ t ∈ b.terms, t.significand ≠ 0 →
+    b.quantumExponent ≤ t.rawScale - t.fractionalBits
+
+theorem exact_alignment_accumulator (b : PreparedBlock) (h : b.AlignmentExact) :
+    b.accumulator = b.exactDot := by
+  rw [accumulator_value, ← terms_value]
+  congr 1
+  apply List.map_congr_left
+  intro t ht
+  by_cases hz : t.significand = 0
+  · simp [RawProduct.value, hz, truncGrid, truncCoeff, Rat.div_def]
+    have hf : (0 : ℚ).floor = 0 := rfl
+    rw [hf]
+    simp
+  · exact truncGrid_exact_of_grid t.significand (t.rawScale - t.fractionalBits)
+      b.quantumExponent (h t ht hz)
+
+/-- If padding makes every member exactly alignable, the canonical output is a
+single FP32 RTZ conversion of the independently decoded ideal sum. -/
+theorem evalBlock_exact_alignment {p : Profile} {x : BlockInput p} {t : BlockTrace}
+    (he : evalBlock x = .ok t) (ha : t.block.AlignmentExact) :
+    exactDot x = some t.block.exactDot ∧
+    round32 .towardZero t.block.exactDot = some t.output.bits := by
+  have hout := evalPrepared_output (evalBlock_evalPrepared he)
+  rw [exact_alignment_accumulator t.block ha] at hout
+  exact ⟨by simp [exactDot, evalBlock_prepared he], hout⟩
+
+end TensorCore

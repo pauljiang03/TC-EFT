@@ -1,0 +1,37 @@
+{
+  "status": "passed",
+  "revision": "f7b19de32c5d1f3cedfc735c2849f12b537522ee",
+  "upstream_files": 18,
+  "theorem": "TensorCore.CutlassWmma.project_eq_gemm",
+  "scope": "Reviewed source arithmetic projection; K divisible by 16; identity epilogue",
+  "fixture": {
+    "m": 65,
+    "n": 67,
+    "k": 32,
+    "compared_words": 4355
+  },
+  "independent_fraction_oracle": true,
+  "mutation_controls": 3,
+  "partial_k_numerical_counterexample_kernel_checked": true,
+  "cuda_compiled": false,
+  "cuda_executed": false,
+  "compiler_version": null,
+  "nvcc_available": false,
+  "hardware_fixture": null,
+  "source_sha256": {
+    "kernels/cutlass/pin.json": "a374ebf4e6f2638656e9b034e6f793c5989f88269e4c81b93fc53c6c165b3261",
+    "kernels/cutlass/wmma_sm70.cu": "c4e3e82e275468cda10ea79057c1e21917c6552433dd9b9e846ac7bfe31a3173",
+    "TensorCore/Gemm/Kernels/CutlassWmma.lean": "6dd434874809b255470542869e8898d164152f8f0b07a21820032949d655d195",
+    "TensorCore/Gemm/Regression/CutlassWmma.lean": "5b0839ee96cdde9f8f948416dccc1c417e192e1e38527653ee2760f64695902b",
+    "examples/CutlassWmma.lean": "033023ffe15dbc4086962ccc26f27b545e0df18e150c4a7c6f2672e1f911cbc7",
+    "scripts/check_cutlass.py": "292b28824453e0940c895fd70ca27977370f6dcb8107861a8cf396d8d2e97ad6"
+  },
+  "limitations": [
+    "Reviewed manual C++ arithmetic projection; no verified C++ frontend",
+    "No memory, lane/register transport, compiler, PTX/SASS, or physical GPU proof",
+    "Numerical WMMA primitive uses the selected finite-domain V100 paper model",
+    "Nonfinite or out-of-range arithmetic is rejected by Lean; hardware exceptions are outside the connection",
+    "Partial K is excluded: the pinned input iterator handles the residue first",
+    "CUDA compilation and execution require separate validation on a CUDA/V100 system"
+  ]
+}

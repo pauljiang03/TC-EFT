@@ -1,0 +1,63 @@
+{
+  "status": "passed",
+  "audit": {
+    "executable_roots": 12,
+    "negative_controls": [
+      "rational",
+      "model",
+      "linear_scan"
+    ],
+    "proof_audit": "bounded_proof_audit: 239 theorem roots; standard axioms only"
+  },
+  "backend": "compiled Lean BitVec extraction and guards; native Float32 scalar addition",
+  "preservation_theorem": "TensorCore.EFMachine.algorithm1WithLean_eq",
+  "full_result_comparisons": 3953,
+  "error_preservation_controls": 3,
+  "paper_blocks": 2926,
+  "arbitrary_D_blocks": 1024,
+  "rounding_cases": 3167,
+  "branches": {
+    "scalar": 290,
+    "boundedExact": 2786,
+    "allZero": 8,
+    "outOfRange": 866
+  },
+  "mismatches": 0,
+  "coefficient_width": 576,
+  "common_grid_exponent": -272,
+  "seed": 20260907,
+  "elapsed_seconds": 12.871,
+  "source_sha256": {
+    "TensorCore/EFT/Machine/BitScan.lean": "e23c61933aaed97d9653b4389d05cab6d89b125e0f47235ac5098b9ebe123289",
+    "TensorCore/EFT/Machine/BitScanDefs.lean": "4ac57052f73fdc38bf1e3497bccb35ba9b1b6c863b72958feaf4e22dffe2d0e6",
+    "TensorCore/EFT/Machine/Correctness.lean": "ae69ca67b3a251decf9a7e4a4b16147c341c3695a52313571b56de932e26b990",
+    "TensorCore/EFT/Machine/Cost.lean": "6ece40a92909b5c1e953aa5e7d23f78df47130a1e9fb4d0431fae6819ae59606",
+    "TensorCore/EFT/Machine/Decode.lean": "e3c21530780c25a948e29970644bdff62604a6a9e7845fd0ab68678f1e242fa5",
+    "TensorCore/EFT/Machine/DecodeDefs.lean": "e10e017b7e9d2151240b552fb3d3e65f266a360ad4358bdde03a020cbe9b8278",
+    "TensorCore/EFT/Machine/Dyadic.lean": "a93908857b0681711ae4c182bc721553389b6303ef25e9600c17e741cc2b4312",
+    "TensorCore/EFT/Machine/Extraction.lean": "927dd4bce53315ba92ea853dc4d34977c0db5650d1954cbb5c46949ffdab0f2a",
+    "TensorCore/EFT/Machine/Grid.lean": "06b683433c12c5edd8168e9d1883f86eee580852113d1e9bad707c3186d5a059",
+    "TensorCore/EFT/Machine/Preparation.lean": "abb64b7ca9a8d30f534f15fe479f25778a0d76853e10cbb512026564cd289261",
+    "TensorCore/EFT/Machine/Refinement.lean": "5ff7821f82c8945ef27fdc997bbe7d42287592a1816e86cd533e9897e43710d8",
+    "TensorCore/EFT/Machine/Round.lean": "e21a9696607afc20a5d45a76fc020e99de1d47a7c8931c9d02d21c593d0dd866",
+    "TensorCore/EFT/Machine/Scalar.lean": "62a9d81b5cba98e953985ba5290dd34b617dcc4bb116f5f637d835c91790b1d6",
+    "TensorCore/EFT/Machine/Split.lean": "d051172919f4f3261394f80914c0e4f0ef13a5dd94ea573383b24e449f11a1f6",
+    "TensorCore/EFT/Machine/SplitDefs.lean": "afa482bd48ad53300deebae2d651e5dbebea221fc8cdeaaa5180b29bb3648d80",
+    "TensorCore/EFT/Machine/Success.lean": "a82c67805078c8ca2540367e9ae1fdbf7a35172cb5df8ee646be7996d669a7e0",
+    "TensorCore/EFT/Machine/Word.lean": "b95cbd942740963f0c7136d21033b109d5bb6d9663e1b542d4f1533cfbb54637",
+    "TensorCore/EFT/Machine/WordDefs.lean": "3f3c72e1e50b858c7e6c247425633181fa0c3dc3d71c80b163d63c1d3511de3f",
+    "TensorCore/EFT/Bounded.lean": "18ab02e8edd9d0bb8fea26d2150ac21308584ec14eb9ab6fef64849d375b5f8a",
+    "Main/BoundedEFT.lean": "ada4aabe4793ab2b1bc224cfa643e8fbaac6cb93a8fb46429ac0d01946332838",
+    "Main/LeanEFTCheck.lean": "b52df659d2762ae1c0401983bf632405a89c83effd29a3fbb5ace69e74ea6390",
+    "TensorCore/EFT/Native.lean": "f2ea9cc64e2dee83df7172d2f790c578f11721e0d1b0932e0cc13837ad80ffa6",
+    "TensorCore/EFT/Regression/NativeEFT.lean": "6318e244c030ac9bc288864577457535d34d4e25ab531d3f393d1d1a3b3346dc",
+    "TensorCore/IEEE/LeanFiniteAddition.lean": "e0f81a7125fea3a4120c5885be1f9701a58663701470a349bf1a603cf4f19507",
+    "TensorCore/IEEE/LeanBridge.lean": "f5a0c26f48f29103d907383f57ab53eec98c0c45d86e4b7a1426283c5e0fd3d5",
+    "TensorCore/IEEE/LeanRounding.lean": "c1fc3650e2f2335795c42f3fe7fb2690f731010731c6d9bced24a90f470f6ff6",
+    "TensorCore/EFT/Regression/BoundedEFT.lean": "ff49c1df9ea0cdfb16e75f30fcf5a21698539619417a0ed9f9c5fa1be2a4664a",
+    "scripts/lean/BoundedEFTAudit.lean": "ffa70f6266f4d224da8d9c03b77506854b6833be3ed1d8f05a795bfb15a652d8",
+    "examples/BoundedEFT.lean": "2b321acf2c6fc7f15d5ef9927fcdebba9bb701a7fff989b5762ca3332f77aed1",
+    "data/regressions/eft-paper-cases.json": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
+    "scripts/check_bounded_eft.py": "1f32c39668d2fe203c8e6d0c500c62d80d254fe2cbe64b09bfc1ebdead9b33c7"
+  }
+}

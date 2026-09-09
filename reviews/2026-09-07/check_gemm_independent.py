@@ -13,7 +13,7 @@ from collections import Counter
 from check_independent import PROFILES, F16, BF16, TF19, F32, decode, round_expected, block_expected
 
 HERE = Path(__file__).resolve().parent
-EXE = HERE.parents[1] / "tensor-core/.lake/build/bin/tc_gemm"
+EXE = HERE.parents[1] / ".lake/build/bin/tc_gemm"
 RNG = random.Random(7092026)
 CLI_MODE = {"rn": "rne", "rz": "rtz", "rd": "rdn", "ru": "rup"}
 
