@@ -55,6 +55,40 @@ classification and IEEE semantics; they are outside the finite bijection.
 `Decoded` retains raw, potentially unnormalized metadata for tensor-core alignment;
 `BinaryRep` is the canonical representation used for the encoding isomorphism.
 
+## Arithmetic model and native execution
+
+`Core` defines this project's floating-point semantics using Lean's standard
+`Nat`, `Int`, `Rat`, and `BitVec` types. Exact values are rational numbers; formats,
+encoding, truncation, and rounding are defined explicitly. Tensor-core operations
+build on this foundation to specify shared alignment, intermediate precision,
+grouped accumulation, and final rounding. Keeping these stages explicit supports
+the TC-EFT proofs about residuals and error recovery.
+
+Lean's `Float32` and `Float` also have
+[logical models suitable for proofs](https://lean-lang.org/doc/reference/latest/Basic-Types/Floating-Point-Numbers/).
+The reason for retaining our model is the semantics needed by this development:
+ordinary scalar operations alone do not describe a tensor-core block's intermediate
+behavior. The encoding bijections connect our exact model to concrete bit patterns;
+separate refinement proofs connect selected scalar operations to Lean's FP model.
+
+The IEEE scalar add/sub/mul wrappers use Lean's native operations on their proved
+domains and retain reference paths for other cases. Executable EFT scalar
+consolidation uses native FP32 addition with its original range and zero policies.
+The adapters preserve complete reference results, including applicable flags,
+branch tags, and errors. The [compatibility guide](docs/lean-ieee-compatibility.md)
+states the domains, policies, and preservation theorems. Exact rationals provide
+the specification; bounded and native implementations provide execution paths
+where their refinement has been proved.
+
+This architecture fits the TC/EFT proof goals, with a maintenance cost: overlapping
+definitions and bridge proofs. A useful next simplification is to make generic
+format definitions and theorems primary and derive FP32-specific results as
+specializations wherever practical. For example,
+[`roundBinary_fp32`](TensorCore/Core/Binary/RoundOp.lean) already proves
+`roundBinary fp32 mode.toBinary x = round32 mode x`, while both definitions remain
+in the library. Further consolidation can reduce duplication while preserving
+the public contracts and the independent specification checks.
+
 ## Build and regression
 
 Run from the repository root:
