@@ -22,7 +22,7 @@
     "mixed_inconclusive_export_refused",
     "invalid_family_ranges_rejected"
   ],
-  "elapsed_seconds": 11.881,
+  "elapsed_seconds": 11.68,
   "source_sha256": {
     "TensorCore/Programs/ScalarAnalysis.lean": "444bb6104ddd9fedfcdb291c4ab2c24adb126f5710ae7ad374b749900ce8a6f1",
     "TensorCore/Programs/ExactScalarAnalysis.lean": "711b5e04654ae9a4d6344b864296455cc3e30c3ad8c0bd7ae5ee080855e9ea0b",

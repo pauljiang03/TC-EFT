@@ -7,7 +7,11 @@ C toolchain, and Python 3. No Python packages or repository test oracles are use
 
 These checks are historical. Use a separate checkout of `6406712` for the
 original source manifest and certificates. The [current evaluation](../../EVALUATION.md)
-covers the later IEEE extension; this historical review does not assess that code.
+covers the later IEEE extension and proved migration to Lean's native operations.
+The [compatibility guide](../../tensor-core/docs/lean-ieee-compatibility.md)
+explains result preservation and the new proof/test evidence. This historical
+review does not assess those additions; its archived reports and counts retain
+their original scope.
 
 From the baseline repository root:
 

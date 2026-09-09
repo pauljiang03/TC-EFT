@@ -103,7 +103,7 @@ def check_dependencies():
     output = proc.stdout + proc.stderr
     (WORK / 'audit.log').write_text(output)
     assert proc.returncode == 0, output
-    assert output.count('bounded_execution_audit:') == 8, output
+    assert output.count('bounded_execution_audit:') == 12, output
     assert 'bounded_proof_audit:' in output, output
     prefix = (ROOT / 'BoundedEFTAudit.lean').read_text().rsplit('\nbounded_eft_audit', 1)[0]
     controls = {
@@ -120,7 +120,7 @@ def check_dependencies():
         log = p.stdout + p.stderr
         (WORK / (name + '-dependency.log')).write_text(log)
         assert p.returncode != 0 and 'Forbidden bounded execution dependencies:' in log, log
-    return dict(executable_roots=8, negative_controls=list(controls),
+    return dict(executable_roots=12, negative_controls=list(controls),
                 proof_audit=next(line for line in output.splitlines() if line.startswith('bounded_proof_audit:')))
 
 
@@ -128,7 +128,9 @@ def main():
     start = time.perf_counter()
     WORK.mkdir(parents=True, exist_ok=True)
     build = subprocess.run(['lake', 'build', 'TensorCore.Theory.EFMachine.Success',
-                            'TensorCore.Regression.BoundedEFT', 'tc_bounded_eft'], cwd=ROOT,
+                            'TensorCore.Regression.BoundedEFT',
+                            'TensorCore.Regression.NativeEFT', 'tc_bounded_eft',
+                            'tc_lean_eft_check'], cwd=ROOT,
                            capture_output=True, text=True)
     (WORK / 'build.log').write_text(build.stdout + build.stderr)
     assert build.returncode == 0, build.stdout + build.stderr
@@ -170,6 +172,22 @@ def main():
     assert proc.returncode == 0, proc.stdout[-4000:] + proc.stderr
     outputs = [json.loads(line) for line in proc.stdout.splitlines()]
     assert len(outputs) == len(cases) + len(rounds)
+    requests = [dict(profile=c['profile'], a=[int(n, 0) for n in c['a']],
+                     b=[int(n, 0) for n in c['b']], c=int(c['c'], 0), D=int(c['D'], 0))
+                for c in cases]
+    controls = [dict(profile='v100-fp16', a=[], b=[], c=0, D=0),
+                dict(profile='v100-fp16', a=[0x7c00]*4, b=[0]*4, c=0, D=0),
+                dict(profile='v100-fp16', a=[0]*4, b=[0]*4, c=0, D=0x7f800000)]
+    comparison = subprocess.run([str(ROOT / '.lake/build/bin/tc_lean_eft_check')],
+                                input=''.join(json.dumps(r) + '\n' for r in requests + controls),
+                                text=True, capture_output=True, check=True)
+    compared = [json.loads(line) for line in comparison.stdout.splitlines()]
+    assert len(compared) == len(requests) + len(controls)
+    for request, actual in zip(requests + controls, compared):
+        assert actual['native'] == actual['reference'], (request, actual)
+    for out, actual in zip(outputs, compared[:len(cases)]):
+        assert actual['native'] == {k: out[k] for k in ('bits', 'branch')}, (out, actual)
+    assert all('error' in actual['native'] for actual in compared[len(cases):])
     branches = Counter()
     for case, out in zip(cases, outputs):
         ex = expected(case)
@@ -190,10 +208,20 @@ def main():
     sources = [*sorted((ROOT / 'TensorCore/Foundations/EFMachine').glob('*.lean')),
                *sorted((ROOT / 'TensorCore/Theory/EFMachine').glob('*.lean')),
                ROOT / 'TensorCore/Programs/BoundedEFT.lean', ROOT / 'BoundedEFTMain.lean',
+               ROOT / 'LeanEFTCheckMain.lean',
+               ROOT / 'TensorCore/Programs/NativeEFT.lean',
+               ROOT / 'TensorCore/Regression/NativeEFT.lean',
+               ROOT / 'TensorCore/IEEE/LeanFiniteAddition.lean',
+               ROOT / 'TensorCore/IEEE/LeanBridge.lean', ROOT / 'TensorCore/IEEE/LeanRounding.lean',
                ROOT / 'TensorCore/Regression/BoundedEFT.lean', ROOT / 'BoundedEFTAudit.lean',
                ROOT / 'examples/BoundedEFT.lean', ROOT / 'data/regressions/eft-paper-cases.json',
                Path(__file__)]
-    report = dict(status='passed', audit=audit, backend='compiled Lean BitVec executable', paper_blocks=len(corpus), arbitrary_D_blocks=len(cases) - len(corpus),
+    report = dict(status='passed', audit=audit,
+                  backend='compiled Lean BitVec extraction and guards; native Float32 scalar addition',
+                  preservation_theorem='TensorCore.EFMachine.algorithm1WithLean_eq',
+                  full_result_comparisons=len(requests) + len(controls),
+                  error_preservation_controls=len(controls),
+                  paper_blocks=len(corpus), arbitrary_D_blocks=len(cases) - len(corpus),
                   rounding_cases=len(rounds), branches=dict(branches), mismatches=0,
                   coefficient_width=576, common_grid_exponent=-272, seed=20260907,
                   elapsed_seconds=round(time.perf_counter() - start, 3),

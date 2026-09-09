@@ -296,9 +296,45 @@
           "tensor-core/TensorCore/IEEE/Rounding.lean"
         ]
       ]
+    },
+    "C20": {
+      "declarations": [
+        [
+          "TensorCore.IEEE.addWithLean_eq",
+          "tensor-core/TensorCore/IEEE/NativeOperations.lean"
+        ],
+        [
+          "TensorCore.IEEE.subWithLean_eq",
+          "tensor-core/TensorCore/IEEE/NativeOperations.lean"
+        ],
+        [
+          "TensorCore.IEEE.mulWithLean_eq",
+          "tensor-core/TensorCore/IEEE/NativeOperations.lean"
+        ]
+      ]
+    },
+    "C21": {
+      "declarations": [
+        [
+          "TensorCore.EFMachine.naiveSum32WithLeanFrom_eq",
+          "tensor-core/TensorCore/Programs/NativeEFT.lean"
+        ],
+        [
+          "TensorCore.EFMachine.algorithm1WithLean_eq",
+          "tensor-core/TensorCore/Programs/NativeEFT.lean"
+        ],
+        [
+          "TensorCore.EFMachine.algorithm1WithLean_correct",
+          "tensor-core/TensorCore/Programs/NativeEFT.lean"
+        ],
+        [
+          "TensorCore.EFMachine.algorithm1WithLean_range_iff",
+          "tensor-core/TensorCore/Programs/NativeEFT.lean"
+        ]
+      ]
     }
   },
-  "declaration_count": 55,
+  "declaration_count": 62,
   "kernel_checked_witnesses": [
     "TensorCore.Regression.ReviewClaims.tiny_ideal",
     "TensorCore.Regression.ReviewClaims.tiny_outputs",
@@ -322,13 +358,14 @@
     "TensorCore.Regression.NativeScaled.source_loss_changes_selection",
     "TensorCore.Regression.NativeScaled.selected_accuracy"
   ],
-  "local_readme_links_checked": 49,
+  "local_readme_links_checked": 58,
   "human_sign_off": false,
   "novelty_assessed": false,
   "external_paper_review_repeated": false,
   "source_sha256": {
-    "README.md": "56a6bc73aa80a0c32e5ac74ec043136376f739e9f3f0aafaf93fa745422a9938",
+    "README.md": "ed98f8fee9cb639a8e5f5bd6047a8adf0a2bb2d57e5a1f3e450e79e906abc552",
     "tensor-core/TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+    "tensor-core/TensorCore/IEEE/NativeOperations.lean": "2a62d2c154f742f913736ddc59209c31a0a0a56a4dec9ac64576a0a31262dd44",
     "tensor-core/TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
     "tensor-core/TensorCore/IEEE/Rounding.lean": "bd2e4b8e5356691c7049f9b188b3f7414d5bb469d686e01e4e06995ffa0f471b",
     "tensor-core/TensorCore/IEEE/Specification.lean": "24aa3bdd79e6cdf3fd0edc1c7901ab556178b729639a5fdd4edbca581b30fb84",
@@ -350,6 +387,7 @@
     "tensor-core/TensorCore/Programs/GemmTightBounds.lean": "f36c80339b4db362e05d2bb0d407a568a18afcf6f1fac1542c65cd29c0363546",
     "tensor-core/TensorCore/Programs/GemmTightInputBounds.lean": "0c4bc220e027aac595ac2e82f73b3569e0154ab3fabda32df72b156cb2e9cb54",
     "tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean": "5da19dc57d32b467e6dca4d6ec30e792e5ff19c9534ee237e993db703257c4fa",
+    "tensor-core/TensorCore/Programs/NativeEFT.lean": "ef4e136e8472699c890fe538023667350db9b82f3c2d6dc77ad95e4f15641e52",
     "tensor-core/TensorCore/Programs/NativeGemm.lean": "eafe2c03fb8462346c61a359c03775cd5a337b80d864790bbd594db510f57dc2",
     "tensor-core/TensorCore/Regression/NativeScaledGemm.lean": "1ed43247770d08c315bd5766772ec6766c4bfd79dc7d157feee614a8f9edd37a",
     "tensor-core/TensorCore/Regression/ReviewClaims.lean": "87bd4181593decfe6e556cd761e39a8d7190b20b39bb4d70f93b9193c6c53bea",

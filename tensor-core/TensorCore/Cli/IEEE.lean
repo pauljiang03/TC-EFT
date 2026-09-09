@@ -1,4 +1,4 @@
-import TensorCore.IEEE.Operations
+import TensorCore.IEEE.NativeOperations
 import Lean
 
 namespace TensorCore.Cli.IEEE
@@ -48,9 +48,9 @@ def evaluate (j : Json) : Except String Json := do
     | "add" | "sub" | "mul" | "fma" => do
         let b ← word f j "b"
         let r : Result f ← match operation with
-          | "add" => pure (add f cfg a b)
-          | "sub" => pure (sub f cfg a b)
-          | "mul" => pure (mul f cfg a b)
+          | "add" => pure (addWithLean f cfg a b)
+          | "sub" => pure (subWithLean f cfg a b)
+          | "mul" => pure (mulWithLean f cfg a b)
           | _ => do
               let c ← word f j "c"
               pure (fma f cfg a b c)

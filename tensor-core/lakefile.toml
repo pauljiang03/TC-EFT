@@ -28,3 +28,11 @@ root = "GemmMain"
 [[lean_exe]]
 name = "tc_ieee"
 root = "IEEEMain"
+
+[[lean_exe]]
+name = "tc_lean_ieee_check"
+root = "LeanIEEECheckMain"
+
+[[lean_exe]]
+name = "tc_lean_eft_check"
+root = "LeanEFTCheckMain"

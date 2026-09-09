@@ -1,6 +1,7 @@
 import Lean
 import TensorCore.Regression.BoundedEFT
 import TensorCore.Theory.EFMachine.Success
+import TensorCore.Regression.NativeEFT
 
 open Lean Elab Command
 
@@ -31,12 +32,15 @@ elab "bounded_eft_audit" : command => do
   for root in [``TensorCore.EFMachine.algorithm1, ``TensorCore.EFMachine.prepare,
     ``TensorCore.EFMachine.extract, ``TensorCore.EFMachine.Components.scalarGuard,
     ``TensorCore.EFMachine.Components.scalar, ``TensorCore.EFMachine.Word.round32,
-    ``TensorCore.EFMachine.leadingZeros, ``TensorCore.EFMachine.trailingZeros] do check root
+    ``TensorCore.EFMachine.leadingZeros, ``TensorCore.EFMachine.trailingZeros,
+    ``TensorCore.EFMachine.algorithm1WithLean, ``TensorCore.EFMachine.Components.scalarWithLean,
+    ``TensorCore.EFMachine.naiveSum32WithLeanFrom, ``TensorCore.EFMachine.add32WithLean] do check root
   let env ← getEnv
   let allowed := [``propext, ``Classical.choice, ``Quot.sound]
   let roots := env.constants.fold (init := (#[] : Array Name)) fun acc n ci =>
     if ci.isTheorem && ((`TensorCore.EFMachine).isPrefixOf n ||
-      (`TensorCore.Regression.BoundedEFT).isPrefixOf n) && !n.isInternal then acc.push n else acc
+      (`TensorCore.Regression.BoundedEFT).isPrefixOf n ||
+      (`TensorCore.Regression.NativeEFT).isPrefixOf n) && !n.isInternal then acc.push n else acc
   for n in roots do
     let deps ← liftCoreM (collectAxioms n)
     unless deps.all allowed.contains do throwError "Nonstandard bounded proof dependencies: {n}: {deps}"

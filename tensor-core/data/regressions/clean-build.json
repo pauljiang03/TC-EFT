@@ -122,6 +122,14 @@
       "scripts/check_ieee.py"
     ],
     [
+      "python3",
+      "scripts/check_lean_ieee.py"
+    ],
+    [
+      "python3",
+      "scripts/check_lean_eft.py"
+    ],
+    [
       "lake",
       "env",
       "lean",
@@ -254,8 +262,8 @@
       "examples/Verify.lean"
     ]
   ],
-  "targets_built": 402,
-  "audit": "2162 theorem roots audited (1276 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 420,
+  "audit": "2354 theorem roots audited (1414 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [
@@ -442,7 +450,7 @@
     "prior_error_does_not_roll_back": true,
     "supplied_proof_compiles": true,
     "example_compiles": true,
-    "example_elaboration_wall_seconds": 0.538643,
+    "example_elaboration_wall_seconds": 0.536343,
     "executable_dependency_checks": 3,
     "dependency_negative_control": true,
     "concrete_path": "Exact ideal prefixes, no model execution or residual ledger",
@@ -486,84 +494,84 @@
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.1686670899999998
+        "median_wall_ms_per_case": 0.17822000000000002
       },
       {
         "products": 1,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.18322999999999978
+        "median_wall_ms_per_case": 0.18422041
       },
       {
         "products": 1,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.17880333000000026
+        "median_wall_ms_per_case": 0.20314374999999996
       },
       {
         "products": 16,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.1857724999999999
+        "median_wall_ms_per_case": 0.21944332999999983
       },
       {
         "products": 16,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.2110758300000004
+        "median_wall_ms_per_case": 0.23918500000000065
       },
       {
         "products": 16,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.23635583999999987
+        "median_wall_ms_per_case": 0.24701500000000043
       },
       {
         "products": 64,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.24695582999999963
+        "median_wall_ms_per_case": 0.2591804099999995
       },
       {
         "products": 64,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.3364391599999994
+        "median_wall_ms_per_case": 0.34141666000000015
       },
       {
         "products": 64,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.441183329999999
+        "median_wall_ms_per_case": 0.434084170000002
       },
       {
         "products": 256,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.4834883299999993
+        "median_wall_ms_per_case": 0.480730829999998
       },
       {
         "products": 256,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.8671108299999998
+        "median_wall_ms_per_case": 0.7690141699999997
       },
       {
         "products": 256,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 1.1328820799999972
+        "median_wall_ms_per_case": 1.099555419999998
       }
     ],
     "timing_scope": "Compiled CLI batches, including process startup, parsing and JSON; 1 warmup and 3 measured processes of 100 cases. Model path also computes its exact ideal and trace report. No extraction or GPU timing claim."
@@ -594,7 +602,7 @@
           "Audit.lean"
         ],
         "exit_code": 0,
-        "audit": "tc_audit: 2162 theorem roots (1276 written in source, the rest generated)"
+        "audit": "tc_audit: 2354 theorem roots (1414 written in source, the rest generated)"
       },
       {
         "command": [
@@ -633,20 +641,23 @@
         "exit_code": 0
       }
     ],
-    "scanned_lean_sources": 219,
+    "scanned_lean_sources": 228,
     "bounded_scope": "Complete eight-path encoded EFT: bounded decoding, signed extraction/overlap, guards, scalar and 576-bit exact consolidation, direct FP32 rounding; universal finite-input correctness, success/range, reference refinement, and source-level operation budgets",
     "bounded_checks": {
       "status": "passed",
       "audit": {
-        "executable_roots": 8,
+        "executable_roots": 12,
         "negative_controls": [
           "rational",
           "model",
           "linear_scan"
         ],
-        "proof_audit": "bounded_proof_audit: 207 theorem roots; standard axioms only"
+        "proof_audit": "bounded_proof_audit: 239 theorem roots; standard axioms only"
       },
-      "backend": "compiled Lean BitVec executable",
+      "backend": "compiled Lean BitVec extraction and guards; native Float32 scalar addition",
+      "preservation_theorem": "TensorCore.EFMachine.algorithm1WithLean_eq",
+      "full_result_comparisons": 3953,
+      "error_preservation_controls": 3,
       "paper_blocks": 2926,
       "arbitrary_D_blocks": 1024,
       "rounding_cases": 3167,
@@ -660,7 +671,7 @@
       "coefficient_width": 576,
       "common_grid_exponent": -272,
       "seed": 20260907,
-      "elapsed_seconds": 5.887,
+      "elapsed_seconds": 8.539,
       "source_sha256": {
         "TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
         "TensorCore/Foundations/EFMachine/Decode.lean": "2d97d568f26d471396e2b683f5219be1abace3f91dc078f1db7dcd2cdf33679a",
@@ -681,12 +692,18 @@
         "TensorCore/Theory/EFMachine/Success.lean": "98b05ddbe2a5484856c6b3fe720209aeac121331a63b51c009396c802dcba9a5",
         "TensorCore/Theory/EFMachine/Word.lean": "3e7bbce7f5ff85d7cf46b607dcf0878508b4e191a7085ce9cbe0cdb2947dd5ce",
         "TensorCore/Programs/BoundedEFT.lean": "5f752035f986b98704c8475a18dfa6856399502303889d3b1b4c8f619d5da002",
-        "BoundedEFTMain.lean": "53e9c3a0245a8321c52d8b5af2d9cad1c27eb3b20ee2c49e9e6819d629096aba",
+        "BoundedEFTMain.lean": "e79abdf61885ad25fbb671a22e97a82a0410b3d176ecede0a814ec56325c99b6",
+        "LeanEFTCheckMain.lean": "615911300e4c26b750c1c476de99e721a7d6690b822c286dd1d9d1cb64b3587a",
+        "TensorCore/Programs/NativeEFT.lean": "ef4e136e8472699c890fe538023667350db9b82f3c2d6dc77ad95e4f15641e52",
+        "TensorCore/Regression/NativeEFT.lean": "ab4bd9cb9568a4183c572cfbffc63f3cd14798c4fc1ce13fc0b788e6b97ec81c",
+        "TensorCore/IEEE/LeanFiniteAddition.lean": "5c5c31f35322ef48d01900e1d0b7452926f7f5bb1954b2886489cac8a857002a",
+        "TensorCore/IEEE/LeanBridge.lean": "add94533b3ba2320f206a46eee2832743dea037c1788112a01bd8bdaae5ed086",
+        "TensorCore/IEEE/LeanRounding.lean": "8b907e5b8ab801a9dbaabf84a441155260e02970e7f8787bd68da71edb0cac06",
         "TensorCore/Regression/BoundedEFT.lean": "2c83c71b8aa782e51dfdd19efa882967cb7c705c979d16d618dded2e4dcd6ffc",
-        "BoundedEFTAudit.lean": "9b4c9cade336bfb4096722a9245b672027f74718de6940d7266352c0a1a9d6da",
+        "BoundedEFTAudit.lean": "2ad701a2e429e52925f13038d1d98c036b62c51618fdf39dfcc737cca58e78bc",
         "examples/BoundedEFT.lean": "de8c3d8a8608f72ee48fd3c84b1d22d1e4fd59ca301dd80456ff5825d382fbc4",
         "data/regressions/eft-paper-cases.json": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
-        "scripts/check_bounded_eft.py": "89017c0fe4c564745fb3dfa04960ab004a0f7b7d70e74f423820b156b89b632e"
+        "scripts/check_bounded_eft.py": "17f2051ead4926d6de53537c4d9b74490b922b741aa8b204c4451186841cf6d0"
       }
     },
     "incomplete": [
@@ -750,8 +767,8 @@
     "cases_sha256": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
     "output_sha256": "d8168f655c2d1fb8fd1a6ea79f3caa8981ed1ce8c901c19fed6c132a80f104b3",
     "timing": {
-      "lean_seconds": 15.041,
-      "total_seconds": 19.144
+      "lean_seconds": 14.981,
+      "total_seconds": 19.038
     },
     "historical_v100_experiments": {
       "reported": 100,
@@ -769,15 +786,18 @@
   "bounded_eft_checks": {
     "status": "passed",
     "audit": {
-      "executable_roots": 8,
+      "executable_roots": 12,
       "negative_controls": [
         "rational",
         "model",
         "linear_scan"
       ],
-      "proof_audit": "bounded_proof_audit: 207 theorem roots; standard axioms only"
+      "proof_audit": "bounded_proof_audit: 239 theorem roots; standard axioms only"
     },
-    "backend": "compiled Lean BitVec executable",
+    "backend": "compiled Lean BitVec extraction and guards; native Float32 scalar addition",
+    "preservation_theorem": "TensorCore.EFMachine.algorithm1WithLean_eq",
+    "full_result_comparisons": 3953,
+    "error_preservation_controls": 3,
     "paper_blocks": 2926,
     "arbitrary_D_blocks": 1024,
     "rounding_cases": 3167,
@@ -791,7 +811,7 @@
     "coefficient_width": 576,
     "common_grid_exponent": -272,
     "seed": 20260907,
-    "elapsed_seconds": 5.887,
+    "elapsed_seconds": 8.539,
     "source_sha256": {
       "TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
       "TensorCore/Foundations/EFMachine/Decode.lean": "2d97d568f26d471396e2b683f5219be1abace3f91dc078f1db7dcd2cdf33679a",
@@ -812,12 +832,18 @@
       "TensorCore/Theory/EFMachine/Success.lean": "98b05ddbe2a5484856c6b3fe720209aeac121331a63b51c009396c802dcba9a5",
       "TensorCore/Theory/EFMachine/Word.lean": "3e7bbce7f5ff85d7cf46b607dcf0878508b4e191a7085ce9cbe0cdb2947dd5ce",
       "TensorCore/Programs/BoundedEFT.lean": "5f752035f986b98704c8475a18dfa6856399502303889d3b1b4c8f619d5da002",
-      "BoundedEFTMain.lean": "53e9c3a0245a8321c52d8b5af2d9cad1c27eb3b20ee2c49e9e6819d629096aba",
+      "BoundedEFTMain.lean": "e79abdf61885ad25fbb671a22e97a82a0410b3d176ecede0a814ec56325c99b6",
+      "LeanEFTCheckMain.lean": "615911300e4c26b750c1c476de99e721a7d6690b822c286dd1d9d1cb64b3587a",
+      "TensorCore/Programs/NativeEFT.lean": "ef4e136e8472699c890fe538023667350db9b82f3c2d6dc77ad95e4f15641e52",
+      "TensorCore/Regression/NativeEFT.lean": "ab4bd9cb9568a4183c572cfbffc63f3cd14798c4fc1ce13fc0b788e6b97ec81c",
+      "TensorCore/IEEE/LeanFiniteAddition.lean": "5c5c31f35322ef48d01900e1d0b7452926f7f5bb1954b2886489cac8a857002a",
+      "TensorCore/IEEE/LeanBridge.lean": "add94533b3ba2320f206a46eee2832743dea037c1788112a01bd8bdaae5ed086",
+      "TensorCore/IEEE/LeanRounding.lean": "8b907e5b8ab801a9dbaabf84a441155260e02970e7f8787bd68da71edb0cac06",
       "TensorCore/Regression/BoundedEFT.lean": "2c83c71b8aa782e51dfdd19efa882967cb7c705c979d16d618dded2e4dcd6ffc",
-      "BoundedEFTAudit.lean": "9b4c9cade336bfb4096722a9245b672027f74718de6940d7266352c0a1a9d6da",
+      "BoundedEFTAudit.lean": "2ad701a2e429e52925f13038d1d98c036b62c51618fdf39dfcc737cca58e78bc",
       "examples/BoundedEFT.lean": "de8c3d8a8608f72ee48fd3c84b1d22d1e4fd59ca301dd80456ff5825d382fbc4",
       "data/regressions/eft-paper-cases.json": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
-      "scripts/check_bounded_eft.py": "89017c0fe4c564745fb3dfa04960ab004a0f7b7d70e74f423820b156b89b632e"
+      "scripts/check_bounded_eft.py": "17f2051ead4926d6de53537c4d9b74490b922b741aa8b204c4451186841cf6d0"
     }
   },
   "paper_spec_checks": {
@@ -1764,7 +1790,7 @@
     ],
     "input_sha256": "b4b3dd8afebed92eff562650d11fd2e6ea2330a88a20192084780f8c95fda8ac",
     "output_sha256": "2618a5d29fb1c166e3ebed926dda392f6a0206147a31d57e4ef3742560d3f605",
-    "elapsed_seconds": 5.495,
+    "elapsed_seconds": 5.368,
     "limitations": [
       "Executable comparisons, not additional universal proofs.",
       "Matrix-level instruction semantics; no CUDA memory/lane refinement.",
@@ -1835,7 +1861,7 @@
       "TensorCore/Cli/Gemm.lean": "9cf8c8ee685969958cbd16842a9966851ff036363089f8e8105147842815af42",
       "TensorCore/Cli/GemmInput.lean": "1d44cd6edc46530351621bc0e0e7732b850ff6b9adbd752e78387765b564d497",
       "TensorCore/Cli/GemmSelection.lean": "b4b90ad91f4a1b90aacd694350ead64a79e669cdd3ed9b0807a987cb283f5e49",
-      "TensorCore/Cli/IEEE.lean": "68d1e932155e28aa864ce2c0638413df905061aa53641f7b4fe9ca1551a9ec94",
+      "TensorCore/Cli/IEEE.lean": "9866c779ff59ad4f9cc509615987e50660d51be93f461828f926f0057e5d73c7",
       "TensorCore/Cli/NativePipeline.lean": "94a7af76c6f06049b18dc445705cd0699ef244d4c5b5b2500f4de167eb2b4418",
       "TensorCore/Cli/PipelineAnalysis.lean": "2aba569d68506738516bfd94473d7baee3b8897cc1d4dd645b975562ed83d1ce",
       "TensorCore/Foundations/BinaryRounding.lean": "972c25a1dec1cb8dc268b147a64b9cd8904044dd720ba249989cd611a8d44003",
@@ -1849,6 +1875,13 @@
       "TensorCore/Foundations/Rounding.lean": "15cccfc1816cb2daa04fd11aa38c85a1c1f01bbdd3bf1e95ba8df7a83c21ec62",
       "TensorCore/IEEE/Basic.lean": "0d34d6c6d4ab86a76480e772f079b430f93d72ad7f5dd0e2fe622f83f3928414",
       "TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+      "TensorCore/IEEE/LeanBridge.lean": "add94533b3ba2320f206a46eee2832743dea037c1788112a01bd8bdaae5ed086",
+      "TensorCore/IEEE/LeanBridge64.lean": "877285bd00304b64200d625a4261f5c1df201f4a00ac4d513f937a5c1bb29126",
+      "TensorCore/IEEE/LeanFiniteAddition.lean": "5c5c31f35322ef48d01900e1d0b7452926f7f5bb1954b2886489cac8a857002a",
+      "TensorCore/IEEE/LeanRounding.lean": "8b907e5b8ab801a9dbaabf84a441155260e02970e7f8787bd68da71edb0cac06",
+      "TensorCore/IEEE/LeanRounding64.lean": "dfa2f2795f13190797ddabc6cccdcac038f4af06d9d0fe5a8b6cfe295299ecc5",
+      "TensorCore/IEEE/NativeOperations.lean": "2a62d2c154f742f913736ddc59209c31a0a0a56a4dec9ac64576a0a31262dd44",
+      "TensorCore/IEEE/NativeRegression.lean": "24d1e8a201306fad0d057b402bd3bd75b9bf509bec507d1ba80a0f41bd581245",
       "TensorCore/IEEE/Operations.lean": "52649c6d777a0702aa85f2e3fdeb796960091e198692d663b1e95da861ed6c7f",
       "TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
       "TensorCore/IEEE/Regression.lean": "7288be9dd786050a857332817602e2ea9ecdbba36bd56c354b9dd3e95b7063c8",
@@ -1908,6 +1941,7 @@
       "TensorCore/Programs/Loops.lean": "8ffcc7442e5bc3873b745de9c5cf9a28f95c478017d9c88be1c6c141106b8e41",
       "TensorCore/Programs/MatrixConversion.lean": "c89691e146f7ff4968500bf1e0ea8c98b54447fd8297dccb957d49dd8fe6c805",
       "TensorCore/Programs/NativeConvertedAnalysis.lean": "5da19dc57d32b467e6dca4d6ec30e792e5ff19c9534ee237e993db703257c4fa",
+      "TensorCore/Programs/NativeEFT.lean": "ef4e136e8472699c890fe538023667350db9b82f3c2d6dc77ad95e4f15641e52",
       "TensorCore/Programs/NativeGemm.lean": "eafe2c03fb8462346c61a359c03775cd5a337b80d864790bbd594db510f57dc2",
       "TensorCore/Programs/NativeScaledGemm.lean": "ac271ccdb8fe0ec298541c034337004eac6e69170c671600bd8c3345091f3a2b",
       "TensorCore/Programs/Partition.lean": "46dbc79062a55a105cdf20b88f6e7d2b3c4a43490c8dc340b650ddd23b22f53c",
@@ -1947,6 +1981,7 @@
       "TensorCore/Regression/HalfOutput.lean": "45962d110f485a2524ae87680fe2ae64857bd8cb815bf0c87451ee526aea8b34",
       "TensorCore/Regression/Instruction.lean": "212d797751fc9f6abe2959a4f2a746fde7d56b426e9e76e2093fc0ed53297b20",
       "TensorCore/Regression/Monotonicity.lean": "8a56c1fdcab2d010ab41c472cf98da12e60714d58e36b7620e7fdeccd8050596",
+      "TensorCore/Regression/NativeEFT.lean": "ab4bd9cb9568a4183c572cfbffc63f3cd14798c4fc1ce13fc0b788e6b97ec81c",
       "TensorCore/Regression/NativeScaledGemm.lean": "1ed43247770d08c315bd5766772ec6766c4bfd79dc7d157feee614a8f9edd37a",
       "TensorCore/Regression/PipelineAnalysis.lean": "b6773ed79e7dc1eb224ff7f656432def427688e1f0dbb820b2424b9c411c3484",
       "TensorCore/Regression/Programs.lean": "e414497fb849a0f00f9170371259e248e7dbc85cf7d7fe921932baeabe1157cf",
@@ -2020,13 +2055,13 @@
       "TensorCore/Theory/ScalarSum.lean": "c522e990242ef70168d45b7d85bc42fa13664a510c6011d91117da469cc441dc",
       "TensorCore/Theory/StageResiduals.lean": "77555637e237771e874d1bbd278aa28b749d153ebf1baf95d609db1396223fb7",
       "TensorCore/Theory/StaticBudget.lean": "442b0981461f5c9b846308dd6d1b380ca60959d9e7371d59224dd11721c52bd3",
-      "TensorCore.lean": "cf2400c4a24eb77a908b55f519b6dfb67b71bb7db8277cf16f263d2a20478ac2",
+      "TensorCore.lean": "bb0e1f63386518ed37d486442dbf39305cda29cdb4f570d4f59929e5281b33f0",
       "examples/GemmExtensions.lean": "154a89b1378c3354ad101bc3667437a035d229e3a160e7c8f7583fef87b28057",
       "scripts/check_gemm.py": "f949761812d4b36a6b22859ac1868fda8a203d707484ca3333d2b01d1e572f9b",
       "scripts/check_features.py": "ac24baa73a45a5754c8087b6b5cde67b908e421811d4b89bcba9cad2dee995e3",
       "scripts/check_gemm_extensions.py": "60561b7a17c79f43fcee518251bf07c39ffedd9764a5f20eb6064042fa23a7f7"
     },
-    "elapsed_seconds": 373.684,
+    "elapsed_seconds": 374.271,
     "limitations": [
       "Independent implementation of the same numerical specification; no new GPU data.",
       "Scalar exact zeros canonicalize to +0; finite reference domain.",
@@ -2068,7 +2103,7 @@
       "cost-kernel-rejection",
       "invalid-format-model-width-mode"
     ],
-    "elapsed_seconds": 10.563,
+    "elapsed_seconds": 10.367,
     "source_sha256": {
       "TensorCore/Programs/MatrixConversion.lean": "c89691e146f7ff4968500bf1e0ea8c98b54447fd8297dccb957d49dd8fe6c805",
       "TensorCore/Programs/NativeScaledGemm.lean": "ac271ccdb8fe0ec298541c034337004eac6e69170c671600bd8c3345091f3a2b",
@@ -2380,9 +2415,45 @@
             "tensor-core/TensorCore/IEEE/Rounding.lean"
           ]
         ]
+      },
+      "C20": {
+        "declarations": [
+          [
+            "TensorCore.IEEE.addWithLean_eq",
+            "tensor-core/TensorCore/IEEE/NativeOperations.lean"
+          ],
+          [
+            "TensorCore.IEEE.subWithLean_eq",
+            "tensor-core/TensorCore/IEEE/NativeOperations.lean"
+          ],
+          [
+            "TensorCore.IEEE.mulWithLean_eq",
+            "tensor-core/TensorCore/IEEE/NativeOperations.lean"
+          ]
+        ]
+      },
+      "C21": {
+        "declarations": [
+          [
+            "TensorCore.EFMachine.naiveSum32WithLeanFrom_eq",
+            "tensor-core/TensorCore/Programs/NativeEFT.lean"
+          ],
+          [
+            "TensorCore.EFMachine.algorithm1WithLean_eq",
+            "tensor-core/TensorCore/Programs/NativeEFT.lean"
+          ],
+          [
+            "TensorCore.EFMachine.algorithm1WithLean_correct",
+            "tensor-core/TensorCore/Programs/NativeEFT.lean"
+          ],
+          [
+            "TensorCore.EFMachine.algorithm1WithLean_range_iff",
+            "tensor-core/TensorCore/Programs/NativeEFT.lean"
+          ]
+        ]
       }
     },
-    "declaration_count": 55,
+    "declaration_count": 62,
     "kernel_checked_witnesses": [
       "TensorCore.Regression.ReviewClaims.tiny_ideal",
       "TensorCore.Regression.ReviewClaims.tiny_outputs",
@@ -2406,13 +2477,14 @@
       "TensorCore.Regression.NativeScaled.source_loss_changes_selection",
       "TensorCore.Regression.NativeScaled.selected_accuracy"
     ],
-    "local_readme_links_checked": 49,
+    "local_readme_links_checked": 58,
     "human_sign_off": false,
     "novelty_assessed": false,
     "external_paper_review_repeated": false,
     "source_sha256": {
-      "README.md": "56a6bc73aa80a0c32e5ac74ec043136376f739e9f3f0aafaf93fa745422a9938",
+      "README.md": "ed98f8fee9cb639a8e5f5bd6047a8adf0a2bb2d57e5a1f3e450e79e906abc552",
       "tensor-core/TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+      "tensor-core/TensorCore/IEEE/NativeOperations.lean": "2a62d2c154f742f913736ddc59209c31a0a0a56a4dec9ac64576a0a31262dd44",
       "tensor-core/TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
       "tensor-core/TensorCore/IEEE/Rounding.lean": "bd2e4b8e5356691c7049f9b188b3f7414d5bb469d686e01e4e06995ffa0f471b",
       "tensor-core/TensorCore/IEEE/Specification.lean": "24aa3bdd79e6cdf3fd0edc1c7901ab556178b729639a5fdd4edbca581b30fb84",
@@ -2434,6 +2506,7 @@
       "tensor-core/TensorCore/Programs/GemmTightBounds.lean": "f36c80339b4db362e05d2bb0d407a568a18afcf6f1fac1542c65cd29c0363546",
       "tensor-core/TensorCore/Programs/GemmTightInputBounds.lean": "0c4bc220e027aac595ac2e82f73b3569e0154ab3fabda32df72b156cb2e9cb54",
       "tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean": "5da19dc57d32b467e6dca4d6ec30e792e5ff19c9534ee237e993db703257c4fa",
+      "tensor-core/TensorCore/Programs/NativeEFT.lean": "ef4e136e8472699c890fe538023667350db9b82f3c2d6dc77ad95e4f15641e52",
       "tensor-core/TensorCore/Programs/NativeGemm.lean": "eafe2c03fb8462346c61a359c03775cd5a337b80d864790bbd594db510f57dc2",
       "tensor-core/TensorCore/Regression/NativeScaledGemm.lean": "1ed43247770d08c315bd5766772ec6766c4bfd79dc7d157feee614a8f9edd37a",
       "tensor-core/TensorCore/Regression/ReviewClaims.lean": "87bd4181593decfe6e556cd761e39a8d7190b20b39bb4d70f93b9193c6c53bea",
@@ -2462,10 +2535,10 @@
     "readme_local_links": true,
     "source_sha256": {
       "tc": "fc8e0d42e836f150d5a6051e6f880d8f5947d4cd75e86fe00131decd1bd360c6",
-      "README.md": "56a6bc73aa80a0c32e5ac74ec043136376f739e9f3f0aafaf93fa745422a9938",
+      "README.md": "ed98f8fee9cb639a8e5f5bd6047a8adf0a2bb2d57e5a1f3e450e79e906abc552",
       "tensor-core/GemmMain.lean": "b0e7f4cb31d5be76810103940cf55e63c9c9412fd14d4d959d3989282bae96ec",
       "tensor-core/TensorCore/Cli/Gemm.lean": "9cf8c8ee685969958cbd16842a9966851ff036363089f8e8105147842815af42",
-      "tensor-core/lakefile.toml": "a65e78573e301b25db59bb2a3ae886e2ad2a79dc6c7d976e248181a997499fec",
+      "tensor-core/lakefile.toml": "afa7b76a381b85e4837bd8cac197f64f6f73b10a542be9e1e86789323161470d",
       "tensor-core/data/schemas/gemm.schema.json": "456e89fbc681c034867eb6424d0513b4ece69b21808a6434208593d0a64394ff",
       "tensor-core/data/examples/gemm.raw.jsonl": "041f1419a3db1f06dfc157ae9ca7305c27cd852e6402be29fe482fc95beba692",
       "tensor-core/data/examples/eft.txt": "4104fdbd5ab534f7dd69698cf0bd9353306fb29aa658d0530694de75fdc2935a",
@@ -2514,8 +2587,8 @@
       }
     ],
     "input_only_dependency_audit": true,
-    "native_analysis_seconds": 0.082,
-    "elapsed_seconds": 6.206,
+    "native_analysis_seconds": 0.081,
+    "elapsed_seconds": 6.37,
     "source_sha256": {
       "TensorCore/Theory/ProgramBounds/Local.lean": "13571554a84170562c7c0b9be51e3fe6e20d1085f5589acccacc09102c2d8660",
       "TensorCore/Programs/GroupAnalysis.lean": "ebd1bfeb6bff899fef2329f27a491348ad03c40453547bceef459e724a329717",
@@ -2556,7 +2629,7 @@
       "mixed_inconclusive_export_refused",
       "invalid_family_ranges_rejected"
     ],
-    "elapsed_seconds": 11.881,
+    "elapsed_seconds": 11.68,
     "source_sha256": {
       "TensorCore/Programs/ScalarAnalysis.lean": "444bb6104ddd9fedfcdb291c4ab2c24adb126f5710ae7ad374b749900ce8a6f1",
       "TensorCore/Programs/ExactScalarAnalysis.lean": "711b5e04654ae9a4d6344b864296455cc3e30c3ad8c0bd7ae5ee080855e9ea0b",
@@ -2602,7 +2675,7 @@
     ],
     "entry_family_matrix_bound": "4582416657/8796093022208",
     "uniform_matrix_bound": "273/131072",
-    "elapsed_seconds": 9.469,
+    "elapsed_seconds": 9.397,
     "limitations": [
       "Native integration covers encoded raw AB+C with FP32 output.",
       "Per-entry caps are reduced to row and column maxima for each output bound.",
@@ -2665,12 +2738,12 @@
         "selected": 9
       }
     },
-    "native_selection_batch_seconds": 1.576,
-    "native_analysis_batch_seconds": 1.141,
+    "native_selection_batch_seconds": 1.537,
+    "native_analysis_batch_seconds": 1.189,
     "certificate_cases": 7,
     "certificate_bytes": 13007,
-    "certificate_render_seconds": 0.0017,
-    "kernel_replay_seconds": 1.208,
+    "certificate_render_seconds": 0.0038,
+    "kernel_replay_seconds": 1.168,
     "kernel_replay": true,
     "input_only_dependency_audit": true,
     "negative_controls": [
@@ -2701,7 +2774,7 @@
         "k": 64,
         "candidates": 3,
         "selected_index": 1,
-        "native_process_seconds": 0.0216
+        "native_process_seconds": 0.021
       },
       {
         "m": 4,
@@ -2717,10 +2790,10 @@
         "k": 64,
         "candidates": 3,
         "selected_index": 1,
-        "native_process_seconds": 0.7075
+        "native_process_seconds": 0.7067
       }
     ],
-    "elapsed_seconds": 22.825,
+    "elapsed_seconds": 20.442,
     "source_sha256": {
       "TensorCore/Programs/GemmSelection.lean": "e2d28448872830fddde23c82f6e8d4066539017dae8c9704b95e31c3dd4b880a",
       "TensorCore/Cli/GemmSelection.lean": "b4b90ad91f4a1b90aacd694350ead64a79e669cdd3ed9b0807a987cb283f5e49",
@@ -2812,27 +2885,142 @@
     "source_sha256": {
       "TensorCore/IEEE/Basic.lean": "0d34d6c6d4ab86a76480e772f079b430f93d72ad7f5dd0e2fe622f83f3928414",
       "TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+      "TensorCore/IEEE/LeanBridge.lean": "add94533b3ba2320f206a46eee2832743dea037c1788112a01bd8bdaae5ed086",
+      "TensorCore/IEEE/LeanBridge64.lean": "877285bd00304b64200d625a4261f5c1df201f4a00ac4d513f937a5c1bb29126",
+      "TensorCore/IEEE/LeanFiniteAddition.lean": "5c5c31f35322ef48d01900e1d0b7452926f7f5bb1954b2886489cac8a857002a",
+      "TensorCore/IEEE/LeanRounding.lean": "8b907e5b8ab801a9dbaabf84a441155260e02970e7f8787bd68da71edb0cac06",
+      "TensorCore/IEEE/LeanRounding64.lean": "dfa2f2795f13190797ddabc6cccdcac038f4af06d9d0fe5a8b6cfe295299ecc5",
+      "TensorCore/IEEE/NativeOperations.lean": "2a62d2c154f742f913736ddc59209c31a0a0a56a4dec9ac64576a0a31262dd44",
+      "TensorCore/IEEE/NativeRegression.lean": "24d1e8a201306fad0d057b402bd3bd75b9bf509bec507d1ba80a0f41bd581245",
       "TensorCore/IEEE/Operations.lean": "52649c6d777a0702aa85f2e3fdeb796960091e198692d663b1e95da861ed6c7f",
       "TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
       "TensorCore/IEEE/Regression.lean": "7288be9dd786050a857332817602e2ea9ecdbba36bd56c354b9dd3e95b7063c8",
       "TensorCore/IEEE/Rounding.lean": "bd2e4b8e5356691c7049f9b188b3f7414d5bb469d686e01e4e06995ffa0f471b",
       "TensorCore/IEEE/Specification.lean": "24aa3bdd79e6cdf3fd0edc1c7901ab556178b729639a5fdd4edbca581b30fb84",
-      "TensorCore/Cli/IEEE.lean": "68d1e932155e28aa864ce2c0638413df905061aa53641f7b4fe9ca1551a9ec94",
+      "TensorCore/Cli/IEEE.lean": "9866c779ff59ad4f9cc509615987e50660d51be93f461828f926f0057e5d73c7",
       "IEEEMain.lean": "eccf49d98692a7b3a987666826a6f956d344424f753cae07a3a35b6031676f2f",
       "scripts/check_ieee.py": "ca9b2fa1a367e54da1a996a7fa7e2bebdd51d40a236d20d64873519b4e4547e7",
       "tests/ieee/softfloat_oracle.c": "9255fdb61c41ab2e59f3e9ac24a1b0fc08b04458e1a4de45c5ee5df7c1f09a85"
     },
-    "elapsed_seconds": 29.098
+    "elapsed_seconds": 30.062
+  },
+  "lean_ieee_checks": {
+    "status": "passed",
+    "seed": 75420260908,
+    "scope": "binary32/binary64 nearest-even add/sub/mul; NaNs canonicalized for Lean comparison",
+    "samples_are_not_proofs": true,
+    "proved_native_domain": "nonzero finite operands, nearest-even, absolute exact result at most maxFinite",
+    "public_preservation_theorems": [
+      "TensorCore.IEEE.addWithLean_eq",
+      "TensorCore.IEEE.subWithLean_eq",
+      "TensorCore.IEEE.mulWithLean_eq"
+    ],
+    "reference_flags_checked_against_independent_oracle": true,
+    "native_exception_flags_compared": false,
+    "cases": 28032,
+    "groups": {
+      "edges": 13872,
+      "random": 2160,
+      "additional_random": 12000
+    },
+    "nan_policy_differences": {
+      "logical_bits": 3820,
+      "native_bits": 3820
+    },
+    "failures": 0,
+    "first_failures": [],
+    "request_sha256": "3519600ca68b6df929d87a3d292834c59dec636b6e66860233f8a028155bb495",
+    "source_sha256": {
+      "scripts/check_lean_ieee.py": "85f26fc95950a42f7e4ed39fdcd6800d808dcd68d9a6a0652377f4b5d9b6767b",
+      "scripts/check_ieee.py": "ca9b2fa1a367e54da1a996a7fa7e2bebdd51d40a236d20d64873519b4e4547e7",
+      "LeanIEEECheckMain.lean": "7538528c409cdc1cb9cb7beb00884bf41306157924fe1e097f5f3ccd5fd425c2",
+      "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
+      "TensorCore/Cli/IEEE.lean": "9866c779ff59ad4f9cc509615987e50660d51be93f461828f926f0057e5d73c7",
+      "lakefile.toml": "afa7b76a381b85e4837bd8cac197f64f6f73b10a542be9e1e86789323161470d",
+      "TensorCore/IEEE/Basic.lean": "0d34d6c6d4ab86a76480e772f079b430f93d72ad7f5dd0e2fe622f83f3928414",
+      "TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+      "TensorCore/IEEE/LeanBridge.lean": "add94533b3ba2320f206a46eee2832743dea037c1788112a01bd8bdaae5ed086",
+      "TensorCore/IEEE/LeanBridge64.lean": "877285bd00304b64200d625a4261f5c1df201f4a00ac4d513f937a5c1bb29126",
+      "TensorCore/IEEE/LeanFiniteAddition.lean": "5c5c31f35322ef48d01900e1d0b7452926f7f5bb1954b2886489cac8a857002a",
+      "TensorCore/IEEE/LeanRounding.lean": "8b907e5b8ab801a9dbaabf84a441155260e02970e7f8787bd68da71edb0cac06",
+      "TensorCore/IEEE/LeanRounding64.lean": "dfa2f2795f13190797ddabc6cccdcac038f4af06d9d0fe5a8b6cfe295299ecc5",
+      "TensorCore/IEEE/NativeOperations.lean": "2a62d2c154f742f913736ddc59209c31a0a0a56a4dec9ac64576a0a31262dd44",
+      "TensorCore/IEEE/NativeRegression.lean": "24d1e8a201306fad0d057b402bd3bd75b9bf509bec507d1ba80a0f41bd581245",
+      "TensorCore/IEEE/Operations.lean": "52649c6d777a0702aa85f2e3fdeb796960091e198692d663b1e95da861ed6c7f",
+      "TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
+      "TensorCore/IEEE/Regression.lean": "7288be9dd786050a857332817602e2ea9ecdbba36bd56c354b9dd3e95b7063c8",
+      "TensorCore/IEEE/Rounding.lean": "bd2e4b8e5356691c7049f9b188b3f7414d5bb469d686e01e4e06995ffa0f471b",
+      "TensorCore/IEEE/Specification.lean": "24aa3bdd79e6cdf3fd0edc1c7901ab556178b729639a5fdd4edbca581b30fb84"
+    },
+    "elapsed_seconds": 7.117
+  },
+  "lean_eft_checks": {
+    "status": "passed",
+    "seed": 20260909,
+    "scope": "FP32 left-to-right native EFT accumulation; finite exact-range and positive exact-zero policy",
+    "samples_are_not_proofs": true,
+    "cases": 7988,
+    "groups": {
+      "empty": 44,
+      "edge_pair": 1936,
+      "ordering_and_rounding": 8,
+      "random_pair": 4000,
+      "random_fold": 1000,
+      "eft_exact_grid": 1000
+    },
+    "rejected_sequences": 631,
+    "invalid_request_controls": 3,
+    "failures": 0,
+    "first_failures": [],
+    "preservation_theorems": [
+      "TensorCore.EFMachine.add32WithLean_eq",
+      "TensorCore.EFMachine.naiveSum32WithLeanFrom_eq",
+      "TensorCore.EFMachine.algorithm1WithLean_eq"
+    ],
+    "correctness_theorem": "TensorCore.EFMachine.algorithm1WithLean_correct",
+    "request_sha256": "902036b3fcb2c646abe27966429c506fde81f486483b6042cdd44c24bd619f2f",
+    "source_sha256": {
+      "scripts/check_lean_eft.py": "03c24bfce861baa431dc59f53a4aa1db5eec270dda4f421d650954778d93db06",
+      "scripts/check_ieee.py": "ca9b2fa1a367e54da1a996a7fa7e2bebdd51d40a236d20d64873519b4e4547e7",
+      "LeanEFTCheckMain.lean": "615911300e4c26b750c1c476de99e721a7d6690b822c286dd1d9d1cb64b3587a",
+      "BoundedEFTMain.lean": "e79abdf61885ad25fbb671a22e97a82a0410b3d176ecede0a814ec56325c99b6",
+      "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
+      "lakefile.toml": "afa7b76a381b85e4837bd8cac197f64f6f73b10a542be9e1e86789323161470d",
+      "TensorCore/Programs/NativeEFT.lean": "ef4e136e8472699c890fe538023667350db9b82f3c2d6dc77ad95e4f15641e52",
+      "TensorCore/Programs/BoundedEFT.lean": "5f752035f986b98704c8475a18dfa6856399502303889d3b1b4c8f619d5da002",
+      "TensorCore/Regression/NativeEFT.lean": "ab4bd9cb9568a4183c572cfbffc63f3cd14798c4fc1ce13fc0b788e6b97ec81c",
+      "TensorCore/IEEE/Basic.lean": "0d34d6c6d4ab86a76480e772f079b430f93d72ad7f5dd0e2fe622f83f3928414",
+      "TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+      "TensorCore/IEEE/LeanBridge.lean": "add94533b3ba2320f206a46eee2832743dea037c1788112a01bd8bdaae5ed086",
+      "TensorCore/IEEE/LeanBridge64.lean": "877285bd00304b64200d625a4261f5c1df201f4a00ac4d513f937a5c1bb29126",
+      "TensorCore/IEEE/LeanFiniteAddition.lean": "5c5c31f35322ef48d01900e1d0b7452926f7f5bb1954b2886489cac8a857002a",
+      "TensorCore/IEEE/LeanRounding.lean": "8b907e5b8ab801a9dbaabf84a441155260e02970e7f8787bd68da71edb0cac06",
+      "TensorCore/IEEE/LeanRounding64.lean": "dfa2f2795f13190797ddabc6cccdcac038f4af06d9d0fe5a8b6cfe295299ecc5",
+      "TensorCore/IEEE/NativeOperations.lean": "2a62d2c154f742f913736ddc59209c31a0a0a56a4dec9ac64576a0a31262dd44",
+      "TensorCore/IEEE/NativeRegression.lean": "24d1e8a201306fad0d057b402bd3bd75b9bf509bec507d1ba80a0f41bd581245",
+      "TensorCore/IEEE/Operations.lean": "52649c6d777a0702aa85f2e3fdeb796960091e198692d663b1e95da861ed6c7f",
+      "TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
+      "TensorCore/IEEE/Regression.lean": "7288be9dd786050a857332817602e2ea9ecdbba36bd56c354b9dd3e95b7063c8",
+      "TensorCore/IEEE/Rounding.lean": "bd2e4b8e5356691c7049f9b188b3f7414d5bb469d686e01e4e06995ffa0f471b",
+      "TensorCore/IEEE/Specification.lean": "24aa3bdd79e6cdf3fd0edc1c7901ab556178b729639a5fdd4edbca581b30fb84",
+      "TensorCore/Foundations/EFMachine/BitScan.lean": "1fbb4ad448f8470dd16b95519cfa6c6dcb9ef778d9cec1e9c7635a0c30632d7e",
+      "TensorCore/Foundations/EFMachine/Decode.lean": "2d97d568f26d471396e2b683f5219be1abace3f91dc078f1db7dcd2cdf33679a",
+      "TensorCore/Foundations/EFMachine/Split.lean": "1f2c7315365f1a8fe25e22fc0bc0e77770d62cce9702abf7ddaab30907136786",
+      "TensorCore/Foundations/EFMachine/Word.lean": "4b4038efb8c9494fd8f6747f5188b68ced62cc87fb2f222d5058e99f6ff0f09c"
+    },
+    "elapsed_seconds": 3.546
   },
   "source_sha256": {
     ".gitignore": "75d6bfd3102481aa9eb62215f8111a93c875ac29ab8e9abeff96481433a33021",
     "Audit.lean": "167dc5873ca153c286cd8d70f102eb9356f392b12e68e827db9fc8396621efc3",
-    "BoundedEFTAudit.lean": "9b4c9cade336bfb4096722a9245b672027f74718de6940d7266352c0a1a9d6da",
-    "BoundedEFTMain.lean": "53e9c3a0245a8321c52d8b5af2d9cad1c27eb3b20ee2c49e9e6819d629096aba",
+    "BoundedEFTAudit.lean": "2ad701a2e429e52925f13038d1d98c036b62c51618fdf39dfcc737cca58e78bc",
+    "BoundedEFTMain.lean": "e79abdf61885ad25fbb671a22e97a82a0410b3d176ecede0a814ec56325c99b6",
     "EFTPaperMain.lean": "62d90896001bd1198d79830e7a9b1d5f40bf084981cfcb96fedcdbb927021371",
     "FeatureMain.lean": "00f7c1bcf478333e431f6cf9c90a531da9192622fd624a8b66f0945e48f080fe",
     "GemmMain.lean": "b0e7f4cb31d5be76810103940cf55e63c9c9412fd14d4d959d3989282bae96ec",
     "IEEEMain.lean": "eccf49d98692a7b3a987666826a6f956d344424f753cae07a3a35b6031676f2f",
+    "LeanEFTCheckMain.lean": "615911300e4c26b750c1c476de99e721a7d6690b822c286dd1d9d1cb64b3587a",
+    "LeanIEEECheckMain.lean": "7538528c409cdc1cb9cb7beb00884bf41306157924fe1e097f5f3ccd5fd425c2",
     "Main.lean": "1b28935afe0b19767d6b447ba7f30724df968b739a1142604a28442bf4bb4ba1",
     "PaperSpecAudit.lean": "0a371cef3059c60c5f26f067df1260d349271572a63620917b75dcc26fa52f5d",
     "TensorCore/Applications/BoundedDot.lean": "38bc3cab4c77465ee901a974d891976ba40e52b3723296712bc7a9fc4c566cb1",
@@ -2841,7 +3029,7 @@
     "TensorCore/Cli/Gemm.lean": "9cf8c8ee685969958cbd16842a9966851ff036363089f8e8105147842815af42",
     "TensorCore/Cli/GemmInput.lean": "1d44cd6edc46530351621bc0e0e7732b850ff6b9adbd752e78387765b564d497",
     "TensorCore/Cli/GemmSelection.lean": "b4b90ad91f4a1b90aacd694350ead64a79e669cdd3ed9b0807a987cb283f5e49",
-    "TensorCore/Cli/IEEE.lean": "68d1e932155e28aa864ce2c0638413df905061aa53641f7b4fe9ca1551a9ec94",
+    "TensorCore/Cli/IEEE.lean": "9866c779ff59ad4f9cc509615987e50660d51be93f461828f926f0057e5d73c7",
     "TensorCore/Cli/NativePipeline.lean": "94a7af76c6f06049b18dc445705cd0699ef244d4c5b5b2500f4de167eb2b4418",
     "TensorCore/Cli/PipelineAnalysis.lean": "2aba569d68506738516bfd94473d7baee3b8897cc1d4dd645b975562ed83d1ce",
     "TensorCore/Foundations/BinaryRounding.lean": "972c25a1dec1cb8dc268b147a64b9cd8904044dd720ba249989cd611a8d44003",
@@ -2855,6 +3043,13 @@
     "TensorCore/Foundations/Rounding.lean": "15cccfc1816cb2daa04fd11aa38c85a1c1f01bbdd3bf1e95ba8df7a83c21ec62",
     "TensorCore/IEEE/Basic.lean": "0d34d6c6d4ab86a76480e772f079b430f93d72ad7f5dd0e2fe622f83f3928414",
     "TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+    "TensorCore/IEEE/LeanBridge.lean": "add94533b3ba2320f206a46eee2832743dea037c1788112a01bd8bdaae5ed086",
+    "TensorCore/IEEE/LeanBridge64.lean": "877285bd00304b64200d625a4261f5c1df201f4a00ac4d513f937a5c1bb29126",
+    "TensorCore/IEEE/LeanFiniteAddition.lean": "5c5c31f35322ef48d01900e1d0b7452926f7f5bb1954b2886489cac8a857002a",
+    "TensorCore/IEEE/LeanRounding.lean": "8b907e5b8ab801a9dbaabf84a441155260e02970e7f8787bd68da71edb0cac06",
+    "TensorCore/IEEE/LeanRounding64.lean": "dfa2f2795f13190797ddabc6cccdcac038f4af06d9d0fe5a8b6cfe295299ecc5",
+    "TensorCore/IEEE/NativeOperations.lean": "2a62d2c154f742f913736ddc59209c31a0a0a56a4dec9ac64576a0a31262dd44",
+    "TensorCore/IEEE/NativeRegression.lean": "24d1e8a201306fad0d057b402bd3bd75b9bf509bec507d1ba80a0f41bd581245",
     "TensorCore/IEEE/Operations.lean": "52649c6d777a0702aa85f2e3fdeb796960091e198692d663b1e95da861ed6c7f",
     "TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
     "TensorCore/IEEE/Regression.lean": "7288be9dd786050a857332817602e2ea9ecdbba36bd56c354b9dd3e95b7063c8",
@@ -2914,6 +3109,7 @@
     "TensorCore/Programs/Loops.lean": "8ffcc7442e5bc3873b745de9c5cf9a28f95c478017d9c88be1c6c141106b8e41",
     "TensorCore/Programs/MatrixConversion.lean": "c89691e146f7ff4968500bf1e0ea8c98b54447fd8297dccb957d49dd8fe6c805",
     "TensorCore/Programs/NativeConvertedAnalysis.lean": "5da19dc57d32b467e6dca4d6ec30e792e5ff19c9534ee237e993db703257c4fa",
+    "TensorCore/Programs/NativeEFT.lean": "ef4e136e8472699c890fe538023667350db9b82f3c2d6dc77ad95e4f15641e52",
     "TensorCore/Programs/NativeGemm.lean": "eafe2c03fb8462346c61a359c03775cd5a337b80d864790bbd594db510f57dc2",
     "TensorCore/Programs/NativeScaledGemm.lean": "ac271ccdb8fe0ec298541c034337004eac6e69170c671600bd8c3345091f3a2b",
     "TensorCore/Programs/Partition.lean": "46dbc79062a55a105cdf20b88f6e7d2b3c4a43490c8dc340b650ddd23b22f53c",
@@ -2953,6 +3149,7 @@
     "TensorCore/Regression/HalfOutput.lean": "45962d110f485a2524ae87680fe2ae64857bd8cb815bf0c87451ee526aea8b34",
     "TensorCore/Regression/Instruction.lean": "212d797751fc9f6abe2959a4f2a746fde7d56b426e9e76e2093fc0ed53297b20",
     "TensorCore/Regression/Monotonicity.lean": "8a56c1fdcab2d010ab41c472cf98da12e60714d58e36b7620e7fdeccd8050596",
+    "TensorCore/Regression/NativeEFT.lean": "ab4bd9cb9568a4183c572cfbffc63f3cd14798c4fc1ce13fc0b788e6b97ec81c",
     "TensorCore/Regression/NativeScaledGemm.lean": "1ed43247770d08c315bd5766772ec6766c4bfd79dc7d157feee614a8f9edd37a",
     "TensorCore/Regression/PipelineAnalysis.lean": "b6773ed79e7dc1eb224ff7f656432def427688e1f0dbb820b2424b9c411c3484",
     "TensorCore/Regression/Programs.lean": "e414497fb849a0f00f9170371259e248e7dbc85cf7d7fe921932baeabe1157cf",
@@ -3026,7 +3223,7 @@
     "TensorCore/Theory/ScalarSum.lean": "c522e990242ef70168d45b7d85bc42fa13664a510c6011d91117da469cc441dc",
     "TensorCore/Theory/StageResiduals.lean": "77555637e237771e874d1bbd278aa28b749d153ebf1baf95d609db1396223fb7",
     "TensorCore/Theory/StaticBudget.lean": "442b0981461f5c9b846308dd6d1b380ca60959d9e7371d59224dd11721c52bd3",
-    "TensorCore.lean": "cf2400c4a24eb77a908b55f519b6dfb67b71bb7db8277cf16f263d2a20478ac2",
+    "TensorCore.lean": "bb0e1f63386518ed37d486442dbf39305cda29cdb4f570d4f59929e5281b33f0",
     "data/examples/eft.txt": "4104fdbd5ab534f7dd69698cf0bd9353306fb29aa658d0530694de75fdc2935a",
     "data/examples/gemm.analysis.jsonl": "b876f147d4fc9b41bab47d17e4aa15ff5e2e3265093131b1de5b9d734e116158",
     "data/examples/gemm.cost-selection.jsonl": "8bbef24a7a932ddb9df35f35cae8c4521462669f45c80c4bcdcf7398809c3f54",
@@ -3043,6 +3240,7 @@
     "data/schemas/gemm.schema.json": "456e89fbc681c034867eb6424d0513b4ece69b21808a6434208593d0a64394ff",
     "data/schemas/ieee.schema.json": "3d19a8199fdd31da63d71afaee42d683ec525cfa173a300f4d1084424dc2e5fd",
     "data/schemas/selection.schema.json": "4bf3f254462c977fa21412ca093f334da25f7c554c23784011b4f438eb0353ca",
+    "docs/lean-ieee-compatibility.md": "ddc09ee37eb1e66cea069794b11a5f016db219508814b46a83a7a0b0eddef026",
     "examples/BinaryFoundation.lean": "38fb227083af6354f99f0002ba156936cbf5e49b725c72c8bbf9eeb31d8c595a",
     "examples/BoundedDot.lean": "0d3c272411e129872339f9d9244c689b1fe54906df5c5e8252b0c1bde8681228",
     "examples/BoundedEFT.lean": "de8c3d8a8608f72ee48fd3c84b1d22d1e4fd59ca301dd80456ff5825d382fbc4",
@@ -3092,7 +3290,7 @@
     "kernels/cutlass/upstream/include/cutlass/transform/threadblock/predicated_tile_iterator.h": "5a8d8628489c90d553ffb4673d3fbd5476a82b8c767bc2e01773ea04865941b9",
     "kernels/cutlass/wmma_sm70.cu": "c4e3e82e275468cda10ea79057c1e21917c6552433dd9b9e846ac7bfe31a3173",
     "lake-manifest.json": "21b8947c41a7619fa20876b690f660faa351dfa816b995ba898acde20cef9d60",
-    "lakefile.toml": "a65e78573e301b25db59bb2a3ae886e2ad2a79dc6c7d976e248181a997499fec",
+    "lakefile.toml": "afa7b76a381b85e4837bd8cac197f64f6f73b10a542be9e1e86789323161470d",
     "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
     "scripts/analysis_certificate.py": "910d5b9e20ddb46dce508e07c0cca096c318b9ed225193c7e3e9f142dc61b715",
     "scripts/analyze.py": "11b161f2d2019e29057aa6c151860ffad52be1c6afe99815e887689f3789a9e7",
@@ -3101,9 +3299,9 @@
     "scripts/check_application.py": "59b87f1cdfb35b366660a529a54a352bd99b1aff3bbeda08046495ef060313a1",
     "scripts/check_axioms.py": "8a90032d1920c9a73de2a4d5ed39acaf36a2673c51048c408cdf9d821fe83cda",
     "scripts/check_axioms_regression.py": "4319985a4fca4ab0dbe20206db372dd324697b7056e3a6c8f5fe53474be75349",
-    "scripts/check_bounded_eft.py": "89017c0fe4c564745fb3dfa04960ab004a0f7b7d70e74f423820b156b89b632e",
+    "scripts/check_bounded_eft.py": "17f2051ead4926d6de53537c4d9b74490b922b741aa8b204c4451186841cf6d0",
     "scripts/check_certificates.py": "f651f3565d4fe92d0bf0c10eae5e26add859f3530cca02d5676d2f9ebf325c33",
-    "scripts/check_clean_build.py": "c2f595956822ba09f1da16e5af6ebbf500314195c24ecc343aa400085153ad29",
+    "scripts/check_clean_build.py": "864992f3a8af655c6cdaecb416f23c62201fb10afdd7f404d5c53add86fa0ebe",
     "scripts/check_cutlass.py": "4933ec6d1b4dd783081ef87bd611cdbc6a2e69a778d1150bcf722091fb329e25",
     "scripts/check_decision_extensions.py": "efdc8c7e83018a47c37478390efa2d5ab38a71bd47de905cdae39f25a21e556d",
     "scripts/check_device.py": "4dacd6bca0e4a01f54e129a5d92f2b61742dd334d42346a21adfb4b2739f9a6e",
@@ -3118,6 +3316,8 @@
     "scripts/check_gemm_extensions.py": "60561b7a17c79f43fcee518251bf07c39ffedd9764a5f20eb6064042fa23a7f7",
     "scripts/check_ieee.py": "ca9b2fa1a367e54da1a996a7fa7e2bebdd51d40a236d20d64873519b4e4547e7",
     "scripts/check_ieee_softfloat.py": "549d5b6fa95f3220b519cb035f8fe28f76e9f5128956d77e35c42bceab0986b9",
+    "scripts/check_lean_eft.py": "03c24bfce861baa431dc59f53a4aa1db5eec270dda4f421d650954778d93db06",
+    "scripts/check_lean_ieee.py": "85f26fc95950a42f7e4ed39fdcd6800d808dcd68d9a6a0652377f4b5d9b6767b",
     "scripts/check_native_scaled.py": "cc8855cc3321cfbf5e36369e7febf8ba01272e29b66f4d5cb4bc289e97493f96",
     "scripts/check_paper_eft.py": "4a3dbd483ea5300b83b424f88878e9ebf585506e14f83b9f2f356621f3954e0a",
     "scripts/check_paper_spec.py": "38b3093a4ea45b4f3d7b6e134127f96082300d9056e5e4431538cb8fa949040e",
@@ -3190,12 +3390,14 @@
   "repository_source_sha256": {
     "tensor-core/.gitignore": "75d6bfd3102481aa9eb62215f8111a93c875ac29ab8e9abeff96481433a33021",
     "tensor-core/Audit.lean": "167dc5873ca153c286cd8d70f102eb9356f392b12e68e827db9fc8396621efc3",
-    "tensor-core/BoundedEFTAudit.lean": "9b4c9cade336bfb4096722a9245b672027f74718de6940d7266352c0a1a9d6da",
-    "tensor-core/BoundedEFTMain.lean": "53e9c3a0245a8321c52d8b5af2d9cad1c27eb3b20ee2c49e9e6819d629096aba",
+    "tensor-core/BoundedEFTAudit.lean": "2ad701a2e429e52925f13038d1d98c036b62c51618fdf39dfcc737cca58e78bc",
+    "tensor-core/BoundedEFTMain.lean": "e79abdf61885ad25fbb671a22e97a82a0410b3d176ecede0a814ec56325c99b6",
     "tensor-core/EFTPaperMain.lean": "62d90896001bd1198d79830e7a9b1d5f40bf084981cfcb96fedcdbb927021371",
     "tensor-core/FeatureMain.lean": "00f7c1bcf478333e431f6cf9c90a531da9192622fd624a8b66f0945e48f080fe",
     "tensor-core/GemmMain.lean": "b0e7f4cb31d5be76810103940cf55e63c9c9412fd14d4d959d3989282bae96ec",
     "tensor-core/IEEEMain.lean": "eccf49d98692a7b3a987666826a6f956d344424f753cae07a3a35b6031676f2f",
+    "tensor-core/LeanEFTCheckMain.lean": "615911300e4c26b750c1c476de99e721a7d6690b822c286dd1d9d1cb64b3587a",
+    "tensor-core/LeanIEEECheckMain.lean": "7538528c409cdc1cb9cb7beb00884bf41306157924fe1e097f5f3ccd5fd425c2",
     "tensor-core/Main.lean": "1b28935afe0b19767d6b447ba7f30724df968b739a1142604a28442bf4bb4ba1",
     "tensor-core/PaperSpecAudit.lean": "0a371cef3059c60c5f26f067df1260d349271572a63620917b75dcc26fa52f5d",
     "tensor-core/TensorCore/Applications/BoundedDot.lean": "38bc3cab4c77465ee901a974d891976ba40e52b3723296712bc7a9fc4c566cb1",
@@ -3204,7 +3406,7 @@
     "tensor-core/TensorCore/Cli/Gemm.lean": "9cf8c8ee685969958cbd16842a9966851ff036363089f8e8105147842815af42",
     "tensor-core/TensorCore/Cli/GemmInput.lean": "1d44cd6edc46530351621bc0e0e7732b850ff6b9adbd752e78387765b564d497",
     "tensor-core/TensorCore/Cli/GemmSelection.lean": "b4b90ad91f4a1b90aacd694350ead64a79e669cdd3ed9b0807a987cb283f5e49",
-    "tensor-core/TensorCore/Cli/IEEE.lean": "68d1e932155e28aa864ce2c0638413df905061aa53641f7b4fe9ca1551a9ec94",
+    "tensor-core/TensorCore/Cli/IEEE.lean": "9866c779ff59ad4f9cc509615987e50660d51be93f461828f926f0057e5d73c7",
     "tensor-core/TensorCore/Cli/NativePipeline.lean": "94a7af76c6f06049b18dc445705cd0699ef244d4c5b5b2500f4de167eb2b4418",
     "tensor-core/TensorCore/Cli/PipelineAnalysis.lean": "2aba569d68506738516bfd94473d7baee3b8897cc1d4dd645b975562ed83d1ce",
     "tensor-core/TensorCore/Foundations/BinaryRounding.lean": "972c25a1dec1cb8dc268b147a64b9cd8904044dd720ba249989cd611a8d44003",
@@ -3218,6 +3420,13 @@
     "tensor-core/TensorCore/Foundations/Rounding.lean": "15cccfc1816cb2daa04fd11aa38c85a1c1f01bbdd3bf1e95ba8df7a83c21ec62",
     "tensor-core/TensorCore/IEEE/Basic.lean": "0d34d6c6d4ab86a76480e772f079b430f93d72ad7f5dd0e2fe622f83f3928414",
     "tensor-core/TensorCore/IEEE/Compatibility.lean": "4f35bdd133124e47d8589e272e3468757206a7993de72a3d5d68c2bf1aae40e1",
+    "tensor-core/TensorCore/IEEE/LeanBridge.lean": "add94533b3ba2320f206a46eee2832743dea037c1788112a01bd8bdaae5ed086",
+    "tensor-core/TensorCore/IEEE/LeanBridge64.lean": "877285bd00304b64200d625a4261f5c1df201f4a00ac4d513f937a5c1bb29126",
+    "tensor-core/TensorCore/IEEE/LeanFiniteAddition.lean": "5c5c31f35322ef48d01900e1d0b7452926f7f5bb1954b2886489cac8a857002a",
+    "tensor-core/TensorCore/IEEE/LeanRounding.lean": "8b907e5b8ab801a9dbaabf84a441155260e02970e7f8787bd68da71edb0cac06",
+    "tensor-core/TensorCore/IEEE/LeanRounding64.lean": "dfa2f2795f13190797ddabc6cccdcac038f4af06d9d0fe5a8b6cfe295299ecc5",
+    "tensor-core/TensorCore/IEEE/NativeOperations.lean": "2a62d2c154f742f913736ddc59209c31a0a0a56a4dec9ac64576a0a31262dd44",
+    "tensor-core/TensorCore/IEEE/NativeRegression.lean": "24d1e8a201306fad0d057b402bd3bd75b9bf509bec507d1ba80a0f41bd581245",
     "tensor-core/TensorCore/IEEE/Operations.lean": "52649c6d777a0702aa85f2e3fdeb796960091e198692d663b1e95da861ed6c7f",
     "tensor-core/TensorCore/IEEE/Precision.lean": "31d4288030ebd10acfe6c4830aa74c117c7971c15407f332167aacb42ec272a7",
     "tensor-core/TensorCore/IEEE/Regression.lean": "7288be9dd786050a857332817602e2ea9ecdbba36bd56c354b9dd3e95b7063c8",
@@ -3277,6 +3486,7 @@
     "tensor-core/TensorCore/Programs/Loops.lean": "8ffcc7442e5bc3873b745de9c5cf9a28f95c478017d9c88be1c6c141106b8e41",
     "tensor-core/TensorCore/Programs/MatrixConversion.lean": "c89691e146f7ff4968500bf1e0ea8c98b54447fd8297dccb957d49dd8fe6c805",
     "tensor-core/TensorCore/Programs/NativeConvertedAnalysis.lean": "5da19dc57d32b467e6dca4d6ec30e792e5ff19c9534ee237e993db703257c4fa",
+    "tensor-core/TensorCore/Programs/NativeEFT.lean": "ef4e136e8472699c890fe538023667350db9b82f3c2d6dc77ad95e4f15641e52",
     "tensor-core/TensorCore/Programs/NativeGemm.lean": "eafe2c03fb8462346c61a359c03775cd5a337b80d864790bbd594db510f57dc2",
     "tensor-core/TensorCore/Programs/NativeScaledGemm.lean": "ac271ccdb8fe0ec298541c034337004eac6e69170c671600bd8c3345091f3a2b",
     "tensor-core/TensorCore/Programs/Partition.lean": "46dbc79062a55a105cdf20b88f6e7d2b3c4a43490c8dc340b650ddd23b22f53c",
@@ -3316,6 +3526,7 @@
     "tensor-core/TensorCore/Regression/HalfOutput.lean": "45962d110f485a2524ae87680fe2ae64857bd8cb815bf0c87451ee526aea8b34",
     "tensor-core/TensorCore/Regression/Instruction.lean": "212d797751fc9f6abe2959a4f2a746fde7d56b426e9e76e2093fc0ed53297b20",
     "tensor-core/TensorCore/Regression/Monotonicity.lean": "8a56c1fdcab2d010ab41c472cf98da12e60714d58e36b7620e7fdeccd8050596",
+    "tensor-core/TensorCore/Regression/NativeEFT.lean": "ab4bd9cb9568a4183c572cfbffc63f3cd14798c4fc1ce13fc0b788e6b97ec81c",
     "tensor-core/TensorCore/Regression/NativeScaledGemm.lean": "1ed43247770d08c315bd5766772ec6766c4bfd79dc7d157feee614a8f9edd37a",
     "tensor-core/TensorCore/Regression/PipelineAnalysis.lean": "b6773ed79e7dc1eb224ff7f656432def427688e1f0dbb820b2424b9c411c3484",
     "tensor-core/TensorCore/Regression/Programs.lean": "e414497fb849a0f00f9170371259e248e7dbc85cf7d7fe921932baeabe1157cf",
@@ -3389,7 +3600,7 @@
     "tensor-core/TensorCore/Theory/ScalarSum.lean": "c522e990242ef70168d45b7d85bc42fa13664a510c6011d91117da469cc441dc",
     "tensor-core/TensorCore/Theory/StageResiduals.lean": "77555637e237771e874d1bbd278aa28b749d153ebf1baf95d609db1396223fb7",
     "tensor-core/TensorCore/Theory/StaticBudget.lean": "442b0981461f5c9b846308dd6d1b380ca60959d9e7371d59224dd11721c52bd3",
-    "tensor-core/TensorCore.lean": "cf2400c4a24eb77a908b55f519b6dfb67b71bb7db8277cf16f263d2a20478ac2",
+    "tensor-core/TensorCore.lean": "bb0e1f63386518ed37d486442dbf39305cda29cdb4f570d4f59929e5281b33f0",
     "tensor-core/data/examples/eft.txt": "4104fdbd5ab534f7dd69698cf0bd9353306fb29aa658d0530694de75fdc2935a",
     "tensor-core/data/examples/gemm.analysis.jsonl": "b876f147d4fc9b41bab47d17e4aa15ff5e2e3265093131b1de5b9d734e116158",
     "tensor-core/data/examples/gemm.cost-selection.jsonl": "8bbef24a7a932ddb9df35f35cae8c4521462669f45c80c4bcdcf7398809c3f54",
@@ -3406,6 +3617,7 @@
     "tensor-core/data/schemas/gemm.schema.json": "456e89fbc681c034867eb6424d0513b4ece69b21808a6434208593d0a64394ff",
     "tensor-core/data/schemas/ieee.schema.json": "3d19a8199fdd31da63d71afaee42d683ec525cfa173a300f4d1084424dc2e5fd",
     "tensor-core/data/schemas/selection.schema.json": "4bf3f254462c977fa21412ca093f334da25f7c554c23784011b4f438eb0353ca",
+    "tensor-core/docs/lean-ieee-compatibility.md": "ddc09ee37eb1e66cea069794b11a5f016db219508814b46a83a7a0b0eddef026",
     "tensor-core/examples/BinaryFoundation.lean": "38fb227083af6354f99f0002ba156936cbf5e49b725c72c8bbf9eeb31d8c595a",
     "tensor-core/examples/BoundedDot.lean": "0d3c272411e129872339f9d9244c689b1fe54906df5c5e8252b0c1bde8681228",
     "tensor-core/examples/BoundedEFT.lean": "de8c3d8a8608f72ee48fd3c84b1d22d1e4fd59ca301dd80456ff5825d382fbc4",
@@ -3455,7 +3667,7 @@
     "tensor-core/kernels/cutlass/upstream/include/cutlass/transform/threadblock/predicated_tile_iterator.h": "5a8d8628489c90d553ffb4673d3fbd5476a82b8c767bc2e01773ea04865941b9",
     "tensor-core/kernels/cutlass/wmma_sm70.cu": "c4e3e82e275468cda10ea79057c1e21917c6552433dd9b9e846ac7bfe31a3173",
     "tensor-core/lake-manifest.json": "21b8947c41a7619fa20876b690f660faa351dfa816b995ba898acde20cef9d60",
-    "tensor-core/lakefile.toml": "a65e78573e301b25db59bb2a3ae886e2ad2a79dc6c7d976e248181a997499fec",
+    "tensor-core/lakefile.toml": "afa7b76a381b85e4837bd8cac197f64f6f73b10a542be9e1e86789323161470d",
     "tensor-core/lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
     "tensor-core/scripts/analysis_certificate.py": "910d5b9e20ddb46dce508e07c0cca096c318b9ed225193c7e3e9f142dc61b715",
     "tensor-core/scripts/analyze.py": "11b161f2d2019e29057aa6c151860ffad52be1c6afe99815e887689f3789a9e7",
@@ -3464,9 +3676,9 @@
     "tensor-core/scripts/check_application.py": "59b87f1cdfb35b366660a529a54a352bd99b1aff3bbeda08046495ef060313a1",
     "tensor-core/scripts/check_axioms.py": "8a90032d1920c9a73de2a4d5ed39acaf36a2673c51048c408cdf9d821fe83cda",
     "tensor-core/scripts/check_axioms_regression.py": "4319985a4fca4ab0dbe20206db372dd324697b7056e3a6c8f5fe53474be75349",
-    "tensor-core/scripts/check_bounded_eft.py": "89017c0fe4c564745fb3dfa04960ab004a0f7b7d70e74f423820b156b89b632e",
+    "tensor-core/scripts/check_bounded_eft.py": "17f2051ead4926d6de53537c4d9b74490b922b741aa8b204c4451186841cf6d0",
     "tensor-core/scripts/check_certificates.py": "f651f3565d4fe92d0bf0c10eae5e26add859f3530cca02d5676d2f9ebf325c33",
-    "tensor-core/scripts/check_clean_build.py": "c2f595956822ba09f1da16e5af6ebbf500314195c24ecc343aa400085153ad29",
+    "tensor-core/scripts/check_clean_build.py": "864992f3a8af655c6cdaecb416f23c62201fb10afdd7f404d5c53add86fa0ebe",
     "tensor-core/scripts/check_cutlass.py": "4933ec6d1b4dd783081ef87bd611cdbc6a2e69a778d1150bcf722091fb329e25",
     "tensor-core/scripts/check_decision_extensions.py": "efdc8c7e83018a47c37478390efa2d5ab38a71bd47de905cdae39f25a21e556d",
     "tensor-core/scripts/check_device.py": "4dacd6bca0e4a01f54e129a5d92f2b61742dd334d42346a21adfb4b2739f9a6e",
@@ -3481,6 +3693,8 @@
     "tensor-core/scripts/check_gemm_extensions.py": "60561b7a17c79f43fcee518251bf07c39ffedd9764a5f20eb6064042fa23a7f7",
     "tensor-core/scripts/check_ieee.py": "ca9b2fa1a367e54da1a996a7fa7e2bebdd51d40a236d20d64873519b4e4547e7",
     "tensor-core/scripts/check_ieee_softfloat.py": "549d5b6fa95f3220b519cb035f8fe28f76e9f5128956d77e35c42bceab0986b9",
+    "tensor-core/scripts/check_lean_eft.py": "03c24bfce861baa431dc59f53a4aa1db5eec270dda4f421d650954778d93db06",
+    "tensor-core/scripts/check_lean_ieee.py": "85f26fc95950a42f7e4ed39fdcd6800d808dcd68d9a6a0652377f4b5d9b6767b",
     "tensor-core/scripts/check_native_scaled.py": "cc8855cc3321cfbf5e36369e7febf8ba01272e29b66f4d5cb4bc289e97493f96",
     "tensor-core/scripts/check_paper_eft.py": "4a3dbd483ea5300b83b424f88878e9ebf585506e14f83b9f2f356621f3954e0a",
     "tensor-core/scripts/check_paper_spec.py": "38b3093a4ea45b4f3d7b6e134127f96082300d9056e5e4431538cb8fa949040e",
@@ -3550,7 +3764,7 @@
     "tensor-core/vendor/tc-eft-validation/check_second_pass.py": "687b9b329c3bb9b7c2528daa05a373a40c6d0d58d9fc2a314c551f832dc3b03d",
     "tensor-core/vendor/tc-eft-validation/exact_model.py": "51d757e65b22614e74cc617595c4d98a42a5df6938ac3cbe261794981234c8f0",
     "tc": "fc8e0d42e836f150d5a6051e6f880d8f5947d4cd75e86fe00131decd1bd360c6",
-    "README.md": "56a6bc73aa80a0c32e5ac74ec043136376f739e9f3f0aafaf93fa745422a9938",
+    "README.md": "ed98f8fee9cb639a8e5f5bd6047a8adf0a2bb2d57e5a1f3e450e79e906abc552",
     ".gitignore": "01336a4787a8835196eb9311beb448b543f0914c1d69fdd6003cfccfe4a1354c"
   },
   "snapshot_stable": true,

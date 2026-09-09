@@ -1,4 +1,4 @@
-import TensorCore.Programs.BoundedEFT
+import TensorCore.Programs.NativeEFT
 import Lean
 
 /-! Batch adapter for the bounded EFT. Parsing checks widths before constructing
@@ -36,7 +36,7 @@ private def command (args : List String) : Option Json := do
         let ps ← pairs path (ns.take (path.profile.products * 2))
         let x : BlockInput path.profile := ⟨ps, BitVec.ofNat _ c⟩
         let d : F32 := BitVec.ofNat _ D
-        let result := EFMachine.algorithm1 path x d
+        let result := EFMachine.algorithm1WithLean path x d
         let components := (EFMachine.prepare path x d).toOption.bind EFMachine.extract
         return match result with
         | .error e => Json.mkObj [("error", toJson (reprStr e))]
@@ -73,7 +73,7 @@ private def benchBlock (args : List String) : Option BenchBlock := do
 
 -- Keep the same call boundary in baseline and optimized native measurements.
 @[noinline] private def benchRun (x : BenchBlock) : UInt64 :=
-  match EFMachine.algorithm1 x.1 x.2.1 x.2.2 with
+  match EFMachine.algorithm1WithLean x.1 x.2.1 x.2.2 with
   | .error _ => 0xffffffffffffffff
   | .ok .allZero => 0
   | .ok (.scalar b) => b.toNat.toUInt64 + 0x100000000
