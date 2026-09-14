@@ -383,12 +383,13 @@
     "numerical_semantics_changed": false
   },
   "checked_source_sha256": {
-    "TensorCore/TC/FP8Defs.lean": "56285b321cda4719fd237116839c22c75c074cad1d9ed64985b441d1890b3608",
-    "TensorCore/TC/FP8Program.lean": "ab7445bf9784ae65eb57abf573dcfb876e5a3b7ac1d4c8ecdc7525351b2657eb",
-    "TensorCore/TC/FP8.lean": "b46d0cbc6373f983240919e32968f79d19055bc52401b0f4b08d06f4720ed94a",
-    "TensorCore/TC/Regression/FP8.lean": "024354637c637e0a7285168bdc8aeec69e201137c1f59df7de0ce8a8b984b0fa",
-    "Main/Features.lean": "176ab34640f23bd045e4d0cca11a717815c84d212b71844ba2de40f592733351",
-    "scripts/check_device_fp8.py": "c300914e1e618092da4cbcef18be1a1b23a13c2f49b15dc41758ded45ca56fd6"
+    "wip/TensorCoreWip/Formats.lean": "da2461c5a56edd0e5c66f2e525c3a073c3b8d518884651692773230e437de59d",
+    "wip/TensorCoreWip/TC/FP8Defs.lean": "7ad0e22219ea494132fe7c9d83e49a0806cfb09f6a6c57ffc7cc41bdd2a5ce8f",
+    "wip/TensorCoreWip/TC/FP8Program.lean": "af72489941728c111bb108fee75c685b2cb9455989a4145898d7bc8f1eab3874",
+    "wip/TensorCoreWip/TC/FP8.lean": "ed101f3678bcf258cedc7ab50909cee030c1be0a9723ba8d3aa83cd8c836c04f",
+    "wip/TensorCoreWip/TC/Regression/FP8.lean": "cc12e2bed09fd0ec27ba2a22fc916663a82060ac47e7d9b7af244938cb5a898c",
+    "wip/WipMain/Features.lean": "3dcdecf963474c3933e02e30bd3ed5e493583ecd7aee3d3de33fe97e01162db1",
+    "wip/scripts/check_device_fp8.py": "8c1f0fefa159794857f3bbb62b12a9a11c8bfe4bb15b1058101639c1f3480570"
   },
   "precision_controls": [
     {

@@ -176,7 +176,7 @@ theorem evalInvocation_spec {p : InvocationSpec} {x : InvocationInput p} {t : In
 <details>
 <summary>Used by</summary>
 
-[TensorCore.binary64Fma_exact_input](Conversion.md#decl-e9ea2eb0949990ef), [TensorCore.evalInvocation_output](InvocationProperties.md#decl-c5356d6db12f1b4d), [TensorCore.evalInvocation_output_nearestEven](Conversion.md#decl-ba61a0c4e133bd9a), [TensorCore.evalInvocation_output_towardNegative](Conversion.md#decl-e2792a3384716247), [TensorCore.evalInvocation_output_towardPositive](Conversion.md#decl-4ddbb479bc9e21d6), [TensorCore.evalInvocation_output_towardZero](Conversion.md#decl-91e16db9cb9f47c2), [TensorCore.evalInvocation_recovery](InvocationProperties.md#decl-137c91f57a77bdc9), [TensorCore.l40sFP8_paper_towardZero_accumulation](FP8.md#decl-b1b414c8fa00ce08), [TensorCore.l40sFP8_source13_boundary](FP8.md#decl-7b2640435fca348a), [TensorCore.l40sFP8_source13_towardZero](FP8.md#decl-289dcc55b6b1f28b), [TensorCore.runL40SFP8_recovery](FP8.md#decl-dde9ab033428f350)
+[TensorCore.binary64Fma_exact_input](Conversion.md#decl-e9ea2eb0949990ef), [TensorCore.evalInvocation_output](InvocationProperties.md#decl-c5356d6db12f1b4d), [TensorCore.evalInvocation_output_nearestEven](Conversion.md#decl-ba61a0c4e133bd9a), [TensorCore.evalInvocation_output_towardNegative](Conversion.md#decl-e2792a3384716247), [TensorCore.evalInvocation_output_towardPositive](Conversion.md#decl-4ddbb479bc9e21d6), [TensorCore.evalInvocation_output_towardZero](Conversion.md#decl-91e16db9cb9f47c2), [TensorCore.evalInvocation_recovery](InvocationProperties.md#decl-137c91f57a77bdc9)
 
 </details>
 
@@ -212,7 +212,7 @@ theorem evalInvocation_recovery {p : InvocationSpec} {x : InvocationInput p} {t 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.runL40SFP8_recovery](FP8.md#decl-dde9ab033428f350)
+No other source declaration in this graph.
 
 </details>
 

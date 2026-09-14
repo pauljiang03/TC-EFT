@@ -223,47 +223,12 @@ No other source declaration in this graph.
 
 </details>
 
-<a id="decl-24384b5d55cf129e"></a>
-
-<details>
-<summary><code>TensorCore.Regression.e4m3_outside_generic_rounding</code></summary>
-
-[Lean source](../../../../TensorCore/TC/Regression/BinaryRounding.lean#L67)
-
-```lean
-/-- E4M3 is not an IEEE-style `Format`: its decoder accepts `448` (word `7e`) and `256`
-(`78`), while the IEEE-style layout `⟨3, 4, 7⟩` has maximum `240` and `roundBinary` on it
-rejects `448`. The generic rounding theorems do not cover E4M3. -/
-theorem e4m3_outside_generic_rounding :
-    (packedE4M3.decode 0x7e).map Decoded.value = some 448 ∧
-    (packedE4M3.decode 0x78).map Decoded.value = some 256 ∧
-    e4m3.layout.maxFinite = 240 ∧
-    roundBinary e4m3.layout .nearestEven 448 = none ∧
-    (roundBinary e4m3.layout .nearestEven 240).map BitVec.toNat = some 0x77 := by
-  decide +kernel
-```
-
-**Supporting proofs:** None in this repository.
-
-**Definitions and types:** [TensorCore.BinaryRoundingMode](../../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Decoded](../../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](../../Core/Defs.md#decl-c988858af545448a), [TensorCore.Format.maxFinite](../../Core/Defs.md#decl-6cac0e89f6135a61), [TensorCore.Format.width](../../Core/Defs.md#decl-950f9d663ce32954), [TensorCore.OperandEncoding.Word](../../Core/Format.md#decl-3024ce1c6868fc17), [TensorCore.OperandEncoding.decode](../../Core/Format.md#decl-54e57bd4e5755510), [TensorCore.OperandEncoding.width](../../Core/Format.md#decl-0e24771a882ef6eb), [TensorCore.ValueFormat](../../Core/Format.md#decl-5fda6482ff1a70d2), [TensorCore.e4m3](../../Core/Format.md#decl-d51ff46ab3f27e52), [TensorCore.packedE4M3](../../Core/Format.md#decl-d71b628934693ce8), [TensorCore.roundBinary](../../Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed)
-
-**Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
-
-<details>
-<summary>Used by</summary>
-
-No other source declaration in this graph.
-
-</details>
-
-</details>
-
 <a id="decl-a1a7d122c1f74869"></a>
 
 <details>
 <summary><code>TensorCore.Regression.fp32_generic_agrees</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/BinaryRounding.lean#L76)
+[Lean source](../../../../TensorCore/TC/Regression/BinaryRounding.lean#L65)
 
 ```lean
 /-- The FP32 instance of the generic theorem is the original FP32 theorem's statement. -/

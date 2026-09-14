@@ -22,7 +22,7 @@
     "mixed_inconclusive_export_refused",
     "invalid_family_ranges_rejected"
   ],
-  "elapsed_seconds": 17.285,
+  "elapsed_seconds": 12.627,
   "source_sha256": {
     "TensorCore/Gemm/ScalarAnalysis.lean": "6d8851df84ed8c07342a48e34f4ee4a568640eb4f3e5656a8b6929c6c882f4d6",
     "TensorCore/Gemm/ExactScalarAnalysis.lean": "e599619fb7bec6e91ca2247ff77dfd77857996ad7167af8deab215a63e7c05d0",

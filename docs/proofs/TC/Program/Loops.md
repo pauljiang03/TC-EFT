@@ -199,7 +199,7 @@ theorem sumQ_append (xs ys : List ℚ) : sumQ (xs ++ ys) = sumQ xs + sumQ ys := 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.fp8Products_append](../FP8.md#decl-b8243d18187847d4), [TensorCore.idealProducts_append](DotProduct.md#decl-623f08595b227aca), [TensorCore.sumQ_repeatList_zero](Loops.md#decl-1a78835f34f88e04)
+[TensorCore.idealProducts_append](DotProduct.md#decl-623f08595b227aca), [TensorCore.sumQ_repeatList_zero](Loops.md#decl-1a78835f34f88e04)
 
 </details>
 

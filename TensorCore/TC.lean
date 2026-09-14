@@ -17,9 +17,6 @@ import TensorCore.TC.EncodedMonotonicity
 import TensorCore.TC.ErrorBounds
 import TensorCore.TC.ExactAlignment
 import TensorCore.TC.Examples.BoundedDot
-import TensorCore.TC.FP8
-import TensorCore.TC.FP8Defs
-import TensorCore.TC.FP8Program
 import TensorCore.TC.Flowback
 import TensorCore.TC.FusedRounding
 import TensorCore.TC.Instruction

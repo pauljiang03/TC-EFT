@@ -29,7 +29,7 @@
     "Main/LeanEFTCheck.lean": "b52df659d2762ae1c0401983bf632405a89c83effd29a3fbb5ace69e74ea6390",
     "Main/BoundedEFT.lean": "ada4aabe4793ab2b1bc224cfa643e8fbaac6cb93a8fb46429ac0d01946332838",
     "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
-    "lakefile.toml": "cd70fd58f3b6b479fc891ad66368ed1c84d7be47b98304aa9ae3ddba75477559",
+    "lakefile.toml": "b6cef668b8c186d0616bf3af084140ccedba1a0fefd489f073140bd6335894c6",
     "TensorCore/EFT/Native.lean": "f2ea9cc64e2dee83df7172d2f790c578f11721e0d1b0932e0cc13837ad80ffa6",
     "TensorCore/EFT/Bounded.lean": "18ab02e8edd9d0bb8fea26d2150ac21308584ec14eb9ab6fef64849d375b5f8a",
     "TensorCore/EFT/Regression/NativeEFT.lean": "6318e244c030ac9bc288864577457535d34d4e25ab531d3f393d1d1a3b3346dc",
@@ -64,5 +64,5 @@
     "TensorCore/EFT/Machine/Word.lean": "b95cbd942740963f0c7136d21033b109d5bb6d9663e1b542d4f1533cfbb54637",
     "TensorCore/EFT/Machine/WordDefs.lean": "3f3c72e1e50b858c7e6c247425633181fa0c3dc3d71c80b163d63c1d3511de3f"
   },
-  "elapsed_seconds": 3.831
+  "elapsed_seconds": 3.687
 }

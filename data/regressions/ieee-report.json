@@ -42,5 +42,5 @@
     "scripts/check_ieee.py": "1177aabeff9b1de0bd5a5afaa71a990e262824fd70a10fe61e41b11db932f828",
     "tests/ieee/softfloat_oracle.c": "9255fdb61c41ab2e59f3e9ac24a1b0fc08b04458e1a4de45c5ee5df7c1f09a85"
   },
-  "elapsed_seconds": 33.491
+  "elapsed_seconds": 30.289
 }

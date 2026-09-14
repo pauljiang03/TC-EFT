@@ -30,7 +30,7 @@
     "Main/LeanIEEECheck.lean": "7538528c409cdc1cb9cb7beb00884bf41306157924fe1e097f5f3ccd5fd425c2",
     "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
     "TensorCore/Cli/IEEE.lean": "02f26393e23a729b693ae9d68d7f029c7ab19ee8fe3795d412e7133ce84a7016",
-    "lakefile.toml": "cd70fd58f3b6b479fc891ad66368ed1c84d7be47b98304aa9ae3ddba75477559",
+    "lakefile.toml": "b6cef668b8c186d0616bf3af084140ccedba1a0fefd489f073140bd6335894c6",
     "TensorCore/IEEE/Basic.lean": "d37552974f408c710f3443534c52a9586cc6d55bbb5a7e57ae10ea3311ead89d",
     "TensorCore/IEEE/Compatibility.lean": "3874d16c30d0b8eee109eb83d5559cd72bd65b1a87b4437f19e6c4fa86359776",
     "TensorCore/IEEE/LeanBridge.lean": "f5a0c26f48f29103d907383f57ab53eec98c0c45d86e4b7a1426283c5e0fd3d5",
@@ -44,5 +44,5 @@
     "TensorCore/IEEE/Rounding.lean": "7c90162a6697874d41b13cf5e808540b8b1fc635689d029572555fc39f5977fb",
     "TensorCore/IEEE/Specification.lean": "24aa3bdd79e6cdf3fd0edc1c7901ab556178b729639a5fdd4edbca581b30fb84"
   },
-  "elapsed_seconds": 8.445
+  "elapsed_seconds": 7.845
 }

@@ -48,10 +48,8 @@ commands += [['python3', 'scripts/check_certificates.py'],
              ['python3', 'scripts/check_application.py'],
              ['python3', 'scripts/validate.py'],
              ['python3', 'scripts/check_device.py'],
-             ['python3', 'scripts/check_eft.py'],
-             ['python3', 'scripts/check_device_half.py']]
+             ['python3', 'scripts/check_eft.py']]
 commands += [['python3', 'scripts/check_paper_spec.py']]
-commands += [['python3', 'scripts/check_device_fp8.py']]
 commands += [['python3', 'scripts/check_gemm.py']]
 commands += [['python3', 'scripts/check_gemm_extensions.py']]
 commands += [['python3', 'scripts/check_axioms_regression.py']]
@@ -89,7 +87,8 @@ report.update(certificate_checks=json.loads(logs[8]), application_checks=json.lo
               eft_paper_checks=json.loads((target / 'data/regressions/eft-paper-report.json').read_text()),
               bounded_eft_checks=json.loads((target / 'data/regressions/bounded-eft-report.json').read_text()),
               paper_spec_checks=json.loads((target / 'data/regressions/paper-spec-report.json').read_text()),
-              fp8_evidence=json.loads((target / 'data/regressions/device-fp8-report.json').read_text()),
+              archived_candidate_checks_excluded=True,
+              archived_candidate_checks='python3 wip/scripts/check.py',
               gemm_checks=json.loads((target / 'data/regressions/gemm-report.json').read_text()),
               gemm_extension_checks=json.loads((target / 'data/regressions/gemm-extensions-report.json').read_text()),
               reviewer_checks=json.loads((target / 'data/regressions/reviewer-report.json').read_text()),
@@ -126,10 +125,10 @@ generated = ['docs/axioms.txt', 'data/hardware/inputs.json', 'data/hardware/expe
 generated += ['data/regressions/' + name for name in [
     'program-report.json', 'feature-report.json', 'dot-product-report.json',
     'device-formats-report.json', 'device-report.json', 'validation-report.json',
-    'certificate-report.json', 'application-report.json', 'device-half-report.json', 'eft-checks.json',
+    'certificate-report.json', 'application-report.json', 'eft-checks.json',
     'eft-coverage.json', 'eft-coverage-cases.json', 'eft-paper-report.json',
     'eft-paper-cases.json', 'eft-paper-original.json', 'eft-paper-second-pass.json', 'paper-spec-report.json',
-    'device-fp8-report.json', 'gemm-report.json', 'gemm-extensions-report.json', 'bounded-eft-report.json',
+    'gemm-report.json', 'gemm-extensions-report.json', 'bounded-eft-report.json',
     'reviewer-report.json', 'cutlass-report.json', 'tool-report.json', 'analysis-report.json', 'pipeline-analysis-report.json',
     'selection-report.json', 'decision-extensions-report.json', 'review-claims-report.json', 'native-scaled-report.json', 'ieee-report.json', 'lean-ieee-report.json', 'lean-eft-report.json']]
 for name in generated:

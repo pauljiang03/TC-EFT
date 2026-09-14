@@ -199,63 +199,12 @@ def hopperTF32WmmaInvocation : InvocationSpec := alignedInvocation tf32Register 
 
 </details>
 
-<a id="decl-5079e6cca6513c89"></a>
-
-<details>
-<summary><code>TensorCore.v100HalfDirectCandidate</code></summary>
-
-[Lean source](../../../TensorCore/TC/Profiles.lean#L21)
-
-```lean
-/-- Competing interpretations retained for reconciliation; these are not yet device profiles. -/
-def v100HalfDirectCandidate : InvocationSpec :=
-  { v100Invocation with cFormat := fp16, output := ⟨fp16, .nearestEven⟩ }
-```
-
-**Supporting proofs:** None in this repository.
-
-**Definitions and types:** [TensorCore.BinaryRoundingMode](../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](../Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.fp16](../Core/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.v100Invocation](Invocation.md#decl-7a65a9f94124dc03)
-
-<details>
-<summary>Used by</summary>
-
-[TensorCore.Regression.half_output_stage_order](Regression/HalfOutput.md#decl-f5190132a2f03d58), [TensorCore.Regression.half_published_row](Regression/HalfOutput.md#decl-147fa80584a17d2c), [TensorCore.halfDirect_output_nearestEven](Conversion.md#decl-6700d9bdc64b16bf), [TensorCore.v100HalfStagedCandidate](Profiles.md#decl-acd1dc2d20623ae7)
-
-</details>
-
-</details>
-
-<a id="decl-acd1dc2d20623ae7"></a>
-
-<details>
-<summary><code>TensorCore.v100HalfStagedCandidate</code></summary>
-
-[Lean source](../../../TensorCore/TC/Profiles.lean#L23)
-
-```lean
-def v100HalfStagedCandidate : InvocationSpec :=
-  { v100HalfDirectCandidate with intermediate := [⟨fp32, .towardZero⟩] }
-```
-
-**Supporting proofs:** None in this repository.
-
-**Definitions and types:** [TensorCore.BinaryRoundingMode](../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](../Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.fp32](../Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.v100HalfDirectCandidate](Profiles.md#decl-5079e6cca6513c89)
-
-<details>
-<summary>Used by</summary>
-
-[TensorCore.Regression.half_output_stage_order](Regression/HalfOutput.md#decl-f5190132a2f03d58), [TensorCore.Regression.half_published_row](Regression/HalfOutput.md#decl-147fa80584a17d2c), [TensorCore.halfStaged_output_nearestEven](Conversion.md#decl-9493c87a2b6026cd)
-
-</details>
-
-</details>
-
 <a id="decl-8bfe46830da92086"></a>
 
 <details>
 <summary><code>TensorCore.binary64Fma</code></summary>
 
-[Lean source](../../../TensorCore/TC/Profiles.lean#L27)
+[Lean source](../../../TensorCore/TC/Profiles.lean#L21)
 
 ```lean
 /-- Finite-domain binary64 fused arithmetic, with an explicit rounding direction. -/

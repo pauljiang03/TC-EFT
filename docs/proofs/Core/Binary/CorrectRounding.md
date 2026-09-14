@@ -9,7 +9,7 @@ Expand a declaration to read its Lean code, then follow the links to its depende
 <details>
 <summary><code>TensorCore.binaryMagnitudeRounded</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L16)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L15)
 
 ```lean
 def binaryMagnitudeRounded (f : Format) (mode : BinaryRoundingMode) (negative : Bool)
@@ -36,7 +36,7 @@ def binaryMagnitudeRounded (f : Format) (mode : BinaryRoundingMode) (negative : 
 <details>
 <summary><code>TensorCore.binarySignedRounded</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L21)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L20)
 
 ```lean
 def binarySignedRounded (f : Format) (mode : BinaryRoundingMode) (x : ℚ) : ℚ :=
@@ -62,7 +62,7 @@ def binarySignedRounded (f : Format) (mode : BinaryRoundingMode) (x : ℚ) : ℚ
 <details>
 <summary><code>TensorCore.rne_grid_nearest_q</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L27)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L26)
 
 ```lean
 theorem rne_grid_nearest_q (m q : ℚ) (hq : 0 < q) (j : ℤ) :
@@ -91,7 +91,7 @@ theorem rne_grid_nearest_q (m q : ℚ) (hq : 0 < q) (j : ℤ) :
 <details>
 <summary><code>TensorCore.Format.finite_on_grid</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L32)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L31)
 
 ```lean
 theorem Format.finite_on_grid (f : Format) (k e2 e : ℤ) (h : e ≤ e2) :
@@ -124,7 +124,7 @@ theorem Format.finite_on_grid (f : Format) (k e2 e : ℤ) (h : e ≤ e2) :
 <details>
 <summary><code>TensorCore.Format.finite_below_binade</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L42)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L41)
 
 ```lean
 /-- A finite value with exponent below `e` is at most `2^e − 2^(e−p−1)` in magnitude. -/
@@ -181,7 +181,7 @@ theorem Format.finite_below_binade (f : Format) (k e2 e : ℤ)
 <details>
 <summary><code>TensorCore.binaryCoefficient_nearestEven</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L75)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L74)
 
 ```lean
 /-- The nearest-even coefficient ignores the sign flag. -/
@@ -209,7 +209,7 @@ theorem binaryCoefficient_nearestEven (negative : Bool) (t : ℚ) :
 <details>
 <summary><code>TensorCore.binaryMagnitudeRounded_lower</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L78)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L77)
 
 ```lean
 theorem binaryMagnitudeRounded_lower (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
@@ -264,7 +264,7 @@ theorem binaryMagnitudeRounded_lower (f : Format) (hf : f.WellFormed) (mode : Bi
 <details>
 <summary><code>TensorCore.binary_rne_lower_binade_strict</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L110)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L109)
 
 ```lean
 /-- A finer grid below the input's binade cannot supply an equally near competitor. -/
@@ -313,7 +313,7 @@ theorem binary_rne_lower_binade_strict (f : Format) (hf : f.WellFormed) (negativ
 <details>
 <summary><code>TensorCore.binary_rne_magnitude_nearest</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L134)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L133)
 
 ```lean
 theorem binary_rne_magnitude_nearest (f : Format) (hf : f.WellFormed) (negative : Bool) (m y : ℚ)
@@ -347,7 +347,7 @@ theorem binary_rne_magnitude_nearest (f : Format) (hf : f.WellFormed) (negative 
 <details>
 <summary><code>TensorCore.binary_rne_magnitude_tie_even</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L144)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L143)
 
 ```lean
 theorem binary_rne_magnitude_tie_even (f : Format) (hf : f.WellFormed) (negative : Bool) (m y : ℚ)
@@ -394,7 +394,7 @@ theorem binary_rne_magnitude_tie_even (f : Format) (hf : f.WellFormed) (negative
 <details>
 <summary><code>TensorCore.Format.finiteValue_neg</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L167)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L166)
 
 ```lean
 theorem Format.finiteValue_neg (f : Format) {y : ℚ} (h : f.FiniteValue y) :
@@ -425,7 +425,7 @@ theorem Format.finiteValue_neg (f : Format) {y : ℚ} (h : f.FiniteValue y) :
 <details>
 <summary><code>TensorCore.binarySignedRounded_nearest</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L174)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L173)
 
 ```lean
 theorem binarySignedRounded_nearest (f : Format) (hf : f.WellFormed) (x y : ℚ) (hx : x ≠ 0)
@@ -467,7 +467,7 @@ theorem binarySignedRounded_nearest (f : Format) (hf : f.WellFormed) (x y : ℚ)
 <details>
 <summary><code>TensorCore.binarySignedRounded_tie_even</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L192)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L191)
 
 ```lean
 theorem binarySignedRounded_tie_even (f : Format) (hf : f.WellFormed) (x y : ℚ) (hx : x ≠ 0)
@@ -515,7 +515,7 @@ theorem binarySignedRounded_tie_even (f : Format) (hf : f.WellFormed) (x y : ℚ
 <details>
 <summary><code>TensorCore.roundBinary_nonzero_spec</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L218)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L217)
 
 ```lean
 /-- The converter returns the signed selected grid value, with the coefficient's parity in
@@ -579,7 +579,7 @@ theorem roundBinary_nonzero_spec (f : Format) (hf : f.WellFormed) (mode : Binary
 <details>
 <summary><code>TensorCore.binaryValue_zero</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L256)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L255)
 
 ```lean
 theorem binaryValue_zero (f : Format) (hf : f.WellFormed) : binaryValue f 0 = some 0 := by
@@ -615,7 +615,7 @@ theorem binaryValue_zero (f : Format) (hf : f.WellFormed) : binaryValue f 0 = so
 <details>
 <summary><code>TensorCore.NearestEven</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L269)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L268)
 
 ```lean
 /-- Nearest finite value of the format, ties to an even low bit. -/
@@ -632,7 +632,7 @@ def NearestEven (f : Format) (x : ℚ) (bits : BitVec f.width) : Prop :=
 <details>
 <summary>Used by</summary>
 
-[TensorCore.BinaryRoundSpec](RoundingContract.md#decl-88c3ff9da8e0df3a), [TensorCore.GemmRounded](../../Gemm/ScaledGemm.md#decl-601fdad850a94274), [TensorCore.Regression.bf16_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-a1e4399a2a4d855e), [TensorCore.Regression.fp16_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-00b226cd62b0c941), [TensorCore.Regression.fp32_generic_agrees](../../TC/Regression/BinaryRounding.md#decl-a1a7d122c1f74869), [TensorCore.Regression.fp64_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-e5bfd4e1909b6694), [TensorCore.Regression.tf19_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-612a1b643914598f), [TensorCore.binary64Fma_nearestEven](../../TC/Conversion.md#decl-d04a4eaaeb5ab283), [TensorCore.conversionStage_nearestEven_correct](../../TC/Conversion.md#decl-4ce2a113c3a79271), [TensorCore.conversion_exact_value](../../Gemm/ScalarAnalysis.md#decl-4af01d3e1e19ed79), [TensorCore.evalInvocation_output_nearestEven](../../TC/Conversion.md#decl-ba61a0c4e133bd9a), [TensorCore.fp32_nearestEven](CorrectRounding.md#decl-b9ecfe2e37db1cfd), [TensorCore.gemmConversion_correct](../../Gemm/ScaledGemm.md#decl-e58a1d25b374dba1), [TensorCore.halfDirect_output_nearestEven](../../TC/Conversion.md#decl-6700d9bdc64b16bf), [TensorCore.halfStaged_output_nearestEven](../../TC/Conversion.md#decl-9493c87a2b6026cd), [TensorCore.roundBinary_exact_of_finite](ScalarSum.md#decl-b12a2c49a9878d10), [TensorCore.roundBinary_nearestEven_correct](CorrectRounding.md#decl-56aa49cf9819c893)
+[TensorCore.BinaryRoundSpec](RoundingContract.md#decl-88c3ff9da8e0df3a), [TensorCore.GemmRounded](../../Gemm/ScaledGemm.md#decl-601fdad850a94274), [TensorCore.Regression.bf16_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-a1e4399a2a4d855e), [TensorCore.Regression.fp16_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-00b226cd62b0c941), [TensorCore.Regression.fp32_generic_agrees](../../TC/Regression/BinaryRounding.md#decl-a1a7d122c1f74869), [TensorCore.Regression.fp64_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-e5bfd4e1909b6694), [TensorCore.Regression.tf19_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-612a1b643914598f), [TensorCore.binary64Fma_nearestEven](../../TC/Conversion.md#decl-d04a4eaaeb5ab283), [TensorCore.conversionStage_nearestEven_correct](../../TC/Conversion.md#decl-4ce2a113c3a79271), [TensorCore.conversion_exact_value](../../Gemm/ScalarAnalysis.md#decl-4af01d3e1e19ed79), [TensorCore.evalInvocation_output_nearestEven](../../TC/Conversion.md#decl-ba61a0c4e133bd9a), [TensorCore.fp32_nearestEven](CorrectRounding.md#decl-b9ecfe2e37db1cfd), [TensorCore.gemmConversion_correct](../../Gemm/ScaledGemm.md#decl-e58a1d25b374dba1), [TensorCore.roundBinary_exact_of_finite](ScalarSum.md#decl-b12a2c49a9878d10), [TensorCore.roundBinary_nearestEven_correct](CorrectRounding.md#decl-56aa49cf9819c893)
 
 </details>
 
@@ -643,7 +643,7 @@ def NearestEven (f : Format) (x : ℚ) (bits : BitVec f.width) : Prop :=
 <details>
 <summary><code>TensorCore.fp32_nearestEven</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L274)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L273)
 
 ```lean
 theorem fp32_nearestEven (x : ℚ) (bits : F32) : NearestEven fp32 x bits ↔ NearestEven32 x bits :=
@@ -670,7 +670,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.roundBinary_nearestEven_correct</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L278)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L277)
 
 ```lean
 /-- Total correctness of nearest-even conversion on the finite range of any format. -/
@@ -716,7 +716,7 @@ theorem roundBinary_nearestEven_correct (f : Format) (hf : f.WellFormed) (x : �
 <details>
 <summary><code>TensorCore.Between0</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L302)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L301)
 
 ```lean
 /-- `y` lies between zero and `x`, inclusive. -/
@@ -741,7 +741,7 @@ def Between0 (x y : ℚ) : Prop := (0 ≤ x ∧ 0 ≤ y ∧ y ≤ x) ∨ (x ≤ 
 <details>
 <summary><code>TensorCore.binary_rtz_magnitude_spec</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L304)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L303)
 
 ```lean
 theorem binary_rtz_magnitude_spec (f : Format) (hf : f.WellFormed) (negative : Bool) (m : ℚ)
@@ -806,7 +806,7 @@ theorem binary_rtz_magnitude_spec (f : Format) (hf : f.WellFormed) (negative : B
 <details>
 <summary><code>TensorCore.TowardZero</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L347)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L346)
 
 ```lean
 /-- Toward-zero result: between zero and the input, of largest magnitude among the format's
@@ -823,7 +823,7 @@ def TowardZero (f : Format) (x : ℚ) (bits : BitVec f.width) : Prop :=
 <details>
 <summary>Used by</summary>
 
-[TensorCore.BinaryRoundSpec](RoundingContract.md#decl-88c3ff9da8e0df3a), [TensorCore.GemmRounded](../../Gemm/ScaledGemm.md#decl-601fdad850a94274), [TensorCore.PaperSpec.round32_rounds](../../TC/Specification/Rounding.md#decl-04c2440f27285826), [TensorCore.Regression.bf16_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-a1e4399a2a4d855e), [TensorCore.Regression.fp16_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-00b226cd62b0c941), [TensorCore.Regression.fp64_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-e5bfd4e1909b6694), [TensorCore.Regression.tf19_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-612a1b643914598f), [TensorCore.binary64Fma_towardZero](../../TC/Conversion.md#decl-73cb656a116a886e), [TensorCore.conversionStage_towardZero_correct](../../TC/Conversion.md#decl-21132c7fe11d05ea), [TensorCore.conversion_exact_value](../../Gemm/ScalarAnalysis.md#decl-4af01d3e1e19ed79), [TensorCore.evalInvocation_output_towardZero](../../TC/Conversion.md#decl-91e16db9cb9f47c2), [TensorCore.gemmConversion_correct](../../Gemm/ScaledGemm.md#decl-e58a1d25b374dba1), [TensorCore.l40sFP8_output_towardZero](../../TC/FP8.md#decl-0c85684a50a21181), [TensorCore.l40sFP8_paper_towardZero_accumulation](../../TC/FP8.md#decl-b1b414c8fa00ce08), [TensorCore.l40sFP8_source13_boundary](../../TC/FP8.md#decl-7b2640435fca348a), [TensorCore.l40sFP8_source13_towardZero](../../TC/FP8.md#decl-289dcc55b6b1f28b), [TensorCore.roundBinary_towardZero_correct](CorrectRounding.md#decl-7cd93a19048f4025)
+[TensorCore.BinaryRoundSpec](RoundingContract.md#decl-88c3ff9da8e0df3a), [TensorCore.GemmRounded](../../Gemm/ScaledGemm.md#decl-601fdad850a94274), [TensorCore.PaperSpec.round32_rounds](../../TC/Specification/Rounding.md#decl-04c2440f27285826), [TensorCore.Regression.bf16_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-a1e4399a2a4d855e), [TensorCore.Regression.fp16_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-00b226cd62b0c941), [TensorCore.Regression.fp64_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-e5bfd4e1909b6694), [TensorCore.Regression.tf19_rounding_correct](../../TC/Regression/BinaryRounding.md#decl-612a1b643914598f), [TensorCore.binary64Fma_towardZero](../../TC/Conversion.md#decl-73cb656a116a886e), [TensorCore.conversionStage_towardZero_correct](../../TC/Conversion.md#decl-21132c7fe11d05ea), [TensorCore.conversion_exact_value](../../Gemm/ScalarAnalysis.md#decl-4af01d3e1e19ed79), [TensorCore.evalInvocation_output_towardZero](../../TC/Conversion.md#decl-91e16db9cb9f47c2), [TensorCore.gemmConversion_correct](../../Gemm/ScaledGemm.md#decl-e58a1d25b374dba1), [TensorCore.roundBinary_towardZero_correct](CorrectRounding.md#decl-7cd93a19048f4025)
 
 </details>
 
@@ -834,7 +834,7 @@ def TowardZero (f : Format) (x : ℚ) (bits : BitVec f.width) : Prop :=
 <details>
 <summary><code>TensorCore.roundBinary_towardZero_correct</code></summary>
 
-[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L351)
+[Lean source](../../../../TensorCore/Core/Binary/CorrectRounding.lean#L350)
 
 ```lean
 theorem roundBinary_towardZero_correct (f : Format) (hf : f.WellFormed) (x : ℚ)

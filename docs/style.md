@@ -17,7 +17,9 @@ This project keeps its standard-library arithmetic and existing public declarati
 - Use two-space indentation and descriptive theorem names. Preserve public namespaces during file moves.
   Import the module that owns a result, without obtaining basic lemmas through unrelated applications.
 - Keep regression witnesses out of subject aggregate imports. `TensorCore.All` and the default Lake build
-  include all modules; `scripts/check_layout.py` enforces their boundaries and audit coverage.
+  include all active modules; `scripts/check_layout.py` enforces their boundaries and audit coverage.
+- Keep archived FP8 and FP16-output tensor-core candidates in `wip/`. Active library modules,
+  executables, and examples must not import `TensorCoreWip` or `WipMain`.
 
 ## Trusted foundation
 

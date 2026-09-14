@@ -5,7 +5,6 @@ import TensorCore.TC.CanonicalDefs
 import TensorCore.TC.Program.Partition
 import TensorCore.TC.Examples.BoundedDot
 import TensorCore.TC.CanonicalFormatDefs
-import TensorCore.TC.FP8Program
 import Lean
 
 open TensorCore Lean
@@ -18,7 +17,6 @@ private def getFormat : String → Option TensorCore.Format
   | "tf19" => some tf19
   | "fp32" => some fp32
   | "fp64" => some fp64
-  | "e5m2" => some e5m2
   | _ => none
 
 private def getProfile : String → Option InvocationSpec
@@ -30,12 +28,6 @@ private def getProfile : String → Option InvocationSpec
   | "hopper-bf16" => some hopperBF16Invocation
   | "hopper-tf32-mma" => some hopperTF32MmaInvocation
   | "hopper-tf32-wmma" => some hopperTF32WmmaInvocation
-  | "l40s-e4m3-paper" => some (l40sFP8Invocation .e4m3 .paper)
-  | "l40s-e5m2-paper" => some (l40sFP8Invocation .e5m2 .paper)
-  | "l40s-e4m3-source13" => some (l40sFP8Invocation .e4m3 .source13)
-  | "l40s-e5m2-source13" => some (l40sFP8Invocation .e5m2 .source13)
-  | "half-direct-candidate" => some v100HalfDirectCandidate
-  | "half-staged-candidate" => some v100HalfStagedCandidate
   | "f64-rne" => some (binary64Fma .nearestEven)
   | "f64-rz" => some (binary64Fma .towardZero)
   | "f64-rd" => some (binary64Fma .towardNegative)
@@ -145,23 +137,6 @@ where
     | a :: b :: rest => (a, b) :: pairUp rest
     | _ => []
 
-private def fp8RowJson (f : FP8Format) (reading : FP8Reading) (ns : List ℕ) : Option Json := do
-  let c ← ns.getLast?
-  if c ≥ 2 ^ 32 then none else do
-    let ps ← parsePairs (l40sFP8Invocation f reading) ns.dropLast
-    let cBits : F32 := BitVec.ofNat 32 c
-    return match runL40SFP8 f reading ps cBits with
-    | .error e => Json.mkObj [("error", toJson (reprStr e))]
-    | .ok t => Json.mkObj [
-      ("bits", toJson t.second.output.bits.toNat),
-      ("value", toJson (qText t.second.output.value)),
-      ("ideal", toJson ((l40sFP8Ideal f ps cBits).map qText)),
-      ("outputs", toJson [t.first.output.bits.toNat, t.second.output.bits.toNat]),
-      ("accumulated", toJson [qText t.first.accumulation.value, qText t.second.accumulation.value]),
-      ("residuals", toJson [qText t.first.residual, qText t.second.residual]),
-      ("intermediate", toJson [t.first.intermediate.events.map eventJson,
-        t.second.intermediate.events.map eventJson])]
-
 private def command (args : List String) : Option Json := do
   match args with
   | ["round", fmt, n, d] =>
@@ -175,21 +150,13 @@ private def command (args : List String) : Option Json := do
         fun (name, mode) => (name, toJson ((roundBinary f mode x).map BitVec.toNat)))
   | ["decode", fmt, n] =>
     let bits ← n.toNat?
-    let s ← if fmt = "e4m3" then some packedE4M3
-      else if fmt = "tf32-register" then some tf32Register else (getFormat fmt).map packedIEEE
+    let s ← if fmt = "tf32-register" then some tf32Register else (getFormat fmt).map packedIEEE
     if bits ≥ 2 ^ s.width then none else
       return Json.mkObj [("value", toJson ((s.decode (BitVec.ofNat _ bits)).map (qText ∘ Decoded.value)))]
   | "block" :: profile :: words =>
     let p ← getProfile profile
     let ns ← words.mapM String.toNat?
     invocationJson p ns
-  | "fp8-row" :: fmt :: policy :: words =>
-    let f ← match fmt with
-      | "e4m3" => some FP8Format.e4m3 | "e5m2" => some FP8Format.e5m2 | _ => none
-    let reading ← match policy with
-      | "paper" => some FP8Reading.paper | "source13" => some FP8Reading.source13 | _ => none
-    let ns ← words.mapM String.toNat?
-    fp8RowJson f reading ns
   | "canonical" :: k :: extra :: floorText :: words =>
     let K ← k.toNat?
     let E ← extra.toNat?

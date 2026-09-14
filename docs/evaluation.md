@@ -248,8 +248,9 @@ including its [underflow explanation](https://www.jhauser.us/arithmetic/SoftFloa
    conformance. Alignment precision, floors, instruction order, memory/lane
    behavior, and compiler correspondence remain separate obligations. No new GPU
    run or CUDA compilation was performed.
-4. **Tensor formats:** FP8 families and FP16-output stage order remain partial or
-   ambiguous. The generic IEEE layout does not describe E4M3's finite top encoding.
+4. **Archived tensor formats:** FP8 families and FP16-output tensor-core candidates
+   are in [`wip/`](../wip/README.md), outside the active build and regression suite.
+   FP8 normalized precision and FP16-output stage order remain unresolved.
 5. **Practicality:** previous evaluations identified conservative source-conversion
    bounds and slow concrete certificate replay. Quantified families amortize
    verification but still require membership proofs. No new application workload,

@@ -26,7 +26,7 @@
   "coefficient_width": 576,
   "common_grid_exponent": -272,
   "seed": 20260907,
-  "elapsed_seconds": 12.871,
+  "elapsed_seconds": 7.893,
   "source_sha256": {
     "TensorCore/EFT/Machine/BitScan.lean": "e23c61933aaed97d9653b4389d05cab6d89b125e0f47235ac5098b9ebe123289",
     "TensorCore/EFT/Machine/BitScanDefs.lean": "4ac57052f73fdc38bf1e3497bccb35ba9b1b6c863b72958feaf4e22dffe2d0e6",

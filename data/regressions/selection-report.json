@@ -43,12 +43,12 @@
       "selected": 9
     }
   },
-  "native_selection_batch_seconds": 1.767,
-  "native_analysis_batch_seconds": 1.151,
+  "native_selection_batch_seconds": 1.53,
+  "native_analysis_batch_seconds": 1.14,
   "certificate_cases": 7,
   "certificate_bytes": 12991,
-  "certificate_render_seconds": 0.004,
-  "kernel_replay_seconds": 1.719,
+  "certificate_render_seconds": 0.002,
+  "kernel_replay_seconds": 1.318,
   "kernel_replay": true,
   "input_only_dependency_audit": true,
   "negative_controls": [
@@ -79,7 +79,7 @@
       "k": 64,
       "candidates": 3,
       "selected_index": 1,
-      "native_process_seconds": 0.2154
+      "native_process_seconds": 0.0216
     },
     {
       "m": 4,
@@ -87,7 +87,7 @@
       "k": 64,
       "candidates": 3,
       "selected_index": 1,
-      "native_process_seconds": 0.0819
+      "native_process_seconds": 0.0625
     },
     {
       "m": 16,
@@ -95,10 +95,10 @@
       "k": 64,
       "candidates": 3,
       "selected_index": 1,
-      "native_process_seconds": 0.9563
+      "native_process_seconds": 0.6929
     }
   ],
-  "elapsed_seconds": 37.04,
+  "elapsed_seconds": 22.715,
   "source_sha256": {
     "TensorCore/Gemm/Selection.lean": "5ea1f30c72610e55f79b182baa2db2c152437bdac6ddd747afd0a8e8b5eeb5b7",
     "TensorCore/Gemm/Cli/GemmSelection.lean": "3ff25b179593d49b0cafa3146001bdc2ed123e3ee89ea4afd826d3d8d73ce3e7",

@@ -1,4 +1,4 @@
-import TensorCore.TC.FP8
+import TensorCoreWip.TC.FP8
 
 /-! Kernel-checked L40S archive rows and distinguishing FP8 boundary cases.
 Published rows are pinned in vendor/SOURCES.json; the paper/source discrepancy

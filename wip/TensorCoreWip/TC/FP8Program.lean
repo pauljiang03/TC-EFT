@@ -1,6 +1,6 @@
 -- FP8 Program for the tensor-core model.
 
-import TensorCore.TC.FP8Defs
+import TensorCoreWip.TC.FP8Defs
 
 namespace TensorCore
 

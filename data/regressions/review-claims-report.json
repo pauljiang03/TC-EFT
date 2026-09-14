@@ -358,7 +358,7 @@
     "TensorCore.Regression.NativeScaled.source_loss_changes_selection",
     "TensorCore.Regression.NativeScaled.selected_accuracy"
   ],
-  "local_readme_links_checked": 59,
+  "local_readme_links_checked": 60,
   "human_sign_off": false,
   "novelty_assessed": false,
   "external_paper_review_repeated": false,
@@ -400,7 +400,7 @@
     "TensorCore/TC/Program/Bounds/Loops.lean": "b6d83176543b4f160a5e8f379a48a4cc80fbf999501f52dc82c6331c19a67fb6",
     "TensorCore/TC/Program/Composition.lean": "bf2459a6d5f7218debeec68328d58136af5873283983ce2073386cc290434229",
     "TensorCore/TC/Specification/Supported.lean": "707d5b1d05cdb5ca41394c8c6af4fc5a63c8fa271d43a92db99f513ca0f7bfc3",
-    "docs/reference.md": "a8adbb9f85d8e3436752da900f8614b1cf27fec39ae66ced5b820fad16d3c427",
+    "docs/reference.md": "ae426ed0e2abcd456596f26c0827b8eff84179837d9fd8e6ea56baa8117fcfce",
     "scripts/check_review_claims.py": "d8ea1fed3672212dcf556bf3ccb3970c0da9223bb96e4f6e89a7d30f2809878c"
   }
 }

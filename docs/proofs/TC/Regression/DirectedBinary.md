@@ -159,15 +159,13 @@ theorem directed_binary_formats :
     (roundBinary fp32 .towardNegative (-1 / 3)).map BitVec.toNat = some 0xbeaaaaab ∧
     (roundBinary fp32 .towardPositive (-1 / 3)).map BitVec.toNat = some 0xbeaaaaaa ∧
     (roundBinary fp64 .towardNegative (-1 / 3)).map BitVec.toNat = some 0xbfd5555555555556 ∧
-    (roundBinary fp64 .towardPositive (-1 / 3)).map BitVec.toNat = some 0xbfd5555555555555 ∧
-    (roundBinary e5m2 .towardNegative (-1 / 3)).map BitVec.toNat = some 0xb6 ∧
-    (roundBinary e5m2 .towardPositive (-1 / 3)).map BitVec.toNat = some 0xb5 := by
+    (roundBinary fp64 .towardPositive (-1 / 3)).map BitVec.toNat = some 0xbfd5555555555555 := by
   decide +kernel
 ```
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BinaryRoundingMode](../../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Format.width](../../Core/Defs.md#decl-950f9d663ce32954), [TensorCore.bf16](../../Core/Defs.md#decl-10da45ae98cf5fcc), [TensorCore.e5m2](../../Core/Defs.md#decl-e90066ecba9097ee), [TensorCore.fp32](../../Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.fp64](../../Core/Defs.md#decl-a9439171a8dcf9cb), [TensorCore.roundBinary](../../Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed), [TensorCore.tf19](../../Core/Defs.md#decl-1b853137564a343d)
+**Definitions and types:** [TensorCore.BinaryRoundingMode](../../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.Format.width](../../Core/Defs.md#decl-950f9d663ce32954), [TensorCore.bf16](../../Core/Defs.md#decl-10da45ae98cf5fcc), [TensorCore.fp32](../../Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.fp64](../../Core/Defs.md#decl-a9439171a8dcf9cb), [TensorCore.roundBinary](../../Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed), [TensorCore.tf19](../../Core/Defs.md#decl-1b853137564a343d)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -185,7 +183,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.Regression.negative_subnormal_upper_contract</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L68)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L66)
 
 ```lean
 theorem negative_subnormal_upper_contract : TowardPositive fp16 (-1 / 33554432) 0x8000 := by
@@ -217,7 +215,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.Regression.negative_subnormal_lower_contract</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L76)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L74)
 
 ```lean
 theorem negative_subnormal_lower_contract : TowardNegative fp16 (-1 / 33554432) 0x8001 := by
@@ -249,7 +247,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.Regression.directed_unusual_format</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L85)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L83)
 
 ```lean
 /-- An unusual bias and minimum permitted field sizes exercise the unrestricted format theorem. -/
@@ -280,7 +278,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.Regression.fma64Bits</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L91)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L89)
 
 ```lean
 def fma64Bits (mode : BinaryRoundingMode) (a b c : BitVec 64) : Option ℕ :=
@@ -305,7 +303,7 @@ def fma64Bits (mode : BinaryRoundingMode) (a b c : BitVec 64) : Option ℕ :=
 <details>
 <summary><code>TensorCore.Regression.fma64_directed_half_ulp</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L94)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L92)
 
 ```lean
 theorem fma64_directed_half_ulp :
@@ -336,7 +334,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.Regression.fma64_subnormal</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L101)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L99)
 
 ```lean
 theorem fma64_subnormal :
@@ -365,7 +363,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.Regression.fma64_fused_boundaries</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L107)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L105)
 
 ```lean
 /-- An out-of-range exact product is allowed when the single fused result is finite. -/
@@ -397,7 +395,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.Regression.positiveZero16</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L114)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L112)
 
 ```lean
 def positiveZero16 : FiniteBinaryWord fp16 := ⟨0, ⟨⟨0, 0, 0⟩, by decide +kernel⟩⟩
@@ -421,7 +419,7 @@ def positiveZero16 : FiniteBinaryWord fp16 := ⟨0, ⟨⟨0, 0, 0⟩, by decide 
 <details>
 <summary><code>TensorCore.Regression.negativeZero16</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L115)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L113)
 
 ```lean
 def negativeZero16 : FiniteBinaryWord fp16 := ⟨0x8000, ⟨⟨0, 0, 0⟩, by decide +kernel⟩⟩
@@ -445,7 +443,7 @@ def negativeZero16 : FiniteBinaryWord fp16 := ⟨0x8000, ⟨⟨0, 0, 0⟩, by de
 <details>
 <summary><code>TensorCore.Regression.finite_bijection_signed_zeros</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L117)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L115)
 
 ```lean
 theorem finite_bijection_signed_zeros :
@@ -480,7 +478,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.Regression.finite_bijection_endpoints</code></summary>
 
-[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L128)
+[Lean source](../../../../TensorCore/TC/Regression/DirectedBinary.lean#L126)
 
 ```lean
 theorem finite_bijection_endpoints (mode : BinaryRoundingMode) :

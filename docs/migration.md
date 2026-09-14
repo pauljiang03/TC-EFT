@@ -8,6 +8,10 @@ subject import. `TensorCore` focuses on Core, TC, and EFT. For the previous broa
 import, including GEMM, interfaces, and regression witnesses, use `TensorCore.All`.
 Public declaration namespaces are preserved; this table records module paths.
 
+FP16-output tensor-core candidates and all FP8 work now use opt-in `TensorCoreWip`
+imports under [`wip/`](../wip/README.md). They are excluded from the default build
+and `TensorCore.All`; see the archive for build and replay commands.
+
 The old README's interface and claim documentation is in [reference.md](reference.md).
 The evaluation is in [evaluation.md](evaluation.md); historical implementation notes
 are in [history/implementation-plan.md](history/implementation-plan.md). Recorded review
@@ -69,7 +73,7 @@ logs retain their original paths as provenance and are not new validation result
 | `TensorCore.Programs.ErrorBounds` | [`TensorCore.TC.Program.ErrorBounds`](../TensorCore/TC/Program/ErrorBounds.lean) |
 | `TensorCore.Programs.ExactScalarAnalysis` | [`TensorCore.Gemm.ExactScalarAnalysis`](../TensorCore/Gemm/ExactScalarAnalysis.lean) |
 | `TensorCore.Programs.ExtractionGrid` | [`TensorCore.EFT.ExtractionGrid`](../TensorCore/EFT/ExtractionGrid.lean) |
-| `TensorCore.Programs.FP8` | [`TensorCore.TC.FP8Program`](../TensorCore/TC/FP8Program.lean) |
+| `TensorCore.Programs.FP8` | [`TensorCoreWip.TC.FP8Program`](../wip/TensorCoreWip/TC/FP8Program.lean) |
 | `TensorCore.Programs.Gemm` | [`TensorCore.Gemm.Defs`](../TensorCore/Gemm/Defs.lean) |
 | `TensorCore.Programs.GemmAnalysis` | [`TensorCore.Gemm.Analysis`](../TensorCore/Gemm/Analysis.lean) |
 | `TensorCore.Programs.GemmBounds` | [`TensorCore.Gemm.Bounds`](../TensorCore/Gemm/Bounds.lean) |
@@ -111,7 +115,7 @@ logs retain their original paths as provenance and are not new validation result
 | `TensorCore.Regression.EFMachine.Split` | [`TensorCore.EFT.Regression.MachineSplit`](../TensorCore/EFT/Regression/MachineSplit.lean) |
 | `TensorCore.Regression.EFT` | [`TensorCore.EFT.Regression.EFT`](../TensorCore/EFT/Regression/EFT.lean) |
 | `TensorCore.Regression.EncodedEFT` | [`TensorCore.EFT.Regression.EncodedEFT`](../TensorCore/EFT/Regression/EncodedEFT.lean) |
-| `TensorCore.Regression.FP8` | [`TensorCore.TC.Regression.FP8`](../TensorCore/TC/Regression/FP8.lean) |
+| `TensorCore.Regression.FP8` | [`TensorCoreWip.TC.Regression.FP8`](../wip/TensorCoreWip/TC/Regression/FP8.lean) |
 | `TensorCore.Regression.Features` | [`TensorCore.TC.Regression.Features`](../TensorCore/TC/Regression/Features.lean) |
 | `TensorCore.Regression.Flowback` | [`TensorCore.EFT.Regression.Flowback`](../TensorCore/EFT/Regression/Flowback.lean) |
 | `TensorCore.Regression.Gemm` | [`TensorCore.Gemm.Regression.Gemm`](../TensorCore/Gemm/Regression/Gemm.lean) |
@@ -121,7 +125,7 @@ logs retain their original paths as provenance and are not new validation result
 | `TensorCore.Regression.GemmInputConversion` | [`TensorCore.Gemm.Regression.GemmInputConversion`](../TensorCore/Gemm/Regression/GemmInputConversion.lean) |
 | `TensorCore.Regression.GemmSelection` | [`TensorCore.Gemm.Regression.GemmSelection`](../TensorCore/Gemm/Regression/GemmSelection.lean) |
 | `TensorCore.Regression.GemmSpecification` | [`TensorCore.Gemm.Regression.GemmSpecification`](../TensorCore/Gemm/Regression/GemmSpecification.lean) |
-| `TensorCore.Regression.HalfOutput` | [`TensorCore.TC.Regression.HalfOutput`](../TensorCore/TC/Regression/HalfOutput.lean) |
+| `TensorCore.Regression.HalfOutput` | [`TensorCoreWip.TC.Regression.HalfOutput`](../wip/TensorCoreWip/TC/Regression/HalfOutput.lean) |
 | `TensorCore.Regression.Instruction` | [`TensorCore.TC.Regression.Instruction`](../TensorCore/TC/Regression/Instruction.lean) |
 | `TensorCore.Regression.Monotonicity` | [`TensorCore.TC.Regression.Monotonicity`](../TensorCore/TC/Regression/Monotonicity.lean) |
 | `TensorCore.Regression.NativeEFT` | [`TensorCore.EFT.Regression.NativeEFT`](../TensorCore/EFT/Regression/NativeEFT.lean) |
@@ -137,7 +141,7 @@ logs retain their original paths as provenance and are not new validation result
 | `TensorCore.Semantics.Canonical` | [`TensorCore.TC.CanonicalDefs`](../TensorCore/TC/CanonicalDefs.lean) |
 | `TensorCore.Semantics.CanonicalFormats` | [`TensorCore.TC.CanonicalFormatDefs`](../TensorCore/TC/CanonicalFormatDefs.lean) |
 | `TensorCore.Semantics.Conversion` | [`TensorCore.Core.Conversion`](../TensorCore/Core/Conversion.lean) |
-| `TensorCore.Semantics.FP8` | [`TensorCore.TC.FP8Defs`](../TensorCore/TC/FP8Defs.lean) |
+| `TensorCore.Semantics.FP8` | [`TensorCoreWip.TC.FP8Defs`](../wip/TensorCoreWip/TC/FP8Defs.lean) |
 | `TensorCore.Semantics.Invocation` | [`TensorCore.TC.Invocation`](../TensorCore/TC/Invocation.lean) |
 | `TensorCore.Semantics.Profile` | [`TensorCore.TC.Defs`](../TensorCore/TC/Defs.lean) |
 | `TensorCore.Semantics.Profiles` | [`TensorCore.TC.Profiles`](../TensorCore/TC/Profiles.lean) |
@@ -182,7 +186,7 @@ logs retain their original paths as provenance and are not new validation result
 | `TensorCore.Theory.Encoding` | [`TensorCore.Core.EncodingProperties`](../TensorCore/Core/EncodingProperties.lean) |
 | `TensorCore.Theory.ErrorBounds` | [`TensorCore.TC.ErrorBounds`](../TensorCore/TC/ErrorBounds.lean) |
 | `TensorCore.Theory.ExactAlignment` | [`TensorCore.TC.ExactAlignment`](../TensorCore/TC/ExactAlignment.lean) |
-| `TensorCore.Theory.FP8` | [`TensorCore.TC.FP8`](../TensorCore/TC/FP8.lean) |
+| `TensorCore.Theory.FP8` | [`TensorCoreWip.TC.FP8`](../wip/TensorCoreWip/TC/FP8.lean) |
 | `TensorCore.Theory.Flowback` | [`TensorCore.TC.Flowback`](../TensorCore/TC/Flowback.lean) |
 | `TensorCore.Theory.Format` | [`TensorCore.Core.FormatProperties`](../TensorCore/Core/FormatProperties.lean) |
 | `TensorCore.Theory.Invocation` | [`TensorCore.TC.InvocationProperties`](../TensorCore/TC/InvocationProperties.lean) |

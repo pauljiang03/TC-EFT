@@ -1,4 +1,5 @@
 import TensorCore.TC.Profiles
+import TensorCoreWip.Formats
 
 /-! Native L40S/Ada FP8, Accurate Models v4 Table 3 and Figure 4.
 Section 4.1.4 (p.10) specifies 13 alignment fraction bits. Figure 4 (p.11)

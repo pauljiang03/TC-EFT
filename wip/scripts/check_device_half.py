@@ -9,7 +9,7 @@ CUDA harness converts c to FP16 with round-to-nearest before the instruction
 exact converter. The MATLAB reference rounds the normalized sum once, to the output width,
 in nearest-even mode (frmode = 'rne' for FP16 output, Generic_BFMA_TC.m lines 267-269); the
 paper's figures show an FP32 truncation before the FP16 rounding. The two candidates encode
-those two readings; the device rows decide between them.
+those two readings; the archived device rows do not distinguish them.
 """
 from fractions import Fraction
 from pathlib import Path
@@ -17,10 +17,12 @@ import json
 import subprocess
 import sys
 
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'scripts'))
 from check_device import read_hex_rows, read_bin, fp32_word_to_fp16, value
 
-ROOT = Path(__file__).resolve().parents[1]
 VECTORS = ROOT / 'vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16'
+OUTPUTS = ROOT / 'wip/vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16'
 
 
 def round_half_even(x):
@@ -58,12 +60,12 @@ def fp32_to_fp16_rne(bits):
 
 
 def main():
-    tmp = ROOT / 'tmp/validation'
+    tmp = ROOT / 'tmp/wip-validation'
     tmp.mkdir(parents=True, exist_ok=True)
     a_rows = read_hex_rows(VECTORS / 'a_V100_fp16.txt')
     b_rows = read_hex_rows(VECTORS / 'b_V100_fp16.txt')
     c_words = read_bin(VECTORS / 'c_V100_fp32.txt')
-    d_words = read_bin(VECTORS / 'd_V100_fp16.txt')
+    d_words = read_bin(OUTPUTS / 'd_V100_fp16.txt')
     n = len(d_words)
     assert len(a_rows) == len(b_rows) == len(c_words) == n and n > 0
     d_half = [fp32_word_to_fp16(d) for d in d_words]
@@ -80,7 +82,7 @@ def main():
             rows.append(f'block {candidate} ' + ' '.join(map(str, words + [c16])))
         path = tmp / f'device-v100-half-{candidate}.txt'
         path.write_text('\n'.join(rows) + '\n')
-        proc = subprocess.run([str(ROOT / '.lake/build/bin/tc_features'), '--file', str(path)],
+        proc = subprocess.run([str(ROOT / '.lake/build/bin/tc_wip_features'), '--file', str(path)],
                               check=True, text=True, capture_output=True)
         traces = [json.loads(line) for line in proc.stdout.splitlines()]
         assert len(traces) == n
@@ -114,12 +116,12 @@ def main():
     report['method'] = ('Two descriptor evaluations per row with FP16 c from an independent '
                         'converter; bitwise comparison with the FP16 device outputs; no new GPU '
                         'measurements')
-    (ROOT / 'data/regressions/device-half-report.json').write_text(json.dumps(report, indent=2) + '\n')
+    (ROOT / 'wip/data/regressions/device-half-report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
     def reproduces(r):
         return r['model_errors'] == 0 and r['bit_mismatches'] == 0
     report['accepted'] = reproduces(direct) or reproduces(staged)
-    (ROOT / 'data/regressions/device-half-report.json').write_text(json.dumps(report, indent=2) + '\n')
+    (ROOT / 'wip/data/regressions/device-half-report.json').write_text(json.dumps(report, indent=2) + '\n')
     return 0 if report['accepted'] else 1
 
 

@@ -1,6 +1,6 @@
 -- FP8 for the executable examples.
 
-import TensorCore.TC.Regression.FP8
+import TensorCoreWip.TC.Regression.FP8
 
 open TensorCore
 

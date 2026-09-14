@@ -178,7 +178,7 @@ theorem alignmentScale_lower (ts : List RawProduct) (lower e : ℤ)
 <details>
 <summary>Used by</summary>
 
-[TensorCore.canonical_eta_floor_inactive](CanonicalFloor.md#decl-578fd56536970714), [TensorCore.l40sFP8_floor_inactive](FP8.md#decl-6a5e1a3ab5a4a57a)
+[TensorCore.canonical_eta_floor_inactive](CanonicalFloor.md#decl-578fd56536970714)
 
 </details>
 

@@ -225,7 +225,7 @@ theorem classifyNat_scale_lower (f : Format) (n : ℕ) (d : Decoded)
 <details>
 <summary>Used by</summary>
 
-[TensorCore.l40sFP8_floor_inactive](../TC/FP8.md#decl-6a5e1a3ab5a4a57a), [TensorCore.prepare_fp16_terms_lower](../TC/CanonicalFloor.md#decl-25e55191ad23626f)
+[TensorCore.prepare_fp16_terms_lower](../TC/CanonicalFloor.md#decl-25e55191ad23626f)
 
 </details>
 

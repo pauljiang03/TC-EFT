@@ -1,0 +1,117 @@
+{
+  "date": "2026-09-14",
+  "source_revision": "050b50734a9cc9cb4fe6c229b676042874c87f79",
+  "scope": "Unresolved FP8 tensor-core precision and V100 FP16-output stage order",
+  "moved_files": {
+    "TensorCore/TC/FP8Defs.lean": {
+      "path": "wip/TensorCoreWip/TC/FP8Defs.lean",
+      "original_sha256": "56285b321cda4719fd237116839c22c75c074cad1d9ed64985b441d1890b3608"
+    },
+    "TensorCore/TC/FP8Program.lean": {
+      "path": "wip/TensorCoreWip/TC/FP8Program.lean",
+      "original_sha256": "ab7445bf9784ae65eb57abf573dcfb876e5a3b7ac1d4c8ecdc7525351b2657eb"
+    },
+    "TensorCore/TC/FP8.lean": {
+      "path": "wip/TensorCoreWip/TC/FP8.lean",
+      "original_sha256": "b46d0cbc6373f983240919e32968f79d19055bc52401b0f4b08d06f4720ed94a"
+    },
+    "TensorCore/TC/Regression/FP8.lean": {
+      "path": "wip/TensorCoreWip/TC/Regression/FP8.lean",
+      "original_sha256": "024354637c637e0a7285168bdc8aeec69e201137c1f59df7de0ce8a8b984b0fa"
+    },
+    "TensorCore/TC/Regression/HalfOutput.lean": {
+      "path": "wip/TensorCoreWip/TC/Regression/HalfOutput.lean",
+      "original_sha256": "bd66a80ab5d22c237e6075bc7a1608fd6d79e14253607ef3ae4ec32545dc6aea"
+    },
+    "examples/FP8.lean": {
+      "path": "wip/examples/FP8.lean",
+      "original_sha256": "dcc05c6f0c662072306398cf9c2ad76b202b24cdde71d916afcba37ec953a369"
+    },
+    "scripts/check_device_fp8.py": {
+      "path": "wip/scripts/check_device_fp8.py",
+      "original_sha256": "c300914e1e618092da4cbcef18be1a1b23a13c2f49b15dc41758ded45ca56fd6"
+    },
+    "scripts/check_device_half.py": {
+      "path": "wip/scripts/check_device_half.py",
+      "original_sha256": "90ab89455f8ca4d752c18f9eb50591697ec78159c472a95252ab45c954a32bb6"
+    },
+    "data/regressions/device-fp8-report.json": {
+      "path": "wip/data/regressions/device-fp8-report.json",
+      "original_sha256": "b1eb8e191090d93f3b2c6d0859e00a4b6a3cff27f2ec22db03e5549b45089c91"
+    },
+    "data/regressions/device-half-report.json": {
+      "path": "wip/data/regressions/device-half-report.json",
+      "original_sha256": "871df82102eee52220bb967ecf03141be43b37fa467fd762398a5048855ba20f"
+    },
+    "docs/proofs/TC/FP8Defs.md": {
+      "path": "wip/docs/proofs/TC/FP8Defs.md",
+      "original_sha256": "cd95e0633f7db94de42af87c1c99a74311f7cb85514446b56adab0e13c0e1430"
+    },
+    "docs/proofs/TC/FP8Program.md": {
+      "path": "wip/docs/proofs/TC/FP8Program.md",
+      "original_sha256": "aef6fd3d9ac4ce2bcbf8e3c303107ec344c94009f3ce5a67dbecee2f3081f8df"
+    },
+    "docs/proofs/TC/FP8.md": {
+      "path": "wip/docs/proofs/TC/FP8.md",
+      "original_sha256": "6865d7a3fd7c8aba211372d89d85f34fd7f44665acaae875f0d62ae37743d598"
+    },
+    "docs/proofs/TC/Regression/FP8.md": {
+      "path": "wip/docs/proofs/TC/Regression/FP8.md",
+      "original_sha256": "02d954868f18f88253d558d0d46a8cae7630691bf0d2f1e7cbc4575c6f902b2d"
+    },
+    "docs/proofs/TC/Regression/HalfOutput.md": {
+      "path": "wip/docs/proofs/TC/Regression/HalfOutput.md",
+      "original_sha256": "a937de9d1ad69aa4dd6d9d58b68cae5ab588883b24099a9d689be3e30b94773f"
+    },
+    "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/d_V100_fp16.txt": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/d_V100_fp16.txt",
+      "original_sha256": "7322aff1d735e6dd6a225754bd981e6520f3a6078c14ebf1614ce42b115c029a"
+    },
+    "vendor/matlab-tensor-core-v0.5/models/AdaTC.m": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/models/AdaTC.m",
+      "original_sha256": "9c747e9d093ce3a8dde75838b72fc12641cd5e5aa2b4c83f287c0964ae65880e"
+    },
+    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/a_L40S_E4M3.txt": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/a_L40S_E4M3.txt",
+      "original_sha256": "76a6115878a4662fb486d90a6765e24564ed436a173ed1260d5d53112e8a976c"
+    },
+    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/b_L40S_E4M3.txt": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/b_L40S_E4M3.txt",
+      "original_sha256": "f35d75720651ab777b10399abea59f060cde011a898065b5c3045ea171cc669d"
+    },
+    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/c_L40S_fp32.txt": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/c_L40S_fp32.txt",
+      "original_sha256": "5fe4258b96b4bd99f720796bcbfa39f3f3b4fd45eb5f3c47756914c0fb73552b"
+    },
+    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/d_L40S_fp32.txt": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/d_L40S_fp32.txt",
+      "original_sha256": "367af6ea87401170fc811aeaf61ca0ac6fb9c8d6d07b3c39bf5aac819cfdff11"
+    },
+    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/a_L40S_E5M2.txt": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/a_L40S_E5M2.txt",
+      "original_sha256": "229abb5f9e0f1dfdae18ab467bccc38547749b3286128f99ba134573b443ee1f"
+    },
+    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/b_L40S_E5M2.txt": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/b_L40S_E5M2.txt",
+      "original_sha256": "dc105fe914100f96ba77b18ec88014bde43b4f5be0bc105e337d2e6bd51eeb35"
+    },
+    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/c_L40S_fp32.txt": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/c_L40S_fp32.txt",
+      "original_sha256": "369fb2d8fd05edbbd4c0e4fcb547be29608218e90e5a807a5a27be753912d0b1"
+    },
+    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/d_L40S_fp32.txt": {
+      "path": "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/d_L40S_fp32.txt",
+      "original_sha256": "572b0bc93636d4bd6883c05637ae50285c01e9b6ff6764f7b21b6cc9993f5630"
+    }
+  },
+  "extracted_from": [
+    "TensorCore/Core/Defs.lean",
+    "TensorCore/Core/Format.lean",
+    "TensorCore/TC/Profiles.lean",
+    "TensorCore/TC/Conversion.lean",
+    "TensorCore/TC/Regression/BinaryRounding.lean",
+    "TensorCore/TC/Regression/DirectedBinary.lean",
+    "Main/Features.lean"
+  ],
+  "note": "Hashes record pre-archive bytes. Lean imports, executable dispatch, script paths, and documentation links were updated for the opt-in archive."
+}

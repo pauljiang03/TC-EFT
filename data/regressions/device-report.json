@@ -19,6 +19,6 @@
     "eta_from_c_only": 647,
     "corrected_differs_from_device": 1885
   },
-  "fp16_output_vectors_present_but_not_compared": true,
+  "fp16_output_evidence_archived": "wip/data/regressions/device-half-report.json",
   "method": "Exact FP32-word to FP16 conversion, one evaluator call per row, bitwise output comparison"
 }

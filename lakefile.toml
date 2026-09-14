@@ -40,3 +40,14 @@ root = "Main.LeanIEEECheck"
 [[lean_exe]]
 name = "tc_lean_eft_check"
 root = "Main.LeanEFTCheck"
+
+# Archived candidates are opt-in and excluded from defaultTargets.
+[[lean_lib]]
+name = "TensorCoreWip"
+srcDir = "wip"
+globs = ["TensorCoreWip", "TensorCoreWip.*"]
+
+[[lean_exe]]
+name = "tc_wip_features"
+srcDir = "wip"
+root = "WipMain.Features"

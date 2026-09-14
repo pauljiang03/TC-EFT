@@ -2,7 +2,7 @@
 
 This index is generated from checked Lean declaration types and bodies. Each declaration expands to its exact source, supporting proofs, definitions, and declarations that use it. Follow those links to traverse the graph.
 
-2397 source declarations, including 1431 theorems, in 207 modules. The [complete graph](dependencies.json) retains all 9259 compiled declarations, including generated equations, recursors, auxiliary proofs, and direct standard-library dependencies.
+2338 source declarations, including 1398 theorems, in 202 modules. The [complete graph](dependencies.json) retains all 9084 compiled declarations, including generated equations, recursors, auxiliary proofs, and direct standard-library dependencies.
 
 The browsable graph groups compiler-generated helpers with their source declaration. Its edges include dependencies in types as well as bodies; an edge is not a claim that every assumption or field is used at runtime. Standard-library declarations are boundary nodes in the JSON.
 
@@ -27,11 +27,11 @@ The browsable graph groups compiler-generated helpers with their source declarat
 | [TensorCore.Core.Conversion](Core/Conversion.md) | 6 | 10 |
 | [TensorCore.Core.ConversionBounds](Core/ConversionBounds.md) | 8 | 0 |
 | [TensorCore.Core.CorrectRounding](Core/CorrectRounding.md) | 11 | 0 |
-| [TensorCore.Core.Defs](Core/Defs.md) | 0 | 21 |
+| [TensorCore.Core.Defs](Core/Defs.md) | 0 | 20 |
 | [TensorCore.Core.Encoding](Core/Encoding.md) | 2 | 9 |
 | [TensorCore.Core.EncodingProperties](Core/EncodingProperties.md) | 7 | 0 |
 | [TensorCore.Core.Exact](Core/Exact.md) | 27 | 6 |
-| [TensorCore.Core.Format](Core/Format.md) | 3 | 12 |
+| [TensorCore.Core.Format](Core/Format.md) | 3 | 10 |
 | [TensorCore.Core.FormatProperties](Core/FormatProperties.md) | 7 | 0 |
 | [TensorCore.Core.RawProduct](Core/RawProduct.md) | 3 | 4 |
 | [TensorCore.Core.RoundOp](Core/RoundOp.md) | 1 | 16 |
@@ -158,15 +158,12 @@ The browsable graph groups compiler-generated helpers with their source declarat
 | [TensorCore.TC.CanonicalFormatDefs](TC/CanonicalFormatDefs.md) | 0 | 11 |
 | [TensorCore.TC.CanonicalFormats](TC/CanonicalFormats.md) | 18 | 1 |
 | [TensorCore.TC.Compatibility](TC/Compatibility.md) | 6 | 1 |
-| [TensorCore.TC.Conversion](TC/Conversion.md) | 15 | 0 |
+| [TensorCore.TC.Conversion](TC/Conversion.md) | 13 | 0 |
 | [TensorCore.TC.Defs](TC/Defs.md) | 0 | 5 |
 | [TensorCore.TC.EncodedMonotonicity](TC/EncodedMonotonicity.md) | 2 | 2 |
 | [TensorCore.TC.ErrorBounds](TC/ErrorBounds.md) | 6 | 0 |
 | [TensorCore.TC.ExactAlignment](TC/ExactAlignment.md) | 2 | 1 |
 | [TensorCore.TC.Examples.BoundedDot](TC/Examples/BoundedDot.md) | 18 | 4 |
-| [TensorCore.TC.FP8](TC/FP8.md) | 15 | 0 |
-| [TensorCore.TC.FP8Defs](TC/FP8Defs.md) | 0 | 6 |
-| [TensorCore.TC.FP8Program](TC/FP8Program.md) | 0 | 6 |
 | [TensorCore.TC.Flowback](TC/Flowback.md) | 10 | 3 |
 | [TensorCore.TC.FusedRounding](TC/FusedRounding.md) | 2 | 0 |
 | [TensorCore.TC.Instruction](TC/Instruction.md) | 16 | 12 |
@@ -176,7 +173,7 @@ The browsable graph groups compiler-generated helpers with their source declarat
 | [TensorCore.TC.Monotonicity](TC/Monotonicity.md) | 8 | 2 |
 | [TensorCore.TC.MonotonicityRange](TC/MonotonicityRange.md) | 9 | 1 |
 | [TensorCore.TC.Padding](TC/Padding.md) | 10 | 0 |
-| [TensorCore.TC.Profiles](TC/Profiles.md) | 0 | 11 |
+| [TensorCore.TC.Profiles](TC/Profiles.md) | 0 | 9 |
 | [TensorCore.TC.Program.Bounds.Local](TC/Program/Bounds/Local.md) | 10 | 1 |
 | [TensorCore.TC.Program.Bounds.Loops](TC/Program/Bounds/Loops.md) | 4 | 0 |
 | [TensorCore.TC.Program.Bounds.Scales](TC/Program/Bounds/Scales.md) | 5 | 0 |
@@ -192,16 +189,14 @@ The browsable graph groups compiler-generated helpers with their source declarat
 | [TensorCore.TC.Program.Report](TC/Program/Report.md) | 2 | 5 |
 | [TensorCore.TC.Program.StaticCertificate](TC/Program/StaticCertificate.md) | 4 | 3 |
 | [TensorCore.TC.Regression.Application](TC/Regression/Application.md) | 8 | 2 |
-| [TensorCore.TC.Regression.BinaryRounding](TC/Regression/BinaryRounding.md) | 9 | 0 |
+| [TensorCore.TC.Regression.BinaryRounding](TC/Regression/BinaryRounding.md) | 8 | 0 |
 | [TensorCore.TC.Regression.CanonicalFormats](TC/Regression/CanonicalFormats.md) | 5 | 3 |
 | [TensorCore.TC.Regression.Cases](TC/Regression/Cases.md) | 26 | 8 |
 | [TensorCore.TC.Regression.Certification](TC/Regression/Certification.md) | 4 | 1 |
 | [TensorCore.TC.Regression.Composition](TC/Regression/Composition.md) | 3 | 3 |
 | [TensorCore.TC.Regression.DirectedBinary](TC/Regression/DirectedBinary.md) | 13 | 3 |
 | [TensorCore.TC.Regression.DotProduct](TC/Regression/DotProduct.md) | 5 | 6 |
-| [TensorCore.TC.Regression.FP8](TC/Regression/FP8.md) | 13 | 7 |
 | [TensorCore.TC.Regression.Features](TC/Regression/Features.md) | 6 | 2 |
-| [TensorCore.TC.Regression.HalfOutput](TC/Regression/HalfOutput.md) | 2 | 2 |
 | [TensorCore.TC.Regression.Instruction](TC/Regression/Instruction.md) | 5 | 1 |
 | [TensorCore.TC.Regression.Monotonicity](TC/Regression/Monotonicity.md) | 10 | 1 |
 | [TensorCore.TC.Regression.Programs](TC/Regression/Programs.md) | 11 | 11 |

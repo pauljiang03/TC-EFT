@@ -6,8 +6,7 @@ import TensorCore.TC.Profiles
 correctness: a nearest-even stage returns the nearest finite value of its format with ties
 to even, and a toward-zero stage returns the largest finite value between zero and its
 input. Directed stages select the greatest finite lower bound or least finite upper
-bound. The FP16-output candidates, all four FP64 fused directions, and every
-FP32-output descriptor are instances. -/
+bound. All four FP64 fused directions and every FP32-output descriptor are instances. -/
 
 namespace TensorCore
 
@@ -46,18 +45,6 @@ theorem evalInvocation_output_towardZero {p : InvocationSpec} {x : InvocationInp
     TowardZero p.output.format t.intermediate.value t.output.bits := by
   obtain ⟨hv, _, _, _, _, hout⟩ := evalInvocation_spec h
   exact conversionStage_towardZero_correct p.output hv.2.2.2.1 hmode _ _ hout
-
-/-- FP16-output candidates: the final FP16 word is the nearest-even FP16 value of the value
-entering the output stage, whichever candidate stage order is chosen. -/
-theorem halfDirect_output_nearestEven {x : InvocationInput v100HalfDirectCandidate}
-    {t : InvocationTrace v100HalfDirectCandidate} (h : evalInvocation x = .ok t) :
-    NearestEven fp16 t.intermediate.value t.output.bits :=
-  evalInvocation_output_nearestEven h rfl
-
-theorem halfStaged_output_nearestEven {x : InvocationInput v100HalfStagedCandidate}
-    {t : InvocationTrace v100HalfStagedCandidate} (h : evalInvocation x = .ok t) :
-    NearestEven fp16 t.intermediate.value t.output.bits :=
-  evalInvocation_output_nearestEven h rfl
 
 /-- FP64 fused specification: one correctly rounded result in the stated direction. -/
 theorem binary64Fma_nearestEven {x : InvocationInput (binary64Fma .nearestEven)}

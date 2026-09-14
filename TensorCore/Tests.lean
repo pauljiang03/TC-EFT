@@ -43,9 +43,7 @@ import TensorCore.TC.Regression.Cases
 import TensorCore.TC.Regression.Certification
 import TensorCore.TC.Regression.Composition
 import TensorCore.TC.Regression.DotProduct
-import TensorCore.TC.Regression.FP8
 import TensorCore.TC.Regression.Features
-import TensorCore.TC.Regression.HalfOutput
 import TensorCore.TC.Regression.Instruction
 import TensorCore.TC.Regression.Monotonicity
 import TensorCore.TC.Regression.Programs

@@ -11,6 +11,16 @@ def main():
     modules = {'.'.join(p.relative_to(ROOT).with_suffix('').parts): p
                for p in (ROOT / 'TensorCore').rglob('*.lean')}
     modules['TensorCore'] = ROOT / 'TensorCore.lean'
+    active_sources = [*modules.values(), *(ROOT / 'Main').glob('*.lean'),
+                      *(ROOT / 'examples').glob('*.lean')]
+    for path in active_sources:
+        deps = re.findall(r'^import\s+([^\n]+)', path.read_text(), re.M)
+        assert not any(re.search(r'\b(?:TensorCoreWip|WipMain)(?:\.|\b)', dep) for dep in deps), (
+            str(path.relative_to(ROOT)), 'active source imports archived work')
+    config = (ROOT / 'lakefile.toml').read_text()
+    default_targets = re.search(r'^defaultTargets\s*=\s*(\[[^\]]*\])', config, re.M)
+    assert default_targets, 'Missing explicit default targets'
+    assert not {'TensorCoreWip', 'tc_wip_features'} & set(json.loads(default_targets.group(1)))
     imports = {name: re.findall(r'^import (TensorCore(?:\.[\w]+)*)$', path.read_text(), re.M)
                for name, path in modules.items()}
     for name, deps in imports.items():
@@ -45,6 +55,8 @@ def main():
                       'core_has_no_application_dependencies': True,
                       'tc_has_no_eft_or_gemm_dependencies': True,
                       'eft_has_no_gemm_dependencies': True,
+                      'active_sources_exclude_wip_imports': True,
+                      'default_targets_exclude_wip': True,
                       'full_import_covers_every_module': True}, indent=2))
 
 

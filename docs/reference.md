@@ -51,7 +51,8 @@ preserve finite C bits. The IEEE scalar API is separately named and does not sil
 change tensor-core alignment, intermediate conversions, GEMM results, or certificates.
 
 The selected tensor-core families are V100/Ampere/Hopper FP16, Ampere/Hopper BF16,
-and Ampere/Hopper TF32 WMMA/MMA paths. FP8 and FP16-output candidates remain partial.
+and Ampere/Hopper TF32 WMMA/MMA paths, all with FP32 output. FP8 and FP16-output
+tensor-core candidates are archived in [`wip/`](../wip/README.md) outside the active library.
 The hardware profile constants are model inputs, and hardware correspondence is an
 explicit external obligation. Globally correctly rounded GEMM is not claimed.
 
@@ -318,9 +319,9 @@ The principal remaining obligations are:
 
 - Physical GPU and compiled-kernel correspondence, including memory and lane behavior.
 - Human specification review, including the IEEE contracts and NaN/tininess policies.
-- Complete FP8 and FP16-output tensor-core paths. FP16 final-stage order and the
-  L40S/Ada FP8 normalized precision remain unresolved; candidate agreement on
-  archived outputs does not determine every intermediate stage.
+- The separate [WIP archive](../wip/README.md) retains FP16-output tensor-core
+  candidates and all FP8 work. Resolving their stage-order and precision questions
+  is required before restoring them to the active library.
 - General IEEE scalar operations beyond the five implemented operations, and
   wider IEEE 754 environment/format coverage.
 - Revalidate the native bridges on toolchain upgrades. Expanding their domains

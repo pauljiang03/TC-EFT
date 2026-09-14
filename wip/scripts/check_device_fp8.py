@@ -14,12 +14,26 @@ from pathlib import Path
 import hashlib
 import json
 import subprocess
+import sys
 
+ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(ROOT / 'scripts'))
 from check_device import read_hex_rows, read_bin
-from check_features import decode, round32_search, run_rows
+from check_features import decode, round32_search
 
-ROOT = Path(__file__).resolve().parents[1]
-BASE = ROOT / 'vendor/matlab-tensor-core-v0.5'
+BASE = ROOT / 'wip/vendor/matlab-tensor-core-v0.5'
+SHARED = ROOT / 'vendor/matlab-tensor-core-v0.5'
+
+
+def run_rows(rows, filename):
+    path = ROOT / 'tmp/wip-validation' / filename
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text('\n'.join(rows) + '\n')
+    proc = subprocess.run([str(ROOT / '.lake/build/bin/tc_wip_features'), '--file', str(path)],
+                          check=True, text=True, capture_output=True)
+    data = [json.loads(line) for line in proc.stdout.splitlines()]
+    assert len(data) == len(rows), (len(data), len(rows))
+    return data
 
 
 @lru_cache(None)
@@ -126,13 +140,16 @@ def check_trace(trace, expected, reading):
 
 
 def main():
-    pins = json.loads((ROOT / 'vendor/SOURCES.json').read_text())
+    pins = json.loads((ROOT / 'wip/vendor/SOURCES.json').read_text())
+    shared_pins = json.loads((ROOT / 'vendor/SOURCES.json').read_text())
+    assert pins['commit'] == shared_pins['commit']
     files = ['models/AdaTC.m', 'models/tools/GEMM.m', 'models/tools/Generic_BFMA_TC.m',
              'model_validation/Validate_TC_models.m']
     files += [str(p.relative_to(BASE)) for p in sorted((BASE / 'model_validation/L40S').glob('E*/*.txt'))]
     assert len(files) == 12
     for name in files:
-        assert hashlib.sha256((BASE / name).read_bytes()).hexdigest() == pins['sha256'][name], name
+        folder, source = (BASE, pins) if name in pins['sha256'] else (SHARED, shared_pins)
+        assert hashlib.sha256((folder / name).read_bytes()).hexdigest() == source['sha256'][name], name
     report = dict(source='MATLAB Tensor Core v0.5, L40S/E4M3 and L40S/E5M2',
                   commit=pins['commit'], hashed_files=len(files),
                   paper='https://arxiv.org/html/2512.07004v4#S4.SS1.SSS4',
@@ -160,9 +177,10 @@ def main():
         evidence_limit='Archive endpoint agreement supports the source candidate on these rows, not a universal paper/source or physical-device conformance theorem.',
         paper_probe_caveat='Section 4.1.4 states p1=1 but its stopping expression is 1+p1+p2; tests use the explicit numerical endpoint 1+2^-12, without silently repairing that expression.',
         numerical_semantics_changed=False)
-    checked_sources = ['TensorCore/TC/FP8Defs.lean', 'TensorCore/TC/FP8Program.lean',
-                       'TensorCore/TC/FP8.lean', 'TensorCore/TC/Regression/FP8.lean',
-                       'Main/Features.lean', 'scripts/check_device_fp8.py']
+    checked_sources = ['wip/TensorCoreWip/Formats.lean', 'wip/TensorCoreWip/TC/FP8Defs.lean',
+                       'wip/TensorCoreWip/TC/FP8Program.lean', 'wip/TensorCoreWip/TC/FP8.lean',
+                       'wip/TensorCoreWip/TC/Regression/FP8.lean',
+                       'wip/WipMain/Features.lean', 'wip/scripts/check_device_fp8.py']
     report['checked_source_sha256'] = {
         name: hashlib.sha256((ROOT / name).read_bytes()).hexdigest() for name in checked_sources}
     for fmt in ['e4m3', 'e5m2']:
@@ -278,7 +296,7 @@ def main():
                row_command('e5m2', 'paper', [(0, 0)]*32, 2**32),
                'fp8-row e4m3 source13 1 0', 'fp8-row e4m3 unknown 0']
     for command in invalid:
-        p = subprocess.run([str(ROOT / '.lake/build/bin/tc_features'), *command.split()],
+        p = subprocess.run([str(ROOT / '.lake/build/bin/tc_wip_features'), *command.split()],
                            text=True, capture_output=True)
         assert p.returncode != 0 and 'Invalid feature command' in p.stderr
     report.update(exhaustive_decode_comparisons=len(decode_inputs),
@@ -288,7 +306,7 @@ def main():
                   archive_comparisons=20000, reversed_group_comparisons=20000,
                   paper_archive_mismatches=2017, source13_archive_mismatches=0,
                   numerical_oracle_mismatches=0)
-    (ROOT / 'data/regressions/device-fp8-report.json').write_text(json.dumps(report, indent=2)+'\n')
+    (ROOT / 'wip/data/regressions/device-fp8-report.json').write_text(json.dumps(report, indent=2)+'\n')
     print(json.dumps(report, indent=2))
 
 

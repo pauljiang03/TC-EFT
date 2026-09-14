@@ -84,7 +84,7 @@ def Profile.applyFloor (p : Profile) : Option ℤ → Option ℤ
 <details>
 <summary>Used by</summary>
 
-[TensorCore.PaperSpec.exponent_eq](Specification/Stages.md#decl-9cd77a7095185dd7), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.canonical_eta_floor_inactive](CanonicalFloor.md#decl-578fd56536970714), [TensorCore.canonical_padding_exact](Padding.md#decl-29f3596b590b969d), [TensorCore.construction_eta](Monotonicity.md#decl-2bc6cc7079bc2e96), [TensorCore.eta_term](AlignmentScale.md#decl-0312f3eb05a1fc6b), [TensorCore.eta_upper](AlignmentScale.md#decl-e33a1ecf006bdb03), [TensorCore.l40sFP8_floor_inactive](FP8.md#decl-6a5e1a3ab5a4a57a), [TensorCore.quantumExponent_le](StaticBudget.md#decl-53da2dc9d7457364), [TensorCore.zero_products_eta](Instruction.md#decl-7cd0d6b0b17d9032)
+[TensorCore.PaperSpec.exponent_eq](Specification/Stages.md#decl-9cd77a7095185dd7), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.canonical_eta_floor_inactive](CanonicalFloor.md#decl-578fd56536970714), [TensorCore.canonical_padding_exact](Padding.md#decl-29f3596b590b969d), [TensorCore.construction_eta](Monotonicity.md#decl-2bc6cc7079bc2e96), [TensorCore.eta_term](AlignmentScale.md#decl-0312f3eb05a1fc6b), [TensorCore.eta_upper](AlignmentScale.md#decl-e33a1ecf006bdb03), [TensorCore.quantumExponent_le](StaticBudget.md#decl-53da2dc9d7457364), [TensorCore.zero_products_eta](Instruction.md#decl-7cd0d6b0b17d9032)
 
 </details>
 

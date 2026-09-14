@@ -60,9 +60,7 @@ theorem directed_binary_formats :
     (roundBinary fp32 .towardNegative (-1 / 3)).map BitVec.toNat = some 0xbeaaaaab ∧
     (roundBinary fp32 .towardPositive (-1 / 3)).map BitVec.toNat = some 0xbeaaaaaa ∧
     (roundBinary fp64 .towardNegative (-1 / 3)).map BitVec.toNat = some 0xbfd5555555555556 ∧
-    (roundBinary fp64 .towardPositive (-1 / 3)).map BitVec.toNat = some 0xbfd5555555555555 ∧
-    (roundBinary e5m2 .towardNegative (-1 / 3)).map BitVec.toNat = some 0xb6 ∧
-    (roundBinary e5m2 .towardPositive (-1 / 3)).map BitVec.toNat = some 0xb5 := by
+    (roundBinary fp64 .towardPositive (-1 / 3)).map BitVec.toNat = some 0xbfd5555555555555 := by
   decide +kernel
 
 theorem negative_subnormal_upper_contract : TowardPositive fp16 (-1 / 33554432) 0x8000 := by

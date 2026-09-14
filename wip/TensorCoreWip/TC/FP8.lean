@@ -1,6 +1,6 @@
 -- FP8 for the tensor-core model.
 
-import TensorCore.TC.FP8Program
+import TensorCoreWip.TC.FP8Program
 import TensorCore.TC.Conversion
 import TensorCore.TC.Program.Loops
 import TensorCore.TC.CanonicalFloor

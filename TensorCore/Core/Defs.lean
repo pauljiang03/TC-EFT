@@ -43,7 +43,6 @@ instance (f : Format) : Decidable f.WellFormed := inferInstanceAs (Decidable (_ 
 /-- Packed mathematical TF32 value format; register storage is defined separately. -/
 @[implicit_reducible] def tf19 : Format := ⟨10, 8, 127⟩
 @[implicit_reducible] def fp64 : Format := ⟨52, 11, 1023⟩
-def e5m2 : Format := ⟨2, 5, 15⟩
 
 def Format.emin (f : Format) : ℤ := 1 - f.bias
 def Format.emax (f : Format) : ℤ := ((2 ^ f.exponentBits - 2 : ℕ) : ℤ) - f.bias

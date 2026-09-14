@@ -59,15 +59,7 @@
     ],
     [
       "python3",
-      "scripts/check_device_half.py"
-    ],
-    [
-      "python3",
       "scripts/check_paper_spec.py"
-    ],
-    [
-      "python3",
-      "scripts/check_device_fp8.py"
     ],
     [
       "python3",
@@ -187,12 +179,6 @@
       "lake",
       "env",
       "lean",
-      "examples/FP8.lean"
-    ],
-    [
-      "lake",
-      "env",
-      "lean",
       "examples/FoundationCompletion.lean"
     ],
     [
@@ -271,8 +257,8 @@
       "--check"
     ]
   ],
-  "targets_built": 452,
-  "audit": "2354 theorem roots audited (1414 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
+  "targets_built": 442,
+  "audit": "2307 theorem roots audited (1381 written in source); only standard Lean axioms; no placeholders or compiled reflection.",
   "program_checks": {
     "example_compiles": true,
     "rejection_cases": [
@@ -376,7 +362,7 @@
     "source_padding_accepted_cases": 142,
     "published_device_vectors": 15000,
     "new_gpu_measurements": false,
-    "source_files_hash_checked": 48,
+    "source_files_hash_checked": 38,
     "other_formats": "Deferred by user; not part of this acceptance gate"
   },
   "dot_product_checks": {
@@ -459,7 +445,7 @@
     "prior_error_does_not_roll_back": true,
     "supplied_proof_compiles": true,
     "example_compiles": true,
-    "example_elaboration_wall_seconds": 1.107509,
+    "example_elaboration_wall_seconds": 0.588712,
     "executable_dependency_checks": 3,
     "dependency_negative_control": true,
     "concrete_path": "Exact ideal prefixes, no model execution or residual ledger",
@@ -503,84 +489,84 @@
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.22407084000000022
+        "median_wall_ms_per_case": 0.27218458
       },
       {
         "products": 1,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.23521208000000016
+        "median_wall_ms_per_case": 0.20675541999999994
       },
       {
         "products": 1,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.24235374999999948
+        "median_wall_ms_per_case": 0.20941333000000006
       },
       {
         "products": 16,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.2335366700000008
+        "median_wall_ms_per_case": 0.24114833000000058
       },
       {
         "products": 16,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.2938029199999992
+        "median_wall_ms_per_case": 0.28333750000000046
       },
       {
         "products": 16,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.2920779200000001
+        "median_wall_ms_per_case": 0.2709341700000012
       },
       {
         "products": 64,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.29701457999999903
+        "median_wall_ms_per_case": 0.2595929200000002
       },
       {
         "products": 64,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.37550332999999997
+        "median_wall_ms_per_case": 0.3373124999999999
       },
       {
         "products": 64,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.5105208299999986
+        "median_wall_ms_per_case": 0.4317991599999993
       },
       {
         "products": 256,
         "path": "family",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.5166054200000003
+        "median_wall_ms_per_case": 0.4576800000000003
       },
       {
         "products": 256,
         "path": "concrete",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 0.8469674999999998
+        "median_wall_ms_per_case": 0.7664949999999982
       },
       {
         "products": 256,
         "path": "model_with_trace_and_ideal",
         "cases_per_process": 100,
         "measured_processes": 3,
-        "median_wall_ms_per_case": 1.235751249999999
+        "median_wall_ms_per_case": 1.1302445799999994
       }
     ],
     "timing_scope": "Compiled CLI batches, including process startup, parsing and JSON; 1 warmup and 3 measured processes of 100 cases. Model path also computes its exact ideal and trace report. No extraction or GPU timing claim."
@@ -611,7 +597,7 @@
           "scripts/lean/Audit.lean"
         ],
         "exit_code": 0,
-        "audit": "tc_audit: 2354 theorem roots (1414 written in source, the rest generated)"
+        "audit": "tc_audit: 2307 theorem roots (1381 written in source, the rest generated)"
       },
       {
         "command": [
@@ -650,7 +636,7 @@
         "exit_code": 0
       }
     ],
-    "scanned_lean_sources": 243,
+    "scanned_lean_sources": 237,
     "bounded_scope": "Complete eight-path encoded EFT: bounded decoding, signed extraction/overlap, guards, scalar and 576-bit exact consolidation, direct FP32 rounding; universal finite-input correctness, success/range, reference refinement, and source-level operation budgets",
     "bounded_checks": {
       "status": "passed",
@@ -680,7 +666,7 @@
       "coefficient_width": 576,
       "common_grid_exponent": -272,
       "seed": 20260907,
-      "elapsed_seconds": 12.871,
+      "elapsed_seconds": 7.893,
       "source_sha256": {
         "TensorCore/EFT/Machine/BitScan.lean": "e23c61933aaed97d9653b4389d05cab6d89b125e0f47235ac5098b9ebe123289",
         "TensorCore/EFT/Machine/BitScanDefs.lean": "4ac57052f73fdc38bf1e3497bccb35ba9b1b6c863b72958feaf4e22dffe2d0e6",
@@ -776,8 +762,8 @@
     "cases_sha256": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
     "output_sha256": "d8168f655c2d1fb8fd1a6ea79f3caa8981ed1ce8c901c19fed6c132a80f104b3",
     "timing": {
-      "lean_seconds": 15.441,
-      "total_seconds": 19.755
+      "lean_seconds": 15.171,
+      "total_seconds": 19.221
     },
     "historical_v100_experiments": {
       "reported": 100,
@@ -820,7 +806,7 @@
     "coefficient_width": 576,
     "common_grid_exponent": -272,
     "seed": 20260907,
-    "elapsed_seconds": 12.871,
+    "elapsed_seconds": 7.893,
     "source_sha256": {
       "TensorCore/EFT/Machine/BitScan.lean": "e23c61933aaed97d9653b4389d05cab6d89b125e0f47235ac5098b9ebe123289",
       "TensorCore/EFT/Machine/BitScanDefs.lean": "4ac57052f73fdc38bf1e3497bccb35ba9b1b6c863b72958feaf4e22dffe2d0e6",
@@ -951,820 +937,8 @@
       "Rejections agree as none; implementation-specific error tags are not part of the independent specification"
     ]
   },
-  "fp8_evidence": {
-    "source": "MATLAB Tensor Core v0.5, L40S/E4M3 and L40S/E5M2",
-    "commit": "bbcf00a273868172494eaacaa8d6128ab0fb8704",
-    "hashed_files": 12,
-    "paper": "https://arxiv.org/html/2512.07004v4#S4.SS1.SSS4",
-    "products_per_row": 32,
-    "products_per_group": 16,
-    "alignment_fraction_bits": 13,
-    "readings": {
-      "paper": "FP32 toward-zero final conversion",
-      "source13": "13-fraction-bit toward-zero conversion, then FP32 encoding"
-    },
-    "status": "UNRESOLVED paper/source final-precision discrepancy; source13 matches archive",
-    "no_new_gpu_measurements": true,
-    "formats": {
-      "e4m3": {
-        "vectors": 5000,
-        "readings": {
-          "paper": {
-            "compiled_oracle_comparisons": 10000,
-            "numerical_oracle_mismatches": 0,
-            "archive_bit_mismatches": 1055,
-            "first_mismatch_row_1based": 1,
-            "reversed_group_differences": 2553,
-            "merged_group_differences": 1795,
-            "first_outputs": [
-              3175055360,
-              1082292992
-            ],
-            "first_reversed_outputs": [
-              1082996224,
-              1082293248
-            ]
-          },
-          "source13": {
-            "compiled_oracle_comparisons": 10000,
-            "numerical_oracle_mismatches": 0,
-            "archive_bit_mismatches": 0,
-            "first_mismatch_row_1based": null,
-            "reversed_group_differences": 1635,
-            "merged_group_differences": 1060,
-            "first_outputs": [
-              3175055360,
-              1082292224
-            ],
-            "first_reversed_outputs": [
-              1082995712,
-              1082293248
-            ]
-          }
-        },
-        "first_row": {
-          "pairs": [
-            [
-              55,
-              49
-            ],
-            [
-              56,
-              178
-            ],
-            [
-              170,
-              45
-            ],
-            [
-              59,
-              41
-            ],
-            [
-              179,
-              191
-            ],
-            [
-              42,
-              47
-            ],
-            [
-              56,
-              188
-            ],
-            [
-              62,
-              185
-            ],
-            [
-              54,
-              27
-            ],
-            [
-              53,
-              179
-            ],
-            [
-              184,
-              181
-            ],
-            [
-              43,
-              64
-            ],
-            [
-              15,
-              135
-            ],
-            [
-              41,
-              65
-            ],
-            [
-              56,
-              33
-            ],
-            [
-              53,
-              170
-            ],
-            [
-              184,
-              183
-            ],
-            [
-              55,
-              63
-            ],
-            [
-              3,
-              178
-            ],
-            [
-              186,
-              49
-            ],
-            [
-              174,
-              173
-            ],
-            [
-              166,
-              157
-            ],
-            [
-              58,
-              184
-            ],
-            [
-              61,
-              58
-            ],
-            [
-              146,
-              61
-            ],
-            [
-              38,
-              59
-            ],
-            [
-              176,
-              155
-            ],
-            [
-              175,
-              134
-            ],
-            [
-              179,
-              188
-            ],
-            [
-              51,
-              172
-            ],
-            [
-              66,
-              18
-            ],
-            [
-              45,
-              131
-            ]
-          ],
-          "c": 1049872986,
-          "device": 1082292224
-        },
-        "zero_operands": 523,
-        "subnormal_operands": 3373
-      },
-      "e5m2": {
-        "vectors": 5000,
-        "readings": {
-          "paper": {
-            "compiled_oracle_comparisons": 10000,
-            "numerical_oracle_mismatches": 0,
-            "archive_bit_mismatches": 962,
-            "first_mismatch_row_1based": 8,
-            "reversed_group_differences": 2154,
-            "merged_group_differences": 1440,
-            "first_outputs": [
-              1042972672,
-              1081338880
-            ],
-            "first_reversed_outputs": [
-              1083091200,
-              1081339904
-            ]
-          },
-          "source13": {
-            "compiled_oracle_comparisons": 10000,
-            "numerical_oracle_mismatches": 0,
-            "archive_bit_mismatches": 0,
-            "first_mismatch_row_1based": null,
-            "reversed_group_differences": 1188,
-            "merged_group_differences": 717,
-            "first_outputs": [
-              1042972672,
-              1081338880
-            ],
-            "first_reversed_outputs": [
-              1083090944,
-              1081339904
-            ]
-          }
-        },
-        "first_row": {
-          "pairs": [
-            [
-              59,
-              56
-            ],
-            [
-              60,
-              185
-            ],
-            [
-              181,
-              54
-            ],
-            [
-              61,
-              52
-            ],
-            [
-              185,
-              191
-            ],
-            [
-              53,
-              55
-            ],
-            [
-              60,
-              190
-            ],
-            [
-              63,
-              188
-            ],
-            [
-              59,
-              45
-            ],
-            [
-              58,
-              185
-            ],
-            [
-              188,
-              186
-            ],
-            [
-              53,
-              64
-            ],
-            [
-              39,
-              163
-            ],
-            [
-              52,
-              64
-            ],
-            [
-              60,
-              48
-            ],
-            [
-              58,
-              181
-            ],
-            [
-              188,
-              187
-            ],
-            [
-              59,
-              63
-            ],
-            [
-              30,
-              185
-            ],
-            [
-              189,
-              56
-            ],
-            [
-              183,
-              182
-            ],
-            [
-              179,
-              174
-            ],
-            [
-              61,
-              188
-            ],
-            [
-              62,
-              61
-            ],
-            [
-              169,
-              62
-            ],
-            [
-              51,
-              61
-            ],
-            [
-              184,
-              173
-            ],
-            [
-              183,
-              162
-            ],
-            [
-              185,
-              190
-            ],
-            [
-              57,
-              182
-            ],
-            [
-              65,
-              41
-            ],
-            [
-              54,
-              158
-            ]
-          ],
-          "c": 1062222832,
-          "device": 1081338880
-        },
-        "zero_operands": 0,
-        "subnormal_operands": 12
-      }
-    },
-    "precision_review": {
-      "conclusion": "The paper establishes alignment width, but does not establish the source13 normalized truncation.",
-      "unresolved_claim": "After each 16-product group, must the normalized aligned sum be truncated to 13 fraction bits before FP32 encoding?",
-      "paper_locations": {
-        "section_2_pp5_6": "neab counts alignment/guard bits relative to output precision",
-        "section_4_1_4_p10": "13-fraction-bit alignment and early-c probes; both readings satisfy the reported endpoints",
-        "section_4_1_5_p10": "Ada RTX 1000 shares L40S numerical features; no additional precision rule",
-        "figure_4_p11": "(2,13,0) alignment, 20-bit sum, FP32 Norm/Trunc; no explicit normalized 13-bit boundary",
-        "table_3_p14_and_note": "FP32 output, truncation, (2,13) alignment; Acc.20 includes carry bits, not a 13-bit normalized significand"
-      },
-      "source_locations": {
-        "models/AdaTC.m:55-73,105-107": "rz, in-group c, denormalized products, floor -132, fma=16, neab=-10",
-        "models/tools/GEMM.m:80-96": "FP32 NoManBitsOut=23, then add neab=-10 to obtain 13",
-        "models/tools/Generic_BFMA_TC.m:478-489,570-589": "align and sum, then normalize with neab=-10",
-        "models/tools/Generic_BFMA_TC.m:266-293": "rz skips ieeeround; normalized mantissa slice retains NoManBitsOut=13 fraction bits",
-        "models/tools/GEMM.m:233-242": "every group calls Generic_BFMA_TC and passes its output as c"
-      },
-      "mechanism": "Alignment uses 2^(eta-13); after a carry the source normalized grid is coarser. FP32 can retain the bit lost by source13.",
-      "evidence_limit": "Archive endpoint agreement supports the source candidate on these rows, not a universal paper/source or physical-device conformance theorem.",
-      "paper_probe_caveat": "Section 4.1.4 states p1=1 but its stopping expression is 1+p1+p2; tests use the explicit numerical endpoint 1+2^-12, without silently repairing that expression.",
-      "numerical_semantics_changed": false
-    },
-    "checked_source_sha256": {
-      "TensorCore/TC/FP8Defs.lean": "56285b321cda4719fd237116839c22c75c074cad1d9ed64985b441d1890b3608",
-      "TensorCore/TC/FP8Program.lean": "ab7445bf9784ae65eb57abf573dcfb876e5a3b7ac1d4c8ecdc7525351b2657eb",
-      "TensorCore/TC/FP8.lean": "b46d0cbc6373f983240919e32968f79d19055bc52401b0f4b08d06f4720ed94a",
-      "TensorCore/TC/Regression/FP8.lean": "024354637c637e0a7285168bdc8aeec69e201137c1f59df7de0ce8a8b984b0fa",
-      "Main/Features.lean": "176ab34640f23bd045e4d0cca11a717815c84d212b71844ba2de40f592733351",
-      "scripts/check_device_fp8.py": "c300914e1e618092da4cbcef18be1a1b23a13c2f49b15dc41758ded45ca56fd6"
-    },
-    "precision_controls": [
-      {
-        "case": "carry_last",
-        "format": "e4m3",
-        "reading": "paper",
-        "outputs": [
-          0,
-          1073742336
-        ],
-        "accumulated": [
-          "0/1",
-          "16385/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "carry_last",
-        "format": "e4m3",
-        "reading": "source13",
-        "outputs": [
-          0,
-          1073741824
-        ],
-        "accumulated": [
-          "0/1",
-          "16385/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "1/8192"
-        ]
-      },
-      {
-        "case": "negative_carry_last",
-        "format": "e4m3",
-        "reading": "paper",
-        "outputs": [
-          0,
-          3221225984
-        ],
-        "accumulated": [
-          "0/1",
-          "-16385/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "negative_carry_last",
-        "format": "e4m3",
-        "reading": "source13",
-        "outputs": [
-          0,
-          3221225472
-        ],
-        "accumulated": [
-          "0/1",
-          "-16385/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "-1/8192"
-        ]
-      },
-      {
-        "case": "alignment_probe",
-        "format": "e4m3",
-        "reading": "paper",
-        "outputs": [
-          0,
-          1065355264
-        ],
-        "accumulated": [
-          "0/1",
-          "4097/4096"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "alignment_probe",
-        "format": "e4m3",
-        "reading": "source13",
-        "outputs": [
-          0,
-          1065355264
-        ],
-        "accumulated": [
-          "0/1",
-          "4097/4096"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "early_c_probe",
-        "format": "e4m3",
-        "reading": "paper",
-        "outputs": [
-          1065353216,
-          1065353216
-        ],
-        "accumulated": [
-          "1/1",
-          "1/1"
-        ],
-        "residuals": [
-          "0/1",
-          "1/8192"
-        ]
-      },
-      {
-        "case": "early_c_probe",
-        "format": "e4m3",
-        "reading": "source13",
-        "outputs": [
-          1065353216,
-          1065353216
-        ],
-        "accumulated": [
-          "1/1",
-          "1/1"
-        ],
-        "residuals": [
-          "0/1",
-          "1/8192"
-        ]
-      },
-      {
-        "case": "carry_first_absorbed",
-        "format": "e4m3",
-        "reading": "paper",
-        "outputs": [
-          1073742336,
-          1073741824
-        ],
-        "accumulated": [
-          "16385/8192",
-          "2/1"
-        ],
-        "residuals": [
-          "0/1",
-          "1/8192"
-        ]
-      },
-      {
-        "case": "carry_first_absorbed",
-        "format": "e4m3",
-        "reading": "source13",
-        "outputs": [
-          1073741824,
-          1073741824
-        ],
-        "accumulated": [
-          "16385/8192",
-          "2/1"
-        ],
-        "residuals": [
-          "1/8192",
-          "0/1"
-        ]
-      },
-      {
-        "case": "cancellation",
-        "format": "e4m3",
-        "reading": "paper",
-        "outputs": [
-          0,
-          956301312
-        ],
-        "accumulated": [
-          "0/1",
-          "1/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "cancellation",
-        "format": "e4m3",
-        "reading": "source13",
-        "outputs": [
-          0,
-          956301312
-        ],
-        "accumulated": [
-          "0/1",
-          "1/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "carry_last",
-        "format": "e5m2",
-        "reading": "paper",
-        "outputs": [
-          0,
-          1073742336
-        ],
-        "accumulated": [
-          "0/1",
-          "16385/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "carry_last",
-        "format": "e5m2",
-        "reading": "source13",
-        "outputs": [
-          0,
-          1073741824
-        ],
-        "accumulated": [
-          "0/1",
-          "16385/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "1/8192"
-        ]
-      },
-      {
-        "case": "negative_carry_last",
-        "format": "e5m2",
-        "reading": "paper",
-        "outputs": [
-          0,
-          3221225984
-        ],
-        "accumulated": [
-          "0/1",
-          "-16385/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "negative_carry_last",
-        "format": "e5m2",
-        "reading": "source13",
-        "outputs": [
-          0,
-          3221225472
-        ],
-        "accumulated": [
-          "0/1",
-          "-16385/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "-1/8192"
-        ]
-      },
-      {
-        "case": "alignment_probe",
-        "format": "e5m2",
-        "reading": "paper",
-        "outputs": [
-          0,
-          1065355264
-        ],
-        "accumulated": [
-          "0/1",
-          "4097/4096"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "alignment_probe",
-        "format": "e5m2",
-        "reading": "source13",
-        "outputs": [
-          0,
-          1065355264
-        ],
-        "accumulated": [
-          "0/1",
-          "4097/4096"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "early_c_probe",
-        "format": "e5m2",
-        "reading": "paper",
-        "outputs": [
-          1065353216,
-          1065353216
-        ],
-        "accumulated": [
-          "1/1",
-          "1/1"
-        ],
-        "residuals": [
-          "0/1",
-          "1/8192"
-        ]
-      },
-      {
-        "case": "early_c_probe",
-        "format": "e5m2",
-        "reading": "source13",
-        "outputs": [
-          1065353216,
-          1065353216
-        ],
-        "accumulated": [
-          "1/1",
-          "1/1"
-        ],
-        "residuals": [
-          "0/1",
-          "1/8192"
-        ]
-      },
-      {
-        "case": "carry_first_absorbed",
-        "format": "e5m2",
-        "reading": "paper",
-        "outputs": [
-          1073742336,
-          1073741824
-        ],
-        "accumulated": [
-          "16385/8192",
-          "2/1"
-        ],
-        "residuals": [
-          "0/1",
-          "1/8192"
-        ]
-      },
-      {
-        "case": "carry_first_absorbed",
-        "format": "e5m2",
-        "reading": "source13",
-        "outputs": [
-          1073741824,
-          1073741824
-        ],
-        "accumulated": [
-          "16385/8192",
-          "2/1"
-        ],
-        "residuals": [
-          "1/8192",
-          "0/1"
-        ]
-      },
-      {
-        "case": "cancellation",
-        "format": "e5m2",
-        "reading": "paper",
-        "outputs": [
-          0,
-          956301312
-        ],
-        "accumulated": [
-          "0/1",
-          "1/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      },
-      {
-        "case": "cancellation",
-        "format": "e5m2",
-        "reading": "source13",
-        "outputs": [
-          0,
-          956301312
-        ],
-        "accumulated": [
-          "0/1",
-          "1/8192"
-        ],
-        "residuals": [
-          "0/1",
-          "0/1"
-        ]
-      }
-    ],
-    "exhaustive_decode_comparisons": 512,
-    "boundary_comparisons": 52,
-    "wrong_shape_checks": 4,
-    "precision_control_comparisons": 24,
-    "parser_negative_controls": 4,
-    "corrupt_trace_negative_controls": 12,
-    "archive_comparisons": 20000,
-    "reversed_group_comparisons": 20000,
-    "paper_archive_mismatches": 2017,
-    "source13_archive_mismatches": 0,
-    "numerical_oracle_mismatches": 0
-  },
+  "archived_candidate_checks_excluded": true,
+  "archived_candidate_checks": "python3 wip/scripts/check.py",
   "gemm_checks": {
     "status": "passed",
     "seed": 20260906,
@@ -1799,7 +973,7 @@
     ],
     "input_sha256": "b4b3dd8afebed92eff562650d11fd2e6ea2330a88a20192084780f8c95fda8ac",
     "output_sha256": "2618a5d29fb1c166e3ebed926dda392f6a0206147a31d57e4ef3742560d3f605",
-    "elapsed_seconds": 5.559,
+    "elapsed_seconds": 5.679,
     "limitations": [
       "Executable comparisons, not additional universal proofs.",
       "Matrix-level instruction semantics; no CUDA memory/lane refinement.",
@@ -1868,10 +1042,10 @@
       "TensorCore/Cli/IEEE.lean": "02f26393e23a729b693ae9d68d7f029c7ab19ee8fe3795d412e7133ce84a7016",
       "TensorCore/Core/Binary/Bijection.lean": "c5ff1e8cf8bf6a282a18742ae4d11faa99b6c88dffa0c5d20b81d31a4e440717",
       "TensorCore/Core/Binary/ConversionBounds.lean": "1f696319feb770053cd2c45aab7915a7000c6e27935ff4fc2cc265f6136ca170",
-      "TensorCore/Core/Binary/CorrectRounding.lean": "d2d6a6d74acca498c845c38473dc4c00dd5c759066a447c06acc9b3d0ec5f66e",
+      "TensorCore/Core/Binary/CorrectRounding.lean": "e24e029c56ae0a795e8401dff63095918401ca1a0d9dddc51a1e1b55ca76fa8d",
       "TensorCore/Core/Binary/Defs.lean": "0fa763366b0bb7ec0b1a2f2c6ad4ec09e70274e39390a4252473a3582da700d2",
       "TensorCore/Core/Binary/DirectedRounding.lean": "87a9a4c46cc0cf480004336763d55217b7f3435e30e7bfa132a49fed647ed643",
-      "TensorCore/Core/Binary/Encoding.lean": "2f239ffa76a0ffc7d3106ff35467aa4e63de31b2db53e0188a35ba13b5e052cc",
+      "TensorCore/Core/Binary/Encoding.lean": "bf64d728379fd35a1e494b6fee7e55ca583af48955278f5df4ef5927052c9dae",
       "TensorCore/Core/Binary/MagnitudeScale.lean": "3e5fe8a71dbefcaa4537b3db6ba70f4e433e2e45388e250c81ba625c4db70866",
       "TensorCore/Core/Binary/ResidualBudget.lean": "ddfb57d83e4c93dadee319231f178c027cfb0beedba7a405e30a22debacea70b",
       "TensorCore/Core/Binary/RoundOp.lean": "afdcbbaab2aad95a677980520526cace59b42632e8a0da568441e863ff61cece",
@@ -1882,11 +1056,11 @@
       "TensorCore/Core/Conversion.lean": "268df8390b44c8420dbc82c656d99823db1307053af1d8b1a7b55b86a5bb1b05",
       "TensorCore/Core/ConversionBounds.lean": "5192f32543afc8f3c2e0da1c9026a259732f45a4a7d0acd421eb8b1d011ee7ea",
       "TensorCore/Core/CorrectRounding.lean": "9cfc533e9e231c20d0ec2e3a0df1e87fa3aea63d20342300ca88909680c27f01",
-      "TensorCore/Core/Defs.lean": "2e640c5d6ed2c7871cf69417b34a4c68688c8f6e78de852dd87a3c1550d43839",
+      "TensorCore/Core/Defs.lean": "a9d80698dc0c15a2b59b14d4bc9cb9cf726d38a1e035853d53673b9278a7d1e1",
       "TensorCore/Core/Encoding.lean": "3d26dcf3f119dc687b1677ac9c8a59b6d4ff5ce38c8a4c31f11321f73ce69f41",
       "TensorCore/Core/EncodingProperties.lean": "0413a3492afde82e1b4081b407fab9605c9ba2400e29e7a08185c3020160cd1d",
       "TensorCore/Core/Exact.lean": "8afc311c4d0bded577d9665420769604b906f54d28b639fed76d566d4b16a9d4",
-      "TensorCore/Core/Format.lean": "721aa2af16c5cb9927c999014ba5bd3d0d5c1bfdad73028a75d49c693ce0f888",
+      "TensorCore/Core/Format.lean": "ae208f6d0a4b0c6958abcb9563915220425985d6e82e6c7fed36889150434c29",
       "TensorCore/Core/FormatProperties.lean": "4180b5aab8c2567df622403db60a20b62b83b40ecca233b4fe9de3272609baeb",
       "TensorCore/Core/Notation.lean": "4553fdbd68f1fd7ac0a927f23889375d1a3ae86e9ac321b160de7da9f6c9aeac",
       "TensorCore/Core/RawProduct.lean": "fe42cb8a9cfd1d7e6e3cd4591214a13e5ad0495ec7c516748747e240b2dc5cc7",
@@ -2018,15 +1192,12 @@
       "TensorCore/TC/CanonicalFormatDefs.lean": "a87516bdfaa13c0242183cc0286ad66ab13c865bc2c3f6e95a611c9e6f50346d",
       "TensorCore/TC/CanonicalFormats.lean": "09fdf0cae6efa55316a3df1be5825cc0bd93c70b7dde51e376170064a348d7ed",
       "TensorCore/TC/Compatibility.lean": "d11c50e088d0c9885a805afed08d5b0a426a242e99860bc57a961136680d7223",
-      "TensorCore/TC/Conversion.lean": "e2ad55824cb7090345c540b6f70899f9ca44fc0ba0d04ab095307e1c47ad2999",
+      "TensorCore/TC/Conversion.lean": "197259dacb6a94a381793edb103d6d0fd8bc5b5d2dd87c5f379d6beb2feddede",
       "TensorCore/TC/Defs.lean": "ababf0fb64e1035ef854aea1780735a0c92ed82a75fb2796c9e13a98a396a249",
       "TensorCore/TC/EncodedMonotonicity.lean": "c775087a5a4f806f14d07eb42e0488751115fd40daabd241cd2e6940c6c52620",
       "TensorCore/TC/ErrorBounds.lean": "9bc25aae1dc9a72c89605d1d6e950613ff74f42cb99b706115dde6cb58c72507",
       "TensorCore/TC/ExactAlignment.lean": "1d2386bbd186835f0c41c56260dc8e3996621c16ea287ab6481893b9126f5154",
       "TensorCore/TC/Examples/BoundedDot.lean": "84d11e13320f43a578f0bb371f84088d30a27722a6085fe55b7008ca5b7d9dc7",
-      "TensorCore/TC/FP8.lean": "b46d0cbc6373f983240919e32968f79d19055bc52401b0f4b08d06f4720ed94a",
-      "TensorCore/TC/FP8Defs.lean": "56285b321cda4719fd237116839c22c75c074cad1d9ed64985b441d1890b3608",
-      "TensorCore/TC/FP8Program.lean": "ab7445bf9784ae65eb57abf573dcfb876e5a3b7ac1d4c8ecdc7525351b2657eb",
       "TensorCore/TC/Flowback.lean": "7a97c1cec0d2a77030ec0ad9c9c00af1ce2a003f829b08eaf69a4f1f00c0deea",
       "TensorCore/TC/FusedRounding.lean": "c3bb2e7f2601d6cd47c327d9455b43f2fcd864824cf985d9bc1ea115d79958b4",
       "TensorCore/TC/Instruction.lean": "31fc12bf433e9c3dab8f5235ab555babaeee7ef42a957163009e7ba3c87eb159",
@@ -2036,7 +1207,7 @@
       "TensorCore/TC/Monotonicity.lean": "a12b302443c180556e8bcb5201a22662ef68adcebf25af649b3ea6c2e90124c3",
       "TensorCore/TC/MonotonicityRange.lean": "77eec6ac5a1d6e596fe469ad0f6047fa3e80cffa7ed509beffc3bf828b2a0c30",
       "TensorCore/TC/Padding.lean": "d9445108e0b12b2941b06a8219c9f116872f0980399db8aebd7f815af3825537",
-      "TensorCore/TC/Profiles.lean": "44c0adcde422f89701defdf3a73b595232247103bc83f8e06be68c3b27e10cd5",
+      "TensorCore/TC/Profiles.lean": "bb494bd09173a94879200ddba4261439d8de10eef35e134f329b9077920625ac",
       "TensorCore/TC/Program/Bounds/Local.lean": "fa6fc76697e52d4d2cc519158971ebbfe63210846873eb49d83141a3455a0b28",
       "TensorCore/TC/Program/Bounds/Loops.lean": "b6d83176543b4f160a5e8f379a48a4cc80fbf999501f52dc82c6331c19a67fb6",
       "TensorCore/TC/Program/Bounds/Scales.lean": "9d84e164280004121665e75707c121844b117372cd4f85a60315bd0bd32152d7",
@@ -2052,16 +1223,14 @@
       "TensorCore/TC/Program/Report.lean": "7ac88260d41d1f491f8787fb3cde923d817940cfb72f11d6096f7e5d59b1eb62",
       "TensorCore/TC/Program/StaticCertificate.lean": "0b2c5286e5f9d6f2e04bd0043c2b2781e81a366c4011d31ec00325fdcac311f5",
       "TensorCore/TC/Regression/Application.lean": "e93423c18b3a0262d550931e8a9231099e46943a77befb48c9d7c7e84f963b56",
-      "TensorCore/TC/Regression/BinaryRounding.lean": "2a890ed20ad519681c8499746ff1f2324df6d1f65c82c6fbcce2ffa75ca5e9d3",
+      "TensorCore/TC/Regression/BinaryRounding.lean": "696eaddc2b33937bd3a3810123e2a3e03e62a5db90c8d78f2482873ba710f04d",
       "TensorCore/TC/Regression/CanonicalFormats.lean": "c2dcc06f4571d9377c75d3fd483692ef0c44b55f347a47b274be8db908a73b78",
       "TensorCore/TC/Regression/Cases.lean": "faebf40f2eeafc381f95011ca415c17c21fcb7ef3ae7525c906612bca5475700",
       "TensorCore/TC/Regression/Certification.lean": "5c7caa0f3b11a55696c2b35c4a2313ae0f1f4dd25ae5cad27c0d4c53b8b3586f",
       "TensorCore/TC/Regression/Composition.lean": "da9a741e627d5ef45ebd630600b1a0a740d6f46f99299d05053301156585d11e",
-      "TensorCore/TC/Regression/DirectedBinary.lean": "ebadc9c5114d7c6aa02296951ba4ca2cfa200c595262fd832537c51ae68b0062",
+      "TensorCore/TC/Regression/DirectedBinary.lean": "e368affdd6a0007f481e5141d7f635da57865f8a1b10ad380c705161d5b38811",
       "TensorCore/TC/Regression/DotProduct.lean": "64c1751cf258edb38ba2b1f803bf1bf4c2b5134e74f31a727eb87352aebb2529",
-      "TensorCore/TC/Regression/FP8.lean": "024354637c637e0a7285168bdc8aeec69e201137c1f59df7de0ce8a8b984b0fa",
       "TensorCore/TC/Regression/Features.lean": "3d09e21b56a51a48579e96a8ea69b6699948fb543b090a663d38ddd4bb94f80e",
-      "TensorCore/TC/Regression/HalfOutput.lean": "bd66a80ab5d22c237e6075bc7a1608fd6d79e14253607ef3ae4ec32545dc6aea",
       "TensorCore/TC/Regression/Instruction.lean": "545df8295f8447a2a8f75ba5bf35216886aff3787e806563d190c32e9e6a2508",
       "TensorCore/TC/Regression/Monotonicity.lean": "41c10b0d4cbb98e17c80f5bcfc744215d0736e0201406dc82200ea7df4bbc88f",
       "TensorCore/TC/Regression/Programs.lean": "e10357c157d51754df27bc9cd8114d0f001edad0ebdef5030ce1a8138d6b9f4e",
@@ -2077,15 +1246,15 @@
       "TensorCore/TC/Specification/Supported.lean": "707d5b1d05cdb5ca41394c8c6af4fc5a63c8fa271d43a92db99f513ca0f7bfc3",
       "TensorCore/TC/StageResiduals.lean": "d332fa3c517990d543b1773c4f8c55406cb24cff3ad8971ac308f71a677dc952",
       "TensorCore/TC/StaticBudget.lean": "603231f876ad7a9f1d9c4e03ead14e011c9c90144bc256206f1b44e971a2ed44",
-      "TensorCore/TC.lean": "db417e827179ca0ab3d5f8365c24c6b267b47c4b0e33e83eb347b3cd1c6f7779",
-      "TensorCore/Tests.lean": "09994dacf884897b1269acfdc3061a8798ac1536758dfa82454cf81fc3d7f7bc",
+      "TensorCore/TC.lean": "7f054b9e229c150189986b18e3b13d232d237ecd30b6b679cf7c02f7984b941e",
+      "TensorCore/Tests.lean": "59452a3260513f24cbc1769e669119fbe0283c9e384569f9a44f36f38d083a8c",
       "TensorCore.lean": "2ad9289a042b596c60597f7b72c15076fdb2d55ca5d075b7c7f20f0d022426e6",
       "examples/GemmExtensions.lean": "4ad7a1eac6d5075ccd1b4ca79dfce2d9a53c34b5ebaea37b5942013d4580fb8e",
       "scripts/check_gemm.py": "f949761812d4b36a6b22859ac1868fda8a203d707484ca3333d2b01d1e572f9b",
       "scripts/check_features.py": "ac24baa73a45a5754c8087b6b5cde67b908e421811d4b89bcba9cad2dee995e3",
       "scripts/check_gemm_extensions.py": "bf866daf57e62f430e3d047699f38915374c438b651233fdb38bacad679a57fe"
     },
-    "elapsed_seconds": 425.501,
+    "elapsed_seconds": 379.763,
     "limitations": [
       "Independent implementation of the same numerical specification; no new GPU data.",
       "Scalar exact zeros canonicalize to +0; finite reference domain.",
@@ -2127,7 +1296,7 @@
       "cost-kernel-rejection",
       "invalid-format-model-width-mode"
     ],
-    "elapsed_seconds": 17.166,
+    "elapsed_seconds": 10.643,
     "source_sha256": {
       "TensorCore/Gemm/MatrixConversion.lean": "904c87ba2bcbc9e729c34dda787ae6701f859cd6280914f6da4e88a465b57a22",
       "TensorCore/Gemm/NativeScaledGemm.lean": "6ec54c4a1cfa26a31a32566a39f132b58cc95539411fa6e1f9856e283e8d5beb",
@@ -2501,7 +1670,7 @@
       "TensorCore.Regression.NativeScaled.source_loss_changes_selection",
       "TensorCore.Regression.NativeScaled.selected_accuracy"
     ],
-    "local_readme_links_checked": 59,
+    "local_readme_links_checked": 60,
     "human_sign_off": false,
     "novelty_assessed": false,
     "external_paper_review_repeated": false,
@@ -2543,7 +1712,7 @@
       "TensorCore/TC/Program/Bounds/Loops.lean": "b6d83176543b4f160a5e8f379a48a4cc80fbf999501f52dc82c6331c19a67fb6",
       "TensorCore/TC/Program/Composition.lean": "bf2459a6d5f7218debeec68328d58136af5873283983ce2073386cc290434229",
       "TensorCore/TC/Specification/Supported.lean": "707d5b1d05cdb5ca41394c8c6af4fc5a63c8fa271d43a92db99f513ca0f7bfc3",
-      "docs/reference.md": "a8adbb9f85d8e3436752da900f8614b1cf27fec39ae66ced5b820fad16d3c427",
+      "docs/reference.md": "ae426ed0e2abcd456596f26c0827b8eff84179837d9fd8e6ea56baa8117fcfce",
       "scripts/check_review_claims.py": "d8ea1fed3672212dcf556bf3ccb3970c0da9223bb96e4f6e89a7d30f2809878c"
     }
   },
@@ -2560,10 +1729,10 @@
     "readme_local_links": true,
     "source_sha256": {
       "tc": "2eaca48c79f2a3c32ffac1c59bebb301f306b02b39339e167d90793290c1fe2d",
-      "README.md": "d894b8a08ec314e4a7277910a517a2650a297ae05b45d76cd9b478d4865697e7",
+      "README.md": "659af2293fdaf33397341a349256e5d2fe8c3f0c5ec4c8eb3fc6efbf8bc78019",
       "Main/Gemm.lean": "01d4eb8a0dc515ea45b0262511a4273be6bd15a69f4cfa790ae2077b0dd1b357",
       "TensorCore/Gemm/Cli/Gemm.lean": "5c211fbf82ae66fa800713f358e4185dee6df0fff9b5e78aa2c50061560bdbb4",
-      "lakefile.toml": "cd70fd58f3b6b479fc891ad66368ed1c84d7be47b98304aa9ae3ddba75477559",
+      "lakefile.toml": "b6cef668b8c186d0616bf3af084140ccedba1a0fefd489f073140bd6335894c6",
       "data/schemas/gemm.schema.json": "456e89fbc681c034867eb6424d0513b4ece69b21808a6434208593d0a64394ff",
       "data/examples/gemm.raw.jsonl": "041f1419a3db1f06dfc157ae9ca7305c27cd852e6402be29fe482fc95beba692",
       "data/examples/eft.txt": "4104fdbd5ab534f7dd69698cf0bd9353306fb29aa658d0530694de75fdc2935a",
@@ -2612,8 +1781,8 @@
       }
     ],
     "input_only_dependency_audit": true,
-    "native_analysis_seconds": 0.105,
-    "elapsed_seconds": 11.892,
+    "native_analysis_seconds": 0.084,
+    "elapsed_seconds": 6.26,
     "source_sha256": {
       "TensorCore/TC/Program/Bounds/Local.lean": "fa6fc76697e52d4d2cc519158971ebbfe63210846873eb49d83141a3455a0b28",
       "TensorCore/TC/Program/GroupAnalysis.lean": "5f70bb691c7eecd51c6fce0470647ef81b23cd969bd4dc15f5e26ef746301fc3",
@@ -2654,7 +1823,7 @@
       "mixed_inconclusive_export_refused",
       "invalid_family_ranges_rejected"
     ],
-    "elapsed_seconds": 17.285,
+    "elapsed_seconds": 12.627,
     "source_sha256": {
       "TensorCore/Gemm/ScalarAnalysis.lean": "6d8851df84ed8c07342a48e34f4ee4a568640eb4f3e5656a8b6929c6c882f4d6",
       "TensorCore/Gemm/ExactScalarAnalysis.lean": "e599619fb7bec6e91ca2247ff77dfd77857996ad7167af8deab215a63e7c05d0",
@@ -2700,7 +1869,7 @@
     ],
     "entry_family_matrix_bound": "4582416657/8796093022208",
     "uniform_matrix_bound": "273/131072",
-    "elapsed_seconds": 17.333,
+    "elapsed_seconds": 9.968,
     "limitations": [
       "Native integration covers encoded raw AB+C with FP32 output.",
       "Per-entry caps are reduced to row and column maxima for each output bound.",
@@ -2763,12 +1932,12 @@
         "selected": 9
       }
     },
-    "native_selection_batch_seconds": 1.767,
-    "native_analysis_batch_seconds": 1.151,
+    "native_selection_batch_seconds": 1.53,
+    "native_analysis_batch_seconds": 1.14,
     "certificate_cases": 7,
     "certificate_bytes": 12991,
-    "certificate_render_seconds": 0.004,
-    "kernel_replay_seconds": 1.719,
+    "certificate_render_seconds": 0.002,
+    "kernel_replay_seconds": 1.318,
     "kernel_replay": true,
     "input_only_dependency_audit": true,
     "negative_controls": [
@@ -2799,7 +1968,7 @@
         "k": 64,
         "candidates": 3,
         "selected_index": 1,
-        "native_process_seconds": 0.2154
+        "native_process_seconds": 0.0216
       },
       {
         "m": 4,
@@ -2807,7 +1976,7 @@
         "k": 64,
         "candidates": 3,
         "selected_index": 1,
-        "native_process_seconds": 0.0819
+        "native_process_seconds": 0.0625
       },
       {
         "m": 16,
@@ -2815,10 +1984,10 @@
         "k": 64,
         "candidates": 3,
         "selected_index": 1,
-        "native_process_seconds": 0.9563
+        "native_process_seconds": 0.6929
       }
     ],
-    "elapsed_seconds": 37.04,
+    "elapsed_seconds": 22.715,
     "source_sha256": {
       "TensorCore/Gemm/Selection.lean": "5ea1f30c72610e55f79b182baa2db2c152437bdac6ddd747afd0a8e8b5eeb5b7",
       "TensorCore/Gemm/Cli/GemmSelection.lean": "3ff25b179593d49b0cafa3146001bdc2ed123e3ee89ea4afd826d3d8d73ce3e7",
@@ -2883,20 +2052,22 @@
   "linker_warnings": 6,
   "layout_checks": {
     "status": "passed",
-    "modules": 216,
+    "modules": 211,
     "core_has_no_application_dependencies": true,
     "tc_has_no_eft_or_gemm_dependencies": true,
     "eft_has_no_gemm_dependencies": true,
+    "active_sources_exclude_wip_imports": true,
+    "default_targets_exclude_wip": true,
     "full_import_covers_every_module": true
   },
   "proof_documentation": {
     "status": "passed",
-    "source_theorems": 1431,
-    "source_declarations": 2397,
-    "compiled_declarations": 9259,
-    "modules": 207,
+    "source_theorems": 1398,
+    "source_declarations": 2338,
+    "compiled_declarations": 9084,
+    "modules": 202,
     "high_level_claims": 21,
-    "readme_bytes": 265154,
+    "readme_bytes": 268014,
     "checked": true
   },
   "ieee_checks": {
@@ -2943,7 +2114,7 @@
       "scripts/check_ieee.py": "1177aabeff9b1de0bd5a5afaa71a990e262824fd70a10fe61e41b11db932f828",
       "tests/ieee/softfloat_oracle.c": "9255fdb61c41ab2e59f3e9ac24a1b0fc08b04458e1a4de45c5ee5df7c1f09a85"
     },
-    "elapsed_seconds": 33.491
+    "elapsed_seconds": 30.289
   },
   "lean_ieee_checks": {
     "status": "passed",
@@ -2977,7 +2148,7 @@
       "Main/LeanIEEECheck.lean": "7538528c409cdc1cb9cb7beb00884bf41306157924fe1e097f5f3ccd5fd425c2",
       "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
       "TensorCore/Cli/IEEE.lean": "02f26393e23a729b693ae9d68d7f029c7ab19ee8fe3795d412e7133ce84a7016",
-      "lakefile.toml": "cd70fd58f3b6b479fc891ad66368ed1c84d7be47b98304aa9ae3ddba75477559",
+      "lakefile.toml": "b6cef668b8c186d0616bf3af084140ccedba1a0fefd489f073140bd6335894c6",
       "TensorCore/IEEE/Basic.lean": "d37552974f408c710f3443534c52a9586cc6d55bbb5a7e57ae10ea3311ead89d",
       "TensorCore/IEEE/Compatibility.lean": "3874d16c30d0b8eee109eb83d5559cd72bd65b1a87b4437f19e6c4fa86359776",
       "TensorCore/IEEE/LeanBridge.lean": "f5a0c26f48f29103d907383f57ab53eec98c0c45d86e4b7a1426283c5e0fd3d5",
@@ -2991,7 +2162,7 @@
       "TensorCore/IEEE/Rounding.lean": "7c90162a6697874d41b13cf5e808540b8b1fc635689d029572555fc39f5977fb",
       "TensorCore/IEEE/Specification.lean": "24aa3bdd79e6cdf3fd0edc1c7901ab556178b729639a5fdd4edbca581b30fb84"
     },
-    "elapsed_seconds": 8.445
+    "elapsed_seconds": 7.845
   },
   "lean_eft_checks": {
     "status": "passed",
@@ -3024,7 +2195,7 @@
       "Main/LeanEFTCheck.lean": "b52df659d2762ae1c0401983bf632405a89c83effd29a3fbb5ace69e74ea6390",
       "Main/BoundedEFT.lean": "ada4aabe4793ab2b1bc224cfa643e8fbaac6cb93a8fb46429ac0d01946332838",
       "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
-      "lakefile.toml": "cd70fd58f3b6b479fc891ad66368ed1c84d7be47b98304aa9ae3ddba75477559",
+      "lakefile.toml": "b6cef668b8c186d0616bf3af084140ccedba1a0fefd489f073140bd6335894c6",
       "TensorCore/EFT/Native.lean": "f2ea9cc64e2dee83df7172d2f790c578f11721e0d1b0932e0cc13837ad80ffa6",
       "TensorCore/EFT/Bounded.lean": "18ab02e8edd9d0bb8fea26d2150ac21308584ec14eb9ab6fef64849d375b5f8a",
       "TensorCore/EFT/Regression/NativeEFT.lean": "6318e244c030ac9bc288864577457535d34d4e25ab531d3f393d1d1a3b3346dc",
@@ -3059,27 +2230,27 @@
       "TensorCore/EFT/Machine/Word.lean": "b95cbd942740963f0c7136d21033b109d5bb6d9663e1b542d4f1533cfbb54637",
       "TensorCore/EFT/Machine/WordDefs.lean": "3f3c72e1e50b858c7e6c247425633181fa0c3dc3d71c80b163d63c1d3511de3f"
     },
-    "elapsed_seconds": 3.831
+    "elapsed_seconds": 3.687
   },
   "source_sha256": {
     ".gitignore": "01336a4787a8835196eb9311beb448b543f0914c1d69fdd6003cfccfe4a1354c",
     "Main/BoundedEFT.lean": "ada4aabe4793ab2b1bc224cfa643e8fbaac6cb93a8fb46429ac0d01946332838",
     "Main/EFT.lean": "ffbfd30313a991c9ea108ecd4cb7bf5f4f08e7277ff239e7108cea76995a4632",
-    "Main/Features.lean": "176ab34640f23bd045e4d0cca11a717815c84d212b71844ba2de40f592733351",
+    "Main/Features.lean": "b52ce394e1054ab4fef31a65d4661bd9a57b42382c2c0d31b8aa89f61dfb97b6",
     "Main/Gemm.lean": "01d4eb8a0dc515ea45b0262511a4273be6bd15a69f4cfa790ae2077b0dd1b357",
     "Main/IEEE.lean": "34a4efd53580c22af5948e2a10550791263d0c4774686b5e05a1d7533e13d148",
     "Main/LeanEFTCheck.lean": "b52df659d2762ae1c0401983bf632405a89c83effd29a3fbb5ace69e74ea6390",
     "Main/LeanIEEECheck.lean": "7538528c409cdc1cb9cb7beb00884bf41306157924fe1e097f5f3ccd5fd425c2",
     "Main/Trace.lean": "f1b56cb552b7d2fc40af2a5d230411a8d147dc4d3c6ee0f0a130a76627384f53",
-    "README.md": "d894b8a08ec314e4a7277910a517a2650a297ae05b45d76cd9b478d4865697e7",
+    "README.md": "659af2293fdaf33397341a349256e5d2fe8c3f0c5ec4c8eb3fc6efbf8bc78019",
     "TensorCore/All.lean": "afe6fa9ac61ef36d592545c81323e2ea1cd152115b502cc5bcec1d6ddc00c56c",
     "TensorCore/Cli/IEEE.lean": "02f26393e23a729b693ae9d68d7f029c7ab19ee8fe3795d412e7133ce84a7016",
     "TensorCore/Core/Binary/Bijection.lean": "c5ff1e8cf8bf6a282a18742ae4d11faa99b6c88dffa0c5d20b81d31a4e440717",
     "TensorCore/Core/Binary/ConversionBounds.lean": "1f696319feb770053cd2c45aab7915a7000c6e27935ff4fc2cc265f6136ca170",
-    "TensorCore/Core/Binary/CorrectRounding.lean": "d2d6a6d74acca498c845c38473dc4c00dd5c759066a447c06acc9b3d0ec5f66e",
+    "TensorCore/Core/Binary/CorrectRounding.lean": "e24e029c56ae0a795e8401dff63095918401ca1a0d9dddc51a1e1b55ca76fa8d",
     "TensorCore/Core/Binary/Defs.lean": "0fa763366b0bb7ec0b1a2f2c6ad4ec09e70274e39390a4252473a3582da700d2",
     "TensorCore/Core/Binary/DirectedRounding.lean": "87a9a4c46cc0cf480004336763d55217b7f3435e30e7bfa132a49fed647ed643",
-    "TensorCore/Core/Binary/Encoding.lean": "2f239ffa76a0ffc7d3106ff35467aa4e63de31b2db53e0188a35ba13b5e052cc",
+    "TensorCore/Core/Binary/Encoding.lean": "bf64d728379fd35a1e494b6fee7e55ca583af48955278f5df4ef5927052c9dae",
     "TensorCore/Core/Binary/MagnitudeScale.lean": "3e5fe8a71dbefcaa4537b3db6ba70f4e433e2e45388e250c81ba625c4db70866",
     "TensorCore/Core/Binary/ResidualBudget.lean": "ddfb57d83e4c93dadee319231f178c027cfb0beedba7a405e30a22debacea70b",
     "TensorCore/Core/Binary/RoundOp.lean": "afdcbbaab2aad95a677980520526cace59b42632e8a0da568441e863ff61cece",
@@ -3090,11 +2261,11 @@
     "TensorCore/Core/Conversion.lean": "268df8390b44c8420dbc82c656d99823db1307053af1d8b1a7b55b86a5bb1b05",
     "TensorCore/Core/ConversionBounds.lean": "5192f32543afc8f3c2e0da1c9026a259732f45a4a7d0acd421eb8b1d011ee7ea",
     "TensorCore/Core/CorrectRounding.lean": "9cfc533e9e231c20d0ec2e3a0df1e87fa3aea63d20342300ca88909680c27f01",
-    "TensorCore/Core/Defs.lean": "2e640c5d6ed2c7871cf69417b34a4c68688c8f6e78de852dd87a3c1550d43839",
+    "TensorCore/Core/Defs.lean": "a9d80698dc0c15a2b59b14d4bc9cb9cf726d38a1e035853d53673b9278a7d1e1",
     "TensorCore/Core/Encoding.lean": "3d26dcf3f119dc687b1677ac9c8a59b6d4ff5ce38c8a4c31f11321f73ce69f41",
     "TensorCore/Core/EncodingProperties.lean": "0413a3492afde82e1b4081b407fab9605c9ba2400e29e7a08185c3020160cd1d",
     "TensorCore/Core/Exact.lean": "8afc311c4d0bded577d9665420769604b906f54d28b639fed76d566d4b16a9d4",
-    "TensorCore/Core/Format.lean": "721aa2af16c5cb9927c999014ba5bd3d0d5c1bfdad73028a75d49c693ce0f888",
+    "TensorCore/Core/Format.lean": "ae208f6d0a4b0c6958abcb9563915220425985d6e82e6c7fed36889150434c29",
     "TensorCore/Core/FormatProperties.lean": "4180b5aab8c2567df622403db60a20b62b83b40ecca233b4fe9de3272609baeb",
     "TensorCore/Core/Notation.lean": "4553fdbd68f1fd7ac0a927f23889375d1a3ae86e9ac321b160de7da9f6c9aeac",
     "TensorCore/Core/RawProduct.lean": "fe42cb8a9cfd1d7e6e3cd4591214a13e5ad0495ec7c516748747e240b2dc5cc7",
@@ -3226,15 +2397,12 @@
     "TensorCore/TC/CanonicalFormatDefs.lean": "a87516bdfaa13c0242183cc0286ad66ab13c865bc2c3f6e95a611c9e6f50346d",
     "TensorCore/TC/CanonicalFormats.lean": "09fdf0cae6efa55316a3df1be5825cc0bd93c70b7dde51e376170064a348d7ed",
     "TensorCore/TC/Compatibility.lean": "d11c50e088d0c9885a805afed08d5b0a426a242e99860bc57a961136680d7223",
-    "TensorCore/TC/Conversion.lean": "e2ad55824cb7090345c540b6f70899f9ca44fc0ba0d04ab095307e1c47ad2999",
+    "TensorCore/TC/Conversion.lean": "197259dacb6a94a381793edb103d6d0fd8bc5b5d2dd87c5f379d6beb2feddede",
     "TensorCore/TC/Defs.lean": "ababf0fb64e1035ef854aea1780735a0c92ed82a75fb2796c9e13a98a396a249",
     "TensorCore/TC/EncodedMonotonicity.lean": "c775087a5a4f806f14d07eb42e0488751115fd40daabd241cd2e6940c6c52620",
     "TensorCore/TC/ErrorBounds.lean": "9bc25aae1dc9a72c89605d1d6e950613ff74f42cb99b706115dde6cb58c72507",
     "TensorCore/TC/ExactAlignment.lean": "1d2386bbd186835f0c41c56260dc8e3996621c16ea287ab6481893b9126f5154",
     "TensorCore/TC/Examples/BoundedDot.lean": "84d11e13320f43a578f0bb371f84088d30a27722a6085fe55b7008ca5b7d9dc7",
-    "TensorCore/TC/FP8.lean": "b46d0cbc6373f983240919e32968f79d19055bc52401b0f4b08d06f4720ed94a",
-    "TensorCore/TC/FP8Defs.lean": "56285b321cda4719fd237116839c22c75c074cad1d9ed64985b441d1890b3608",
-    "TensorCore/TC/FP8Program.lean": "ab7445bf9784ae65eb57abf573dcfb876e5a3b7ac1d4c8ecdc7525351b2657eb",
     "TensorCore/TC/Flowback.lean": "7a97c1cec0d2a77030ec0ad9c9c00af1ce2a003f829b08eaf69a4f1f00c0deea",
     "TensorCore/TC/FusedRounding.lean": "c3bb2e7f2601d6cd47c327d9455b43f2fcd864824cf985d9bc1ea115d79958b4",
     "TensorCore/TC/Instruction.lean": "31fc12bf433e9c3dab8f5235ab555babaeee7ef42a957163009e7ba3c87eb159",
@@ -3244,7 +2412,7 @@
     "TensorCore/TC/Monotonicity.lean": "a12b302443c180556e8bcb5201a22662ef68adcebf25af649b3ea6c2e90124c3",
     "TensorCore/TC/MonotonicityRange.lean": "77eec6ac5a1d6e596fe469ad0f6047fa3e80cffa7ed509beffc3bf828b2a0c30",
     "TensorCore/TC/Padding.lean": "d9445108e0b12b2941b06a8219c9f116872f0980399db8aebd7f815af3825537",
-    "TensorCore/TC/Profiles.lean": "44c0adcde422f89701defdf3a73b595232247103bc83f8e06be68c3b27e10cd5",
+    "TensorCore/TC/Profiles.lean": "bb494bd09173a94879200ddba4261439d8de10eef35e134f329b9077920625ac",
     "TensorCore/TC/Program/Bounds/Local.lean": "fa6fc76697e52d4d2cc519158971ebbfe63210846873eb49d83141a3455a0b28",
     "TensorCore/TC/Program/Bounds/Loops.lean": "b6d83176543b4f160a5e8f379a48a4cc80fbf999501f52dc82c6331c19a67fb6",
     "TensorCore/TC/Program/Bounds/Scales.lean": "9d84e164280004121665e75707c121844b117372cd4f85a60315bd0bd32152d7",
@@ -3260,16 +2428,14 @@
     "TensorCore/TC/Program/Report.lean": "7ac88260d41d1f491f8787fb3cde923d817940cfb72f11d6096f7e5d59b1eb62",
     "TensorCore/TC/Program/StaticCertificate.lean": "0b2c5286e5f9d6f2e04bd0043c2b2781e81a366c4011d31ec00325fdcac311f5",
     "TensorCore/TC/Regression/Application.lean": "e93423c18b3a0262d550931e8a9231099e46943a77befb48c9d7c7e84f963b56",
-    "TensorCore/TC/Regression/BinaryRounding.lean": "2a890ed20ad519681c8499746ff1f2324df6d1f65c82c6fbcce2ffa75ca5e9d3",
+    "TensorCore/TC/Regression/BinaryRounding.lean": "696eaddc2b33937bd3a3810123e2a3e03e62a5db90c8d78f2482873ba710f04d",
     "TensorCore/TC/Regression/CanonicalFormats.lean": "c2dcc06f4571d9377c75d3fd483692ef0c44b55f347a47b274be8db908a73b78",
     "TensorCore/TC/Regression/Cases.lean": "faebf40f2eeafc381f95011ca415c17c21fcb7ef3ae7525c906612bca5475700",
     "TensorCore/TC/Regression/Certification.lean": "5c7caa0f3b11a55696c2b35c4a2313ae0f1f4dd25ae5cad27c0d4c53b8b3586f",
     "TensorCore/TC/Regression/Composition.lean": "da9a741e627d5ef45ebd630600b1a0a740d6f46f99299d05053301156585d11e",
-    "TensorCore/TC/Regression/DirectedBinary.lean": "ebadc9c5114d7c6aa02296951ba4ca2cfa200c595262fd832537c51ae68b0062",
+    "TensorCore/TC/Regression/DirectedBinary.lean": "e368affdd6a0007f481e5141d7f635da57865f8a1b10ad380c705161d5b38811",
     "TensorCore/TC/Regression/DotProduct.lean": "64c1751cf258edb38ba2b1f803bf1bf4c2b5134e74f31a727eb87352aebb2529",
-    "TensorCore/TC/Regression/FP8.lean": "024354637c637e0a7285168bdc8aeec69e201137c1f59df7de0ce8a8b984b0fa",
     "TensorCore/TC/Regression/Features.lean": "3d09e21b56a51a48579e96a8ea69b6699948fb543b090a663d38ddd4bb94f80e",
-    "TensorCore/TC/Regression/HalfOutput.lean": "bd66a80ab5d22c237e6075bc7a1608fd6d79e14253607ef3ae4ec32545dc6aea",
     "TensorCore/TC/Regression/Instruction.lean": "545df8295f8447a2a8f75ba5bf35216886aff3787e806563d190c32e9e6a2508",
     "TensorCore/TC/Regression/Monotonicity.lean": "41c10b0d4cbb98e17c80f5bcfc744215d0736e0201406dc82200ea7df4bbc88f",
     "TensorCore/TC/Regression/Programs.lean": "e10357c157d51754df27bc9cd8114d0f001edad0ebdef5030ce1a8138d6b9f4e",
@@ -3285,8 +2451,8 @@
     "TensorCore/TC/Specification/Supported.lean": "707d5b1d05cdb5ca41394c8c6af4fc5a63c8fa271d43a92db99f513ca0f7bfc3",
     "TensorCore/TC/StageResiduals.lean": "d332fa3c517990d543b1773c4f8c55406cb24cff3ad8971ac308f71a677dc952",
     "TensorCore/TC/StaticBudget.lean": "603231f876ad7a9f1d9c4e03ead14e011c9c90144bc256206f1b44e971a2ed44",
-    "TensorCore/TC.lean": "db417e827179ca0ab3d5f8365c24c6b267b47c4b0e33e83eb347b3cd1c6f7779",
-    "TensorCore/Tests.lean": "09994dacf884897b1269acfdc3061a8798ac1536758dfa82454cf81fc3d7f7bc",
+    "TensorCore/TC.lean": "7f054b9e229c150189986b18e3b13d232d237ecd30b6b679cf7c02f7984b941e",
+    "TensorCore/Tests.lean": "59452a3260513f24cbc1769e669119fbe0283c9e384569f9a44f36f38d083a8c",
     "TensorCore.lean": "2ad9289a042b596c60597f7b72c15076fdb2d55ca5d075b7c7f20f0d022426e6",
     "data/examples/eft.txt": "4104fdbd5ab534f7dd69698cf0bd9353306fb29aa658d0530694de75fdc2935a",
     "data/examples/gemm.analysis.jsonl": "b876f147d4fc9b41bab47d17e4aa15ff5e2e3265093131b1de5b9d734e116158",
@@ -3304,35 +2470,36 @@
     "data/schemas/gemm.schema.json": "456e89fbc681c034867eb6424d0513b4ece69b21808a6434208593d0a64394ff",
     "data/schemas/ieee.schema.json": "3d19a8199fdd31da63d71afaee42d683ec525cfa173a300f4d1084424dc2e5fd",
     "data/schemas/selection.schema.json": "4bf3f254462c977fa21412ca093f334da25f7c554c23784011b4f438eb0353ca",
-    "docs/evaluation.md": "fb1da4d02831612ed9fb85c71788a1d59bac096aeecac4c30c143ee468870cc5",
+    "docs/con-leche-audit-2026-09-14.md": "d0d7a093d0c5e2c2fbc4f949bd63fe81f3cc88a759dc81fa699773f23479b758",
+    "docs/evaluation.md": "912fa41698049b93bd52a725337fbcbb76c50942f02ec25e1e747ae8e0bf4a4f",
     "docs/history/implementation-plan.md": "083c9d518f09f18a9a00960bc7a55449aabf3b80c1596566e658839bd05c8306",
     "docs/lean-ieee-compatibility.md": "28c1aa22fc05d2ffbc95e0bd5a9c56895224f9b053398bc3ca0b2da2e41ea89e",
-    "docs/migration.md": "84bbbea43990a2cf23154e9c3d7723fc11b88def55f8ac064fd3cfef99c7a0c5",
-    "docs/module-map.json": "0b735d211e5b50110e475df854f50731906ff9a2e5ddac023e2c62e940650c2e",
+    "docs/migration.md": "e13bfc911aff113b2ba0dfa9fdbb529821180a919a14b4c2271967adf48a3386",
+    "docs/module-map.json": "658c16cec6e3858d6a4455b1786b1d760378211b85ea8e81a60ed9507329111d",
     "docs/proofs/Cli/IEEE.md": "acea25be24dbc73b5c865d13449ea5e96725d055b0af0cc16ce8a2c4f507d79a",
     "docs/proofs/Core/Binary/Bijection.md": "22ffd682f3037796048a07d9523cc02f64929068a00d51b33332de4eb7cb7edf",
     "docs/proofs/Core/Binary/ConversionBounds.md": "e54c69a27ea3457227ac6672288dfdb1bf943f3a4196dbe8852b59e799b50672",
-    "docs/proofs/Core/Binary/CorrectRounding.md": "e08cf3c3b8d0ccd583fdfb9bbd31e27797d0555731e0b6fbb9d328b0f321c0f7",
+    "docs/proofs/Core/Binary/CorrectRounding.md": "b35817e02267af97b203c5fa9ca5192215b7ea866e44a3be52e1e6984cb88494",
     "docs/proofs/Core/Binary/Defs.md": "bf32bc7d8660578116ee14a7e4a0418cd2846726a22ed7d9ceeb0667cf677614",
     "docs/proofs/Core/Binary/DirectedRounding.md": "c6382b26c9bac8c53f5e22a23774b0d75c00cd23cb9b545c9e5bb6b3e5961293",
     "docs/proofs/Core/Binary/Encoding.md": "cfb8ac90bf4ef4e900d29e6a299f724a6d06f94886421597ae563ef2231f606a",
     "docs/proofs/Core/Binary/MagnitudeScale.md": "b9cc355171328aa9b27c932ab7103068b8db8a8f59aa55686b0349cf272874d5",
     "docs/proofs/Core/Binary/ResidualBudget.md": "dede96c35ec7d0c68ae28ed3dfbbeaf2bad170119ef9911e31553df874609cd8",
-    "docs/proofs/Core/Binary/RoundOp.md": "e12d29359e49a93833de0385a29151aec5c3a7ec20d6749ef5d2d9c52cbf072d",
+    "docs/proofs/Core/Binary/RoundOp.md": "cec50c6c8f56c3abf28099eddb8345593a8f44cd3cb7d34f7517ce2fc9a3b2e4",
     "docs/proofs/Core/Binary/RoundTrip.md": "197dabc61ce95f14c1b8d03b27fe3f5d66a39da3ce1dbf0eac11102771c5c4a4",
     "docs/proofs/Core/Binary/RoundingContract.md": "c124a89dccf6e211749b4efadaf934eec9fe24e41dd7c9dcc6cd905f23f61b64",
     "docs/proofs/Core/Binary/ScalarSum.md": "9c42a8ba98cbfb78df923388cd8430e627b395b76658e3c894f408ce3f97fc14",
     "docs/proofs/Core/Binary/SignedBijection.md": "446cca1699961453842b9fdce7248cff107b94ec16340d83c74bcb60a3d69614",
-    "docs/proofs/Core/Conversion.md": "516713cd5f0e6cb64027543be80079ca34169fca5ed485395bf6dd3983250bbc",
+    "docs/proofs/Core/Conversion.md": "fb61527b96a680614c18910693389f630e94398229ebcc2e3a29b85d65ceed1f",
     "docs/proofs/Core/ConversionBounds.md": "f466644f68e158beb6aa46943ff56369c475251102dfbea19187c7826546e06e",
     "docs/proofs/Core/CorrectRounding.md": "1b3cb48c2bc04e1b4dc81911527d25e9ca29dd29ccd4c611e4439f24b7922540",
-    "docs/proofs/Core/Defs.md": "54c9622a80edf5de579f04462fcca75e286d0871b6f9c990375c5bc471517aae",
-    "docs/proofs/Core/Encoding.md": "e392773402fd488bd9ee2ecf721bf6037dae5024a1dce7ff3080993d7d211110",
+    "docs/proofs/Core/Defs.md": "fc6e430a4ff198b1dcc6bb6277114253848f3611a1d2828a1723d4932cbee20d",
+    "docs/proofs/Core/Encoding.md": "08b345149c128d67ff0c4702500ced3242f17052cea31a70c85c4ec9386945ff",
     "docs/proofs/Core/EncodingProperties.md": "771e46196d5fc2e606d439b61db59f7b356cc6be051f8474f3571346c6e5745a",
-    "docs/proofs/Core/Exact.md": "985f6d9890575d301df90c5947753c154faa13767ebc748ce3e0d53d7524bca2",
-    "docs/proofs/Core/Format.md": "55b0d1770c66d77e089d760a7d2b306aeff744f50cfea6e133e537253ed6a78c",
-    "docs/proofs/Core/FormatProperties.md": "6d1eb2f56c043b8b7533265e9e21893adf33814a06727f2ba5e375ccff77e727",
-    "docs/proofs/Core/RawProduct.md": "62ee455040329abe7142880d93ee3379431750f68ea3a5b9bf06b82bad31721a",
+    "docs/proofs/Core/Exact.md": "8fac7d207c58b4411dbc6b60ff62c7102f24b54bf63a57f933a7c7959954614d",
+    "docs/proofs/Core/Format.md": "eea70eea920f0c1dd204de88075bd043d8a9b8bd925b3389b7037ef74bd72741",
+    "docs/proofs/Core/FormatProperties.md": "dcc617fa14e39b2c885863db6da835c4569e4eaaf1f5f0b55f09e2c06f6f7e62",
+    "docs/proofs/Core/RawProduct.md": "5fa817445410b4952dbbbde635ea1a8f678bc4f0418f002c22a4ea6748667879",
     "docs/proofs/Core/RoundOp.md": "1e085f67b37808466ea1581c56fded17041a639fc3ed005775bd4231443a82be",
     "docs/proofs/Core/RoundTrip.md": "8896571a4bc76ad97444fe70697c9962a434e55beeb59b36aa6ced60524fe9ee",
     "docs/proofs/Core/Rounding.md": "2ad2bf1c956a5a264342908a5ac26886b1ab2f3d6204067353518353aba62609",
@@ -3443,7 +2610,7 @@
     "docs/proofs/Meta/Certify.md": "2a31654a17c49b80703360fc536025c107028e33dfb3c9ae63b42c214a59b62c",
     "docs/proofs/Meta/Instruction.md": "200023c263e69659ea3d545da820d48923f2e0ad73946e5a84b6b599b3c69e7f",
     "docs/proofs/Meta/Syntax.md": "3b230615586f2222451051361b8879723d55dc909cd615e81cc904ff0258df70",
-    "docs/proofs/README.md": "fb38f50f3741f82c7bc07da6186d58cae387aae2dd1cc1439e24bd188a8f525e",
+    "docs/proofs/README.md": "83065b38254d6444c1ebb58842caf1b0fc195f269b6ddc7994161bf6b4e62ea4",
     "docs/proofs/Regression/FoundationCompletion.md": "7e2852db0f5ca88d782ea1163c02861180ce935b13a0e55b05e2c0eb8f04a1ab",
     "docs/proofs/Regression/Specification/Audit.md": "9eb4be53c802060794a38b5340c2f1c84b0291fb7b3f09079c2eb826d4244088",
     "docs/proofs/Regression/Specification/NegativeControls.md": "896aad1667583c1bf7a8b85c96899d63053612f4b3cd6333c47e1ea7e3bbd6a0",
@@ -3451,32 +2618,29 @@
     "docs/proofs/TC/Accumulator.md": "05cb3cf3abbfb3eead527e400c731ee0cd2383f7a7f3476b6ec32555e9afdfe9",
     "docs/proofs/TC/AccumulatorWidth.md": "de24ab27c853ef0cf8827802751912f8e326197cc01fe999700742058b23f8fe",
     "docs/proofs/TC/AlignmentScale.md": "dc2340bf45b0379f9303da47ac78f119ca75a9c03ce5fcf8ef32a2a8b1699771",
-    "docs/proofs/TC/Block.md": "a06c59d28fe8f58259dccbd85b6fa9066c34cddcfac41a85590bd45436561fb4",
+    "docs/proofs/TC/Block.md": "2d0f0ef54e43fe2d6dff45a27d8c7376180936e73b1c9eada21b632692db7fe1",
     "docs/proofs/TC/Canonical.md": "af4300271b5d28da960bcec07186ea1e6099ff1e90dc077604199878ce51f9e7",
     "docs/proofs/TC/CanonicalDefs.md": "f30511453deb8ea6cc2182e46e399abf35f5117d37098cb2b05ca9c766fc8575",
-    "docs/proofs/TC/CanonicalFloor.md": "a2844fddac4993e0de8919e5bbce4f81e2460d7763118986e60f9788b85c5d7b",
+    "docs/proofs/TC/CanonicalFloor.md": "bc13c1c159ac396d08c1c4db11350db8c3b6413c1631eae069b32dffe5f62727",
     "docs/proofs/TC/CanonicalFormatDefs.md": "bff2bfa3fd3becd7eec280583ada3e00226d2df538ce30f9efa5bc3ae765c74c",
     "docs/proofs/TC/CanonicalFormats.md": "cb20d2477ac795f1afb34aba3e7f4a2b44643332583f6b1e8630e3c6f3ed7617",
     "docs/proofs/TC/Compatibility.md": "d5ca6e31827b0bd845078d4c9e7ebb029c14072f9e8eab06c6a6aa2af61e051f",
-    "docs/proofs/TC/Conversion.md": "78c5be631fb405d99ec8291ff5842c8ec6750de01f3cb523bd1603e5c724ed6c",
-    "docs/proofs/TC/Defs.md": "89765874484a87b19807820858de24da08fb746e1fb43b74fe8f266d2c92c293",
+    "docs/proofs/TC/Conversion.md": "71aa95df5619831a457d46404410c8da0d0e4252e55355cc5dc11be363db2f1f",
+    "docs/proofs/TC/Defs.md": "1da30caaa8cf8613b7abec4830b247d1dfcd2300787663e2c7ec756e0b2986e9",
     "docs/proofs/TC/EncodedMonotonicity.md": "0a30cce70b6e13a46d798cf1ab352ea45e7415d853f4f3d10cc6d799aae85c06",
     "docs/proofs/TC/ErrorBounds.md": "fb57987d4af3be4062ba1ae8eebc51399d3cb2300360a83d96272c88c920d47d",
     "docs/proofs/TC/ExactAlignment.md": "61da8b9dbd0c72e83e704b3f7bc523af74188f877f1ef2af8e3805671ba2c8be",
     "docs/proofs/TC/Examples/BoundedDot.md": "0d6b83338fdfd6e09d9fba413290de19487cbb9c4d42d374ed9598a636b116be",
-    "docs/proofs/TC/FP8.md": "6865d7a3fd7c8aba211372d89d85f34fd7f44665acaae875f0d62ae37743d598",
-    "docs/proofs/TC/FP8Defs.md": "cd95e0633f7db94de42af87c1c99a74311f7cb85514446b56adab0e13c0e1430",
-    "docs/proofs/TC/FP8Program.md": "aef6fd3d9ac4ce2bcbf8e3c303107ec344c94009f3ce5a67dbecee2f3081f8df",
     "docs/proofs/TC/Flowback.md": "e8aa2dc15961bf84d00c8a8aeb1865d15cc9f2195dc202330f5ef4369a40ffef",
     "docs/proofs/TC/FusedRounding.md": "efc9446d015982bf6e0f33beb83b9f88a2c7e5f65276a25cec9ca1d698eb2d99",
     "docs/proofs/TC/Instruction.md": "72e2b4ce542bc514e1072eb92c8b03b6e310509272014109e3e6a1dcaff7756c",
-    "docs/proofs/TC/Invocation.md": "3dd1fa63caa5722acf340094cfb138f5031e38e45a3c13b8ed4037c6ae5df15a",
-    "docs/proofs/TC/InvocationProperties.md": "094ebdb5de29c7332d90171a8117ca415038dd93e010189bbea31c7ea3e25485",
+    "docs/proofs/TC/Invocation.md": "140cb4483aa424a67b40cb5c5bbaa9c415c922815869fcdb70f90624110e9c0b",
+    "docs/proofs/TC/InvocationProperties.md": "670f21932856a09cd0c3d41116222b39c1b8aef948b5dd4d24eb78f6c3b9e944",
     "docs/proofs/TC/MachineRefinement.md": "f75f7b336a5b8c5736cdf375593c9b6cca457375ea294e7ca5fdd6ef440fd388",
     "docs/proofs/TC/Monotonicity.md": "fae6ba3a692c424c5710dc25d5d3a91282fc21b58ba279b1a27eed0d8e7dac8e",
     "docs/proofs/TC/MonotonicityRange.md": "dc16c0cbba90e71b552ab6830ebde31c7953caf27541425eb8b78f69806a4a13",
     "docs/proofs/TC/Padding.md": "797199cf71458cb1bc1c3023bd84565370a08b3135997a6fc3d7ac79443a5864",
-    "docs/proofs/TC/Profiles.md": "26d680a411d57af8c3247580defbb049a5e0779c3e6646edb63d9f8e73042dd6",
+    "docs/proofs/TC/Profiles.md": "80a9c65119397a091ad7bc74207dc88d6613fdb3647661e1a979133b3a42fcd7",
     "docs/proofs/TC/Program/Bounds/Local.md": "992dfdfd195090e55e421dbb81528f8fda43495da38a06994a4c7bab9752e09f",
     "docs/proofs/TC/Program/Bounds/Loops.md": "aed77c60e00966efd15997a66c36884ccfa82c7178eec0e965719acbb580e126",
     "docs/proofs/TC/Program/Bounds/Scales.md": "1781db2ce1b1edc7c3861509e3aaad0be84b08283a2d806097297ade92614fb3",
@@ -3487,21 +2651,19 @@
     "docs/proofs/TC/Program/DotProduct.md": "fc4ceb8f9849d5ffb363ee15722defe92a306a7a3d832b5f849d9ff0ae594798",
     "docs/proofs/TC/Program/ErrorBounds.md": "abfdb27cb8253f1584b08657970eb45c074a4f2cebb787f9f273d2934a9c83b7",
     "docs/proofs/TC/Program/GroupAnalysis.md": "0ef90dc199fdc4c8750cceba239329a8cbce70f11734ebec7c7d6e4dcd4b1320",
-    "docs/proofs/TC/Program/Loops.md": "50490af649c1512bec84a66211a95b9c629e5aa45d45669c1a700032fa12ec19",
+    "docs/proofs/TC/Program/Loops.md": "a774ebb73e2c62b151cf31c0550ef37636403495c7ebe2e73e521409affca58c",
     "docs/proofs/TC/Program/Partition.md": "925a37d0591dff8693c1628efcaa2bfc8ce3f883b2fd6b2b63392a608cf95657",
     "docs/proofs/TC/Program/Report.md": "2d872ae8650e1ca9631d5df7768067438f94c9378768f2ef1d74ff1ed8b084eb",
     "docs/proofs/TC/Program/StaticCertificate.md": "e1be99ce713209ec4a3c52d9784b8624ac3df6806b615f1d17393dc6265e1764",
     "docs/proofs/TC/Regression/Application.md": "c66eff3343f7d458394d9685bc603faf4c7b792fb4ab03b9fe1c630efd9dbb03",
-    "docs/proofs/TC/Regression/BinaryRounding.md": "6a9b486e78e8e5988a81fbe126302159ac24ae1659ae2ff0282543d2b2202f69",
+    "docs/proofs/TC/Regression/BinaryRounding.md": "e6c188dfb5319389cde4ed1948f7f4fd73acfc8850812cf56bf8f061a6b529c6",
     "docs/proofs/TC/Regression/CanonicalFormats.md": "48fff4580741b849ff1b2cd42b19fad8bb7539bfff3fa617ed054f08e55a3f1a",
     "docs/proofs/TC/Regression/Cases.md": "abd1b9be355651232c6d763407f8f1043fc8ea55266b9e760a2df976d0b20ea5",
     "docs/proofs/TC/Regression/Certification.md": "950330635337d864d7380a36f7033a9257567d87264df4bd428b86d70da71a4f",
     "docs/proofs/TC/Regression/Composition.md": "c17cc6bdcc7c969add5fb382dd6d1fd382323bf2d3a27e36775223d1eaa84ea8",
-    "docs/proofs/TC/Regression/DirectedBinary.md": "9573cf08e4e8fe7e5d3471b5ab2c20f24d385ff5c0f665aceaf959fa492a7541",
+    "docs/proofs/TC/Regression/DirectedBinary.md": "f905ae6a84c1209f6268432b431c1bac9b09ab62a8b5114134e76952bf646e27",
     "docs/proofs/TC/Regression/DotProduct.md": "26d476cb6a34fa4098ea8eb878c19942c48438af90b1b82a9f49ca7722969a70",
-    "docs/proofs/TC/Regression/FP8.md": "02d954868f18f88253d558d0d46a8cae7630691bf0d2f1e7cbc4575c6f902b2d",
     "docs/proofs/TC/Regression/Features.md": "98ef15a70cfd8cab3b061e63795d38b27bd3f2a1fd914c133bbeebc10bf25f65",
-    "docs/proofs/TC/Regression/HalfOutput.md": "a937de9d1ad69aa4dd6d9d58b68cae5ab588883b24099a9d689be3e30b94773f",
     "docs/proofs/TC/Regression/Instruction.md": "d9a83f957663a8517e43ff470a2284bc84295725c1baca493b21a71672cfd344",
     "docs/proofs/TC/Regression/Monotonicity.md": "ffb30d3e94f9d0cdb1fe4fbc5ffb116354125ed6ced399bd8cf8bcc08e7ec120",
     "docs/proofs/TC/Regression/Programs.md": "aaa2851eeba5d7eedfaa8e7ae191d4a13e20ddea50d00d579e8e0cebe6602c85",
@@ -3517,9 +2679,9 @@
     "docs/proofs/TC/Specification/Supported.md": "516aac684af60dc2a2d0c015bde03ef569a1131aa46c41d53aac5eebacd2f0e8",
     "docs/proofs/TC/StageResiduals.md": "66e02eaf12ad5ca1b558438b67e02abc60b616fb7edbbe407cadee6d24135189",
     "docs/proofs/TC/StaticBudget.md": "304a9dba0636a9fb10d5df50385c61489668aba7c90f9ffd69b34678ed3a4b73",
-    "docs/proofs/dependencies.json": "9acdee70820e3107487a6ad918e189d3fd5a9dc882e5321eedd26c692cc8cf5e",
-    "docs/reference.md": "a8adbb9f85d8e3436752da900f8614b1cf27fec39ae66ced5b820fad16d3c427",
-    "docs/style.md": "bfe521378e7266567b5a5f1bf3e126b292ea92518c6ba7f9c013e9d81bb99d29",
+    "docs/proofs/dependencies.json": "b30dba4fce9fd9115680520a66142aba25393d07554845aaef58d1c58d8ac883",
+    "docs/reference.md": "ae426ed0e2abcd456596f26c0827b8eff84179837d9fd8e6ea56baa8117fcfce",
+    "docs/style.md": "62d53b53a5a2bcda7f677249790d2d95000d813d0b113a330fb2533ff99b2a39",
     "examples/BinaryFoundation.lean": "9b2940c6d718559caaa6a07c8e9128cd021a40cf187c61461910a8de755ec87a",
     "examples/BoundedDot.lean": "cf864aa5be8bf9a6cc341b90a3a70065423ba70b5aeb05ae6f5e07ba00ed8ff7",
     "examples/BoundedEFT.lean": "2b321acf2c6fc7f15d5ef9927fcdebba9bb701a7fff989b5762ca3332f77aed1",
@@ -3530,7 +2692,6 @@
     "examples/EFTCoverage.lean": "f406bdf4856d8356422fd332d5b140cec30dff523a54b5186e48aa184fc464b7",
     "examples/EFTHardware.lean": "7db1c7a6ec90244ff3e6426f4c27d3911df82ade71e8c28cfc50b7434b52282d",
     "examples/EncodedEFT.lean": "3f69bbe596c08743d6b6b4e3fbd9f42554f9170b56cfab8d96e437c9f6e0a904",
-    "examples/FP8.lean": "dcc05c6f0c662072306398cf9c2ad76b202b24cdde71d916afcba37ec953a369",
     "examples/FoundationCompletion.lean": "a3b2b1f23d38d03e2b21e4f7b1887fb5b758fe4512a30e9b57ef35e50ee00ad1",
     "examples/Gemm.lean": "cbf26a7c834ea943af34e77e9caf859d9050801c1ba964e4a7e4bde13f13f624",
     "examples/GemmAnalysis.lean": "31cf17d8b71ad9ceefcf70c6af2ac7d191a4cfae53724e5273adf88358a3a165",
@@ -3569,7 +2730,7 @@
     "kernels/cutlass/upstream/include/cutlass/transform/threadblock/predicated_tile_iterator.h": "5a8d8628489c90d553ffb4673d3fbd5476a82b8c767bc2e01773ea04865941b9",
     "kernels/cutlass/wmma_sm70.cu": "c4e3e82e275468cda10ea79057c1e21917c6552433dd9b9e846ac7bfe31a3173",
     "lake-manifest.json": "21b8947c41a7619fa20876b690f660faa351dfa816b995ba898acde20cef9d60",
-    "lakefile.toml": "cd70fd58f3b6b479fc891ad66368ed1c84d7be47b98304aa9ae3ddba75477559",
+    "lakefile.toml": "b6cef668b8c186d0616bf3af084140ccedba1a0fefd489f073140bd6335894c6",
     "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
     "reviews/2026-09-07/.gitignore": "8ccfbb9b72a3aa87bff4daaf86cbd1c6e99e96dc8b73558bcd6f480d4f3b0c7b",
     "reviews/2026-09-07/AccuracyCertificate.lean": "6b82c13a5ba7dd54c8ce5556958652573b064dcf3cb33993bc3a35c0367266a4",
@@ -3602,6 +2763,22 @@
     "reviews/2026-09-07/validation-reports/cutlass-report.json": "5e13b18284f559936c0c3a6d9fabeb6456743770d96cb7e19d0ed25012ca5bb0",
     "reviews/2026-09-07/validation-reports/device-formats-report.json": "10c7039b1e4656d658f24104612fd2e23e75484c6c242d1cfb0b989c1057e9a9",
     "reviews/2026-09-07/validation-reports/device-report.json": "f115f54435cd19b4e5bc0f109ac248cff45ad98d03b3266b95091c3d54b3ff9e",
+    "reviews/2026-09-14-con-leche/CollectTheorems.lean": "0c3cfbc7e43a79757dc8dd891739b0715aa1d3e0286674f9a3f45a7d7728841c",
+    "reviews/2026-09-14-con-leche/axiom-audit.log": "ab6c3319a08cce6922211089b6f4f331f924a6388216bb31cdcfac13d76210f8",
+    "reviews/2026-09-14-con-leche/check-confirmation.log": "95a81d48e28fac7e943cc7818f77a33d008f377cfc6b2094c4575b3cb3ef814c",
+    "reviews/2026-09-14-con-leche/check-original.log": "4e2396887029685a39abcd18260cf7bc95cc050972a19801d5b11761f0270e25",
+    "reviews/2026-09-14-con-leche/check-summary.json": "216007b563953c40b859ce5ba4d52cb757be5bd23e017dd5f1e05cfa8c2f7040",
+    "reviews/2026-09-14-con-leche/con-leche-build.log": "4da82f9a98c3208529b7c45962a4fef2d458f735723f61dd8cde6d35af9bf44f",
+    "reviews/2026-09-14-con-leche/confirmation.json": "9083a170bb861141b1dbdb358753b67a4f8b282b6eb93dc40423f206215cd8c3",
+    "reviews/2026-09-14-con-leche/coverage.json": "1eeec70e5f469f7ae14c22e38e768971502503c0be3b59b268ff871260f529b5",
+    "reviews/2026-09-14-con-leche/export-summary.json": "b174ce43a7afd4eed372437081b5420c98f9a777727bc8ba91dfdc0b42c9687a",
+    "reviews/2026-09-14-con-leche/layout-audit.json": "64cc9390fd50a40c21bba353e9b11727f1a643370331a7694fcd1561a6d4162e",
+    "reviews/2026-09-14-con-leche/modules.txt": "f67de7f8442affeee3846bc1746ae29e7e79055af8cc0b71a487b44219d2abb4",
+    "reviews/2026-09-14-con-leche/roots.log": "3200bfebcfec83384eb34ae42172abd6a408a9a9fc4386d4b2c34d2109694418",
+    "reviews/2026-09-14-con-leche/run.json": "07f92961b81499d983e392714a78cc7be5ec42182e1d7c2aa56c402a316f3653",
+    "reviews/2026-09-14-con-leche/scope.json": "53e94647c050e6d0284fdc91251da43337400febd1e8b6da46781d28139a1fa5",
+    "reviews/2026-09-14-con-leche/source-sha256.json": "89762e5b33c668b79b1d81b7c2d7d3ab531c04bf5d9c4cd4ca5ecfa93d11c9e9",
+    "reviews/2026-09-14-con-leche/theorem-roots.txt": "50faa7f731eeb75a9a78075b077f8dcf4cb400d7fbaf10cd1b1ff938179b8c87",
     "scripts/analysis_certificate.py": "070e2bc00bf2ac52f2e70539c2bcdaee107b6d91ec877d85fedae46c10eb9794",
     "scripts/analyze.py": "4cb473082dfda8dc2a18edd9696a5a37aa3b12afa282175ed21be0ccfc630972",
     "scripts/benchmark_bounded_eft.py": "0e26f32c3dd6198d13ec6a30d1226dda4482af04a5233f8ae9fc31870d16c80e",
@@ -3611,13 +2788,11 @@
     "scripts/check_axioms_regression.py": "476d9c7b31e88d2bb9e0a32d8eb80b5a67f44c5a6f7f1c14f0b146d96a1e30be",
     "scripts/check_bounded_eft.py": "1f32c39668d2fe203c8e6d0c500c62d80d254fe2cbe64b09bfc1ebdead9b33c7",
     "scripts/check_certificates.py": "60e281b71d7333bdc67b87d5966ba518a2bcdf17c76ff297a44045d72a868748",
-    "scripts/check_clean_build.py": "18446062c284b51c936b5554b576fcd08e1849e2c7b5412dbc99fab3327dcb2a",
+    "scripts/check_clean_build.py": "8bcb302e2bbcd497313b3106f47d2db88347acb24067e5f0e926782203788f6f",
     "scripts/check_cutlass.py": "292b28824453e0940c895fd70ca27977370f6dcb8107861a8cf396d8d2e97ad6",
     "scripts/check_decision_extensions.py": "0e07cd03a908c7c2600f1cd7643824c89d45b9f1ac706bc09f477ee7685510e9",
-    "scripts/check_device.py": "4dacd6bca0e4a01f54e129a5d92f2b61742dd334d42346a21adfb4b2739f9a6e",
+    "scripts/check_device.py": "b4f23d7e9f339258adc600500c674bb71d7f992756b6b3d2e6ee0635c5aaa108",
     "scripts/check_device_formats.py": "20ec6031dac8be99fa18fad0cf9b54817a9784a0cffecb97f0cb95bba665d0bd",
-    "scripts/check_device_fp8.py": "c300914e1e618092da4cbcef18be1a1b23a13c2f49b15dc41758ded45ca56fd6",
-    "scripts/check_device_half.py": "90ab89455f8ca4d752c18f9eb50591697ec78159c472a95252ab45c954a32bb6",
     "scripts/check_dot_products.py": "1f2f2be4242c4b1847f136fcd4c7d1513b404d73e88691568e3f63166a6f3636",
     "scripts/check_eft.py": "acd126eddc22104e4d9bfa0a13cef971532a8c2241d8069272fa485b1bca094d",
     "scripts/check_eft_coverage.py": "c4eb30b0e416170c9f883b57cca8981f67956fc7d2d58b987430712cb0e67bd0",
@@ -3626,7 +2801,7 @@
     "scripts/check_gemm_extensions.py": "bf866daf57e62f430e3d047699f38915374c438b651233fdb38bacad679a57fe",
     "scripts/check_ieee.py": "1177aabeff9b1de0bd5a5afaa71a990e262824fd70a10fe61e41b11db932f828",
     "scripts/check_ieee_softfloat.py": "549d5b6fa95f3220b519cb035f8fe28f76e9f5128956d77e35c42bceab0986b9",
-    "scripts/check_layout.py": "20e088caec392459fdbe139b2f2a51e8b3f35506ce5a8eadb55c2492b81720ad",
+    "scripts/check_layout.py": "50234ee4814133e9cdc6404b3a59c6a5b2e020afbde30fff7a1492fcfc2db6b3",
     "scripts/check_lean_eft.py": "a324667bbf605dfa216dd2120ada34047cf54dd9280a05251f1c716ed9c50f7f",
     "scripts/check_lean_ieee.py": "2c218090150dd58a531d0b738af6989d7a194280a81a6ce8ff25aacd9775f4da",
     "scripts/check_native_scaled.py": "7c57e65b8a0a658d20bcd5f7c127bc896f1e0f29ac40ebb39c7d968d58e6be71",
@@ -3650,7 +2825,7 @@
     "scripts/validate.py": "b371fe95a6bad7857b1b1ad1d1812b6f8931da13832db5cc53d197cece4ff28a",
     "tc": "2eaca48c79f2a3c32ffac1c59bebb301f306b02b39339e167d90793290c1fe2d",
     "tests/ieee/softfloat_oracle.c": "9255fdb61c41ab2e59f3e9ac24a1b0fc08b04458e1a4de45c5ee5df7c1f09a85",
-    "vendor/SOURCES.json": "df1002634ee41d4df59fc5501c5c56621473f92daaf35c5ac68dcfc27479601a",
+    "vendor/SOURCES.json": "52038193d06e9101ed129222070bdae484ebced5b718131770a926f4a8f19e24",
     "vendor/matlab-tensor-core-v0.5/LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
     "vendor/matlab-tensor-core-v0.5/README.md": "7117c699a313ab65f6039a365bc2d6012e4b917041072dbc645a51ba9d647efb",
     "vendor/matlab-tensor-core-v0.5/model_validation/A100/bf16/a_A100_bf16.txt": "451badf33ce4cdcb9953db64ede3c561827ba79068a222723f1dc033bbe7122e",
@@ -3677,24 +2852,14 @@
     "vendor/matlab-tensor-core-v0.5/model_validation/H100/tf32/b_H100_tf32.txt": "1a019e8dcec2a44a741e691268e4c4a9eb9eb9ebc128be097f9921b813d4c6f9",
     "vendor/matlab-tensor-core-v0.5/model_validation/H100/tf32/c_H100_fp32.txt": "0e13e585a11bd64b0fc40bafc9fd0b8037176e4f98097c76869505fefbcba23c",
     "vendor/matlab-tensor-core-v0.5/model_validation/H100/tf32/d_H100_fp32.txt": "c879699e2cbac246e311ebdfb1ed4528b2463bf9d588faa3ca3651a4af7222ab",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/a_L40S_E4M3.txt": "76a6115878a4662fb486d90a6765e24564ed436a173ed1260d5d53112e8a976c",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/b_L40S_E4M3.txt": "f35d75720651ab777b10399abea59f060cde011a898065b5c3045ea171cc669d",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/c_L40S_fp32.txt": "5fe4258b96b4bd99f720796bcbfa39f3f3b4fd45eb5f3c47756914c0fb73552b",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/d_L40S_fp32.txt": "367af6ea87401170fc811aeaf61ca0ac6fb9c8d6d07b3c39bf5aac819cfdff11",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/a_L40S_E5M2.txt": "229abb5f9e0f1dfdae18ab467bccc38547749b3286128f99ba134573b443ee1f",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/b_L40S_E5M2.txt": "dc105fe914100f96ba77b18ec88014bde43b4f5be0bc105e337d2e6bd51eeb35",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/c_L40S_fp32.txt": "369fb2d8fd05edbbd4c0e4fcb547be29608218e90e5a807a5a27be753912d0b1",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/d_L40S_fp32.txt": "572b0bc93636d4bd6883c05637ae50285c01e9b6ff6764f7b21b6cc9993f5630",
     "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/a_V100_fp16.txt": "53d8534fd1106f7e9a23e902b918e59108f9e1b05843d20a36b3049a61bf8204",
     "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/b_V100_fp16.txt": "1a019e8dcec2a44a741e691268e4c4a9eb9eb9ebc128be097f9921b813d4c6f9",
     "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/c_V100_fp32.txt": "d38097e1e4d5547234e7be1c6daabeb4ba8fe24e99367391a3f7b5c600001848",
-    "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/d_V100_fp16.txt": "7322aff1d735e6dd6a225754bd981e6520f3a6078c14ebf1614ce42b115c029a",
     "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/d_V100_fp32.txt": "1cfbb62768f303c90aff43458afe386e297b99df7a4e69ab4b0cde26dbcbac83",
     "vendor/matlab-tensor-core-v0.5/model_validation/Validate_TC_models.m": "017a341642516e263e0ff7d6f6c355b905c7143d92f1afdf4d04f7142ec00fe5",
     "vendor/matlab-tensor-core-v0.5/model_validation/readHexFloatFile.m": "3a73792439c503b1551fcdaa1c6865f80d1dd204e9083c8271085701e2a58553",
     "vendor/matlab-tensor-core-v0.5/model_validation/readIeeeFloatsFromFile.m": "5cdfd3fb1cce2484ab6159e7a95ac820cc052c072e9a8100aa3385a05636ff23",
     "vendor/matlab-tensor-core-v0.5/models/A100TC.m": "f5e8f405d698e324aedff5e62ea58a94a75ce48261bef7dc6860f718a6e159ab",
-    "vendor/matlab-tensor-core-v0.5/models/AdaTC.m": "9c747e9d093ce3a8dde75838b72fc12641cd5e5aa2b4c83f287c0964ae65880e",
     "vendor/matlab-tensor-core-v0.5/models/H100TC.m": "e23beb2986ea31780972f9853df07b63d49562ccf92ad1106e2aea40b6dafdbc",
     "vendor/matlab-tensor-core-v0.5/models/V100TC.m": "5ce606129b95e340581f76a58d0eff048561c13bf3206586480042485b539b8b",
     "vendor/matlab-tensor-core-v0.5/models/tools/GEMM.m": "cc3bed803f92a29a68610e27f34822c527b50cb5801c08b8486faf3b4d14e72f",
@@ -3702,27 +2867,63 @@
     "vendor/tc-eft-validation/SOURCES.json": "267053f91c9cca954519fd36283396a9ba451a8e6f88b4c7e7edf6bac8528bee",
     "vendor/tc-eft-validation/check_revision.py": "c4f2e213d8c880253b839172cd1a2b85dad0f0759faba630616565f846604fe7",
     "vendor/tc-eft-validation/check_second_pass.py": "687b9b329c3bb9b7c2528daa05a373a40c6d0d58d9fc2a314c551f832dc3b03d",
-    "vendor/tc-eft-validation/exact_model.py": "51d757e65b22614e74cc617595c4d98a42a5df6938ac3cbe261794981234c8f0"
+    "vendor/tc-eft-validation/exact_model.py": "51d757e65b22614e74cc617595c4d98a42a5df6938ac3cbe261794981234c8f0",
+    "wip/ARCHIVE.json": "bd4c885cfa91ce4d90ab7f7f1292afeb5617a4b6405853a9372fcace25dc6830",
+    "wip/README.md": "ea03d24935e17592792bdcbca17eef4ac3ca32f50f480adfa06fed18f33952e9",
+    "wip/TensorCoreWip/Formats.lean": "da2461c5a56edd0e5c66f2e525c3a073c3b8d518884651692773230e437de59d",
+    "wip/TensorCoreWip/TC/FP8.lean": "ed101f3678bcf258cedc7ab50909cee030c1be0a9723ba8d3aa83cd8c836c04f",
+    "wip/TensorCoreWip/TC/FP8Defs.lean": "7ad0e22219ea494132fe7c9d83e49a0806cfb09f6a6c57ffc7cc41bdd2a5ce8f",
+    "wip/TensorCoreWip/TC/FP8Program.lean": "af72489941728c111bb108fee75c685b2cb9455989a4145898d7bc8f1eab3874",
+    "wip/TensorCoreWip/TC/HalfOutput.lean": "5b86dfc3cf1c74e1ad211b0e396388343ee825f500053ac0d0067d5d2804a719",
+    "wip/TensorCoreWip/TC/HalfOutputDefs.lean": "421fa0945c608277d4ad22b240740184fd05142d95faa44474011146084b2221",
+    "wip/TensorCoreWip/TC/Regression/FP8.lean": "cc12e2bed09fd0ec27ba2a22fc916663a82060ac47e7d9b7af244938cb5a898c",
+    "wip/TensorCoreWip/TC/Regression/Formats.lean": "332f8f6fabe5e2311e77b675e55f6b2e7a4005e4437164141bb09d73b6c733cb",
+    "wip/TensorCoreWip/TC/Regression/HalfOutput.lean": "c1b6d41afe500c0640e0b49957c6f91f6dcf094188a60ed845241c1c0fb5861d",
+    "wip/TensorCoreWip.lean": "9b154babfb8ad804f9e9438bebd7ea4b09e9c0b6d9e709f7c984b99afc67da92",
+    "wip/WipMain/Features.lean": "3dcdecf963474c3933e02e30bd3ed5e493583ecd7aee3d3de33fe97e01162db1",
+    "wip/data/regressions/device-fp8-report.json": "349995c6e1c2252a9ac4946e2b53b5523a5fbcaf8c4612e8a24bcaa5727503fd",
+    "wip/data/regressions/device-half-report.json": "871df82102eee52220bb967ecf03141be43b37fa467fd762398a5048855ba20f",
+    "wip/docs/proofs/TC/FP8.md": "8e009cd8415ed37b7aa8bfe631c193e8ab87a07b80ebde024cd812e5a9f6574e",
+    "wip/docs/proofs/TC/FP8Defs.md": "939437cf230fb41f2c23a12cf751c93fb63ff0cf6a1590420fc964ae8b1a1a9e",
+    "wip/docs/proofs/TC/FP8Program.md": "6d38e46a29db5cf6e903225911b442a1dccacf113114384e99f317284d4f1cbf",
+    "wip/docs/proofs/TC/Regression/FP8.md": "a8c2398f06b8ab3970c8c7b1eb5b8caa750232b08535d2b1bdac6cf0548894ae",
+    "wip/docs/proofs/TC/Regression/HalfOutput.md": "b3ed7b7a89ef0a5f3b8c36ef7a33d32bd05818f3cc14cfa58088f885966eb3ff",
+    "wip/examples/FP8.lean": "822979dc367958be1d1c0e84c07ec410c5d0d4cf32c5b4e964b2126a6edf7212",
+    "wip/scripts/check.py": "eca3371d7d4af7ebdc76a058679a926ad4b38d0ddba13b0002db00151171d9d7",
+    "wip/scripts/check_device_fp8.py": "8c1f0fefa159794857f3bbb62b12a9a11c8bfe4bb15b1058101639c1f3480570",
+    "wip/scripts/check_device_half.py": "e38dce13efdd214ee2443e0daf038f49cae3a5a9fb07e2d0f8f0ca23bbe1d7f5",
+    "wip/vendor/SOURCES.json": "572ef9d0522960174762d76a3f6e4c372ec3d3f9075ed298939bdeae9d7838b5",
+    "wip/vendor/matlab-tensor-core-v0.5/LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/a_L40S_E4M3.txt": "76a6115878a4662fb486d90a6765e24564ed436a173ed1260d5d53112e8a976c",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/b_L40S_E4M3.txt": "f35d75720651ab777b10399abea59f060cde011a898065b5c3045ea171cc669d",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/c_L40S_fp32.txt": "5fe4258b96b4bd99f720796bcbfa39f3f3b4fd45eb5f3c47756914c0fb73552b",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/d_L40S_fp32.txt": "367af6ea87401170fc811aeaf61ca0ac6fb9c8d6d07b3c39bf5aac819cfdff11",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/a_L40S_E5M2.txt": "229abb5f9e0f1dfdae18ab467bccc38547749b3286128f99ba134573b443ee1f",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/b_L40S_E5M2.txt": "dc105fe914100f96ba77b18ec88014bde43b4f5be0bc105e337d2e6bd51eeb35",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/c_L40S_fp32.txt": "369fb2d8fd05edbbd4c0e4fcb547be29608218e90e5a807a5a27be753912d0b1",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/d_L40S_fp32.txt": "572b0bc93636d4bd6883c05637ae50285c01e9b6ff6764f7b21b6cc9993f5630",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/d_V100_fp16.txt": "7322aff1d735e6dd6a225754bd981e6520f3a6078c14ebf1614ce42b115c029a",
+    "wip/vendor/matlab-tensor-core-v0.5/models/AdaTC.m": "9c747e9d093ce3a8dde75838b72fc12641cd5e5aa2b4c83f287c0964ae65880e"
   },
   "repository_source_sha256": {
     ".gitignore": "01336a4787a8835196eb9311beb448b543f0914c1d69fdd6003cfccfe4a1354c",
     "Main/BoundedEFT.lean": "ada4aabe4793ab2b1bc224cfa643e8fbaac6cb93a8fb46429ac0d01946332838",
     "Main/EFT.lean": "ffbfd30313a991c9ea108ecd4cb7bf5f4f08e7277ff239e7108cea76995a4632",
-    "Main/Features.lean": "176ab34640f23bd045e4d0cca11a717815c84d212b71844ba2de40f592733351",
+    "Main/Features.lean": "b52ce394e1054ab4fef31a65d4661bd9a57b42382c2c0d31b8aa89f61dfb97b6",
     "Main/Gemm.lean": "01d4eb8a0dc515ea45b0262511a4273be6bd15a69f4cfa790ae2077b0dd1b357",
     "Main/IEEE.lean": "34a4efd53580c22af5948e2a10550791263d0c4774686b5e05a1d7533e13d148",
     "Main/LeanEFTCheck.lean": "b52df659d2762ae1c0401983bf632405a89c83effd29a3fbb5ace69e74ea6390",
     "Main/LeanIEEECheck.lean": "7538528c409cdc1cb9cb7beb00884bf41306157924fe1e097f5f3ccd5fd425c2",
     "Main/Trace.lean": "f1b56cb552b7d2fc40af2a5d230411a8d147dc4d3c6ee0f0a130a76627384f53",
-    "README.md": "d894b8a08ec314e4a7277910a517a2650a297ae05b45d76cd9b478d4865697e7",
+    "README.md": "659af2293fdaf33397341a349256e5d2fe8c3f0c5ec4c8eb3fc6efbf8bc78019",
     "TensorCore/All.lean": "afe6fa9ac61ef36d592545c81323e2ea1cd152115b502cc5bcec1d6ddc00c56c",
     "TensorCore/Cli/IEEE.lean": "02f26393e23a729b693ae9d68d7f029c7ab19ee8fe3795d412e7133ce84a7016",
     "TensorCore/Core/Binary/Bijection.lean": "c5ff1e8cf8bf6a282a18742ae4d11faa99b6c88dffa0c5d20b81d31a4e440717",
     "TensorCore/Core/Binary/ConversionBounds.lean": "1f696319feb770053cd2c45aab7915a7000c6e27935ff4fc2cc265f6136ca170",
-    "TensorCore/Core/Binary/CorrectRounding.lean": "d2d6a6d74acca498c845c38473dc4c00dd5c759066a447c06acc9b3d0ec5f66e",
+    "TensorCore/Core/Binary/CorrectRounding.lean": "e24e029c56ae0a795e8401dff63095918401ca1a0d9dddc51a1e1b55ca76fa8d",
     "TensorCore/Core/Binary/Defs.lean": "0fa763366b0bb7ec0b1a2f2c6ad4ec09e70274e39390a4252473a3582da700d2",
     "TensorCore/Core/Binary/DirectedRounding.lean": "87a9a4c46cc0cf480004336763d55217b7f3435e30e7bfa132a49fed647ed643",
-    "TensorCore/Core/Binary/Encoding.lean": "2f239ffa76a0ffc7d3106ff35467aa4e63de31b2db53e0188a35ba13b5e052cc",
+    "TensorCore/Core/Binary/Encoding.lean": "bf64d728379fd35a1e494b6fee7e55ca583af48955278f5df4ef5927052c9dae",
     "TensorCore/Core/Binary/MagnitudeScale.lean": "3e5fe8a71dbefcaa4537b3db6ba70f4e433e2e45388e250c81ba625c4db70866",
     "TensorCore/Core/Binary/ResidualBudget.lean": "ddfb57d83e4c93dadee319231f178c027cfb0beedba7a405e30a22debacea70b",
     "TensorCore/Core/Binary/RoundOp.lean": "afdcbbaab2aad95a677980520526cace59b42632e8a0da568441e863ff61cece",
@@ -3733,11 +2934,11 @@
     "TensorCore/Core/Conversion.lean": "268df8390b44c8420dbc82c656d99823db1307053af1d8b1a7b55b86a5bb1b05",
     "TensorCore/Core/ConversionBounds.lean": "5192f32543afc8f3c2e0da1c9026a259732f45a4a7d0acd421eb8b1d011ee7ea",
     "TensorCore/Core/CorrectRounding.lean": "9cfc533e9e231c20d0ec2e3a0df1e87fa3aea63d20342300ca88909680c27f01",
-    "TensorCore/Core/Defs.lean": "2e640c5d6ed2c7871cf69417b34a4c68688c8f6e78de852dd87a3c1550d43839",
+    "TensorCore/Core/Defs.lean": "a9d80698dc0c15a2b59b14d4bc9cb9cf726d38a1e035853d53673b9278a7d1e1",
     "TensorCore/Core/Encoding.lean": "3d26dcf3f119dc687b1677ac9c8a59b6d4ff5ce38c8a4c31f11321f73ce69f41",
     "TensorCore/Core/EncodingProperties.lean": "0413a3492afde82e1b4081b407fab9605c9ba2400e29e7a08185c3020160cd1d",
     "TensorCore/Core/Exact.lean": "8afc311c4d0bded577d9665420769604b906f54d28b639fed76d566d4b16a9d4",
-    "TensorCore/Core/Format.lean": "721aa2af16c5cb9927c999014ba5bd3d0d5c1bfdad73028a75d49c693ce0f888",
+    "TensorCore/Core/Format.lean": "ae208f6d0a4b0c6958abcb9563915220425985d6e82e6c7fed36889150434c29",
     "TensorCore/Core/FormatProperties.lean": "4180b5aab8c2567df622403db60a20b62b83b40ecca233b4fe9de3272609baeb",
     "TensorCore/Core/Notation.lean": "4553fdbd68f1fd7ac0a927f23889375d1a3ae86e9ac321b160de7da9f6c9aeac",
     "TensorCore/Core/RawProduct.lean": "fe42cb8a9cfd1d7e6e3cd4591214a13e5ad0495ec7c516748747e240b2dc5cc7",
@@ -3869,15 +3070,12 @@
     "TensorCore/TC/CanonicalFormatDefs.lean": "a87516bdfaa13c0242183cc0286ad66ab13c865bc2c3f6e95a611c9e6f50346d",
     "TensorCore/TC/CanonicalFormats.lean": "09fdf0cae6efa55316a3df1be5825cc0bd93c70b7dde51e376170064a348d7ed",
     "TensorCore/TC/Compatibility.lean": "d11c50e088d0c9885a805afed08d5b0a426a242e99860bc57a961136680d7223",
-    "TensorCore/TC/Conversion.lean": "e2ad55824cb7090345c540b6f70899f9ca44fc0ba0d04ab095307e1c47ad2999",
+    "TensorCore/TC/Conversion.lean": "197259dacb6a94a381793edb103d6d0fd8bc5b5d2dd87c5f379d6beb2feddede",
     "TensorCore/TC/Defs.lean": "ababf0fb64e1035ef854aea1780735a0c92ed82a75fb2796c9e13a98a396a249",
     "TensorCore/TC/EncodedMonotonicity.lean": "c775087a5a4f806f14d07eb42e0488751115fd40daabd241cd2e6940c6c52620",
     "TensorCore/TC/ErrorBounds.lean": "9bc25aae1dc9a72c89605d1d6e950613ff74f42cb99b706115dde6cb58c72507",
     "TensorCore/TC/ExactAlignment.lean": "1d2386bbd186835f0c41c56260dc8e3996621c16ea287ab6481893b9126f5154",
     "TensorCore/TC/Examples/BoundedDot.lean": "84d11e13320f43a578f0bb371f84088d30a27722a6085fe55b7008ca5b7d9dc7",
-    "TensorCore/TC/FP8.lean": "b46d0cbc6373f983240919e32968f79d19055bc52401b0f4b08d06f4720ed94a",
-    "TensorCore/TC/FP8Defs.lean": "56285b321cda4719fd237116839c22c75c074cad1d9ed64985b441d1890b3608",
-    "TensorCore/TC/FP8Program.lean": "ab7445bf9784ae65eb57abf573dcfb876e5a3b7ac1d4c8ecdc7525351b2657eb",
     "TensorCore/TC/Flowback.lean": "7a97c1cec0d2a77030ec0ad9c9c00af1ce2a003f829b08eaf69a4f1f00c0deea",
     "TensorCore/TC/FusedRounding.lean": "c3bb2e7f2601d6cd47c327d9455b43f2fcd864824cf985d9bc1ea115d79958b4",
     "TensorCore/TC/Instruction.lean": "31fc12bf433e9c3dab8f5235ab555babaeee7ef42a957163009e7ba3c87eb159",
@@ -3887,7 +3085,7 @@
     "TensorCore/TC/Monotonicity.lean": "a12b302443c180556e8bcb5201a22662ef68adcebf25af649b3ea6c2e90124c3",
     "TensorCore/TC/MonotonicityRange.lean": "77eec6ac5a1d6e596fe469ad0f6047fa3e80cffa7ed509beffc3bf828b2a0c30",
     "TensorCore/TC/Padding.lean": "d9445108e0b12b2941b06a8219c9f116872f0980399db8aebd7f815af3825537",
-    "TensorCore/TC/Profiles.lean": "44c0adcde422f89701defdf3a73b595232247103bc83f8e06be68c3b27e10cd5",
+    "TensorCore/TC/Profiles.lean": "bb494bd09173a94879200ddba4261439d8de10eef35e134f329b9077920625ac",
     "TensorCore/TC/Program/Bounds/Local.lean": "fa6fc76697e52d4d2cc519158971ebbfe63210846873eb49d83141a3455a0b28",
     "TensorCore/TC/Program/Bounds/Loops.lean": "b6d83176543b4f160a5e8f379a48a4cc80fbf999501f52dc82c6331c19a67fb6",
     "TensorCore/TC/Program/Bounds/Scales.lean": "9d84e164280004121665e75707c121844b117372cd4f85a60315bd0bd32152d7",
@@ -3903,16 +3101,14 @@
     "TensorCore/TC/Program/Report.lean": "7ac88260d41d1f491f8787fb3cde923d817940cfb72f11d6096f7e5d59b1eb62",
     "TensorCore/TC/Program/StaticCertificate.lean": "0b2c5286e5f9d6f2e04bd0043c2b2781e81a366c4011d31ec00325fdcac311f5",
     "TensorCore/TC/Regression/Application.lean": "e93423c18b3a0262d550931e8a9231099e46943a77befb48c9d7c7e84f963b56",
-    "TensorCore/TC/Regression/BinaryRounding.lean": "2a890ed20ad519681c8499746ff1f2324df6d1f65c82c6fbcce2ffa75ca5e9d3",
+    "TensorCore/TC/Regression/BinaryRounding.lean": "696eaddc2b33937bd3a3810123e2a3e03e62a5db90c8d78f2482873ba710f04d",
     "TensorCore/TC/Regression/CanonicalFormats.lean": "c2dcc06f4571d9377c75d3fd483692ef0c44b55f347a47b274be8db908a73b78",
     "TensorCore/TC/Regression/Cases.lean": "faebf40f2eeafc381f95011ca415c17c21fcb7ef3ae7525c906612bca5475700",
     "TensorCore/TC/Regression/Certification.lean": "5c7caa0f3b11a55696c2b35c4a2313ae0f1f4dd25ae5cad27c0d4c53b8b3586f",
     "TensorCore/TC/Regression/Composition.lean": "da9a741e627d5ef45ebd630600b1a0a740d6f46f99299d05053301156585d11e",
-    "TensorCore/TC/Regression/DirectedBinary.lean": "ebadc9c5114d7c6aa02296951ba4ca2cfa200c595262fd832537c51ae68b0062",
+    "TensorCore/TC/Regression/DirectedBinary.lean": "e368affdd6a0007f481e5141d7f635da57865f8a1b10ad380c705161d5b38811",
     "TensorCore/TC/Regression/DotProduct.lean": "64c1751cf258edb38ba2b1f803bf1bf4c2b5134e74f31a727eb87352aebb2529",
-    "TensorCore/TC/Regression/FP8.lean": "024354637c637e0a7285168bdc8aeec69e201137c1f59df7de0ce8a8b984b0fa",
     "TensorCore/TC/Regression/Features.lean": "3d09e21b56a51a48579e96a8ea69b6699948fb543b090a663d38ddd4bb94f80e",
-    "TensorCore/TC/Regression/HalfOutput.lean": "bd66a80ab5d22c237e6075bc7a1608fd6d79e14253607ef3ae4ec32545dc6aea",
     "TensorCore/TC/Regression/Instruction.lean": "545df8295f8447a2a8f75ba5bf35216886aff3787e806563d190c32e9e6a2508",
     "TensorCore/TC/Regression/Monotonicity.lean": "41c10b0d4cbb98e17c80f5bcfc744215d0736e0201406dc82200ea7df4bbc88f",
     "TensorCore/TC/Regression/Programs.lean": "e10357c157d51754df27bc9cd8114d0f001edad0ebdef5030ce1a8138d6b9f4e",
@@ -3928,8 +3124,8 @@
     "TensorCore/TC/Specification/Supported.lean": "707d5b1d05cdb5ca41394c8c6af4fc5a63c8fa271d43a92db99f513ca0f7bfc3",
     "TensorCore/TC/StageResiduals.lean": "d332fa3c517990d543b1773c4f8c55406cb24cff3ad8971ac308f71a677dc952",
     "TensorCore/TC/StaticBudget.lean": "603231f876ad7a9f1d9c4e03ead14e011c9c90144bc256206f1b44e971a2ed44",
-    "TensorCore/TC.lean": "db417e827179ca0ab3d5f8365c24c6b267b47c4b0e33e83eb347b3cd1c6f7779",
-    "TensorCore/Tests.lean": "09994dacf884897b1269acfdc3061a8798ac1536758dfa82454cf81fc3d7f7bc",
+    "TensorCore/TC.lean": "7f054b9e229c150189986b18e3b13d232d237ecd30b6b679cf7c02f7984b941e",
+    "TensorCore/Tests.lean": "59452a3260513f24cbc1769e669119fbe0283c9e384569f9a44f36f38d083a8c",
     "TensorCore.lean": "2ad9289a042b596c60597f7b72c15076fdb2d55ca5d075b7c7f20f0d022426e6",
     "data/examples/eft.txt": "4104fdbd5ab534f7dd69698cf0bd9353306fb29aa658d0530694de75fdc2935a",
     "data/examples/gemm.analysis.jsonl": "b876f147d4fc9b41bab47d17e4aa15ff5e2e3265093131b1de5b9d734e116158",
@@ -3947,35 +3143,36 @@
     "data/schemas/gemm.schema.json": "456e89fbc681c034867eb6424d0513b4ece69b21808a6434208593d0a64394ff",
     "data/schemas/ieee.schema.json": "3d19a8199fdd31da63d71afaee42d683ec525cfa173a300f4d1084424dc2e5fd",
     "data/schemas/selection.schema.json": "4bf3f254462c977fa21412ca093f334da25f7c554c23784011b4f438eb0353ca",
-    "docs/evaluation.md": "fb1da4d02831612ed9fb85c71788a1d59bac096aeecac4c30c143ee468870cc5",
+    "docs/con-leche-audit-2026-09-14.md": "d0d7a093d0c5e2c2fbc4f949bd63fe81f3cc88a759dc81fa699773f23479b758",
+    "docs/evaluation.md": "912fa41698049b93bd52a725337fbcbb76c50942f02ec25e1e747ae8e0bf4a4f",
     "docs/history/implementation-plan.md": "083c9d518f09f18a9a00960bc7a55449aabf3b80c1596566e658839bd05c8306",
     "docs/lean-ieee-compatibility.md": "28c1aa22fc05d2ffbc95e0bd5a9c56895224f9b053398bc3ca0b2da2e41ea89e",
-    "docs/migration.md": "84bbbea43990a2cf23154e9c3d7723fc11b88def55f8ac064fd3cfef99c7a0c5",
-    "docs/module-map.json": "0b735d211e5b50110e475df854f50731906ff9a2e5ddac023e2c62e940650c2e",
+    "docs/migration.md": "e13bfc911aff113b2ba0dfa9fdbb529821180a919a14b4c2271967adf48a3386",
+    "docs/module-map.json": "658c16cec6e3858d6a4455b1786b1d760378211b85ea8e81a60ed9507329111d",
     "docs/proofs/Cli/IEEE.md": "acea25be24dbc73b5c865d13449ea5e96725d055b0af0cc16ce8a2c4f507d79a",
     "docs/proofs/Core/Binary/Bijection.md": "22ffd682f3037796048a07d9523cc02f64929068a00d51b33332de4eb7cb7edf",
     "docs/proofs/Core/Binary/ConversionBounds.md": "e54c69a27ea3457227ac6672288dfdb1bf943f3a4196dbe8852b59e799b50672",
-    "docs/proofs/Core/Binary/CorrectRounding.md": "e08cf3c3b8d0ccd583fdfb9bbd31e27797d0555731e0b6fbb9d328b0f321c0f7",
+    "docs/proofs/Core/Binary/CorrectRounding.md": "b35817e02267af97b203c5fa9ca5192215b7ea866e44a3be52e1e6984cb88494",
     "docs/proofs/Core/Binary/Defs.md": "bf32bc7d8660578116ee14a7e4a0418cd2846726a22ed7d9ceeb0667cf677614",
     "docs/proofs/Core/Binary/DirectedRounding.md": "c6382b26c9bac8c53f5e22a23774b0d75c00cd23cb9b545c9e5bb6b3e5961293",
     "docs/proofs/Core/Binary/Encoding.md": "cfb8ac90bf4ef4e900d29e6a299f724a6d06f94886421597ae563ef2231f606a",
     "docs/proofs/Core/Binary/MagnitudeScale.md": "b9cc355171328aa9b27c932ab7103068b8db8a8f59aa55686b0349cf272874d5",
     "docs/proofs/Core/Binary/ResidualBudget.md": "dede96c35ec7d0c68ae28ed3dfbbeaf2bad170119ef9911e31553df874609cd8",
-    "docs/proofs/Core/Binary/RoundOp.md": "e12d29359e49a93833de0385a29151aec5c3a7ec20d6749ef5d2d9c52cbf072d",
+    "docs/proofs/Core/Binary/RoundOp.md": "cec50c6c8f56c3abf28099eddb8345593a8f44cd3cb7d34f7517ce2fc9a3b2e4",
     "docs/proofs/Core/Binary/RoundTrip.md": "197dabc61ce95f14c1b8d03b27fe3f5d66a39da3ce1dbf0eac11102771c5c4a4",
     "docs/proofs/Core/Binary/RoundingContract.md": "c124a89dccf6e211749b4efadaf934eec9fe24e41dd7c9dcc6cd905f23f61b64",
     "docs/proofs/Core/Binary/ScalarSum.md": "9c42a8ba98cbfb78df923388cd8430e627b395b76658e3c894f408ce3f97fc14",
     "docs/proofs/Core/Binary/SignedBijection.md": "446cca1699961453842b9fdce7248cff107b94ec16340d83c74bcb60a3d69614",
-    "docs/proofs/Core/Conversion.md": "516713cd5f0e6cb64027543be80079ca34169fca5ed485395bf6dd3983250bbc",
+    "docs/proofs/Core/Conversion.md": "fb61527b96a680614c18910693389f630e94398229ebcc2e3a29b85d65ceed1f",
     "docs/proofs/Core/ConversionBounds.md": "f466644f68e158beb6aa46943ff56369c475251102dfbea19187c7826546e06e",
     "docs/proofs/Core/CorrectRounding.md": "1b3cb48c2bc04e1b4dc81911527d25e9ca29dd29ccd4c611e4439f24b7922540",
-    "docs/proofs/Core/Defs.md": "54c9622a80edf5de579f04462fcca75e286d0871b6f9c990375c5bc471517aae",
-    "docs/proofs/Core/Encoding.md": "e392773402fd488bd9ee2ecf721bf6037dae5024a1dce7ff3080993d7d211110",
+    "docs/proofs/Core/Defs.md": "fc6e430a4ff198b1dcc6bb6277114253848f3611a1d2828a1723d4932cbee20d",
+    "docs/proofs/Core/Encoding.md": "08b345149c128d67ff0c4702500ced3242f17052cea31a70c85c4ec9386945ff",
     "docs/proofs/Core/EncodingProperties.md": "771e46196d5fc2e606d439b61db59f7b356cc6be051f8474f3571346c6e5745a",
-    "docs/proofs/Core/Exact.md": "985f6d9890575d301df90c5947753c154faa13767ebc748ce3e0d53d7524bca2",
-    "docs/proofs/Core/Format.md": "55b0d1770c66d77e089d760a7d2b306aeff744f50cfea6e133e537253ed6a78c",
-    "docs/proofs/Core/FormatProperties.md": "6d1eb2f56c043b8b7533265e9e21893adf33814a06727f2ba5e375ccff77e727",
-    "docs/proofs/Core/RawProduct.md": "62ee455040329abe7142880d93ee3379431750f68ea3a5b9bf06b82bad31721a",
+    "docs/proofs/Core/Exact.md": "8fac7d207c58b4411dbc6b60ff62c7102f24b54bf63a57f933a7c7959954614d",
+    "docs/proofs/Core/Format.md": "eea70eea920f0c1dd204de88075bd043d8a9b8bd925b3389b7037ef74bd72741",
+    "docs/proofs/Core/FormatProperties.md": "dcc617fa14e39b2c885863db6da835c4569e4eaaf1f5f0b55f09e2c06f6f7e62",
+    "docs/proofs/Core/RawProduct.md": "5fa817445410b4952dbbbde635ea1a8f678bc4f0418f002c22a4ea6748667879",
     "docs/proofs/Core/RoundOp.md": "1e085f67b37808466ea1581c56fded17041a639fc3ed005775bd4231443a82be",
     "docs/proofs/Core/RoundTrip.md": "8896571a4bc76ad97444fe70697c9962a434e55beeb59b36aa6ced60524fe9ee",
     "docs/proofs/Core/Rounding.md": "2ad2bf1c956a5a264342908a5ac26886b1ab2f3d6204067353518353aba62609",
@@ -4086,7 +3283,7 @@
     "docs/proofs/Meta/Certify.md": "2a31654a17c49b80703360fc536025c107028e33dfb3c9ae63b42c214a59b62c",
     "docs/proofs/Meta/Instruction.md": "200023c263e69659ea3d545da820d48923f2e0ad73946e5a84b6b599b3c69e7f",
     "docs/proofs/Meta/Syntax.md": "3b230615586f2222451051361b8879723d55dc909cd615e81cc904ff0258df70",
-    "docs/proofs/README.md": "fb38f50f3741f82c7bc07da6186d58cae387aae2dd1cc1439e24bd188a8f525e",
+    "docs/proofs/README.md": "83065b38254d6444c1ebb58842caf1b0fc195f269b6ddc7994161bf6b4e62ea4",
     "docs/proofs/Regression/FoundationCompletion.md": "7e2852db0f5ca88d782ea1163c02861180ce935b13a0e55b05e2c0eb8f04a1ab",
     "docs/proofs/Regression/Specification/Audit.md": "9eb4be53c802060794a38b5340c2f1c84b0291fb7b3f09079c2eb826d4244088",
     "docs/proofs/Regression/Specification/NegativeControls.md": "896aad1667583c1bf7a8b85c96899d63053612f4b3cd6333c47e1ea7e3bbd6a0",
@@ -4094,32 +3291,29 @@
     "docs/proofs/TC/Accumulator.md": "05cb3cf3abbfb3eead527e400c731ee0cd2383f7a7f3476b6ec32555e9afdfe9",
     "docs/proofs/TC/AccumulatorWidth.md": "de24ab27c853ef0cf8827802751912f8e326197cc01fe999700742058b23f8fe",
     "docs/proofs/TC/AlignmentScale.md": "dc2340bf45b0379f9303da47ac78f119ca75a9c03ce5fcf8ef32a2a8b1699771",
-    "docs/proofs/TC/Block.md": "a06c59d28fe8f58259dccbd85b6fa9066c34cddcfac41a85590bd45436561fb4",
+    "docs/proofs/TC/Block.md": "2d0f0ef54e43fe2d6dff45a27d8c7376180936e73b1c9eada21b632692db7fe1",
     "docs/proofs/TC/Canonical.md": "af4300271b5d28da960bcec07186ea1e6099ff1e90dc077604199878ce51f9e7",
     "docs/proofs/TC/CanonicalDefs.md": "f30511453deb8ea6cc2182e46e399abf35f5117d37098cb2b05ca9c766fc8575",
-    "docs/proofs/TC/CanonicalFloor.md": "a2844fddac4993e0de8919e5bbce4f81e2460d7763118986e60f9788b85c5d7b",
+    "docs/proofs/TC/CanonicalFloor.md": "bc13c1c159ac396d08c1c4db11350db8c3b6413c1631eae069b32dffe5f62727",
     "docs/proofs/TC/CanonicalFormatDefs.md": "bff2bfa3fd3becd7eec280583ada3e00226d2df538ce30f9efa5bc3ae765c74c",
     "docs/proofs/TC/CanonicalFormats.md": "cb20d2477ac795f1afb34aba3e7f4a2b44643332583f6b1e8630e3c6f3ed7617",
     "docs/proofs/TC/Compatibility.md": "d5ca6e31827b0bd845078d4c9e7ebb029c14072f9e8eab06c6a6aa2af61e051f",
-    "docs/proofs/TC/Conversion.md": "78c5be631fb405d99ec8291ff5842c8ec6750de01f3cb523bd1603e5c724ed6c",
-    "docs/proofs/TC/Defs.md": "89765874484a87b19807820858de24da08fb746e1fb43b74fe8f266d2c92c293",
+    "docs/proofs/TC/Conversion.md": "71aa95df5619831a457d46404410c8da0d0e4252e55355cc5dc11be363db2f1f",
+    "docs/proofs/TC/Defs.md": "1da30caaa8cf8613b7abec4830b247d1dfcd2300787663e2c7ec756e0b2986e9",
     "docs/proofs/TC/EncodedMonotonicity.md": "0a30cce70b6e13a46d798cf1ab352ea45e7415d853f4f3d10cc6d799aae85c06",
     "docs/proofs/TC/ErrorBounds.md": "fb57987d4af3be4062ba1ae8eebc51399d3cb2300360a83d96272c88c920d47d",
     "docs/proofs/TC/ExactAlignment.md": "61da8b9dbd0c72e83e704b3f7bc523af74188f877f1ef2af8e3805671ba2c8be",
     "docs/proofs/TC/Examples/BoundedDot.md": "0d6b83338fdfd6e09d9fba413290de19487cbb9c4d42d374ed9598a636b116be",
-    "docs/proofs/TC/FP8.md": "6865d7a3fd7c8aba211372d89d85f34fd7f44665acaae875f0d62ae37743d598",
-    "docs/proofs/TC/FP8Defs.md": "cd95e0633f7db94de42af87c1c99a74311f7cb85514446b56adab0e13c0e1430",
-    "docs/proofs/TC/FP8Program.md": "aef6fd3d9ac4ce2bcbf8e3c303107ec344c94009f3ce5a67dbecee2f3081f8df",
     "docs/proofs/TC/Flowback.md": "e8aa2dc15961bf84d00c8a8aeb1865d15cc9f2195dc202330f5ef4369a40ffef",
     "docs/proofs/TC/FusedRounding.md": "efc9446d015982bf6e0f33beb83b9f88a2c7e5f65276a25cec9ca1d698eb2d99",
     "docs/proofs/TC/Instruction.md": "72e2b4ce542bc514e1072eb92c8b03b6e310509272014109e3e6a1dcaff7756c",
-    "docs/proofs/TC/Invocation.md": "3dd1fa63caa5722acf340094cfb138f5031e38e45a3c13b8ed4037c6ae5df15a",
-    "docs/proofs/TC/InvocationProperties.md": "094ebdb5de29c7332d90171a8117ca415038dd93e010189bbea31c7ea3e25485",
+    "docs/proofs/TC/Invocation.md": "140cb4483aa424a67b40cb5c5bbaa9c415c922815869fcdb70f90624110e9c0b",
+    "docs/proofs/TC/InvocationProperties.md": "670f21932856a09cd0c3d41116222b39c1b8aef948b5dd4d24eb78f6c3b9e944",
     "docs/proofs/TC/MachineRefinement.md": "f75f7b336a5b8c5736cdf375593c9b6cca457375ea294e7ca5fdd6ef440fd388",
     "docs/proofs/TC/Monotonicity.md": "fae6ba3a692c424c5710dc25d5d3a91282fc21b58ba279b1a27eed0d8e7dac8e",
     "docs/proofs/TC/MonotonicityRange.md": "dc16c0cbba90e71b552ab6830ebde31c7953caf27541425eb8b78f69806a4a13",
     "docs/proofs/TC/Padding.md": "797199cf71458cb1bc1c3023bd84565370a08b3135997a6fc3d7ac79443a5864",
-    "docs/proofs/TC/Profiles.md": "26d680a411d57af8c3247580defbb049a5e0779c3e6646edb63d9f8e73042dd6",
+    "docs/proofs/TC/Profiles.md": "80a9c65119397a091ad7bc74207dc88d6613fdb3647661e1a979133b3a42fcd7",
     "docs/proofs/TC/Program/Bounds/Local.md": "992dfdfd195090e55e421dbb81528f8fda43495da38a06994a4c7bab9752e09f",
     "docs/proofs/TC/Program/Bounds/Loops.md": "aed77c60e00966efd15997a66c36884ccfa82c7178eec0e965719acbb580e126",
     "docs/proofs/TC/Program/Bounds/Scales.md": "1781db2ce1b1edc7c3861509e3aaad0be84b08283a2d806097297ade92614fb3",
@@ -4130,21 +3324,19 @@
     "docs/proofs/TC/Program/DotProduct.md": "fc4ceb8f9849d5ffb363ee15722defe92a306a7a3d832b5f849d9ff0ae594798",
     "docs/proofs/TC/Program/ErrorBounds.md": "abfdb27cb8253f1584b08657970eb45c074a4f2cebb787f9f273d2934a9c83b7",
     "docs/proofs/TC/Program/GroupAnalysis.md": "0ef90dc199fdc4c8750cceba239329a8cbce70f11734ebec7c7d6e4dcd4b1320",
-    "docs/proofs/TC/Program/Loops.md": "50490af649c1512bec84a66211a95b9c629e5aa45d45669c1a700032fa12ec19",
+    "docs/proofs/TC/Program/Loops.md": "a774ebb73e2c62b151cf31c0550ef37636403495c7ebe2e73e521409affca58c",
     "docs/proofs/TC/Program/Partition.md": "925a37d0591dff8693c1628efcaa2bfc8ce3f883b2fd6b2b63392a608cf95657",
     "docs/proofs/TC/Program/Report.md": "2d872ae8650e1ca9631d5df7768067438f94c9378768f2ef1d74ff1ed8b084eb",
     "docs/proofs/TC/Program/StaticCertificate.md": "e1be99ce713209ec4a3c52d9784b8624ac3df6806b615f1d17393dc6265e1764",
     "docs/proofs/TC/Regression/Application.md": "c66eff3343f7d458394d9685bc603faf4c7b792fb4ab03b9fe1c630efd9dbb03",
-    "docs/proofs/TC/Regression/BinaryRounding.md": "6a9b486e78e8e5988a81fbe126302159ac24ae1659ae2ff0282543d2b2202f69",
+    "docs/proofs/TC/Regression/BinaryRounding.md": "e6c188dfb5319389cde4ed1948f7f4fd73acfc8850812cf56bf8f061a6b529c6",
     "docs/proofs/TC/Regression/CanonicalFormats.md": "48fff4580741b849ff1b2cd42b19fad8bb7539bfff3fa617ed054f08e55a3f1a",
     "docs/proofs/TC/Regression/Cases.md": "abd1b9be355651232c6d763407f8f1043fc8ea55266b9e760a2df976d0b20ea5",
     "docs/proofs/TC/Regression/Certification.md": "950330635337d864d7380a36f7033a9257567d87264df4bd428b86d70da71a4f",
     "docs/proofs/TC/Regression/Composition.md": "c17cc6bdcc7c969add5fb382dd6d1fd382323bf2d3a27e36775223d1eaa84ea8",
-    "docs/proofs/TC/Regression/DirectedBinary.md": "9573cf08e4e8fe7e5d3471b5ab2c20f24d385ff5c0f665aceaf959fa492a7541",
+    "docs/proofs/TC/Regression/DirectedBinary.md": "f905ae6a84c1209f6268432b431c1bac9b09ab62a8b5114134e76952bf646e27",
     "docs/proofs/TC/Regression/DotProduct.md": "26d476cb6a34fa4098ea8eb878c19942c48438af90b1b82a9f49ca7722969a70",
-    "docs/proofs/TC/Regression/FP8.md": "02d954868f18f88253d558d0d46a8cae7630691bf0d2f1e7cbc4575c6f902b2d",
     "docs/proofs/TC/Regression/Features.md": "98ef15a70cfd8cab3b061e63795d38b27bd3f2a1fd914c133bbeebc10bf25f65",
-    "docs/proofs/TC/Regression/HalfOutput.md": "a937de9d1ad69aa4dd6d9d58b68cae5ab588883b24099a9d689be3e30b94773f",
     "docs/proofs/TC/Regression/Instruction.md": "d9a83f957663a8517e43ff470a2284bc84295725c1baca493b21a71672cfd344",
     "docs/proofs/TC/Regression/Monotonicity.md": "ffb30d3e94f9d0cdb1fe4fbc5ffb116354125ed6ced399bd8cf8bcc08e7ec120",
     "docs/proofs/TC/Regression/Programs.md": "aaa2851eeba5d7eedfaa8e7ae191d4a13e20ddea50d00d579e8e0cebe6602c85",
@@ -4160,9 +3352,9 @@
     "docs/proofs/TC/Specification/Supported.md": "516aac684af60dc2a2d0c015bde03ef569a1131aa46c41d53aac5eebacd2f0e8",
     "docs/proofs/TC/StageResiduals.md": "66e02eaf12ad5ca1b558438b67e02abc60b616fb7edbbe407cadee6d24135189",
     "docs/proofs/TC/StaticBudget.md": "304a9dba0636a9fb10d5df50385c61489668aba7c90f9ffd69b34678ed3a4b73",
-    "docs/proofs/dependencies.json": "9acdee70820e3107487a6ad918e189d3fd5a9dc882e5321eedd26c692cc8cf5e",
-    "docs/reference.md": "a8adbb9f85d8e3436752da900f8614b1cf27fec39ae66ced5b820fad16d3c427",
-    "docs/style.md": "bfe521378e7266567b5a5f1bf3e126b292ea92518c6ba7f9c013e9d81bb99d29",
+    "docs/proofs/dependencies.json": "b30dba4fce9fd9115680520a66142aba25393d07554845aaef58d1c58d8ac883",
+    "docs/reference.md": "ae426ed0e2abcd456596f26c0827b8eff84179837d9fd8e6ea56baa8117fcfce",
+    "docs/style.md": "62d53b53a5a2bcda7f677249790d2d95000d813d0b113a330fb2533ff99b2a39",
     "examples/BinaryFoundation.lean": "9b2940c6d718559caaa6a07c8e9128cd021a40cf187c61461910a8de755ec87a",
     "examples/BoundedDot.lean": "cf864aa5be8bf9a6cc341b90a3a70065423ba70b5aeb05ae6f5e07ba00ed8ff7",
     "examples/BoundedEFT.lean": "2b321acf2c6fc7f15d5ef9927fcdebba9bb701a7fff989b5762ca3332f77aed1",
@@ -4173,7 +3365,6 @@
     "examples/EFTCoverage.lean": "f406bdf4856d8356422fd332d5b140cec30dff523a54b5186e48aa184fc464b7",
     "examples/EFTHardware.lean": "7db1c7a6ec90244ff3e6426f4c27d3911df82ade71e8c28cfc50b7434b52282d",
     "examples/EncodedEFT.lean": "3f69bbe596c08743d6b6b4e3fbd9f42554f9170b56cfab8d96e437c9f6e0a904",
-    "examples/FP8.lean": "dcc05c6f0c662072306398cf9c2ad76b202b24cdde71d916afcba37ec953a369",
     "examples/FoundationCompletion.lean": "a3b2b1f23d38d03e2b21e4f7b1887fb5b758fe4512a30e9b57ef35e50ee00ad1",
     "examples/Gemm.lean": "cbf26a7c834ea943af34e77e9caf859d9050801c1ba964e4a7e4bde13f13f624",
     "examples/GemmAnalysis.lean": "31cf17d8b71ad9ceefcf70c6af2ac7d191a4cfae53724e5273adf88358a3a165",
@@ -4212,7 +3403,7 @@
     "kernels/cutlass/upstream/include/cutlass/transform/threadblock/predicated_tile_iterator.h": "5a8d8628489c90d553ffb4673d3fbd5476a82b8c767bc2e01773ea04865941b9",
     "kernels/cutlass/wmma_sm70.cu": "c4e3e82e275468cda10ea79057c1e21917c6552433dd9b9e846ac7bfe31a3173",
     "lake-manifest.json": "21b8947c41a7619fa20876b690f660faa351dfa816b995ba898acde20cef9d60",
-    "lakefile.toml": "cd70fd58f3b6b479fc891ad66368ed1c84d7be47b98304aa9ae3ddba75477559",
+    "lakefile.toml": "b6cef668b8c186d0616bf3af084140ccedba1a0fefd489f073140bd6335894c6",
     "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
     "reviews/2026-09-07/.gitignore": "8ccfbb9b72a3aa87bff4daaf86cbd1c6e99e96dc8b73558bcd6f480d4f3b0c7b",
     "reviews/2026-09-07/AccuracyCertificate.lean": "6b82c13a5ba7dd54c8ce5556958652573b064dcf3cb33993bc3a35c0367266a4",
@@ -4245,6 +3436,22 @@
     "reviews/2026-09-07/validation-reports/cutlass-report.json": "5e13b18284f559936c0c3a6d9fabeb6456743770d96cb7e19d0ed25012ca5bb0",
     "reviews/2026-09-07/validation-reports/device-formats-report.json": "10c7039b1e4656d658f24104612fd2e23e75484c6c242d1cfb0b989c1057e9a9",
     "reviews/2026-09-07/validation-reports/device-report.json": "f115f54435cd19b4e5bc0f109ac248cff45ad98d03b3266b95091c3d54b3ff9e",
+    "reviews/2026-09-14-con-leche/CollectTheorems.lean": "0c3cfbc7e43a79757dc8dd891739b0715aa1d3e0286674f9a3f45a7d7728841c",
+    "reviews/2026-09-14-con-leche/axiom-audit.log": "ab6c3319a08cce6922211089b6f4f331f924a6388216bb31cdcfac13d76210f8",
+    "reviews/2026-09-14-con-leche/check-confirmation.log": "95a81d48e28fac7e943cc7818f77a33d008f377cfc6b2094c4575b3cb3ef814c",
+    "reviews/2026-09-14-con-leche/check-original.log": "4e2396887029685a39abcd18260cf7bc95cc050972a19801d5b11761f0270e25",
+    "reviews/2026-09-14-con-leche/check-summary.json": "216007b563953c40b859ce5ba4d52cb757be5bd23e017dd5f1e05cfa8c2f7040",
+    "reviews/2026-09-14-con-leche/con-leche-build.log": "4da82f9a98c3208529b7c45962a4fef2d458f735723f61dd8cde6d35af9bf44f",
+    "reviews/2026-09-14-con-leche/confirmation.json": "9083a170bb861141b1dbdb358753b67a4f8b282b6eb93dc40423f206215cd8c3",
+    "reviews/2026-09-14-con-leche/coverage.json": "1eeec70e5f469f7ae14c22e38e768971502503c0be3b59b268ff871260f529b5",
+    "reviews/2026-09-14-con-leche/export-summary.json": "b174ce43a7afd4eed372437081b5420c98f9a777727bc8ba91dfdc0b42c9687a",
+    "reviews/2026-09-14-con-leche/layout-audit.json": "64cc9390fd50a40c21bba353e9b11727f1a643370331a7694fcd1561a6d4162e",
+    "reviews/2026-09-14-con-leche/modules.txt": "f67de7f8442affeee3846bc1746ae29e7e79055af8cc0b71a487b44219d2abb4",
+    "reviews/2026-09-14-con-leche/roots.log": "3200bfebcfec83384eb34ae42172abd6a408a9a9fc4386d4b2c34d2109694418",
+    "reviews/2026-09-14-con-leche/run.json": "07f92961b81499d983e392714a78cc7be5ec42182e1d7c2aa56c402a316f3653",
+    "reviews/2026-09-14-con-leche/scope.json": "53e94647c050e6d0284fdc91251da43337400febd1e8b6da46781d28139a1fa5",
+    "reviews/2026-09-14-con-leche/source-sha256.json": "89762e5b33c668b79b1d81b7c2d7d3ab531c04bf5d9c4cd4ca5ecfa93d11c9e9",
+    "reviews/2026-09-14-con-leche/theorem-roots.txt": "50faa7f731eeb75a9a78075b077f8dcf4cb400d7fbaf10cd1b1ff938179b8c87",
     "scripts/analysis_certificate.py": "070e2bc00bf2ac52f2e70539c2bcdaee107b6d91ec877d85fedae46c10eb9794",
     "scripts/analyze.py": "4cb473082dfda8dc2a18edd9696a5a37aa3b12afa282175ed21be0ccfc630972",
     "scripts/benchmark_bounded_eft.py": "0e26f32c3dd6198d13ec6a30d1226dda4482af04a5233f8ae9fc31870d16c80e",
@@ -4254,13 +3461,11 @@
     "scripts/check_axioms_regression.py": "476d9c7b31e88d2bb9e0a32d8eb80b5a67f44c5a6f7f1c14f0b146d96a1e30be",
     "scripts/check_bounded_eft.py": "1f32c39668d2fe203c8e6d0c500c62d80d254fe2cbe64b09bfc1ebdead9b33c7",
     "scripts/check_certificates.py": "60e281b71d7333bdc67b87d5966ba518a2bcdf17c76ff297a44045d72a868748",
-    "scripts/check_clean_build.py": "18446062c284b51c936b5554b576fcd08e1849e2c7b5412dbc99fab3327dcb2a",
+    "scripts/check_clean_build.py": "8bcb302e2bbcd497313b3106f47d2db88347acb24067e5f0e926782203788f6f",
     "scripts/check_cutlass.py": "292b28824453e0940c895fd70ca27977370f6dcb8107861a8cf396d8d2e97ad6",
     "scripts/check_decision_extensions.py": "0e07cd03a908c7c2600f1cd7643824c89d45b9f1ac706bc09f477ee7685510e9",
-    "scripts/check_device.py": "4dacd6bca0e4a01f54e129a5d92f2b61742dd334d42346a21adfb4b2739f9a6e",
+    "scripts/check_device.py": "b4f23d7e9f339258adc600500c674bb71d7f992756b6b3d2e6ee0635c5aaa108",
     "scripts/check_device_formats.py": "20ec6031dac8be99fa18fad0cf9b54817a9784a0cffecb97f0cb95bba665d0bd",
-    "scripts/check_device_fp8.py": "c300914e1e618092da4cbcef18be1a1b23a13c2f49b15dc41758ded45ca56fd6",
-    "scripts/check_device_half.py": "90ab89455f8ca4d752c18f9eb50591697ec78159c472a95252ab45c954a32bb6",
     "scripts/check_dot_products.py": "1f2f2be4242c4b1847f136fcd4c7d1513b404d73e88691568e3f63166a6f3636",
     "scripts/check_eft.py": "acd126eddc22104e4d9bfa0a13cef971532a8c2241d8069272fa485b1bca094d",
     "scripts/check_eft_coverage.py": "c4eb30b0e416170c9f883b57cca8981f67956fc7d2d58b987430712cb0e67bd0",
@@ -4269,7 +3474,7 @@
     "scripts/check_gemm_extensions.py": "bf866daf57e62f430e3d047699f38915374c438b651233fdb38bacad679a57fe",
     "scripts/check_ieee.py": "1177aabeff9b1de0bd5a5afaa71a990e262824fd70a10fe61e41b11db932f828",
     "scripts/check_ieee_softfloat.py": "549d5b6fa95f3220b519cb035f8fe28f76e9f5128956d77e35c42bceab0986b9",
-    "scripts/check_layout.py": "20e088caec392459fdbe139b2f2a51e8b3f35506ce5a8eadb55c2492b81720ad",
+    "scripts/check_layout.py": "50234ee4814133e9cdc6404b3a59c6a5b2e020afbde30fff7a1492fcfc2db6b3",
     "scripts/check_lean_eft.py": "a324667bbf605dfa216dd2120ada34047cf54dd9280a05251f1c716ed9c50f7f",
     "scripts/check_lean_ieee.py": "2c218090150dd58a531d0b738af6989d7a194280a81a6ce8ff25aacd9775f4da",
     "scripts/check_native_scaled.py": "7c57e65b8a0a658d20bcd5f7c127bc896f1e0f29ac40ebb39c7d968d58e6be71",
@@ -4293,7 +3498,7 @@
     "scripts/validate.py": "b371fe95a6bad7857b1b1ad1d1812b6f8931da13832db5cc53d197cece4ff28a",
     "tc": "2eaca48c79f2a3c32ffac1c59bebb301f306b02b39339e167d90793290c1fe2d",
     "tests/ieee/softfloat_oracle.c": "9255fdb61c41ab2e59f3e9ac24a1b0fc08b04458e1a4de45c5ee5df7c1f09a85",
-    "vendor/SOURCES.json": "df1002634ee41d4df59fc5501c5c56621473f92daaf35c5ac68dcfc27479601a",
+    "vendor/SOURCES.json": "52038193d06e9101ed129222070bdae484ebced5b718131770a926f4a8f19e24",
     "vendor/matlab-tensor-core-v0.5/LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
     "vendor/matlab-tensor-core-v0.5/README.md": "7117c699a313ab65f6039a365bc2d6012e4b917041072dbc645a51ba9d647efb",
     "vendor/matlab-tensor-core-v0.5/model_validation/A100/bf16/a_A100_bf16.txt": "451badf33ce4cdcb9953db64ede3c561827ba79068a222723f1dc033bbe7122e",
@@ -4320,24 +3525,14 @@
     "vendor/matlab-tensor-core-v0.5/model_validation/H100/tf32/b_H100_tf32.txt": "1a019e8dcec2a44a741e691268e4c4a9eb9eb9ebc128be097f9921b813d4c6f9",
     "vendor/matlab-tensor-core-v0.5/model_validation/H100/tf32/c_H100_fp32.txt": "0e13e585a11bd64b0fc40bafc9fd0b8037176e4f98097c76869505fefbcba23c",
     "vendor/matlab-tensor-core-v0.5/model_validation/H100/tf32/d_H100_fp32.txt": "c879699e2cbac246e311ebdfb1ed4528b2463bf9d588faa3ca3651a4af7222ab",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/a_L40S_E4M3.txt": "76a6115878a4662fb486d90a6765e24564ed436a173ed1260d5d53112e8a976c",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/b_L40S_E4M3.txt": "f35d75720651ab777b10399abea59f060cde011a898065b5c3045ea171cc669d",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/c_L40S_fp32.txt": "5fe4258b96b4bd99f720796bcbfa39f3f3b4fd45eb5f3c47756914c0fb73552b",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/d_L40S_fp32.txt": "367af6ea87401170fc811aeaf61ca0ac6fb9c8d6d07b3c39bf5aac819cfdff11",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/a_L40S_E5M2.txt": "229abb5f9e0f1dfdae18ab467bccc38547749b3286128f99ba134573b443ee1f",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/b_L40S_E5M2.txt": "dc105fe914100f96ba77b18ec88014bde43b4f5be0bc105e337d2e6bd51eeb35",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/c_L40S_fp32.txt": "369fb2d8fd05edbbd4c0e4fcb547be29608218e90e5a807a5a27be753912d0b1",
-    "vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/d_L40S_fp32.txt": "572b0bc93636d4bd6883c05637ae50285c01e9b6ff6764f7b21b6cc9993f5630",
     "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/a_V100_fp16.txt": "53d8534fd1106f7e9a23e902b918e59108f9e1b05843d20a36b3049a61bf8204",
     "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/b_V100_fp16.txt": "1a019e8dcec2a44a741e691268e4c4a9eb9eb9ebc128be097f9921b813d4c6f9",
     "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/c_V100_fp32.txt": "d38097e1e4d5547234e7be1c6daabeb4ba8fe24e99367391a3f7b5c600001848",
-    "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/d_V100_fp16.txt": "7322aff1d735e6dd6a225754bd981e6520f3a6078c14ebf1614ce42b115c029a",
     "vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/d_V100_fp32.txt": "1cfbb62768f303c90aff43458afe386e297b99df7a4e69ab4b0cde26dbcbac83",
     "vendor/matlab-tensor-core-v0.5/model_validation/Validate_TC_models.m": "017a341642516e263e0ff7d6f6c355b905c7143d92f1afdf4d04f7142ec00fe5",
     "vendor/matlab-tensor-core-v0.5/model_validation/readHexFloatFile.m": "3a73792439c503b1551fcdaa1c6865f80d1dd204e9083c8271085701e2a58553",
     "vendor/matlab-tensor-core-v0.5/model_validation/readIeeeFloatsFromFile.m": "5cdfd3fb1cce2484ab6159e7a95ac820cc052c072e9a8100aa3385a05636ff23",
     "vendor/matlab-tensor-core-v0.5/models/A100TC.m": "f5e8f405d698e324aedff5e62ea58a94a75ce48261bef7dc6860f718a6e159ab",
-    "vendor/matlab-tensor-core-v0.5/models/AdaTC.m": "9c747e9d093ce3a8dde75838b72fc12641cd5e5aa2b4c83f287c0964ae65880e",
     "vendor/matlab-tensor-core-v0.5/models/H100TC.m": "e23beb2986ea31780972f9853df07b63d49562ccf92ad1106e2aea40b6dafdbc",
     "vendor/matlab-tensor-core-v0.5/models/V100TC.m": "5ce606129b95e340581f76a58d0eff048561c13bf3206586480042485b539b8b",
     "vendor/matlab-tensor-core-v0.5/models/tools/GEMM.m": "cc3bed803f92a29a68610e27f34822c527b50cb5801c08b8486faf3b4d14e72f",
@@ -4345,7 +3540,43 @@
     "vendor/tc-eft-validation/SOURCES.json": "267053f91c9cca954519fd36283396a9ba451a8e6f88b4c7e7edf6bac8528bee",
     "vendor/tc-eft-validation/check_revision.py": "c4f2e213d8c880253b839172cd1a2b85dad0f0759faba630616565f846604fe7",
     "vendor/tc-eft-validation/check_second_pass.py": "687b9b329c3bb9b7c2528daa05a373a40c6d0d58d9fc2a314c551f832dc3b03d",
-    "vendor/tc-eft-validation/exact_model.py": "51d757e65b22614e74cc617595c4d98a42a5df6938ac3cbe261794981234c8f0"
+    "vendor/tc-eft-validation/exact_model.py": "51d757e65b22614e74cc617595c4d98a42a5df6938ac3cbe261794981234c8f0",
+    "wip/ARCHIVE.json": "bd4c885cfa91ce4d90ab7f7f1292afeb5617a4b6405853a9372fcace25dc6830",
+    "wip/README.md": "ea03d24935e17592792bdcbca17eef4ac3ca32f50f480adfa06fed18f33952e9",
+    "wip/TensorCoreWip/Formats.lean": "da2461c5a56edd0e5c66f2e525c3a073c3b8d518884651692773230e437de59d",
+    "wip/TensorCoreWip/TC/FP8.lean": "ed101f3678bcf258cedc7ab50909cee030c1be0a9723ba8d3aa83cd8c836c04f",
+    "wip/TensorCoreWip/TC/FP8Defs.lean": "7ad0e22219ea494132fe7c9d83e49a0806cfb09f6a6c57ffc7cc41bdd2a5ce8f",
+    "wip/TensorCoreWip/TC/FP8Program.lean": "af72489941728c111bb108fee75c685b2cb9455989a4145898d7bc8f1eab3874",
+    "wip/TensorCoreWip/TC/HalfOutput.lean": "5b86dfc3cf1c74e1ad211b0e396388343ee825f500053ac0d0067d5d2804a719",
+    "wip/TensorCoreWip/TC/HalfOutputDefs.lean": "421fa0945c608277d4ad22b240740184fd05142d95faa44474011146084b2221",
+    "wip/TensorCoreWip/TC/Regression/FP8.lean": "cc12e2bed09fd0ec27ba2a22fc916663a82060ac47e7d9b7af244938cb5a898c",
+    "wip/TensorCoreWip/TC/Regression/Formats.lean": "332f8f6fabe5e2311e77b675e55f6b2e7a4005e4437164141bb09d73b6c733cb",
+    "wip/TensorCoreWip/TC/Regression/HalfOutput.lean": "c1b6d41afe500c0640e0b49957c6f91f6dcf094188a60ed845241c1c0fb5861d",
+    "wip/TensorCoreWip.lean": "9b154babfb8ad804f9e9438bebd7ea4b09e9c0b6d9e709f7c984b99afc67da92",
+    "wip/WipMain/Features.lean": "3dcdecf963474c3933e02e30bd3ed5e493583ecd7aee3d3de33fe97e01162db1",
+    "wip/data/regressions/device-fp8-report.json": "349995c6e1c2252a9ac4946e2b53b5523a5fbcaf8c4612e8a24bcaa5727503fd",
+    "wip/data/regressions/device-half-report.json": "871df82102eee52220bb967ecf03141be43b37fa467fd762398a5048855ba20f",
+    "wip/docs/proofs/TC/FP8.md": "8e009cd8415ed37b7aa8bfe631c193e8ab87a07b80ebde024cd812e5a9f6574e",
+    "wip/docs/proofs/TC/FP8Defs.md": "939437cf230fb41f2c23a12cf751c93fb63ff0cf6a1590420fc964ae8b1a1a9e",
+    "wip/docs/proofs/TC/FP8Program.md": "6d38e46a29db5cf6e903225911b442a1dccacf113114384e99f317284d4f1cbf",
+    "wip/docs/proofs/TC/Regression/FP8.md": "a8c2398f06b8ab3970c8c7b1eb5b8caa750232b08535d2b1bdac6cf0548894ae",
+    "wip/docs/proofs/TC/Regression/HalfOutput.md": "b3ed7b7a89ef0a5f3b8c36ef7a33d32bd05818f3cc14cfa58088f885966eb3ff",
+    "wip/examples/FP8.lean": "822979dc367958be1d1c0e84c07ec410c5d0d4cf32c5b4e964b2126a6edf7212",
+    "wip/scripts/check.py": "eca3371d7d4af7ebdc76a058679a926ad4b38d0ddba13b0002db00151171d9d7",
+    "wip/scripts/check_device_fp8.py": "8c1f0fefa159794857f3bbb62b12a9a11c8bfe4bb15b1058101639c1f3480570",
+    "wip/scripts/check_device_half.py": "e38dce13efdd214ee2443e0daf038f49cae3a5a9fb07e2d0f8f0ca23bbe1d7f5",
+    "wip/vendor/SOURCES.json": "572ef9d0522960174762d76a3f6e4c372ec3d3f9075ed298939bdeae9d7838b5",
+    "wip/vendor/matlab-tensor-core-v0.5/LICENCE": "1fb3b38cdcc2483e81bcd8422321d25553f76f540f1c3089e04114e398363a8c",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/a_L40S_E4M3.txt": "76a6115878a4662fb486d90a6765e24564ed436a173ed1260d5d53112e8a976c",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/b_L40S_E4M3.txt": "f35d75720651ab777b10399abea59f060cde011a898065b5c3045ea171cc669d",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/c_L40S_fp32.txt": "5fe4258b96b4bd99f720796bcbfa39f3f3b4fd45eb5f3c47756914c0fb73552b",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E4M3/d_L40S_fp32.txt": "367af6ea87401170fc811aeaf61ca0ac6fb9c8d6d07b3c39bf5aac819cfdff11",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/a_L40S_E5M2.txt": "229abb5f9e0f1dfdae18ab467bccc38547749b3286128f99ba134573b443ee1f",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/b_L40S_E5M2.txt": "dc105fe914100f96ba77b18ec88014bde43b4f5be0bc105e337d2e6bd51eeb35",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/c_L40S_fp32.txt": "369fb2d8fd05edbbd4c0e4fcb547be29608218e90e5a807a5a27be753912d0b1",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/L40S/E5M2/d_L40S_fp32.txt": "572b0bc93636d4bd6883c05637ae50285c01e9b6ff6764f7b21b6cc9993f5630",
+    "wip/vendor/matlab-tensor-core-v0.5/model_validation/V100/fp16/d_V100_fp16.txt": "7322aff1d735e6dd6a225754bd981e6520f3a6078c14ebf1614ce42b115c029a",
+    "wip/vendor/matlab-tensor-core-v0.5/models/AdaTC.m": "9c747e9d093ce3a8dde75838b72fc12641cd5e5aa2b4c83f287c0964ae65880e"
   },
   "snapshot_stable": true,
   "workspace_matches_snapshot": true

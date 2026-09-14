@@ -11,10 +11,10 @@
   "readme_local_links": true,
   "source_sha256": {
     "tc": "2eaca48c79f2a3c32ffac1c59bebb301f306b02b39339e167d90793290c1fe2d",
-    "README.md": "d894b8a08ec314e4a7277910a517a2650a297ae05b45d76cd9b478d4865697e7",
+    "README.md": "659af2293fdaf33397341a349256e5d2fe8c3f0c5ec4c8eb3fc6efbf8bc78019",
     "Main/Gemm.lean": "01d4eb8a0dc515ea45b0262511a4273be6bd15a69f4cfa790ae2077b0dd1b357",
     "TensorCore/Gemm/Cli/Gemm.lean": "5c211fbf82ae66fa800713f358e4185dee6df0fff9b5e78aa2c50061560bdbb4",
-    "lakefile.toml": "cd70fd58f3b6b479fc891ad66368ed1c84d7be47b98304aa9ae3ddba75477559",
+    "lakefile.toml": "b6cef668b8c186d0616bf3af084140ccedba1a0fefd489f073140bd6335894c6",
     "data/schemas/gemm.schema.json": "456e89fbc681c034867eb6424d0513b4ece69b21808a6434208593d0a64394ff",
     "data/examples/gemm.raw.jsonl": "041f1419a3db1f06dfc157ae9ca7305c27cd852e6402be29fe482fc95beba692",
     "data/examples/eft.txt": "4104fdbd5ab534f7dd69698cf0bd9353306fb29aa658d0530694de75fdc2935a",

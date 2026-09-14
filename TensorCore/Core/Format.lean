@@ -15,8 +15,6 @@ structure ValueFormat where
   special : SpecialEncoding := .ieee
   deriving Repr, DecidableEq
 
-def e4m3 : ValueFormat := ⟨⟨3, 4, 7⟩, .finiteTopNaN⟩
-
 def ValueFormat.classifyNat (f : ValueFormat) (n : ℕ) : Classification :=
   match f.special with
   | .ieee => TensorCore.classifyNat f.layout n
@@ -49,7 +47,6 @@ def OperandEncoding.decode (s : OperandEncoding) (bits : s.Word) : Option Decode
   else (s.valueFormat.classifyNat (bits.toNat / 2 ^ s.lowPadding)).finite
 
 @[implicit_reducible] def packedIEEE (f : Format) : OperandEncoding := ⟨⟨f, .ieee⟩, 0⟩
-def packedE4M3 : OperandEncoding := ⟨e4m3, 0⟩
 /-- TF32 values carried in FP32-sized words; the thirteen low bits must be zero. -/
 def tf32Register : OperandEncoding := ⟨⟨tf19, .ieee⟩, 13⟩
 

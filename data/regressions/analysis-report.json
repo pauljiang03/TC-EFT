@@ -40,8 +40,8 @@
     }
   ],
   "input_only_dependency_audit": true,
-  "native_analysis_seconds": 0.105,
-  "elapsed_seconds": 11.892,
+  "native_analysis_seconds": 0.084,
+  "elapsed_seconds": 6.26,
   "source_sha256": {
     "TensorCore/TC/Program/Bounds/Local.lean": "fa6fc76697e52d4d2cc519158971ebbfe63210846873eb49d83141a3455a0b28",
     "TensorCore/TC/Program/GroupAnalysis.lean": "5f70bb691c7eecd51c6fce0470647ef81b23cd969bd4dc15f5e26ef746301fc3",

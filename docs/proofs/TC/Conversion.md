@@ -9,7 +9,7 @@ Expand a declaration to read its Lean code, then follow the links to its depende
 <details>
 <summary><code>TensorCore.conversionStage_nearestEven_correct</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L14)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L13)
 
 ```lean
 theorem conversionStage_nearestEven_correct (s : ConversionStage) (hf : s.format.WellFormed)
@@ -44,7 +44,7 @@ theorem conversionStage_nearestEven_correct (s : ConversionStage) (hf : s.format
 <details>
 <summary><code>TensorCore.conversionStage_towardZero_correct</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L25)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L24)
 
 ```lean
 theorem conversionStage_towardZero_correct (s : ConversionStage) (hf : s.format.WellFormed)
@@ -68,7 +68,7 @@ theorem conversionStage_towardZero_correct (s : ConversionStage) (hf : s.format.
 <details>
 <summary>Used by</summary>
 
-[TensorCore.evalInvocation_output_towardZero](Conversion.md#decl-91e16db9cb9f47c2), [TensorCore.gemmConversion_correct](../Gemm/ScaledGemm.md#decl-e58a1d25b374dba1), [TensorCore.l40sFP8_source13_boundary](FP8.md#decl-7b2640435fca348a), [TensorCore.l40sFP8_source13_towardZero](FP8.md#decl-289dcc55b6b1f28b)
+[TensorCore.evalInvocation_output_towardZero](Conversion.md#decl-91e16db9cb9f47c2), [TensorCore.gemmConversion_correct](../Gemm/ScaledGemm.md#decl-e58a1d25b374dba1)
 
 </details>
 
@@ -79,7 +79,7 @@ theorem conversionStage_towardZero_correct (s : ConversionStage) (hf : s.format.
 <details>
 <summary><code>TensorCore.evalInvocation_output_nearestEven</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L38)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L37)
 
 ```lean
 /-- The output of any accepted invocation with a nearest-even output stage is the nearest
@@ -100,7 +100,7 @@ theorem evalInvocation_output_nearestEven {p : InvocationSpec} {x : InvocationIn
 <details>
 <summary>Used by</summary>
 
-[TensorCore.binary64Fma_nearestEven](Conversion.md#decl-d04a4eaaeb5ab283), [TensorCore.halfDirect_output_nearestEven](Conversion.md#decl-6700d9bdc64b16bf), [TensorCore.halfStaged_output_nearestEven](Conversion.md#decl-9493c87a2b6026cd)
+[TensorCore.binary64Fma_nearestEven](Conversion.md#decl-d04a4eaaeb5ab283)
 
 </details>
 
@@ -111,7 +111,7 @@ theorem evalInvocation_output_nearestEven {p : InvocationSpec} {x : InvocationIn
 <details>
 <summary><code>TensorCore.evalInvocation_output_towardZero</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L44)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L43)
 
 ```lean
 theorem evalInvocation_output_towardZero {p : InvocationSpec} {x : InvocationInput p}
@@ -130,67 +130,7 @@ theorem evalInvocation_output_towardZero {p : InvocationSpec} {x : InvocationInp
 <details>
 <summary>Used by</summary>
 
-[TensorCore.binary64Fma_towardZero](Conversion.md#decl-73cb656a116a886e), [TensorCore.l40sFP8_output_towardZero](FP8.md#decl-0c85684a50a21181)
-
-</details>
-
-</details>
-
-<a id="decl-6700d9bdc64b16bf"></a>
-
-<details>
-<summary><code>TensorCore.halfDirect_output_nearestEven</code></summary>
-
-[Lean source](../../../TensorCore/TC/Conversion.lean#L52)
-
-```lean
-/-- FP16-output candidates: the final FP16 word is the nearest-even FP16 value of the value
-entering the output stage, whichever candidate stage order is chosen. -/
-theorem halfDirect_output_nearestEven {x : InvocationInput v100HalfDirectCandidate}
-    {t : InvocationTrace v100HalfDirectCandidate} (h : evalInvocation x = .ok t) :
-    NearestEven fp16 t.intermediate.value t.output.bits :=
-  evalInvocation_output_nearestEven h rfl
-```
-
-**Supporting proofs:** [TensorCore.evalInvocation_output_nearestEven](Conversion.md#decl-ba61a0c4e133bd9a)
-
-**Definitions and types:** [TensorCore.BinaryRoundingMode](../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionRun](../Core/Conversion.md#decl-ed5a81cbcde403d2), [TensorCore.ConversionStage](../Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.FiniteBinary](../Core/Conversion.md#decl-819c01227290b53b), [TensorCore.InvocationError](Invocation.md#decl-4afa1dfc6f87e57d), [TensorCore.InvocationInput](Invocation.md#decl-6320316242fc8f99), [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.InvocationTrace](Invocation.md#decl-b63a56d7a7c92388), [TensorCore.NearestEven](../Core/Binary/CorrectRounding.md#decl-8a557a5be79cc256), [TensorCore.evalInvocation](Invocation.md#decl-d69509a8df45ebe4), [TensorCore.fp16](../Core/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.v100HalfDirectCandidate](Profiles.md#decl-5079e6cca6513c89)
-
-**Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
-
-<details>
-<summary>Used by</summary>
-
-No other source declaration in this graph.
-
-</details>
-
-</details>
-
-<a id="decl-9493c87a2b6026cd"></a>
-
-<details>
-<summary><code>TensorCore.halfStaged_output_nearestEven</code></summary>
-
-[Lean source](../../../TensorCore/TC/Conversion.lean#L57)
-
-```lean
-theorem halfStaged_output_nearestEven {x : InvocationInput v100HalfStagedCandidate}
-    {t : InvocationTrace v100HalfStagedCandidate} (h : evalInvocation x = .ok t) :
-    NearestEven fp16 t.intermediate.value t.output.bits :=
-  evalInvocation_output_nearestEven h rfl
-```
-
-**Supporting proofs:** [TensorCore.evalInvocation_output_nearestEven](Conversion.md#decl-ba61a0c4e133bd9a)
-
-**Definitions and types:** [TensorCore.BinaryRoundingMode](../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionRun](../Core/Conversion.md#decl-ed5a81cbcde403d2), [TensorCore.ConversionStage](../Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.FiniteBinary](../Core/Conversion.md#decl-819c01227290b53b), [TensorCore.InvocationError](Invocation.md#decl-4afa1dfc6f87e57d), [TensorCore.InvocationInput](Invocation.md#decl-6320316242fc8f99), [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.InvocationTrace](Invocation.md#decl-b63a56d7a7c92388), [TensorCore.NearestEven](../Core/Binary/CorrectRounding.md#decl-8a557a5be79cc256), [TensorCore.evalInvocation](Invocation.md#decl-d69509a8df45ebe4), [TensorCore.fp16](../Core/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.v100HalfStagedCandidate](Profiles.md#decl-acd1dc2d20623ae7)
-
-**Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
-
-<details>
-<summary>Used by</summary>
-
-No other source declaration in this graph.
+[TensorCore.binary64Fma_towardZero](Conversion.md#decl-73cb656a116a886e)
 
 </details>
 
@@ -201,7 +141,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.binary64Fma_nearestEven</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L63)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L50)
 
 ```lean
 /-- FP64 fused specification: one correctly rounded result in the stated direction. -/
@@ -231,7 +171,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.binary64Fma_towardZero</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L68)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L55)
 
 ```lean
 theorem binary64Fma_towardZero {x : InvocationInput (binary64Fma .towardZero)}
@@ -260,7 +200,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.conversionStage_towardNegative_correct</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L73)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L60)
 
 ```lean
 theorem conversionStage_towardNegative_correct (s : ConversionStage) (hf : s.format.WellFormed)
@@ -295,7 +235,7 @@ theorem conversionStage_towardNegative_correct (s : ConversionStage) (hf : s.for
 <details>
 <summary><code>TensorCore.conversionStage_towardPositive_correct</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L84)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L71)
 
 ```lean
 theorem conversionStage_towardPositive_correct (s : ConversionStage) (hf : s.format.WellFormed)
@@ -330,7 +270,7 @@ theorem conversionStage_towardPositive_correct (s : ConversionStage) (hf : s.for
 <details>
 <summary><code>TensorCore.evalInvocation_output_towardNegative</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L95)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L82)
 
 ```lean
 theorem evalInvocation_output_towardNegative {p : InvocationSpec} {x : InvocationInput p}
@@ -360,7 +300,7 @@ theorem evalInvocation_output_towardNegative {p : InvocationSpec} {x : Invocatio
 <details>
 <summary><code>TensorCore.evalInvocation_output_towardPositive</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L101)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L88)
 
 ```lean
 theorem evalInvocation_output_towardPositive {p : InvocationSpec} {x : InvocationInput p}
@@ -390,7 +330,7 @@ theorem evalInvocation_output_towardPositive {p : InvocationSpec} {x : Invocatio
 <details>
 <summary><code>TensorCore.binary64Fma_towardNegative</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L107)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L94)
 
 ```lean
 theorem binary64Fma_towardNegative {x : InvocationInput (binary64Fma .towardNegative)}
@@ -419,7 +359,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.binary64Fma_towardPositive</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L112)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L99)
 
 ```lean
 theorem binary64Fma_towardPositive {x : InvocationInput (binary64Fma .towardPositive)}
@@ -448,7 +388,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.binary64Fma_exact_input</code></summary>
 
-[Lean source](../../../TensorCore/TC/Conversion.lean#L119)
+[Lean source](../../../TensorCore/TC/Conversion.lean#L106)
 
 ```lean
 /-- Fused FP64 rounds the independently decoded exact product plus accumulator;

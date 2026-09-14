@@ -2,6 +2,11 @@
 
 Date: 14 September 2026. Audited source commit: [`9b42a432389faf169720e1ff6e38b16e35b3af8b`](https://github.com/pauljiang03/tensor-core-arithmetic/tree/9b42a432389faf169720e1ff6e38b16e35b3af8b).
 
+Subsequent scope change: FP16-output tensor-core candidates and all FP8 work were
+moved to [`wip/`](../wip/README.md). The counts and evidence below describe the
+pinned revision above, which included that work. They do not claim a new audit of
+the reorganized tree.
+
 **Confirmed: the actual con-leche executable ran locally and accepted the project's exported proofs in verified mode. A second run from a fresh export also passed.** Both exports were byte-for-byte identical.
 
 This is strong additional evidence that the checked proof terms are valid under the supported logic and its assumptions. It is not an unconditional guarantee that the repository has no mistakes. The audit does not establish that the formal specifications accurately describe physical tensor cores.

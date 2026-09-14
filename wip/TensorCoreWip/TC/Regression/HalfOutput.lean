@@ -1,4 +1,4 @@
-import TensorCore.TC.Conversion
+import TensorCoreWip.TC.HalfOutput
 import TensorCore.TC.Regression.Cases
 
 /-! The V100 FP16-output path. The first published `V100/fp16` row with FP16 output

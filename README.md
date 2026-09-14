@@ -19,14 +19,16 @@ Definitions and their properties are organized by subject, following the layout 
 | [`TensorCore.EFT`](TensorCore/EFT.lean) | TC-EFT extraction, scalar consolidation, Algorithm 1, and bounded machine execution. |
 | [`TensorCore.Gemm`](TensorCore/Gemm.lean) | Matrix definitions, raw/scaled/native GEMM, bounds, certificates, selection, and independent matrix specifications. |
 | [`TensorCore.IEEE`](TensorCore/IEEE.lean) | IEEE special values and flags, scalar operations, and equivalence to Lean's native floating-point operations. |
-| [`TensorCore.All`](TensorCore/All.lean) | The complete development, including interfaces and regression witnesses. |
+| [`TensorCore.All`](TensorCore/All.lean) | The complete active development, including interfaces and regression witnesses. |
 | [`Main/`](Main) | Executable entry points. |
 | [`examples/`](examples), [`scripts/`](scripts) | Usage examples, validation, audits, and documentation generation. |
 | [`data/`](data), [`hardware/`](hardware), [`kernels/`](kernels), [`vendor/`](vendor) | Input fixtures, recorded evidence, hardware harnesses, and pinned external sources. |
+| [`wip/`](wip/README.md) | Archived FP16-output tensor-core candidates and all FP8 work, with separate builds, tests, and evidence. |
 
 `import TensorCore` brings in Core, TC, and EFT. The foundational `Core` imports
 no tensor-core or GEMM implementation; TC imports no EFT or GEMM development;
-EFT imports no GEMM development. `lake build` still checks the complete library.
+EFT imports no GEMM development. `lake build` checks the complete active library.
+The WIP archive is excluded from these imports and the default build targets.
 The [migration guide](docs/migration.md) maps the former paths to their new homes.
 
 ## Bit encodings, algebraic models, and isomorphisms
@@ -100,13 +102,17 @@ lake build
 ./tc check
 ```
 
-`./tc check` builds a fresh source snapshot and runs the full regression suite:
+`./tc check` builds a fresh source snapshot and runs the full active regression suite:
 proof audits, independent specifications and negative controls, TC/EFT/GEMM/IEEE
 checks, CLI and certificate checks, archived device-vector replay, every standalone
 example, module boundaries, and generated proof documentation.
 Its reports are written to [`data/regressions/`](data/regressions); the combined log
 is `tmp/clean-build.log`. GPU replay uses archived evidence and does not claim a new
 physical-device run.
+
+FP16-output tensor-core candidates and FP8 work are archived under [`wip/`](wip/README.md).
+Their separate evidence check is `python3 wip/scripts/check.py`. It reproduces the
+known ambiguities and is excluded from `./tc check`.
 
 For the interfaces and detailed assumptions, see the [reference manual](docs/reference.md),
 [current evaluation](docs/evaluation.md), and [IEEE compatibility guide](docs/lean-ieee-compatibility.md).
@@ -121,7 +127,7 @@ with exact coverage, logs, reproduction steps, and confidence limits.
 
 Expand a claim to read its Lean code. Within each declaration, expand the supporting proofs and follow their links to continue through the dependency graph. The code is copied from the checked source, including proof bodies.
 
-The [complete proof index](docs/proofs/README.md) covers **1431 source theorems** and **966 definitions**. The [machine-readable graph](docs/proofs/dependencies.json) also retains generated proofs and standard-library edges. Regenerate with `python3 scripts/generate_proof_docs.py`; `--check` verifies that this guide is current.
+The [complete proof index](docs/proofs/README.md) covers **1398 source theorems** and **940 definitions**. The [machine-readable graph](docs/proofs/dependencies.json) also retains generated proofs and standard-library edges. Regenerate with `python3 scripts/generate_proof_docs.py`; `--check` verifies that this guide is current.
 
 ```mermaid
 flowchart TD
