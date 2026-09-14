@@ -112,6 +112,10 @@ For the interfaces and detailed assumptions, see the [reference manual](docs/ref
 [current evaluation](docs/evaluation.md), and [IEEE compatibility guide](docs/lean-ieee-compatibility.md).
 The [style guide](docs/style.md) records notation, module ownership, and proof trust.
 
+The [con-leche audit](docs/con-leche-audit-2026-09-14.md) records two successful
+external checks of all 5,619 project theorem roots at the audited revision,
+with exact coverage, logs, reproduction steps, and confidence limits.
+
 <!-- BEGIN GENERATED PROOF GUIDE -->
 ## Proof guide
 

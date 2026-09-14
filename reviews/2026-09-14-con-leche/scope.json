@@ -1,0 +1,53 @@
+{
+  "All": {
+    "modules": 1
+  },
+  "Cli": {
+    "modules": 1
+  },
+  "Core": {
+    "modules": 32,
+    "roots": 1028,
+    "source_theorems": 232,
+    "public_roots": 357
+  },
+  "EFT": {
+    "modules": 34,
+    "roots": 852,
+    "source_theorems": 235,
+    "public_roots": 377
+  },
+  "Gemm": {
+    "modules": 54,
+    "roots": 1240,
+    "source_theorems": 311,
+    "public_roots": 549
+  },
+  "IEEE": {
+    "modules": 15,
+    "roots": 844,
+    "source_theorems": 174,
+    "public_roots": 313
+  },
+  "Meta": {
+    "modules": 3
+  },
+  "Regression": {
+    "modules": 3,
+    "roots": 55,
+    "source_theorems": 18,
+    "public_roots": 18
+  },
+  "Root": {
+    "modules": 1
+  },
+  "TC": {
+    "modules": 71,
+    "roots": 1600,
+    "source_theorems": 481,
+    "public_roots": 740
+  },
+  "Tests": {
+    "modules": 1
+  }
+}

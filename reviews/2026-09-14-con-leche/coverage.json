@@ -1,0 +1,18 @@
+{
+  "counts": {
+    "inductive": 289,
+    "def": 4151,
+    "thm": 9154,
+    "axiom": 3,
+    "quot": 4,
+    "opaque": 2
+  },
+  "root_count": 5619,
+  "missing_roots": [],
+  "axioms": [
+    "propext",
+    "Quot.sound",
+    "Classical.choice"
+  ],
+  "unsafe_or_partial": []
+}

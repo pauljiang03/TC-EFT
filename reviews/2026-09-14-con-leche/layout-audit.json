@@ -1,0 +1,8 @@
+{
+  "status": "passed",
+  "modules": 216,
+  "core_has_no_application_dependencies": true,
+  "tc_has_no_eft_or_gemm_dependencies": true,
+  "eft_has_no_gemm_dependencies": true,
+  "full_import_covers_every_module": true
+}
