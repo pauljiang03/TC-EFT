@@ -1,0 +1,76 @@
+{
+  "reference_commit": "990afac10b94a84f3de24743206756dd7acc3276",
+  "scope": "Differential tests; not a universal equivalence theorem",
+  "observations": {
+    "cases": 115029,
+    "mismatches": 0,
+    "input_sha256": "fd2a2ab43acf8bc8da9ebbc7d2dbe44903d5998a493f8f2837856f7ef04e247c",
+    "original_output_sha256": "60809d627875b89f10b1dbec3bd6bbd2ef11c43eab79e5c0089360a3c724a84b",
+    "floatlib_output_sha256": "60809d627875b89f10b1dbec3bd6bbd2ef11c43eab79e5c0089360a3c724a84b"
+  },
+  "decoding": {
+    "cases": 668944,
+    "mismatches": 0,
+    "input_sha256": "1c4daf73821f0f3bdbbc18c33fb2f5585297b2ca48ab71a0a48d9839a5181ed0",
+    "original_output_sha256": "423a524ad226f586ee0d64c511a2a15f8e6ecf291b421c16507c6dda2ef59059",
+    "floatlib_output_sha256": "423a524ad226f586ee0d64c511a2a15f8e6ecf291b421c16507c6dda2ef59059"
+  },
+  "comparator_negative_control": "passed",
+  "status": "passed",
+  "floatlib_commit": "0d91825727839f597fd06b22fdd038ea21480f0c",
+  "toolchains": {
+    "original": "leanprover/lean4:v4.33.1",
+    "port": "leanprover/lean4:v4.34.0"
+  },
+  "representation_facts": {
+    "command": "lake env lean tests/RepresentationFacts.lean",
+    "status": "passed"
+  },
+  "source_sha256": {
+    "TCFloat/Behavior.lean": "a93eb2c7833263b4adcc1fb378c5fdff778537c1576811ab2ec16d1384044597",
+    "TCFloat/DirectedRounding.lean": "c09f876d2f3cb4468ece6f900a3fd4fff974a9cb57473e0be650bda316ae2a22",
+    "TCFloat/EFT.lean": "34fd1d9492bfc4ddbfc000cb8e5c1ccd02e62af15d94e8dd81e0fc063085f8c5",
+    "TCFloat/Equivalence/Base.lean": "b89a4f294cff15da731e44196f2390c57ea5f07d6fba675f5953a1506bba5e5c",
+    "TCFloat/Equivalence/Block.lean": "aa933c7d4af4ec2aae1c927ae17df63eca0d2eb46d7e221ce6a707f1c6ff6457",
+    "TCFloat/Equivalence/Conversion.lean": "4a5e48ac66f1011532d3a4a1d9225da71a9d72562401a012a401f72eed943bb8",
+    "TCFloat/Equivalence/Decode.lean": "fc185c74c6db2b837b4c94ca579005c2160b3df33a1e2ede74c4ff29f76e04eb",
+    "TCFloat/Equivalence/EFT.lean": "7b8bb453023cbf3bcd2392b45c374a24225c7ca492ed3beefe0a0aa0275818c6",
+    "TCFloat/Equivalence/Encoded.lean": "6ae87ccd8aaec2e224794af41cb1f2476d037543067190adacf6d2cb93ce5aa8",
+    "TCFloat/Equivalence/Packing.lean": "f88e6fb22f37ae6721df33a6b9df3c0827d94f325e959e9b3fe06b97df44db1b",
+    "TCFloat/Equivalence/PaperScalar.lean": "d1e3603311871a04b30ddbc83f1ff5a9b7c2043aa5d41387686558d66445aaf1",
+    "TCFloat/Equivalence/PaperTheorems.lean": "7ca86c02f7631cf5f72b0d46967f96b81496a04e40871e7e81a675692a795f69",
+    "TCFloat/Equivalence/Quotient.lean": "f5e3b6882f82b33884bdbe8927fa930c140f17b4e16a10513024e42f241ec145",
+    "TCFloat/Equivalence/Representations.lean": "7f328d349367a1f838266749dfad30a946b2dc3d411986c7bc0504efd2c354dd",
+    "TCFloat/Model.lean": "bb1b349fdcf2d764a96e031efbc9cf2ae97474145dae7719892564b4c26443c7",
+    "TCFloat/Monotonicity.lean": "764fcd5d2822e702e9c044d89277821934abf223cf8282d615bde41fdf1d01ba",
+    "TCFloat/Paper.lean": "32856a845d656a1c10abfe39bebc70435f3d8d12449d6757db3cf0ab43bc9a4a",
+    "TCFloat/Rounding.lean": "87cf79ea61447bf89ee120e45d7321a8206f0c8a0ef4771a4342ab791a56ea2a",
+    "TCFloat/Theory.lean": "a510f55b64e9e421f1a846e99dac6432711d0486bdf334e7d047d5670252f84c",
+    "Main.lean": "02bdb3160eee9fd5aa876e76c0f752e02373badb22029d08862c6111ab78973e",
+    "TCFloat.lean": "5885f4614284638ab6a7e0dc14cbe2e19815bc1d158c9c2e5267c887fa190382"
+  },
+  "verification_sha256": {
+    "scripts/check_all.py": "71f5f78f51da2024117f7c040691965877d7fcf985dbac55a5ec56e97f00ba92",
+    "scripts/check_edges.py": "f85206630a11283fdb0f3767cb74c02d9914da33372427d6ea07b06c9f72d383",
+    "scripts/check_equivalence.py": "c47426310f2e0b2eb04365df8998870ff09c1e9baccc452d9b8c4ca371374c3c",
+    "scripts/check_features.py": "7c78c37d6cb1f758ffbc632a535bc42fbd0f59fd0ec10ad6aec89dc74f9c5cd4",
+    "scripts/check_monotonicity.py": "35e218d5613f21055cf62663920b86a9985a442f8665a58f095ccb2e8d90fe9a",
+    "scripts/check_paper.py": "da356662980fb79e034a89cd9f006f9aca703bf3c8c6404e8d1e3a161557a52c",
+    "scripts/check_replay.py": "d9320bdab09a0d8176d6aed1f8ea636a7b696750407f7398789ef588b7969c14",
+    "scripts/prepare_reference.py": "71969ace59654ee780951b0e61d4356608851a16cdbaf1932da907ec173de557",
+    "tests/Audit.lean": "759c68bdf194efb9d7c4d741aba331d08263454688fef71436d4fd7009bba1e9",
+    "tests/DecodeFloatLib.lean": "24dbe7bdcb7b950654e9f91c3be0dbde82b255461c8a6ccd110635b85e9096ed",
+    "tests/DecodeOriginal.lean": "83b34538b4a393ec3103c9deb7377d65e83d478a4813c69ef926331425211587",
+    "tests/RepresentationFacts.lean": "83a6454c3c1b3fefa85ce29ea054f8b153ccb2d6f143481d6e4edd1b75416ee4",
+    "lakefile.toml": "279cb71876c416e0dc8626c9d26b9278d092b412bf99cd8df7252165b772ea8a",
+    "lake-manifest.json": "410126e67173a204d23ba40d61583e2783ac556253319e8c54a823921ca8da9e",
+    "lean-toolchain": "8733782dc070a99b312039cda424f601b80f3be6f6f512627da5ba25adc27632"
+  },
+  "universal_proof": {
+    "status": "kernel_checked_separately",
+    "theorem": "TCFloat.Equivalence.paper_one_to_one",
+    "inverse": "TCFloat.Equivalence.paper_one_to_one_inverse",
+    "audit": "270 proof roots; standard Lean axioms only",
+    "documentation": "COMPARISON.md"
+  }
+}

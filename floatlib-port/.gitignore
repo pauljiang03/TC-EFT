@@ -1,0 +1,4 @@
+.lake/
+reference-compat/
+test-results/
+__pycache__/

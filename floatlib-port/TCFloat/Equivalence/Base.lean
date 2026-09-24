@@ -1,0 +1,64 @@
+import TCFloat.Monotonicity
+import TensorCore.EFT.Encoded
+
+/-! Bridges to the actual, unchanged source definitions. The source is compiled into
+this project's build directory from a hash-checked compatibility copy. Only parser
+notation declarations are scoped; source arithmetic is unchanged and never used by
+the port runtime. -/
+namespace TCFloat.Equivalence
+open FloatLib.Floats.Formats.BinaryInterchange
+
+@[simp] theorem pow2_eq (e : Int) : TensorCore.pow2 e = TCFloat.pow2 e := rfl
+@[simp] theorem abs_eq (x : Rat) : TensorCore.absQ x = |x| := by
+  unfold TensorCore.absQ
+  split <;> rename_i h
+  · exact (abs_of_neg h).symm
+  · exact (abs_of_nonneg (le_of_not_gt h)).symm
+@[simp] theorem maxFinite_eq : TensorCore.maxFinite32 = TCFloat.maxFinite32 := rfl
+@[simp] theorem truncCoeff_eq (x : Rat) (e : Int) :
+    TensorCore.truncCoeff x e = TCFloat.truncCoeff x e := rfl
+@[simp] theorem truncGrid_eq (x : Rat) (e : Int) :
+    TensorCore.truncGrid x e = TCFloat.truncGrid x e := rfl
+@[simp] theorem sumQ_eq (xs : List Rat) : TensorCore.sumQ xs = xs.sum := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih => simp [TensorCore.sumQ, ih]
+@[simp] theorem sumZ_eq (xs : List Int) : TensorCore.sumZ xs = xs.sum := by
+  induction xs with
+  | nil => rfl
+  | cons x xs ih => simp [TensorCore.sumZ, ih]
+
+def mode : TensorCore.RoundingMode → Mode
+  | .towardZero => .towardZero
+  | .nearestEven => .nearestEven
+
+def term (d : TensorCore.Decoded) : Term :=
+  ⟨FloatLib.Numerics.Dyadic.ofScaledInt d.significand (d.rawScale-d.fractionalBits),
+    d.rawScale,d.fractionalBits⟩
+
+def project (t : Term) : TensorCore.Decoded :=
+  ⟨t.dyadic.signedSignificand,t.rawScale,t.fractionBits⟩
+
+@[simp] theorem term_value (d : TensorCore.Decoded) : (term d).value = d.value := by
+  simp [term, Term.value, TensorCore.Decoded.value, pow2,
+    FloatLib.Numerics.Dyadic.ofScaledInt_toRat]
+
+@[simp] theorem project_term (d : TensorCore.Decoded) : project (term d) = d := by
+  rcases d with ⟨s,e,f⟩
+  simp only [project,term,FloatLib.Numerics.Dyadic.ofScaledInt,FloatLib.Numerics.Dyadic.signedSignificand]
+  by_cases h : s < 0
+  · simp [h, abs_of_neg h]
+  · simp [h, Int.natAbs_of_nonneg (le_of_not_gt h)]
+
+/-- Canonical FloatLib terms: consistent scale metadata, with the source's single zero sign.
+The unrestricted runtime carrier remains available; this is the paper representation. -/
+def CanonicalTerm := {t : Term // term (project t) = t}
+
+/-- A genuine two-sided representation equivalence, for arbitrary integer terms. -/
+def termEquiv : TensorCore.Decoded ≃ CanonicalTerm where
+  toFun d := ⟨term d, by simp⟩
+  invFun t := project t.val
+  left_inv := project_term
+  right_inv t := Subtype.ext t.property
+
+end TCFloat.Equivalence

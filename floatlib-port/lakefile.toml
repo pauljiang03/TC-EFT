@@ -1,0 +1,20 @@
+name = "tcFloatlib"
+version = "0.1.0"
+defaultTargets = ["TCFloat", "tc_floatlib"]
+
+[[require]]
+name = "floatlib"
+git = "https://github.com/lean-dojo/FloatLib"
+rev = "0d91825727839f597fd06b22fdd038ea21480f0c"
+
+[[lean_lib]]
+name = "TCFloat"
+
+# Compile the unchanged source definitions in this isolated build for bridge proofs.
+[[lean_lib]]
+name = "TensorCore"
+srcDir = "reference-compat"
+
+[[lean_exe]]
+name = "tc_floatlib"
+root = "Main"
