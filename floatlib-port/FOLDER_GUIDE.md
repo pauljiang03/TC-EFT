@@ -163,6 +163,70 @@ To rerun the generated paper inputs directly after `check_paper.py`:
 
 This last command executes the model and writes observations. Use `check_paper.py` to also perform the expected-result comparisons. The same distinction applies to custom input files: producing JSON alone does not check an expected answer.
 
+## Precisely how the executable checks work
+
+### Execution and data flow
+
+For the model/EFT suites, the execution path is:
+
+```text
+saved vectors or deterministic case generator
+    -> Python serializes encoded operands into command lines
+    -> subprocess runs .lake/build/bin/tc_floatlib INPUT_FILE
+    -> Main.lean parses each nonblank line
+    -> TCFloat.Model computes using FloatLib and exact arithmetic
+    -> one JSON record is printed for each accepted command
+    -> Python parses the records and asserts the expected comparisons
+```
+
+The harness launches the compiled Lean executable, waits for its exit status, and checks that the output has the expected number of records. Invalid JSON, a failed subprocess, an unexpected record count or a failed comparison stops the check. Rational fields are emitted as `numerator/denominator` strings and checked using Python `fractions.Fraction`, so these comparisons use exact equality, with no floating-point tolerance. Encoded FP32 outputs are compared as integers, preserving bit distinctions such as signed zero. JSON `null` represents a missing optional result.
+
+The executable uses the port's arithmetic definitions; it does not read expected answers or execute the original implementation to produce its answer. Python handles case generation, expected results and assertions. Use ordinary `python3` without `-O` and without `PYTHONOPTIMIZE`, because the harnesses rely on Python assertions.
+
+For a `block` command, [Main.lean](Main.lean) prepares the operands once, then produces two separate observations. `model` evaluates the TC block and constructs diagnostics using that computed output. `correction` runs the encoded EFT using the explicitly supplied D. The top-level `ideal` is a diagnostic exact sum. Printing that diagnostic does not make it an input to the correction algorithm. The dependency audit checks the correction functions separately.
+
+### Exactly what each comparison checks
+
+**Synthetic FP16 feature cases — [check_features.py](scripts/check_features.py).** The Python reference decodes operands using integer fields and exact fractions, preserves raw input scales, forms exact products, selects the alignment grid, truncates signed terms and adds them. It finds the toward-zero FP32 result by binary search over nonnegative finite FP32 encodings, then applies the sign. For accepted cases, the harness checks `bits`, `ideal`, `accumulated`, `value` and `residual`. For rejected synthetic cases, it checks that an `error` field exists; this particular check does not require the exact error constructor. Selected large-padding configurations also assert that alignment loss vanishes. Inputs include fixed boundaries and pseudorandom cases from seed `20260905`.
+
+**Recorded hardware rows — [check_features.py](scripts/check_features.py) and [check_replay.py](scripts/check_replay.py).** Before replay, the scripts verify the vendor file hashes. Each row supplies encoded A/B operands, FP32 C and a recorded FP32 output D. FP16 operands stored in FP32 form are converted exactly to FP16 words. BF16 operands must have 16 zero low bits and are shifted into BF16 words. TF32 register operands must have 13 zero low bits; the feature adapter converts them to packed TF32. For each architecture/format profile, the harness executes the model and compares its `bits` directly with recorded D. The hardware replay checks output bits; it does not claim that the intermediate diagnostics were measured on hardware. There are 5,000 rows in each of seven groups: V100/A100/H100 FP16 and A100/H100 BF16/TF32.
+
+**Saved scalar/EFT corpus — [check_replay.py](scripts/check_replay.py).** The script reads `../data/regressions/eft-coverage-cases.json` and sends `block` commands to Lean. This corpus intentionally uses no alignment floor, matching its original generator. For ordinary records it checks TC bits, the exact scalar-guard Boolean, scalar result bits or rejection, each low component, full reference-EFT bits and the correction using supplied D. For records marked as errors it compares the model error string exactly and skips the ordinary-field checks. These are saved regression expectations, not new hardware measurements.
+
+**Paper oracle suite — [check_paper.py](scripts/check_paper.py).** Hash-checked generator files from `../vendor/tc-eft-validation/` are copied into an isolated scratch directory and run. The harness captures their inputs and stage values, including draws excluded from the generator's finite accepted set. It computes the expected ideal independently from the encoded inputs, obtains model expectations from the integer block oracle, and obtains FP32 rounding expectations from the oracle's neighboring-value procedure. It supplies the expected TC word as D when available, otherwise zero.
+
+For ordinary block cases, the comparison checks the exact ideal, TC bits or the exact accumulator-out-of-range error, accumulator value, selected raw-scale maximum and corrected bits. Where the generator supplies intermediate stages, it also checks the quantum, original terms, aligned terms, alignment residuals, low parts, output residual and overlap. The generator stores C last; the harness rotates those lists to the port's C-first order before comparing. It verifies that the scalar guard agrees with whether a scalar result exists, and that any accepted scalar result equals the expected correctly rounded answer.
+
+The paper suite requires the `allZero` branch for all-zero terms and `outOfRange` when the ideal cannot be returned in the finite domain. Otherwise it accepts either `scalar` or `exactReference`, provided the bits are correct. The pinned Python generator's scalar test can use a different grid from the Lean baseline, so `scalar_predicate_differences` records those disagreements without treating them as incorrect numerical results. **This suite does not prove exact branch agreement with that Python oracle.** Exact branch agreement with the original Lean implementation is checked separately below.
+
+The same script executes 49,005 encoded `family p K j` commands for `p=0..4`, `K=1..99` and `j=1..99`. It checks each exact accumulator and RTZ result against the family formula. Another 100 commands check RTZ/RNE around adjacent FP32 values, including endpoints, midpoints, signs and the subnormal/normal boundary. Extra endpoint/support checks run inside the original Python generators are reported separately and are not counted as additional Lean executions.
+
+**Targeted edges — [check_edges.py](scripts/check_edges.py).** Nine deliberately varied finite D words are supplied for a block whose ideal is the FP32 midpoint `1 + 2^-24`; the correction must return the even endpoint, 1, for every D. Eight exact rational inputs check signed zero, tiny values, underflow ties, finite extremes and values just outside the finite range in both rounding modes. Three domain cases check nonfinite D, a nonfinite operand and invalid TF32 register padding. The script also runs the dependency negative controls described below.
+
+**Monotonicity boundaries — [check_monotonicity.py](scripts/check_monotonicity.py).** The script constructs encoded FP16 products with values `2^-12` and `2^(-12-p)`, varies `p=0..8`, and chooses K below, at and above `3*2^p`, plus zero/small cases. For three floor settings and C equal to either 1 or `1-2^-24`, it checks the exact accumulator formula, selected exponent and output comparison with 1. For the lowered-C case, an output greater than 1 must occur exactly when `K >= 3*2^p`. This is a 360-case regression of the theorem's boundary behavior.
+
+### Direct original-versus-port checks
+
+[check_equivalence.py](scripts/check_equivalence.py) archives the pinned original revision and builds its `tc_eft_paper` executable with the original toolchain. It combines the generated paper inputs, scalar corpus and feature/hardware fixtures, then adds 2,000 deterministic random encoded blocks and 2,000 deterministic random rational-rounding commands using seed `20260923`. Feature rows are converted to the shared packed-word `block` interface, with D set to zero to exercise supplied-D independence. One malformed feature row is skipped because that shared interface rejects its shape during parsing.
+
+Both executables receive the identical input file. `compare_outputs` uses `zip_longest` over the input and both output files, so a missing or extra record fails. It parses both JSON records and requires complete object equality. Dictionary key order and JSON whitespace do not matter; every emitted field value does, including branch labels, errors, exact rational strings and output words. The saved run matched all 115,029 command records. It also recorded identical output-file SHA-256 hashes; structural JSON equality is the comparator's acceptance rule, while the hashes preserve the observed artifacts.
+
+Decoder checks use separate Lean programs through `lake env lean --run`, rather than the batch model executable. They compare every FP16 word (65,536), every BF16 word (65,536), every packed TF32 word (524,288), and 13,584 FP32 boundary/random samples: 668,944 rows in total. Successful decoding must agree on signed integer significand, raw scale, fractional-bit count and exact rational value; rejected special values produce `null`. This projection intentionally omits the FloatLib dyadic zero-sign field that the original decoded numerical type does not retain. It does not exhaust all FP32 words or all block combinations.
+
+### Errors, negative controls and proof checks
+
+A rejected model input is different from a malformed command. A valid command can return an error JSON record, such as `TensorCore.ModelError.nonfiniteInput`, and the process can still exit successfully. An invalid command shape, word width, denominator or unsupported `family` parameter makes `Main.lean` throw an IO error and exit unsuccessfully. The harness checks whichever behavior is expected for that case.
+
+The checks deliberately introduce mistakes to verify that the checking machinery detects them:
+
+- The paper suite flips one bit in a model result and in an EFT result; both comparisons must fail. It also requires five malformed commands to exit unsuccessfully.
+- The direct comparison creates differing one-bit output records and requires `compare_outputs` to reject them.
+- The edge suite creates a definition that calls `TCFloat.evalWords`; the correction-dependency check must reject it. It creates another that calls `TensorCore.round32`; the source-independence check must reject that too.
+
+[Audit.lean](tests/Audit.lean) is a separate proof/dependency check. It collects transitive axioms for the imported public `TCFloat` theorems and five representation-equivalence definitions, permitting only `propext`, `Classical.choice` and `Quot.sound`. It traverses definition/opaque bodies from four correction entry points to reject TC evaluation and ideal-sum dependencies, and from ten executable roots to reject original `TensorCore` dependencies. These checks inspect Lean declarations; they do not run floating-point test vectors.
+
+Finally, [check_all.py](scripts/check_all.py) checks subprocess exit statuses, audit markers and required theorem names; scans the port sources for unfinished proofs and forbidden shortcuts; rejects original-source imports outside the equivalence folder; and aggregates the generated reports and hashes. It permits only original compatibility-source deprecation warnings during the build. The numerical regression tests execute compiled Lean programs, while the universal claims are checked by Lean's kernel during proof elaboration. A successful numerical test is not itself a per-case kernel proof or an exhaustive hardware test.
+
 ## Recorded verification
 
 The saved successful run records:
