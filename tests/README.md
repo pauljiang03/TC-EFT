@@ -1,0 +1,195 @@
+# Executable Lean tests
+
+The production library is under `TensorCore/`. Maintained regression witnesses are in the separate `TensorCoreTests` library under this directory. Worked calculations and batch IO adapters live in `examples/`; compiled batch entry points live in `Main/`. All use the parent project's pinned Lean toolchain.
+
+Run commands below from the repository root unless a command explicitly enters `floatlib-port/`.
+
+## 1. Build the imports
+
+```sh
+lake build
+```
+
+This builds `TensorCore`, `TensorCoreTests`, and five native adapters. `lake build TensorCore` builds production alone; `lake build TensorCoreTests` also builds the regression imports. Tests are included in the default validation build, while `import TensorCore` has no test dependencies.
+
+The regression root is [TensorCoreTests.lean](TensorCoreTests.lean). It imports every maintained test module, allowing the trust audit to see the complete environment.
+
+## 2. Run a worked calculation and its assertions
+
+```sh
+lake env lean examples/GettingStarted.lean
+```
+
+The file contains encoded inputs, `#eval` observations, concrete `example` assertions, and a symbolic application of a universal recovery theorem. It prints:
+
+```text
+Except.ok 1082130432
+Except.ok 1065353216
+Except.ok (some 1065353218)
+```
+
+The integers are FP32 encodings of four, one, and `1 + 2^-22`. The second calculation loses four tiny products in the TC model; the third uses scalar EFT to recover their contribution before final nearest-even rounding.
+
+The assertions compare complete words and, for EFT, the branch constructor. `decide +kernel` constructs the proof through Lean's kernel reduction. If a computed word differs from the asserted word, Lean reports an error and the command exits unsuccessfully. The symbolic example checks a proof for arbitrary inputs satisfying its premises.
+
+`#eval` executes code and prints a value; it does not assert that value is correct. `#check` displays a term's type and verifies that it exists; it does not run a numerical test. The proof assertions are what make the worked calculation a checked regression.
+
+For the non-monotonicity witness:
+
+```sh
+lake env lean examples/NonMonotonicity.lean
+```
+
+The first two outputs are `1065353216` and `1065353217`: decreasing the accumulator from one to its predecessor raises the TC model output by one FP32 step. The next two outputs are both `some 1065353218`, from EFT correction. The file then prints the general K/p and j-range theorem types. [The non-monotonicity chapter](../docs/guide/03-non-monotonicity.md) explains the changing alignment grid.
+
+## 3. Check an individual regression module
+
+```sh
+lake env lean tests/TensorCoreTests/TC/Monotonicity.lean
+lake env lean tests/TensorCoreTests/EFT/EFT.lean
+lake env lean tests/TensorCoreTests/EFT/NativeEFT.lean
+```
+
+A successful module may print nothing. Lean has still elaborated and checked its definitions and proofs. These files are mathematical regression modules; they do not each define an IO `main`.
+
+| Test area | Main contents |
+| --- | --- |
+| [TC/Cases.lean](TensorCoreTests/TC/Cases.lean) | Named raw-product/alignment traces and snapshot observations |
+| [TC/Monotonicity.lean](TensorCoreTests/TC/Monotonicity.lean) | V100/Ampere/Hopper family theorems, thresholds, and witness-range boundaries |
+| [TC/Features.lean](TensorCoreTests/TC/Features.lean) | Canonical alignment, floors, padding and machine-refinement witnesses |
+| [TC/Instruction.lean](TensorCoreTests/TC/Instruction.lean) | Ordered instruction groups, input width, and group-order examples |
+| [TC/Composition.lean](TensorCoreTests/TC/Composition.lean) | Encoded group residual ledger and cancellation correction |
+| [EFT/EFT.lean](TensorCoreTests/EFT/EFT.lean) | Low parts, overlap, scalar acceptance/rejection, and unsafe-unchecked counterexamples |
+| [EFT/EncodedEFT.lean](TensorCoreTests/EFT/EncodedEFT.lean) | Encoded Algorithm 1 results and supplied-D/domain behavior |
+| [EFT/ScalarEFT.lean](TensorCoreTests/EFT/ScalarEFT.lean) | Correction precision and scalar-summation conditions |
+| [EFT/MachineSplit.lean](TensorCoreTests/EFT/MachineSplit.lean) | Fixed-width splitting boundaries |
+| [EFT/BoundedEFT.lean](TensorCoreTests/EFT/BoundedEFT.lean) | Bounded-backend results and range boundaries |
+| [EFT/NativeEFT.lean](TensorCoreTests/EFT/NativeEFT.lean) | Native FP32 scalar fold and bounded algorithm preservation |
+| [Specification/NegativeControls.lean](TensorCoreTests/Specification/NegativeControls.lean) | Wrong normalization, alignment, floors, order, and zero-sign alternatives |
+| [Specification/Audit.lean](TensorCoreTests/Specification/Audit.lean) | Compiled dependency independence of the mathematical specification |
+
+The test root also includes binary rounding, canonical-format, public-domain, directed-rounding, and flowback modules. The [theorem index](../TensorCore/THEOREMS.md) links the general production results that these witnesses exercise.
+
+## 4. Understand a Lean IO adapter
+
+Checking `lake env lean FILE` does not call `main`. To execute `main`, use `lake env lean --run FILE INPUT` or a compiled executable.
+
+[examples/EFTCoverage.lean](../examples/EFTCoverage.lean) reads a batch file, parses encoded operands, evaluates the model and scalar correction, and writes one JSON observation per row. The coverage harness creates that input:
+
+```sh
+python3 scripts/check_eft_coverage.py
+```
+
+Its path is:
+
+```text
+Python case generator / recorded vectors
+  -> encoded batch file
+  -> lake env lean --run examples/EFTCoverage.lean INPUT
+  -> main parses operands and evaluates the Lean definitions
+  -> JSON observations with bits, components, and predicate decisions
+  -> Python exact-arithmetic expectations and assertions
+```
+
+Rational diagnostics use `numerator/denominator` strings. Python parses them with `fractions.Fraction` and compares them exactly. Words are integers, so a one-bit difference or signed-zero difference remains visible. The harness checks process success and record counts before accepting comparisons.
+
+[examples/EFTHardware.lean](../examples/EFTHardware.lean) is another IO adapter. `scripts/generate_hardware.py` supplies its batch and compares model expectations with an independent group-order oracle. The optional CUDA harness takes actual GPU measurements separately; generating model expectations does not constitute a hardware measurement.
+
+## 5. Run a compiled Lean executable
+
+The paper adapter accepts text commands. Create a file with this line:
+
+```text
+block fp16 4 0 none 3072 3072 3072 3072 3072 3072 3072 3072 1065353216 1065353216
+```
+
+Run:
+
+```sh
+.lake/build/bin/tc_eft_paper /path/to/input.txt
+```
+
+The eight operand words encode four `2^-12 · 2^-12` products. The final two words are C and supplied D, both one. The JSON's `model.bits` is `1065353216`; `correction.bits` is `1065353218`, with branch `scalar`. The executable also prints exact ideal and extraction diagnostics.
+
+| Executable | Input and purpose |
+| --- | --- |
+| `tc_trace` | V100 FP16 hexadecimal words, or `--file`/`--round-file` batches; full trace observations |
+| `tc_features` | Decimal commands for formats, profiles, generic groups, and rounding |
+| `tc_eft_paper` | Generic FP16/BF16/packed-TF32 block, rounding, and perturbation-family commands |
+| `tc_bounded_eft` | Named profile blocks and fixed-workspace rounding; bounded/native scalar execution |
+| `tc_lean_eft_check` | JSON Lines on stdin; compares bounded and native scalar execution paths |
+
+For the last adapter, one request is:
+
+```json
+{"acc":0,"terms":[1065353216]}
+```
+
+It adds the encoded FP32 word for one to zero. The result is:
+
+```json
+{"reference":1065353216,"native":1065353216}
+```
+
+The [executable reference](../docs/reference.md) specifies word widths, profile names, packed/register TF32 conventions, and command formats. Lean checks proofs during elaboration; compiled execution evaluates the functions with proofs erased. Numerical comparisons additionally check the compiled path.
+
+## 6. Run independent comparisons and trust audits
+
+```sh
+python3 scripts/validate.py
+python3 scripts/check_features.py
+python3 scripts/check_device_formats.py
+python3 scripts/check_eft.py
+python3 scripts/check_lean_eft.py
+python3 scripts/check_axioms.py
+python3 scripts/check_docs.py
+```
+
+`validate.py` and the feature scripts compare traces/rounding with independent exact arithmetic and recorded GPU words. `check_eft.py` runs scalar coverage, model hardware expectations and replay controls, pinned paper generators, and the bounded EFT comparisons. `check_lean_eft.py` compares native scalar folds with an ordered-encoding rounding oracle.
+
+`check_axioms.py` rebuilds the full regression environment before auditing theorem roots and scanning maintained Lean sources for proof shortcuts. The permitted axioms are `propext`, `Classical.choice`, and `Quot.sound`. The audit regression deliberately puts broken source behind a valid cache and requires rejection. Specification and bounded-execution audits also contain deliberate dependency-contamination controls that must fail.
+
+Use ordinary `python3`, without `-O` or `PYTHONOPTIMIZE`, because numerical harness assertions form part of the check. A parse error, failed Lean process, unexpected record count, or failed comparison stops the harness. Successful reports go under `data/regressions/`; intermediate batches and logs go under ignored `tmp/`.
+
+For the complete gate:
+
+```sh
+python3 scripts/check_clean_build.py
+```
+
+It builds a fresh source snapshot without `.lake`, runs the maintained checks, checks every worked `.lean` file, verifies Markdown Lean examples and local links, and checks generated proof documentation. Source hashes must remain stable before it publishes the reports.
+
+## 7. Check the independent FloatLib implementation
+
+```sh
+cd floatlib-port
+python3 scripts/check_all.py
+lake env lean tests/RepresentationFacts.lean
+python3 scripts/check_equivalence.py
+```
+
+These commands use the FloatLib project's own toolchain and executable. `check_all.py` builds universal equivalence proofs and runs source-independence/trust audits, paper cases, recorded-vector replay, and non-monotonicity boundaries. The direct comparator snapshots the current parent source and compares both implementations' observations and decoding results. [The folder guide](../floatlib-port/FOLDER_GUIDE.md) explains each field and comparator.
+
+## Adding a regression
+
+Put a maintained case in `tests/TensorCoreTests/TC/` or `EFT/`, import the relevant production module, and give its assertion a name in the existing regression namespace:
+
+```lean
+import TensorCore.TC.Block
+
+open TensorCore
+namespace TensorCore.Regression
+
+def walkthroughCase : BlockInput v100F16F32 :=
+  ⟨List.replicate 4 (0x3c00, 0x3c00), 0⟩
+
+theorem walkthrough_case_bits :
+    ((evalBlock walkthroughCase).toOption.map fun t => t.output.bits) = some 0x40800000 := by
+  decide +kernel
+
+end TensorCore.Regression
+```
+
+Add the module to `tests/TensorCoreTests.lean` so the full audit imports it. Run `lake build TensorCoreTests`, check the individual file, and regenerate the proof guide with `python3 scripts/generate_proof_docs.py`. The layout check rejects a module omitted from the full audit.
+
+For an exploratory calculation, use a scratch Lean file and `lake env lean /path/to/scratch.lean`. For a larger family, prefer applying a symbolic production theorem or extending an independent executable comparison; finite examples alone do not prove a universal arithmetic claim.

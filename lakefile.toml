@@ -1,6 +1,6 @@
 name = "tensorCore"
 version = "0.1.0"
-defaultTargets = ["TensorCore", "tc_trace", "tc_features", "tc_eft_paper", "tc_bounded_eft", "tc_gemm", "tc_ieee"]
+defaultTargets = ["TensorCore", "TensorCoreTests", "tc_trace", "tc_features", "tc_eft_paper", "tc_bounded_eft", "tc_lean_eft_check"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -8,6 +8,11 @@ pp.unicode.fun = true
 [[lean_lib]]
 name = "TensorCore"
 globs = ["TensorCore", "TensorCore.*"]
+
+[[lean_lib]]
+name = "TensorCoreTests"
+srcDir = "tests"
+globs = ["TensorCoreTests", "TensorCoreTests.*"]
 
 [[lean_exe]]
 name = "tc_trace"
@@ -26,28 +31,5 @@ name = "tc_bounded_eft"
 root = "Main.BoundedEFT"
 
 [[lean_exe]]
-name = "tc_gemm"
-root = "Main.Gemm"
-
-[[lean_exe]]
-name = "tc_ieee"
-root = "Main.IEEE"
-
-[[lean_exe]]
-name = "tc_lean_ieee_check"
-root = "Main.LeanIEEECheck"
-
-[[lean_exe]]
 name = "tc_lean_eft_check"
 root = "Main.LeanEFTCheck"
-
-# Archived candidates are opt-in and excluded from defaultTargets.
-[[lean_lib]]
-name = "TensorCoreWip"
-srcDir = "wip"
-globs = ["TensorCoreWip", "TensorCoreWip.*"]
-
-[[lean_exe]]
-name = "tc_wip_features"
-srcDir = "wip"
-root = "WipMain.Features"

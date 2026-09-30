@@ -1,6 +1,6 @@
 -- Invocation for the tensor-core model.
 
-import TensorCore.Core.Conversion
+import TensorCore.Numerics.Conversion
 import TensorCore.TC.Block
 
 namespace TensorCore

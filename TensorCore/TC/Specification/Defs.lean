@@ -1,4 +1,4 @@
-import TensorCore.Core.Notation
+import TensorCore.Numerics.Notation
 import Std
 import Init.Data.Rat
 import Init.GrindInstances.Ring.Rat

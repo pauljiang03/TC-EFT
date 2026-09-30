@@ -1,4 +1,4 @@
-import TensorCore.Regression.Specification.Audit
+import TensorCoreTests.Specification.Audit
 
 open Lean Elab Command
 

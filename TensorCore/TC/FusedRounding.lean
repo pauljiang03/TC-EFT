@@ -1,4 +1,4 @@
-import TensorCore.Core.Binary.RoundingContract
+import TensorCore.Numerics.Binary.RoundingContract
 import TensorCore.TC.Conversion
 
 -- Correct rounding and acceptance of fused FP64 invocations.

@@ -28,7 +28,7 @@ noncomputable def runGroups (p : Parameters) : BitVec 32 →
 <details>
 <summary>Used by</summary>
 
-[TensorCore.PaperSpec.lastBits](Schedule.md#decl-3bc0435f1504df60), [TensorCore.PaperSpec.nativeGemmCell_eq_paper](../../Gemm/Specification/NativeGemmEquivalence.md#decl-ad9e45da7765a5c5), [TensorCore.PaperSpec.nativeMatrixCell](../../Gemm/Specification/NativeMatrix.md#decl-a26286392090ff3e), [TensorCore.PaperSpec.runBlocks_eq_paper](Composition.md#decl-eaffa3538905399a), [TensorCore.PaperSpec.runGemmInstructions_eq_paper](../../Gemm/Specification/GemmEquivalence.md#decl-f35ca03e91855ea8), [TensorCore.PaperSpec.runMatrixInstructions](../../Gemm/Specification/Matrix.md#decl-70ab1b5e8c6e625e), [TensorCore.PaperSpec.schedule_last_eq_paper](Composition.md#decl-551846c5cac8f668)
+[TensorCore.PaperSpec.lastBits](Schedule.md#decl-3bc0435f1504df60), [TensorCore.PaperSpec.runBlocks_eq_paper](Composition.md#decl-eaffa3538905399a), [TensorCore.PaperSpec.schedule_last_eq_paper](Composition.md#decl-551846c5cac8f668)
 
 </details>
 
@@ -54,7 +54,7 @@ noncomputable def lastBits (p : Parameters) (c : BitVec 32)
 <details>
 <summary>Used by</summary>
 
-[TensorCore.PaperSpec.Controls.group_reversal_detected](../../Regression/Specification/NegativeControls.md#decl-34343729ff830b30), [TensorCore.PaperSpec.schedule_last_eq_paper](Composition.md#decl-551846c5cac8f668)
+[TensorCore.PaperSpec.Controls.group_reversal_detected](../../Tests/Specification/NegativeControls.md#decl-34343729ff830b30), [TensorCore.PaperSpec.schedule_last_eq_paper](Composition.md#decl-551846c5cac8f668)
 
 </details>
 

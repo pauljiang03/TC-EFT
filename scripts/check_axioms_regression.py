@@ -22,16 +22,17 @@ def require(condition, message):
 def main():
     with tempfile.TemporaryDirectory(prefix='tc-axiom-regression-') as folder:
         project = Path(folder)
-        for name in ['scripts/lean', 'TensorCore', 'docs', 'Main']:
+        for name in ['scripts/lean', 'TensorCore', 'docs', 'Main', 'tests/TensorCoreTests']:
             (project / name).mkdir(parents=True, exist_ok=True)
         for name in ['lean-toolchain', 'scripts/lean/Audit.lean', 'scripts/check_axioms.py']:
             shutil.copyfile(ROOT / name, project / name)
         (project / 'lakefile.toml').write_text(
             'name = "auditRegression"\n'
-            'defaultTargets = ["TensorCore"]\n\n'
-            '[[lean_lib]]\nname = "TensorCore"\nglobs = ["TensorCore", "TensorCore.*"]\n')
+            'defaultTargets = ["TensorCore", "TensorCoreTests"]\n\n'
+            '[[lean_lib]]\nname = "TensorCore"\nglobs = ["TensorCore", "TensorCore.*"]\n'
+            '[[lean_lib]]\nname = "TensorCoreTests"\nsrcDir = "tests"\nglobs = ["TensorCoreTests", "TensorCoreTests.*"]\n')
         (project / 'TensorCore.lean').write_text('import TensorCore.Probe\n')
-        (project / 'TensorCore/All.lean').write_text('import TensorCore\n')
+        (project / 'tests/TensorCoreTests.lean').write_text('import TensorCore\n')
         for name in ['Main/Trace.lean', 'Main/Features.lean', 'Main/EFT.lean', 'Main/BoundedEFT.lean']:
             (project / name).write_text('import TensorCore\n')
         source = project / 'TensorCore/Probe.lean'

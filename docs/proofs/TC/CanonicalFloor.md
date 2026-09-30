@@ -76,14 +76,14 @@ theorem prepareProducts_origin (p : Profile) (xs : List (p.Word × p.Word))
 
 **Supporting proofs:** [TensorCore.mapM_origin](CanonicalFloor.md#decl-3389eb4df62415eb)
 
-**Definitions and types:** [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Profile.decode](Defs.md#decl-178599198b2d538e), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2)
+**Definitions and types:** [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Profile.decode](Defs.md#decl-178599198b2d538e), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.idealProducts_abs_le_of_scale](Program/Bounds/Scales.md#decl-8ac3fa4265b04b8a), [TensorCore.prepare_fp16_products_metadata](Padding.md#decl-0b52caf572f15b9e), [TensorCore.prepare_fp16_term_metadata](Padding.md#decl-c6cfd5be70ed4ce2), [TensorCore.prepare_fp16_terms_lower](CanonicalFloor.md#decl-25e55191ad23626f)
+[TensorCore.prepare_fp16_products_metadata](Padding.md#decl-0b52caf572f15b9e), [TensorCore.prepare_fp16_term_metadata](Padding.md#decl-c6cfd5be70ed4ce2), [TensorCore.prepare_fp16_terms_lower](CanonicalFloor.md#decl-25e55191ad23626f)
 
 </details>
 
@@ -129,9 +129,9 @@ theorem prepare_fp16_terms_lower (K extra : ℕ) (floor : Option ℤ)
         omega
 ```
 
-**Supporting proofs:** [TensorCore.classifyNat_scale_lower](../Core/FormatProperties.md#decl-f92353957f44c1cf), [TensorCore.prepareProducts_origin](CanonicalFloor.md#decl-11f8a3777df18b50)
+**Supporting proofs:** [TensorCore.classifyNat_scale_lower](../Numerics/FormatProperties.md#decl-f92353957f44c1cf), [TensorCore.prepareProducts_origin](CanonicalFloor.md#decl-11f8a3777df18b50)
 
-**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Format](../Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.width](../Core/Defs.md#decl-950f9d663ce32954), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Profile.decode](Defs.md#decl-178599198b2d538e), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.decode32](../Core/Encoding.md#decl-a4001029898e709f), [TensorCore.fp16](../Core/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.fp16Fp32Profile](CanonicalDefs.md#decl-00203670fbae3212), [TensorCore.fp32](../Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2), [TensorCore.rawMul](../Core/RawProduct.md#decl-ebe5dd867373b275)
+**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.Format](../Numerics/Defs.md#decl-db780180792c6817), [TensorCore.Format.width](../Numerics/Defs.md#decl-950f9d663ce32954), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Profile.decode](Defs.md#decl-178599198b2d538e), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.decode32](../Numerics/Encoding.md#decl-a4001029898e709f), [TensorCore.fp16](../Numerics/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.fp16Fp32Profile](CanonicalDefs.md#decl-00203670fbae3212), [TensorCore.fp32](../Numerics/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2), [TensorCore.rawMul](../Numerics/RawProduct.md#decl-ebe5dd867373b275)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -171,7 +171,7 @@ theorem alignmentScale_lower (ts : List RawProduct) (lower e : ℤ)
 
 **Supporting proofs:** [TensorCore.alignmentScale_none](AlignmentScale.md#decl-7a39bdbbb3758c27), [TensorCore.alignmentScale_term](AlignmentScale.md#decl-b69cdabe679ea4e6)
 
-**Definitions and types:** [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
+**Definitions and types:** [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -224,7 +224,7 @@ theorem canonical_eta_floor_inactive (K extra : ℕ) (floor : Option ℤ)
 
 **Supporting proofs:** [TensorCore.alignmentScale_lower](CanonicalFloor.md#decl-e1b8106c4610681f), [TensorCore.prepare_fp16_terms_lower](CanonicalFloor.md#decl-25e55191ad23626f)
 
-**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.applyFloor](Defs.md#decl-d4a79527e066b037), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a), [TensorCore.decode32](../Core/Encoding.md#decl-a4001029898e709f), [TensorCore.fp16Fp32Profile](CanonicalDefs.md#decl-00203670fbae3212), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2)
+**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.applyFloor](Defs.md#decl-d4a79527e066b037), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a), [TensorCore.decode32](../Numerics/Encoding.md#decl-a4001029898e709f), [TensorCore.fp16Fp32Profile](CanonicalDefs.md#decl-00203670fbae3212), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 

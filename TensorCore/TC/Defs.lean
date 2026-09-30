@@ -1,6 +1,6 @@
 -- Defs for the tensor-core model.
 
-import TensorCore.Core.Encoding
+import TensorCore.Numerics.Encoding
 
 namespace TensorCore
 

@@ -1,5 +1,5 @@
 import TensorCore.TC.Block
-import TensorCore.Core.ScalarSum
+import TensorCore.Numerics.ScalarSum
 
 -- Extraction components of a tensor-core trace.
 

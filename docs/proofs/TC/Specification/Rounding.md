@@ -22,7 +22,7 @@ theorem value32_eq (b : BitVec 32) : value32 b = TensorCore.value32 b := by
 
 **Supporting proofs:** [TensorCore.PaperSpec.decode_eq](Stages.md#decl-16342b2304718371)
 
-**Definitions and types:** [TensorCore.Classification.finite](../../Core/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.Decoded](../../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.PaperSpec.Term](Defs.md#decl-707444d6b10bb80c), [TensorCore.PaperSpec.binary32](Defs.md#decl-ce9247c05694abaf), [TensorCore.PaperSpec.decode](Defs.md#decl-1951e6871669c329), [TensorCore.PaperSpec.layoutOf](Stages.md#decl-04255acd1d57f3f3), [TensorCore.PaperSpec.termOf](Stages.md#decl-5d5575e19169b785), [TensorCore.PaperSpec.value32](Defs.md#decl-bb0f9e183270ad3e), [TensorCore.classifyNat](../../Core/Encoding.md#decl-52d401d7433cac5a), [TensorCore.fp32](../../Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.value32](../../Core/Encoding.md#decl-72aed83a98321df4)
+**Definitions and types:** [TensorCore.Classification.finite](../../Numerics/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.Decoded](../../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.PaperSpec.Term](Defs.md#decl-707444d6b10bb80c), [TensorCore.PaperSpec.binary32](Defs.md#decl-ce9247c05694abaf), [TensorCore.PaperSpec.decode](Defs.md#decl-1951e6871669c329), [TensorCore.PaperSpec.layoutOf](Stages.md#decl-04255acd1d57f3f3), [TensorCore.PaperSpec.termOf](Stages.md#decl-5d5575e19169b785), [TensorCore.PaperSpec.value32](Defs.md#decl-bb0f9e183270ad3e), [TensorCore.classifyNat](../../Numerics/Encoding.md#decl-52d401d7433cac5a), [TensorCore.fp32](../../Numerics/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.value32](../../Numerics/Encoding.md#decl-72aed83a98321df4)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -48,7 +48,7 @@ theorem magnitude_eq (x : ℚ) : magnitude x = absQ x := rfl
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.PaperSpec.magnitude](Defs.md#decl-4528aade7540d418), [TensorCore.absQ](../../Core/Exact.md#decl-8dd63ab202e070d3)
+**Definitions and types:** [TensorCore.PaperSpec.magnitude](Defs.md#decl-4528aade7540d418), [TensorCore.absQ](../../Numerics/Exact.md#decl-8dd63ab202e070d3)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -74,7 +74,7 @@ theorem maxFinite_eq : maxFinite = maxFinite32 := rfl
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.PaperSpec.maxFinite](Defs.md#decl-c44e0d2d27bec6df), [TensorCore.maxFinite32](../../Core/RoundOp.md#decl-49745d9860bef700)
+**Definitions and types:** [TensorCore.PaperSpec.maxFinite](Defs.md#decl-c44e0d2d27bec6df), [TensorCore.maxFinite32](../../Numerics/RoundOp.md#decl-49745d9860bef700)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -100,7 +100,7 @@ theorem between_eq (x y : ℚ) : Between x y ↔ Between0 x y := Iff.rfl
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.Between0](../../Core/Binary/CorrectRounding.md#decl-e53091bc8dd24dfe), [TensorCore.PaperSpec.Between](Defs.md#decl-4a8f7985f3bff078)
+**Definitions and types:** [TensorCore.Between0](../../Numerics/Binary/CorrectRounding.md#decl-e53091bc8dd24dfe), [TensorCore.PaperSpec.Between](Defs.md#decl-4a8f7985f3bff078)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -129,9 +129,9 @@ private theorem encode32_sign (negative : Bool) (e k : ℤ)
   all_goals split <;> simp <;> omega
 ```
 
-**Supporting proofs:** [TensorCore.encode32_toNat](../../Core/EncodingProperties.md#decl-69d2d972fbf20b0d)
+**Supporting proofs:** [TensorCore.encode32_toNat](../../Numerics/EncodingProperties.md#decl-69d2d972fbf20b0d)
 
-**Definitions and types:** [TensorCore.encode32](../../Core/RoundOp.md#decl-2d041a1e685373ec)
+**Definitions and types:** [TensorCore.encode32](../../Numerics/RoundOp.md#decl-2d041a1e685373ec)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -175,9 +175,9 @@ theorem round32_sign (x : ℚ) (b : F32) (h : round32 .towardZero x = some b) :
   exact encode32_sign _ _ _ hs.1 hs.2.1 hs.2.2.1 hs.2.2.2.1
 ```
 
-**Supporting proofs:** [TensorCore.absQ_pos_of_ne_zero](../../Core/CorrectRounding.md#decl-0de5c16329b2da35), [TensorCore.carry_spec](../../Core/ConversionBounds.md#decl-d852b3768f22ee03), [TensorCore.convCoeff_bounds](../../Core/ConversionBounds.md#decl-515c53877d1bedf2), [TensorCore.convExp_bounds](../../Core/ConversionBounds.md#decl-a4885e74ce89d102), [TensorCore.round32_range](../../Core/RoundOp.md#decl-cd74c43ff6d7803c), [TensorCore.PaperSpec.encode32_sign](Rounding.md#decl-b87aa592b2f7ce0a)
+**Supporting proofs:** [TensorCore.absQ_pos_of_ne_zero](../../Numerics/CorrectRounding.md#decl-0de5c16329b2da35), [TensorCore.carry_spec](../../Numerics/ConversionBounds.md#decl-d852b3768f22ee03), [TensorCore.convCoeff_bounds](../../Numerics/ConversionBounds.md#decl-515c53877d1bedf2), [TensorCore.convExp_bounds](../../Numerics/ConversionBounds.md#decl-a4885e74ce89d102), [TensorCore.round32_range](../../Numerics/RoundOp.md#decl-cd74c43ff6d7803c), [TensorCore.PaperSpec.encode32_sign](Rounding.md#decl-b87aa592b2f7ce0a)
 
-**Definitions and types:** [TensorCore.F32](../../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.RoundingMode](../../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.carry](../../Core/RoundOp.md#decl-e870a105595fff5f), [TensorCore.convCoeff](../../Core/RoundOp.md#decl-9af925aec44b7c00), [TensorCore.convExp](../../Core/RoundOp.md#decl-712564d4fa452350), [TensorCore.encode32](../../Core/RoundOp.md#decl-2d041a1e685373ec), [TensorCore.maxFinite32](../../Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.round32](../../Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.round32Core](../../Core/RoundOp.md#decl-a47adb12319758c3)
+**Definitions and types:** [TensorCore.F32](../../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.RoundingMode](../../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.carry](../../Numerics/RoundOp.md#decl-e870a105595fff5f), [TensorCore.convCoeff](../../Numerics/RoundOp.md#decl-9af925aec44b7c00), [TensorCore.convExp](../../Numerics/RoundOp.md#decl-712564d4fa452350), [TensorCore.encode32](../../Numerics/RoundOp.md#decl-2d041a1e685373ec), [TensorCore.maxFinite32](../../Numerics/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.round32](../../Numerics/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.round32Core](../../Numerics/RoundOp.md#decl-a47adb12319758c3)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -213,16 +213,16 @@ theorem round32_rounds (x : ℚ) (b : F32) (h : round32 .towardZero x = some b) 
     exact hmax y (value32_finite other y hy) hxy
 ```
 
-**Supporting proofs:** [TensorCore.PaperSpec.round32_sign](Rounding.md#decl-f93b23e259cce9bf), [TensorCore.PaperSpec.value32_eq](Rounding.md#decl-4158336941743c50), [TensorCore.round32_range](../../Core/RoundOp.md#decl-cd74c43ff6d7803c), [TensorCore.roundBinary_towardZero_correct](../../Core/Binary/CorrectRounding.md#decl-7cd93a19048f4025), [TensorCore.value32_finite](../../Core/EncodingProperties.md#decl-a66b8320dd17a2c9)
+**Supporting proofs:** [TensorCore.PaperSpec.round32_sign](Rounding.md#decl-f93b23e259cce9bf), [TensorCore.PaperSpec.value32_eq](Rounding.md#decl-4158336941743c50), [TensorCore.round32_range](../../Numerics/RoundOp.md#decl-cd74c43ff6d7803c), [TensorCore.roundBinary_towardZero_correct](../../Numerics/Binary/CorrectRounding.md#decl-7cd93a19048f4025), [TensorCore.value32_finite](../../Numerics/EncodingProperties.md#decl-a66b8320dd17a2c9)
 
-**Definitions and types:** [TensorCore.Between0](../../Core/Binary/CorrectRounding.md#decl-e53091bc8dd24dfe), [TensorCore.BinaryRoundingMode](../../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.F32](../../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Format](../../Core/Defs.md#decl-db780180792c6817), [TensorCore.Format.FiniteValue](../../Core/Defs.md#decl-e3dc9cecad983d99), [TensorCore.Format.WellFormed](../../Core/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.width](../../Core/Defs.md#decl-950f9d663ce32954), [TensorCore.PaperSpec.Between](Defs.md#decl-4a8f7985f3bff078), [TensorCore.PaperSpec.Rounds](Defs.md#decl-7387a708bd8ef682), [TensorCore.PaperSpec.magnitude](Defs.md#decl-4528aade7540d418), [TensorCore.PaperSpec.value32](Defs.md#decl-bb0f9e183270ad3e), [TensorCore.RoundingMode](../../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.TowardZero](../../Core/Binary/CorrectRounding.md#decl-ea87f85641f1fbf8), [TensorCore.absQ](../../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.binaryValue](../../Core/Binary/RoundOp.md#decl-45dceb4f1deb9b75), [TensorCore.fp32](../../Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.maxFinite32](../../Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.round32](../../Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.roundBinary](../../Core/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed), [TensorCore.value32](../../Core/Encoding.md#decl-72aed83a98321df4)
+**Definitions and types:** [TensorCore.Between0](../../Numerics/Binary/CorrectRounding.md#decl-e53091bc8dd24dfe), [TensorCore.BinaryRoundingMode](../../Numerics/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.F32](../../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Format](../../Numerics/Defs.md#decl-db780180792c6817), [TensorCore.Format.FiniteValue](../../Numerics/Defs.md#decl-e3dc9cecad983d99), [TensorCore.Format.WellFormed](../../Numerics/Defs.md#decl-2c4f4aa8dae0f1d6), [TensorCore.Format.width](../../Numerics/Defs.md#decl-950f9d663ce32954), [TensorCore.PaperSpec.Between](Defs.md#decl-4a8f7985f3bff078), [TensorCore.PaperSpec.Rounds](Defs.md#decl-7387a708bd8ef682), [TensorCore.PaperSpec.magnitude](Defs.md#decl-4528aade7540d418), [TensorCore.PaperSpec.value32](Defs.md#decl-bb0f9e183270ad3e), [TensorCore.RoundingMode](../../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.TowardZero](../../Numerics/Binary/CorrectRounding.md#decl-ea87f85641f1fbf8), [TensorCore.absQ](../../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.binaryValue](../../Numerics/Binary/RoundOp.md#decl-45dceb4f1deb9b75), [TensorCore.fp32](../../Numerics/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.maxFinite32](../../Numerics/RoundOp.md#decl-49745d9860bef700), [TensorCore.round32](../../Numerics/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.roundBinary](../../Numerics/Binary/RoundOp.md#decl-8ffd5ccdcdd7afed), [TensorCore.value32](../../Numerics/Encoding.md#decl-72aed83a98321df4)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.PaperSpec.Controls.signed_zero_is_required](../../Regression/Specification/NegativeControls.md#decl-1c0835dee2595631), [TensorCore.PaperSpec.result_of_eval](Equivalence.md#decl-46e00e6d284d09a5), [TensorCore.PaperSpec.rounds_iff](Rounding.md#decl-aec56cebf6fd4fd1)
+[TensorCore.PaperSpec.Controls.signed_zero_is_required](../../Tests/Specification/NegativeControls.md#decl-1c0835dee2595631), [TensorCore.PaperSpec.result_of_eval](Equivalence.md#decl-46e00e6d284d09a5), [TensorCore.PaperSpec.rounds_iff](Rounding.md#decl-aec56cebf6fd4fd1)
 
 </details>
 
@@ -256,9 +256,9 @@ private theorem zero_bits (b : F32) (h : TensorCore.value32 b = some 0) :
       split at hs <;> omega
 ```
 
-**Supporting proofs:** [TensorCore.decode32_fields](../../Core/RoundTrip.md#decl-b49162d7ac8baacf), [TensorCore.pow2_pos](../../Core/Exact.md#decl-8f231b6648575120)
+**Supporting proofs:** [TensorCore.decode32_fields](../../Numerics/RoundTrip.md#decl-b49162d7ac8baacf), [TensorCore.pow2_pos](../../Numerics/Exact.md#decl-8f231b6648575120)
 
-**Definitions and types:** [TensorCore.Decoded](../../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](../../Core/Defs.md#decl-c988858af545448a), [TensorCore.F32](../../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.decode32](../../Core/Encoding.md#decl-a4001029898e709f), [TensorCore.pow2](../../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.value32](../../Core/Encoding.md#decl-72aed83a98321df4)
+**Definitions and types:** [TensorCore.Decoded](../../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](../../Numerics/Defs.md#decl-c988858af545448a), [TensorCore.F32](../../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.decode32](../../Numerics/Encoding.md#decl-a4001029898e709f), [TensorCore.pow2](../../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.value32](../../Numerics/Encoding.md#decl-72aed83a98321df4)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -299,9 +299,9 @@ theorem rounds_unique (x : ℚ) (a b : F32) (ha : Rounds x a) (hb : Rounds x b) 
   · exact value32_injective a b va hva hvb hz
 ```
 
-**Supporting proofs:** [TensorCore.PaperSpec.value32_eq](Rounding.md#decl-4158336941743c50), [TensorCore.value32_injective](../../Core/RoundTrip.md#decl-c92b8ed7f76cc40c), [TensorCore.PaperSpec.zero_bits](Rounding.md#decl-6c7995fb8803ab3c)
+**Supporting proofs:** [TensorCore.PaperSpec.value32_eq](Rounding.md#decl-4158336941743c50), [TensorCore.value32_injective](../../Numerics/RoundTrip.md#decl-c92b8ed7f76cc40c), [TensorCore.PaperSpec.zero_bits](Rounding.md#decl-6c7995fb8803ab3c)
 
-**Definitions and types:** [TensorCore.F32](../../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.PaperSpec.Between](Defs.md#decl-4a8f7985f3bff078), [TensorCore.PaperSpec.Rounds](Defs.md#decl-7387a708bd8ef682), [TensorCore.PaperSpec.magnitude](Defs.md#decl-4528aade7540d418), [TensorCore.PaperSpec.value32](Defs.md#decl-bb0f9e183270ad3e), [TensorCore.value32](../../Core/Encoding.md#decl-72aed83a98321df4)
+**Definitions and types:** [TensorCore.F32](../../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.PaperSpec.Between](Defs.md#decl-4a8f7985f3bff078), [TensorCore.PaperSpec.Rounds](Defs.md#decl-7387a708bd8ef682), [TensorCore.PaperSpec.magnitude](Defs.md#decl-4528aade7540d418), [TensorCore.PaperSpec.value32](Defs.md#decl-bb0f9e183270ad3e), [TensorCore.value32](../../Numerics/Encoding.md#decl-72aed83a98321df4)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -334,7 +334,7 @@ theorem rounds_iff (x : ℚ) (b : F32) (hr : magnitude x ≤ maxFinite) :
 
 **Supporting proofs:** [TensorCore.PaperSpec.round32_rounds](Rounding.md#decl-04c2440f27285826), [TensorCore.PaperSpec.rounds_unique](Rounding.md#decl-ca5813743de21e20), [TensorCore.round32_finite_exists](../AcceptedDomain.md#decl-13c6e80f5f7e2f5a)
 
-**Definitions and types:** [TensorCore.Decoded](../../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.F32](../../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.PaperSpec.Rounds](Defs.md#decl-7387a708bd8ef682), [TensorCore.PaperSpec.magnitude](Defs.md#decl-4528aade7540d418), [TensorCore.PaperSpec.maxFinite](Defs.md#decl-c44e0d2d27bec6df), [TensorCore.RoundingMode](../../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.decode32](../../Core/Encoding.md#decl-a4001029898e709f), [TensorCore.round32](../../Core/RoundOp.md#decl-11a6489236dbb65b)
+**Definitions and types:** [TensorCore.Decoded](../../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.F32](../../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.PaperSpec.Rounds](Defs.md#decl-7387a708bd8ef682), [TensorCore.PaperSpec.magnitude](Defs.md#decl-4528aade7540d418), [TensorCore.PaperSpec.maxFinite](Defs.md#decl-c44e0d2d27bec6df), [TensorCore.RoundingMode](../../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.decode32](../../Numerics/Encoding.md#decl-a4001029898e709f), [TensorCore.round32](../../Numerics/RoundOp.md#decl-11a6489236dbb65b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 

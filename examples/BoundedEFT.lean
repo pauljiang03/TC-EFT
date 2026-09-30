@@ -1,6 +1,6 @@
 -- Bounded EFT for the executable examples.
 
-import TensorCore.EFT.Machine.Success
+import TensorCore.Kernels.EFT.Success
 
 open TensorCore
 

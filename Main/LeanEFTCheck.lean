@@ -1,4 +1,4 @@
-import TensorCore.EFT.Native
+import TensorCore.Kernels.EFT.Native
 import Lean
 
 /-! Test-only observations of the original bounded fold and native scalar fold. -/

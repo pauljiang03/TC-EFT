@@ -1,6 +1,6 @@
 -- Canonical Invocation for the executable examples.
 
-import TensorCore.All
+import TensorCore
 
 open TensorCore
 
@@ -33,7 +33,3 @@ example (K extra carryBits : ℕ) (x : BlockInput (fp16Fp32Profile K extra))
 #check canonical_source_padding_exact
 #check canonical_source_padding_success_iff
 #check fp16Fp32_invocation_compatible
-
-/- Supplied-order consumers retain original pairs and every encoded boundary. -/
-#check OrderedPartition.uncorrected_error
-#check fp16Fp32_schedule_machine_eq

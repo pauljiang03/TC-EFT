@@ -1,7 +1,7 @@
 -- Alignment Scale for the tensor-core model.
 
-import TensorCore.Core.FormatProperties
-import TensorCore.Core.Truncation
+import TensorCore.Numerics.FormatProperties
+import TensorCore.Numerics.Truncation
 import TensorCore.TC.AccumulatorWidth
 import TensorCore.TC.StageResiduals
 

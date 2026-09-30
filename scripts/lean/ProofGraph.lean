@@ -1,5 +1,5 @@
 import Lean
-import TensorCore.All
+import TensorCoreTests
 
 -- Export checked declaration dependencies and source ranges for the proof guide.
 open Lean Elab Command
@@ -24,7 +24,7 @@ def range (r : DeclarationRange) : Json :=
 elab "export_proof_graph" : command => do
   let env ← getEnv
   let names := env.constants.fold (init := (#[] : Array Name)) fun acc name _ =>
-    if (moduleOf env name).any (fun m => m.getRoot == `TensorCore) then
+    if (moduleOf env name).any (fun m => m.getRoot == `TensorCore || m.getRoot == `TensorCoreTests) then
       acc.push name
     else acc
   let mut entries : Array Json := #[]

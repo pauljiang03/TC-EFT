@@ -1,7 +1,7 @@
 import Lean
-import TensorCore.EFT.Regression.BoundedEFT
-import TensorCore.EFT.Machine.Success
-import TensorCore.EFT.Regression.NativeEFT
+import TensorCoreTests.EFT.BoundedEFT
+import TensorCore.Kernels.EFT.Success
+import TensorCoreTests.EFT.NativeEFT
 
 open Lean Elab Command
 

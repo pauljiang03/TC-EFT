@@ -21,7 +21,7 @@ def PreparedBlock.AlignmentExact (b : PreparedBlock) : Prop :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4)
+**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4)
 
 <details>
 <summary>Used by</summary>
@@ -55,9 +55,9 @@ theorem exact_alignment_accumulator (b : PreparedBlock) (h : b.AlignmentExact) :
       b.quantumExponent (h t ht hz)
 ```
 
-**Supporting proofs:** [TensorCore.accumulator_value](StageResiduals.md#decl-ea47979aa889a3dd), [TensorCore.terms_value](StageResiduals.md#decl-7b530e0eb36f1f90), [TensorCore.truncGrid_exact_of_grid](../Core/Truncation.md#decl-8a6ed0cd1522f575)
+**Supporting proofs:** [TensorCore.accumulator_value](StageResiduals.md#decl-ea47979aa889a3dd), [TensorCore.terms_value](StageResiduals.md#decl-7b530e0eb36f1f90), [TensorCore.truncGrid_exact_of_grid](../Numerics/Truncation.md#decl-8a6ed0cd1522f575)
 
-**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.AlignmentExact](ExactAlignment.md#decl-0db1dbe57acfdb23), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.exactDot](Block.md#decl-32d061749cae163e), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd), [TensorCore.truncCoeff](../Core/Exact.md#decl-282a0db962f1b274), [TensorCore.truncGrid](../Core/Exact.md#decl-104d085b38c6a29b)
+**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.AlignmentExact](ExactAlignment.md#decl-0db1dbe57acfdb23), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.exactDot](Block.md#decl-32d061749cae163e), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd), [TensorCore.truncCoeff](../Numerics/Exact.md#decl-282a0db962f1b274), [TensorCore.truncGrid](../Numerics/Exact.md#decl-104d085b38c6a29b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -91,7 +91,7 @@ theorem evalBlock_exact_alignment {p : Profile} {x : BlockInput p} {t : BlockTra
 
 **Supporting proofs:** [TensorCore.evalBlock_evalPrepared](StageResiduals.md#decl-e818d9197d4da76d), [TensorCore.evalBlock_prepared](StageResiduals.md#decl-7b1107ad8e7189d9), [TensorCore.evalPrepared_output](ErrorBounds.md#decl-48e730a73a284cc0), [TensorCore.exact_alignment_accumulator](ExactAlignment.md#decl-42bb343ddba6bc20)
 
-**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](../Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.AlignmentExact](ExactAlignment.md#decl-0db1dbe57acfdb23), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.exactDot](Block.md#decl-32d061749cae163e), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.exactDot](Block.md#decl-451fb68e7faa00f3), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b)
+**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](../Numerics/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.AlignmentExact](ExactAlignment.md#decl-0db1dbe57acfdb23), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.exactDot](Block.md#decl-32d061749cae163e), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.exactDot](Block.md#decl-451fb68e7faa00f3), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 

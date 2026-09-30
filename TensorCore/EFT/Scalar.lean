@@ -1,5 +1,5 @@
 import TensorCore.EFT.Extraction
-import TensorCore.Core.Binary.ScalarSum
+import TensorCore.Numerics.Binary.ScalarSum
 
 /-! Format-generic scalar consolidation of an FP32-output block (TC-EFT IV.9–IV.11).
 The correction format governs residual addition and overlap subtraction. The final exact

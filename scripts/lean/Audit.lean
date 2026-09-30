@@ -1,5 +1,5 @@
 import Lean
-import TensorCore.All
+import TensorCoreTests
 
 /-! Axiom audit generated from the environment: every theorem in the `TensorCore` namespace,
 including generated regression theorems, is listed with the axioms its proof depends on.

@@ -2,7 +2,7 @@
 
 import TensorCore.TC.Specification.Supported
 import TensorCore.TC.Specification.Schedule
-import TensorCore.TC.Program.Composition
+import TensorCore.TC.Composition
 
 namespace TensorCore.PaperSpec
 

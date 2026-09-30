@@ -1,5 +1,5 @@
 import TensorCore.TC.FusedRounding
-import TensorCore.Core.Binary.RoundingContract
+import TensorCore.Numerics.Binary.RoundingContract
 
 open TensorCore
 

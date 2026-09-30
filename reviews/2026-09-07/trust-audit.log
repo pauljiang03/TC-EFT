@@ -1,9 +1,0 @@
-Independent trust audit: 7995 project declarations; 4714 theorems including private/generated; 0 project axiom declarations
-All audited dependencies belong to propext, Classical.choice, Quot.sound.
-'TensorCore.roundBinary_correct' depends on axioms: [propext, Classical.choice, Quot.sound]
-'TensorCore.signedFiniteBinaryBijection' depends on axioms: [propext, Classical.choice, Quot.sound]
-'TensorCore.profile_contract' depends on axioms: [propext, Classical.choice, Quot.sound]
-'TensorCore.evalBlockMachine_eq' depends on axioms: [propext, Classical.choice, Quot.sound]
-'TensorCore.gemmAnalysisCheck_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
-'TensorCore.entryFamilyCheck_sound' depends on axioms: [propext, Classical.choice, Quot.sound]
-'TensorCore.nonmonotone_range_encoded' depends on axioms: [propext, Classical.choice, Quot.sound]

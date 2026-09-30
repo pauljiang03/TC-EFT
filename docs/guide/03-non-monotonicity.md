@@ -1,0 +1,49 @@
+# Non-monotonicity
+
+A decrease in C can select a finer common alignment grid. Products previously discarded on the coarser grid then survive, and the model's output can increase. The construction in this chapter uses four products of `2^-12 · 2^-12 = 2^-24` on the V100 profile.
+
+```sh
+lake env lean examples/NonMonotonicity.lean
+```
+
+The first two observations are:
+
+```text
+Except.ok 1065353216
+Except.ok 1065353217
+```
+
+They are FP32 `0x3f800000 = 1` and `0x3f800001 = 1 + 2^-23`. The input accumulator decreases from `0x3f800000` to `0x3f7fffff = 1 - 2^-24`.
+
+At C = 1, the grid is `2^-23`; each `2^-24` product truncates to zero. After the decrease, the grid is `2^-24`; all four products survive. The exact retained accumulator becomes `1 + 3·2^-24`, and the final FP32 toward-zero conversion yields `1 + 2^-23`.
+
+## A kernel-checked witness
+
+```lean
+import TensorCore.TC.MonotonicityRange
+
+open TensorCore
+
+def before : BlockInput v100F16F32 :=
+  ⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f800000⟩
+def after : BlockInput v100F16F32 :=
+  ⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f7fffff⟩
+
+example : value32 after.c = some (1 - pow2 (-24)) ∧
+    value32 before.c = some 1 ∧ (1 - pow2 (-24) : ℚ) < 1 := by
+  decide +kernel
+
+example : ((evalBlock before).toOption.map fun t => t.output.bits) = some 0x3f800000 ∧
+    ((evalBlock after).toOption.map fun t => t.output.bits) = some 0x3f800001 := by
+  decide +kernel
+```
+
+This checks a concrete encoded counterexample. The general family theorem is [nonmonotone_encoded](../../TensorCore/TC/Monotonicity.lean): for K products of `2^-(24+p)`, lowering C from one to its predecessor increases the output exactly when `K ≥ 3·2^p`, under the construction's factorization, scale, floor, and range hypotheses.
+
+[nonmonotone_range_encoded](../../TensorCore/TC/MonotonicityRange.lean) extends the result to `C_j = 1 - j·2^-24`, with explicit bounds on j and a formula for the witness range and maximal output. These are family results; their theorem parameters state the permitted inputs.
+
+[Flowback.lean](../../TensorCore/TC/Flowback.lean) proves necessary and sufficient conditions that account for changed alignment grids and final conversion. Its sufficient output-level criterion retains the required representability premises.
+
+The complete worked file also executes EFT before and after the perturbation. Both corrected words are `0x3f800002`: the exact ideals differ by `2^-24`, yet they round to the same nearest-even FP32 word. See [the EFT chapter](04-eft.md) for that correction.
+
+The architecture-family regression witnesses live in [tests/TensorCoreTests/TC/Monotonicity.lean](../../tests/TensorCoreTests/TC/Monotonicity.lean). Run them individually with `lake env lean tests/TensorCoreTests/TC/Monotonicity.lean` after building.

@@ -24,7 +24,7 @@ theorem machineAccumulate_eq (w : ℕ) (initial : ℤ) (zs : List ℤ) :
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.sumZ](../Core/Exact.md#decl-eba77bb372c3b3ff)
+**Definitions and types:** [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.sumZ](../Numerics/Exact.md#decl-eba77bb372c3b3ff)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -57,9 +57,9 @@ theorem machineAccumulate_exact (w : ℕ) (zs : List ℤ) (hw : 0 < w)
   apply BitVec.toInt_ofInt_eq_self hw <;> omega
 ```
 
-**Supporting proofs:** [TensorCore.machineAccumulate_eq](AccumulatorWidth.md#decl-297efa863148b988), [TensorCore.sumZ_natAbs_le](../Core/Sum.md#decl-d8b1b90e2d6e4d96)
+**Supporting proofs:** [TensorCore.machineAccumulate_eq](AccumulatorWidth.md#decl-297efa863148b988), [TensorCore.sumZ_natAbs_le](../Numerics/Sum.md#decl-d8b1b90e2d6e4d96)
 
-**Definitions and types:** [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.sumZ](../Core/Exact.md#decl-eba77bb372c3b3ff)
+**Definitions and types:** [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.sumZ](../Numerics/Exact.md#decl-eba77bb372c3b3ff)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -89,9 +89,9 @@ theorem machineAccumulate_prefix_exact (w : ℕ) (xs ys : List ℤ) (hw : 0 < w)
   omega
 ```
 
-**Supporting proofs:** [TensorCore.machineAccumulate_exact](AccumulatorWidth.md#decl-80c3acbccc8106eb), [TensorCore.magnitudeSum_append](../Core/Sum.md#decl-277547ea66e0e0cf)
+**Supporting proofs:** [TensorCore.machineAccumulate_exact](AccumulatorWidth.md#decl-80c3acbccc8106eb), [TensorCore.magnitudeSum_append](../Numerics/Sum.md#decl-277547ea66e0e0cf)
 
-**Definitions and types:** [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.sumZ](../Core/Exact.md#decl-eba77bb372c3b3ff)
+**Definitions and types:** [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.sumZ](../Numerics/Exact.md#decl-eba77bb372c3b3ff)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -118,9 +118,9 @@ theorem machineAccumulate_of_coefficient_bound (zs : List ℤ) (B c : ℕ)
   machineAccumulate_exact _ zs (by omega) (coefficient_width_sufficient zs B c hterm hcount)
 ```
 
-**Supporting proofs:** [TensorCore.coefficient_width_sufficient](../Core/Sum.md#decl-50e5b749a17f1c03), [TensorCore.machineAccumulate_exact](AccumulatorWidth.md#decl-80c3acbccc8106eb)
+**Supporting proofs:** [TensorCore.coefficient_width_sufficient](../Numerics/Sum.md#decl-50e5b749a17f1c03), [TensorCore.machineAccumulate_exact](AccumulatorWidth.md#decl-80c3acbccc8106eb)
 
-**Definitions and types:** [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.sumZ](../Core/Exact.md#decl-eba77bb372c3b3ff)
+**Definitions and types:** [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.sumZ](../Numerics/Exact.md#decl-eba77bb372c3b3ff)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -150,7 +150,7 @@ theorem machineAccumulator_eq (b : PreparedBlock) (w : ℕ) (hw : 0 < w)
 
 **Supporting proofs:** [TensorCore.machineAccumulate_exact](AccumulatorWidth.md#decl-80c3acbccc8106eb)
 
-**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.machineAccumulator](Accumulator.md#decl-9e58c7148c06ae54), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.sumZ](../Core/Exact.md#decl-eba77bb372c3b3ff)
+**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.machineAccumulator](Accumulator.md#decl-9e58c7148c06ae54), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.sumZ](../Numerics/Exact.md#decl-eba77bb372c3b3ff)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 

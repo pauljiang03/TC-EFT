@@ -1,5 +1,5 @@
 import TCFloat.Equivalence.Representations
-import TensorCore.Core.Binary.ResidualBudget
+import TensorCore.Numerics.Binary.ResidualBudget
 
 set_option backward.isDefEq.respectTransparency false
 set_option maxRecDepth 4096

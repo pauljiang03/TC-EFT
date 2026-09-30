@@ -1,5 +1,3 @@
--- Tensor-core definitions, arithmetic properties, and instruction schedules.
-
 import TensorCore.TC.AcceptedDomain
 import TensorCore.TC.Accumulator
 import TensorCore.TC.AccumulatorWidth
@@ -11,12 +9,13 @@ import TensorCore.TC.CanonicalFloor
 import TensorCore.TC.CanonicalFormatDefs
 import TensorCore.TC.CanonicalFormats
 import TensorCore.TC.Compatibility
+import TensorCore.TC.Composition
 import TensorCore.TC.Conversion
+import TensorCore.TC.Correction
 import TensorCore.TC.Defs
 import TensorCore.TC.EncodedMonotonicity
 import TensorCore.TC.ErrorBounds
 import TensorCore.TC.ExactAlignment
-import TensorCore.TC.Examples.BoundedDot
 import TensorCore.TC.Flowback
 import TensorCore.TC.FusedRounding
 import TensorCore.TC.Instruction
@@ -27,20 +26,6 @@ import TensorCore.TC.Monotonicity
 import TensorCore.TC.MonotonicityRange
 import TensorCore.TC.Padding
 import TensorCore.TC.Profiles
-import TensorCore.TC.Program.Bounds.Local
-import TensorCore.TC.Program.Bounds.Loops
-import TensorCore.TC.Program.Bounds.Scales
-import TensorCore.TC.Program.CertifiedProgram
-import TensorCore.TC.Program.Composition
-import TensorCore.TC.Program.Correction
-import TensorCore.TC.Program.Defs
-import TensorCore.TC.Program.DotProduct
-import TensorCore.TC.Program.ErrorBounds
-import TensorCore.TC.Program.GroupAnalysis
-import TensorCore.TC.Program.Loops
-import TensorCore.TC.Program.Partition
-import TensorCore.TC.Program.Report
-import TensorCore.TC.Program.StaticCertificate
 import TensorCore.TC.Specification.Composition
 import TensorCore.TC.Specification.Defs
 import TensorCore.TC.Specification.Equivalence
@@ -50,4 +35,11 @@ import TensorCore.TC.Specification.Schedule
 import TensorCore.TC.Specification.Stages
 import TensorCore.TC.Specification.Supported
 import TensorCore.TC.StageResiduals
-import TensorCore.TC.StaticBudget
+
+/-! # Tensor-core model
+
+Raw exact products, common-grid alignment, profiles, finite FP32 conversion, local
+error and residual identities, encoded group composition, and non-monotonicity.
+The independent paper specification lives under `TensorCore.TC.Specification`.
+See `docs/guide/02-tensor-core-model.md` and `docs/guide/03-non-monotonicity.md`.
+-/

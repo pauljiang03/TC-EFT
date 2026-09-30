@@ -1,4 +1,4 @@
-import TensorCore.Core.Binary.DirectedRounding
+import TensorCore.Numerics.Binary.DirectedRounding
 import TensorCore.TC.InvocationProperties
 import TensorCore.TC.Profiles
 

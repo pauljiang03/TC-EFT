@@ -18,7 +18,7 @@ def belowDecoded (j : ℕ) : Decoded := ⟨((16777216 - j : ℕ) : ℤ), -1, 23�
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350)
+**Definitions and types:** [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350)
 
 <details>
 <summary>Used by</summary>
@@ -42,7 +42,7 @@ theorem belowDecoded_one : belowDecoded 1 = belowOneDecoded := rfl
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.belowOneDecoded](Monotonicity.md#decl-7f145f1d885aa020)
+**Definitions and types:** [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.belowOneDecoded](Monotonicity.md#decl-7f145f1d885aa020)
 
 **Transitive Lean axioms:** none.
 
@@ -75,7 +75,7 @@ theorem belowDecoded_value (j : ℕ) (hj : j ≤ 16777216) :
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.Decoded.value](../Core/Defs.md#decl-c988858af545448a), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3)
+**Definitions and types:** [TensorCore.Decoded.value](../Numerics/Defs.md#decl-c988858af545448a), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -150,9 +150,9 @@ theorem floor_natCast_mul_pow2_neg (N d : ℕ) :
     simpa using this
 ```
 
-**Supporting proofs:** [TensorCore.floor_eq_of_bounds](MonotonicityRange.md#decl-8ed3e1baf1df681b), [TensorCore.pow2_add](../Core/Exact.md#decl-7127823e49ce5599), [TensorCore.pow2_natCast](../Core/Exact.md#decl-997b22af00ef82dd), [TensorCore.pow2_pos](../Core/Exact.md#decl-8f231b6648575120), [TensorCore.pow2_zero](../Core/Exact.md#decl-ac9c8646649b0ae0)
+**Supporting proofs:** [TensorCore.floor_eq_of_bounds](MonotonicityRange.md#decl-8ed3e1baf1df681b), [TensorCore.pow2_add](../Numerics/Exact.md#decl-7127823e49ce5599), [TensorCore.pow2_natCast](../Numerics/Exact.md#decl-997b22af00ef82dd), [TensorCore.pow2_pos](../Numerics/Exact.md#decl-8f231b6648575120), [TensorCore.pow2_zero](../Numerics/Exact.md#decl-ac9c8646649b0ae0)
 
-**Definitions and types:** [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3)
+**Definitions and types:** [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -217,9 +217,9 @@ theorem construction_accumulator_range (prof : Profile) (p K j : ℕ) (da db : D
   all_goals rw [Rat.intCast_add, Rat.intCast_natCast, Rat.intCast_natCast, Rat.natCast_add]
 ```
 
-**Supporting proofs:** [TensorCore.construction_coefficients](Block.md#decl-8e67b4eed923de99), [TensorCore.construction_eta](Monotonicity.md#decl-2bc6cc7079bc2e96), [TensorCore.pow2_add](../Core/Exact.md#decl-7127823e49ce5599), [TensorCore.pow2_natCast](../Core/Exact.md#decl-997b22af00ef82dd), [TensorCore.rawMul_significand_ne_zero](Monotonicity.md#decl-0e4d12d646a70bc9), [TensorCore.sumZ_replicate](../Core/Sum.md#decl-515e106ddee189db), [TensorCore.truncCoeff_of_grid](../Core/Truncation.md#decl-03b847921a9aec6d)
+**Supporting proofs:** [TensorCore.construction_coefficients](Block.md#decl-8e67b4eed923de99), [TensorCore.construction_eta](Monotonicity.md#decl-2bc6cc7079bc2e96), [TensorCore.pow2_add](../Numerics/Exact.md#decl-7127823e49ce5599), [TensorCore.pow2_natCast](../Numerics/Exact.md#decl-997b22af00ef82dd), [TensorCore.rawMul_significand_ne_zero](Monotonicity.md#decl-0e4d12d646a70bc9), [TensorCore.sumZ_replicate](../Numerics/Sum.md#decl-515e106ddee189db), [TensorCore.truncCoeff_of_grid](../Numerics/Truncation.md#decl-03b847921a9aec6d)
 
-**Definitions and types:** [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](../Core/Defs.md#decl-c988858af545448a), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.rawMul](../Core/RawProduct.md#decl-ebe5dd867373b275), [TensorCore.sumZ](../Core/Exact.md#decl-eba77bb372c3b3ff), [TensorCore.truncCoeff](../Core/Exact.md#decl-282a0db962f1b274)
+**Definitions and types:** [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.value](../Numerics/Defs.md#decl-c988858af545448a), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.rawMul](../Numerics/RawProduct.md#decl-ebe5dd867373b275), [TensorCore.sumZ](../Numerics/Exact.md#decl-eba77bb372c3b3ff), [TensorCore.truncCoeff](../Numerics/Exact.md#decl-282a0db962f1b274)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -393,9 +393,9 @@ theorem nonmonotone_range (prof : Profile) (p K j : ℕ) (da db : Decoded)
         grind
 ```
 
-**Supporting proofs:** [TensorCore.absQ_of_nonneg](../Core/Exact.md#decl-2aceea0008eec277), [TensorCore.construction_accumulator_range](MonotonicityRange.md#decl-d9208cfa13b8ff00), [TensorCore.div_pow2](../Core/Exact.md#decl-341a7e90774bc1d1), [TensorCore.finite32_of_value32](../Core/Encoding.md#decl-e85cafbe6e246ed5), [TensorCore.floor_natCast_mul_pow2_neg](MonotonicityRange.md#decl-1f5df0d5f93e1feb), [TensorCore.magnitudeExponent_eq_of_bounds](../Core/Rounding.md#decl-bf009f29f695c88d), [TensorCore.pow2_add](../Core/Exact.md#decl-7127823e49ce5599), [TensorCore.pow2_natCast](../Core/Exact.md#decl-997b22af00ef82dd), [TensorCore.pow2_one](../Core/Exact.md#decl-8feaca6c2e8345f1), [TensorCore.pow2_pos](../Core/Exact.md#decl-8f231b6648575120), [TensorCore.pow2_zero](../Core/Exact.md#decl-ac9c8646649b0ae0), [TensorCore.round32_nonzero_spec](../Core/CorrectRounding.md#decl-8b6b01a970bf7f64)
+**Supporting proofs:** [TensorCore.absQ_of_nonneg](../Numerics/Exact.md#decl-2aceea0008eec277), [TensorCore.construction_accumulator_range](MonotonicityRange.md#decl-d9208cfa13b8ff00), [TensorCore.div_pow2](../Numerics/Exact.md#decl-341a7e90774bc1d1), [TensorCore.finite32_of_value32](../Numerics/Encoding.md#decl-e85cafbe6e246ed5), [TensorCore.floor_natCast_mul_pow2_neg](MonotonicityRange.md#decl-1f5df0d5f93e1feb), [TensorCore.magnitudeExponent_eq_of_bounds](../Numerics/Rounding.md#decl-bf009f29f695c88d), [TensorCore.pow2_add](../Numerics/Exact.md#decl-7127823e49ce5599), [TensorCore.pow2_natCast](../Numerics/Exact.md#decl-997b22af00ef82dd), [TensorCore.pow2_one](../Numerics/Exact.md#decl-8feaca6c2e8345f1), [TensorCore.pow2_pos](../Numerics/Exact.md#decl-8f231b6648575120), [TensorCore.pow2_zero](../Numerics/Exact.md#decl-ac9c8646649b0ae0), [TensorCore.round32_nonzero_spec](../Numerics/CorrectRounding.md#decl-8b6b01a970bf7f64)
 
-**Definitions and types:** [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](../Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.convCoeff](../Core/RoundOp.md#decl-9af925aec44b7c00), [TensorCore.convExp](../Core/RoundOp.md#decl-712564d4fa452350), [TensorCore.emin32](../Core/RoundOp.md#decl-db1578f6a47fc8b5), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.finite32](../Core/Encoding.md#decl-82d0e30146423be5), [TensorCore.magnitudeExponent](../Core/RoundOp.md#decl-d0b00fe98f5e4d15), [TensorCore.magnitudeRounded](../Core/RoundOp.md#decl-5eba0588921ede09), [TensorCore.maxFinite32](../Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.outputQuantumExponent](../Core/RoundOp.md#decl-70bb2de461b51682), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.rawMul](../Core/RawProduct.md#decl-ebe5dd867373b275), [TensorCore.rneInt](../Core/RoundOp.md#decl-c2651a1e8f74a14a), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.roundCoefficient](../Core/RoundOp.md#decl-7662cf06d1725fc5), [TensorCore.signedRounded](../Core/RoundOp.md#decl-68ebd78aa09fbefc), [TensorCore.value32](../Core/Encoding.md#decl-72aed83a98321df4)
+**Definitions and types:** [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](../Numerics/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.convCoeff](../Numerics/RoundOp.md#decl-9af925aec44b7c00), [TensorCore.convExp](../Numerics/RoundOp.md#decl-712564d4fa452350), [TensorCore.emin32](../Numerics/RoundOp.md#decl-db1578f6a47fc8b5), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.finite32](../Numerics/Encoding.md#decl-82d0e30146423be5), [TensorCore.magnitudeExponent](../Numerics/RoundOp.md#decl-d0b00fe98f5e4d15), [TensorCore.magnitudeRounded](../Numerics/RoundOp.md#decl-5eba0588921ede09), [TensorCore.maxFinite32](../Numerics/RoundOp.md#decl-49745d9860bef700), [TensorCore.outputQuantumExponent](../Numerics/RoundOp.md#decl-70bb2de461b51682), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.rawMul](../Numerics/RawProduct.md#decl-ebe5dd867373b275), [TensorCore.rneInt](../Numerics/RoundOp.md#decl-c2651a1e8f74a14a), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.roundCoefficient](../Numerics/RoundOp.md#decl-7662cf06d1725fc5), [TensorCore.signedRounded](../Numerics/RoundOp.md#decl-68ebd78aa09fbefc), [TensorCore.value32](../Numerics/Encoding.md#decl-72aed83a98321df4)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -465,9 +465,9 @@ theorem decode32_below (j : ℕ) (hj1 : 1 ≤ j) (hj2 : j ≤ 2 ^ 23) :
   · omega
 ```
 
-**Supporting proofs:** [TensorCore.classifyNat_fp32](../Core/EncodingProperties.md#decl-e78f14689117d01e), [TensorCore.decode32_eq](../Core/Encoding.md#decl-d61e64a2750bda68)
+**Supporting proofs:** [TensorCore.classifyNat_fp32](../Numerics/EncodingProperties.md#decl-e78f14689117d01e), [TensorCore.decode32_eq](../Numerics/Encoding.md#decl-d61e64a2750bda68)
 
-**Definitions and types:** [TensorCore.Classification](../Core/Defs.md#decl-5f9e3ead4db8c4b5), [TensorCore.Classification.finite](../Core/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.classifyNat](../Core/Encoding.md#decl-52d401d7433cac5a), [TensorCore.decode32](../Core/Encoding.md#decl-a4001029898e709f), [TensorCore.fp32](../Core/Defs.md#decl-1a6343dd8d7b7ab4)
+**Definitions and types:** [TensorCore.Classification](../Numerics/Defs.md#decl-5f9e3ead4db8c4b5), [TensorCore.Classification.finite](../Numerics/Encoding.md#decl-cfa2987aba5ba75a), [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.classifyNat](../Numerics/Encoding.md#decl-52d401d7433cac5a), [TensorCore.decode32](../Numerics/Encoding.md#decl-a4001029898e709f), [TensorCore.fp32](../Numerics/Defs.md#decl-1a6343dd8d7b7ab4)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -527,14 +527,14 @@ theorem nonmonotone_range_encoded (K p j : ℕ) (floor : Option ℤ)
 
 **Supporting proofs:** [TensorCore.decode32_below](MonotonicityRange.md#decl-a811310312b96b08), [TensorCore.nonmonotone_range](MonotonicityRange.md#decl-d5c8fadfda678cb4), [TensorCore.nonmonotone_range_iff](MonotonicityRange.md#decl-a2d2d541bf27443e), [TensorCore.prepareProducts_replicate](Block.md#decl-3ef93e2d1a862b59)
 
-**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Profile.decode](Defs.md#decl-178599198b2d538e), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.decode32](../Core/Encoding.md#decl-a4001029898e709f), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.fp16](../Core/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.fp16Fp32Profile](CanonicalDefs.md#decl-00203670fbae3212), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2), [TensorCore.rawMul](../Core/RawProduct.md#decl-ebe5dd867373b275)
+**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Profile.decode](Defs.md#decl-178599198b2d538e), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.belowDecoded](MonotonicityRange.md#decl-690eb856a27a1d7c), [TensorCore.decode32](../Numerics/Encoding.md#decl-a4001029898e709f), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.fp16](../Numerics/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.fp16Fp32Profile](CanonicalDefs.md#decl-00203670fbae3212), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2), [TensorCore.rawMul](../Numerics/RawProduct.md#decl-ebe5dd867373b275)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.nonmonotone_range_ampere_family](Regression/Monotonicity.md#decl-8cba369caaf2fd69), [TensorCore.nonmonotone_range_hopper_family](Regression/Monotonicity.md#decl-35b986b32bcab844), [TensorCore.nonmonotone_range_v100_family](Regression/Monotonicity.md#decl-28d0c042c0f25900)
+[TensorCore.nonmonotone_range_ampere_family](../Tests/TC/Monotonicity.md#decl-8cba369caaf2fd69), [TensorCore.nonmonotone_range_hopper_family](../Tests/TC/Monotonicity.md#decl-35b986b32bcab844), [TensorCore.nonmonotone_range_v100_family](../Tests/TC/Monotonicity.md#decl-28d0c042c0f25900)
 
 </details>
 

@@ -21,7 +21,7 @@ theorem evalPreparedMachine_eq (b : PreparedBlock) (w : â„•) (hw : 0 < w)
 
 **Supporting proofs:** [TensorCore.machineAccumulator_eq](AccumulatorWidth.md#decl-fa564636f9129fb5)
 
-**Definitions and types:** [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](../Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.machineAccumulator](Accumulator.md#decl-9e58c7148c06ae54), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.evalPreparedMachine](Accumulator.md#decl-0c49fa80fec5d50f), [TensorCore.finite32](../Core/Encoding.md#decl-82d0e30146423be5), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b)
+**Definitions and types:** [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](../Numerics/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.accumulator](Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.machineAccumulator](Accumulator.md#decl-9e58c7148c06ae54), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.evalPreparedMachine](Accumulator.md#decl-0c49fa80fec5d50f), [TensorCore.finite32](../Numerics/Encoding.md#decl-82d0e30146423be5), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -64,14 +64,14 @@ theorem evalBlockMachine_eq {p : Profile} (x : BlockInput p) (w F carryBits : â„
 
 **Supporting proofs:** [TensorCore.evalPreparedMachine_eq](MachineRefinement.md#decl-d2f2aa91376a054f), [TensorCore.prepare_coefficient_capacity](AlignmentScale.md#decl-c04538f02bc7d682)
 
-**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.evalBlockMachine](Accumulator.md#decl-ab9031f1fdf12cee), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.evalPreparedMachine](Accumulator.md#decl-0c49fa80fec5d50f), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.prepare](Block.md#decl-32c2d7273540d876)
+**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.evalBlockMachine](Accumulator.md#decl-ab9031f1fdf12cee), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.evalPreparedMachine](Accumulator.md#decl-0c49fa80fec5d50f), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.prepare](Block.md#decl-32c2d7273540d876)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.PaperSpec.machine_eq_paper](Specification/Equivalence.md#decl-a7b3c8171f0fe70d), [TensorCore.fp16Fp32_machine_eq](MachineRefinement.md#decl-528413e0ee3dba60), [TensorCore.runBlocksMachine_eq](Program/DotProduct.md#decl-69afa0bf303103ec), [TensorCore.v100_machine_eq](MachineRefinement.md#decl-4818474771f10689)
+[TensorCore.PaperSpec.machine_eq_paper](Specification/Equivalence.md#decl-a7b3c8171f0fe70d), [TensorCore.fp16Fp32_machine_eq](MachineRefinement.md#decl-528413e0ee3dba60), [TensorCore.v100_machine_eq](MachineRefinement.md#decl-4818474771f10689)
 
 </details>
 

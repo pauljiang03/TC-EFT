@@ -31,7 +31,7 @@ inductive Path where
 <details>
 <summary>Used by</summary>
 
-[TensorCore.PaperSpec.implementationProfile](Supported.md#decl-3c13ed61a6208d31), [TensorCore.PaperSpec.native_parameters](../../Gemm/Specification/NativeGemmEquivalence.md#decl-09f18a2164359124), [TensorCore.PaperSpec.parameters](Profiles.md#decl-ee26be9404546300), [TensorCore.PaperSpec.supportedInput](Supported.md#decl-9a9de8a677d86544), [TensorCore.PaperSpec.supported_eq_paper](Supported.md#decl-13a8bbc2350f91f1), [TensorCore.PaperSpec.supported_parameters](Supported.md#decl-3ff58df4e66fac41), [TensorCore.PaperSpec.supported_valid_success](Supported.md#decl-5894ca01e6458495)
+[TensorCore.PaperSpec.implementationProfile](Supported.md#decl-3c13ed61a6208d31), [TensorCore.PaperSpec.parameters](Profiles.md#decl-ee26be9404546300), [TensorCore.PaperSpec.supportedInput](Supported.md#decl-9a9de8a677d86544), [TensorCore.PaperSpec.supported_eq_paper](Supported.md#decl-13a8bbc2350f91f1), [TensorCore.PaperSpec.supported_parameters](Supported.md#decl-3ff58df4e66fac41), [TensorCore.PaperSpec.supported_valid_success](Supported.md#decl-5894ca01e6458495)
 
 </details>
 
@@ -63,7 +63,7 @@ def parameters : Path → Parameters
 <details>
 <summary>Used by</summary>
 
-[TensorCore.PaperSpec.native_parameters](../../Gemm/Specification/NativeGemmEquivalence.md#decl-09f18a2164359124), [TensorCore.PaperSpec.supportedInput](Supported.md#decl-9a9de8a677d86544), [TensorCore.PaperSpec.supported_eq_paper](Supported.md#decl-13a8bbc2350f91f1), [TensorCore.PaperSpec.supported_parameters](Supported.md#decl-3ff58df4e66fac41), [TensorCore.PaperSpec.supported_valid_success](Supported.md#decl-5894ca01e6458495)
+[TensorCore.PaperSpec.supportedInput](Supported.md#decl-9a9de8a677d86544), [TensorCore.PaperSpec.supported_eq_paper](Supported.md#decl-13a8bbc2350f91f1), [TensorCore.PaperSpec.supported_parameters](Supported.md#decl-3ff58df4e66fac41), [TensorCore.PaperSpec.supported_valid_success](Supported.md#decl-5894ca01e6458495)
 
 </details>
 

@@ -13,7 +13,7 @@ import random
 import subprocess
 import time
 
-from check_ieee import decode, power, rounded
+from scalar_oracle import decode, power, rounded
 
 ROOT = Path(__file__).resolve().parents[1]
 SEED = 20260909
@@ -94,14 +94,14 @@ def main():
                                 text=True, capture_output=True)
         if result.returncode != 2 or result.stdout:
             raise RuntimeError(f'Invalid request was not rejected: {request}')
-    sources = [Path(__file__).resolve(), ROOT / 'scripts/check_ieee.py',
+    sources = [Path(__file__).resolve(), ROOT / 'scripts/scalar_oracle.py',
                ROOT / 'Main/LeanEFTCheck.lean', ROOT / 'Main/BoundedEFT.lean',
                ROOT / 'lean-toolchain', ROOT / 'lakefile.toml',
-               ROOT / 'TensorCore/EFT/Native.lean',
-               ROOT / 'TensorCore/EFT/Bounded.lean',
-               ROOT / 'TensorCore/EFT/Regression/NativeEFT.lean',
-               *sorted((ROOT / 'TensorCore/IEEE').glob('*.lean')),
-               *sorted((ROOT / 'TensorCore/EFT/Machine').glob('*.lean'))]
+               ROOT / 'TensorCore/Kernels/EFT/Native.lean',
+               ROOT / 'TensorCore/Kernels/EFT/Defs.lean',
+               ROOT / 'tests/TensorCoreTests/EFT/NativeEFT.lean',
+               *sorted((ROOT / 'TensorCore/Scalar').glob('*.lean')),
+               *sorted((ROOT / 'TensorCore/Kernels/EFT').glob('*.lean'))]
     report = {'status': 'failed' if failures else 'passed', 'seed': SEED,
               'scope': 'FP32 left-to-right native EFT accumulation; finite exact-range and positive exact-zero policy',
               'samples_are_not_proofs': True, 'cases': len(inputs),

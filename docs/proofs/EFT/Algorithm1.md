@@ -27,7 +27,7 @@ theorem overlap_window_width (t : BlockTrace) (η : ℤ) (p : ℕ) (hη : t.bloc
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.Finite32](../Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.PreparedBlock](../TC/Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.eta](../TC/Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.quantumExponent](../TC/Block.md#decl-43c39ff5fd4eef64), [TensorCore.Profile](../TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.outputQuantumExponent](../Core/RoundOp.md#decl-70bb2de461b51682)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.Finite32](../Numerics/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.PreparedBlock](../TC/Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.eta](../TC/Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.quantumExponent](../TC/Block.md#decl-43c39ff5fd4eef64), [TensorCore.Profile](../TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.outputQuantumExponent](../Numerics/RoundOp.md#decl-70bb2de461b51682)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -56,7 +56,7 @@ def BlockTrace.exactConsolidation (t : BlockTrace) : Option F32 :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd)
 
 <details>
 <summary>Used by</summary>
@@ -84,7 +84,7 @@ theorem exactConsolidation_eq_corrected (t : BlockTrace) :
 
 **Supporting proofs:** [TensorCore.corrected_eq_round_exactDot](../TC/StageResiduals.md#decl-4f25be9ce5c88c41), [TensorCore.overlap_recovery](Extraction.md#decl-9a70c4b963b9ff7e)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -116,12 +116,12 @@ inductive Algorithm1Result where
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f)
+**Definitions and types:** [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.Algorithm1Result.bits](Algorithm1.md#decl-813f0f3b4334e3b7), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.EncodedEFTResult](Encoded.md#decl-43c5cf7090b5e17e), [TensorCore.EncodedEFTResult.bits](Encoded.md#decl-6b8e900329461f5a), [TensorCore.Regression.algorithm1_cases](Regression/Flowback.md#decl-a60fb69ed62b3b2b), [TensorCore.Regression.encoded_eft_all_zero](Regression/EncodedEFT.md#decl-84a376d9133b92c7), [TensorCore.Regression.encoded_eft_branches](Regression/EncodedEFT.md#decl-5458dc9dc7e0d9ae), [TensorCore.Regression.encoded_eft_cancellation](Regression/EncodedEFT.md#decl-277a69997e7c7a84), [TensorCore.Regression.encoded_eft_nonzero_c](Regression/EncodedEFT.md#decl-3c8a2a316485713c), [TensorCore.Regression.encoded_eft_rejections](Regression/EncodedEFT.md#decl-95e3c5cfb683c2bf), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_correct](Algorithm1.md#decl-7c971273335df3a8), [TensorCore.algorithm1_exact_iff](Algorithm1.md#decl-b5fbc137128bfc29), [TensorCore.algorithm1_scalar_iff](Algorithm1.md#decl-035c260a0676f872)
+[TensorCore.Algorithm1Result.bits](Algorithm1.md#decl-813f0f3b4334e3b7), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.EncodedEFTResult](Encoded.md#decl-43c5cf7090b5e17e), [TensorCore.EncodedEFTResult.bits](Encoded.md#decl-6b8e900329461f5a), [TensorCore.Regression.algorithm1_cases](../Tests/EFT/Flowback.md#decl-a60fb69ed62b3b2b), [TensorCore.Regression.encoded_eft_all_zero](../Tests/EFT/EncodedEFT.md#decl-84a376d9133b92c7), [TensorCore.Regression.encoded_eft_branches](../Tests/EFT/EncodedEFT.md#decl-5458dc9dc7e0d9ae), [TensorCore.Regression.encoded_eft_cancellation](../Tests/EFT/EncodedEFT.md#decl-277a69997e7c7a84), [TensorCore.Regression.encoded_eft_nonzero_c](../Tests/EFT/EncodedEFT.md#decl-3c8a2a316485713c), [TensorCore.Regression.encoded_eft_rejections](../Tests/EFT/EncodedEFT.md#decl-95e3c5cfb683c2bf), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_correct](Algorithm1.md#decl-7c971273335df3a8), [TensorCore.algorithm1_exact_iff](Algorithm1.md#decl-b5fbc137128bfc29), [TensorCore.algorithm1_scalar_iff](Algorithm1.md#decl-035c260a0676f872)
 
 </details>
 
@@ -143,12 +143,12 @@ def Algorithm1Result.bits : Algorithm1Result → Option F32
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f)
+**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.EFMachine.algorithm1_agrees](Machine/Refinement.md#decl-98c4f9688b4f1890), [TensorCore.EFMachine.algorithm1_of_evalBlock](Machine/Refinement.md#decl-9aa1f0996a70d891), [TensorCore.EncodedEFTResult.bits](Encoded.md#decl-6b8e900329461f5a), [TensorCore.algorithm1Encoded_agrees](Encoded.md#decl-7c68f1eaf0403ab9), [TensorCore.algorithm1Encoded_bits_isSome_iff](Encoded.md#decl-c1f2e040881102c8), [TensorCore.algorithm1Encoded_correct](Encoded.md#decl-1519bb799ab513bc), [TensorCore.algorithm1Encoded_of_evalBlock](Encoded.md#decl-a76734b92f5db6bb), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_correct](Algorithm1.md#decl-7c971273335df3a8)
+[TensorCore.EFMachine.algorithm1_agrees](../Kernels/EFT/Refinement.md#decl-98c4f9688b4f1890), [TensorCore.EFMachine.algorithm1_of_evalBlock](../Kernels/EFT/Refinement.md#decl-9aa1f0996a70d891), [TensorCore.EncodedEFTResult.bits](Encoded.md#decl-6b8e900329461f5a), [TensorCore.algorithm1Encoded_agrees](Encoded.md#decl-7c68f1eaf0403ab9), [TensorCore.algorithm1Encoded_bits_isSome_iff](Encoded.md#decl-c1f2e040881102c8), [TensorCore.algorithm1Encoded_correct](Encoded.md#decl-1519bb799ab513bc), [TensorCore.algorithm1Encoded_of_evalBlock](Encoded.md#decl-a76734b92f5db6bb), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_correct](Algorithm1.md#decl-7c971273335df3a8)
 
 </details>
 
@@ -175,12 +175,12 @@ def BlockTrace.algorithm1 (t : BlockTrace) : Algorithm1Result :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f)
+**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.EFMachine.algorithm1_agrees](Machine/Refinement.md#decl-98c4f9688b4f1890), [TensorCore.EFMachine.algorithm1_of_evalBlock](Machine/Refinement.md#decl-9aa1f0996a70d891), [TensorCore.Regression.algorithm1_cases](Regression/Flowback.md#decl-a60fb69ed62b3b2b), [TensorCore.algorithm1Encoded](Encoded.md#decl-8017eca136315bcf), [TensorCore.algorithm1Encoded_agrees](Encoded.md#decl-7c68f1eaf0403ab9), [TensorCore.algorithm1Encoded_allZero](Encoded.md#decl-29b7b451e1ee0a65), [TensorCore.algorithm1Encoded_bits_isSome_iff](Encoded.md#decl-c1f2e040881102c8), [TensorCore.algorithm1Encoded_correct](Encoded.md#decl-1519bb799ab513bc), [TensorCore.algorithm1Encoded_nonzero](Encoded.md#decl-81edff15e18bd6d1), [TensorCore.algorithm1Encoded_of_evalBlock](Encoded.md#decl-a76734b92f5db6bb), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_correct](Algorithm1.md#decl-7c971273335df3a8), [TensorCore.algorithm1_exact_iff](Algorithm1.md#decl-b5fbc137128bfc29), [TensorCore.algorithm1_scalar_iff](Algorithm1.md#decl-035c260a0676f872)
+[TensorCore.EFMachine.algorithm1_agrees](../Kernels/EFT/Refinement.md#decl-98c4f9688b4f1890), [TensorCore.EFMachine.algorithm1_of_evalBlock](../Kernels/EFT/Refinement.md#decl-9aa1f0996a70d891), [TensorCore.Regression.algorithm1_cases](../Tests/EFT/Flowback.md#decl-a60fb69ed62b3b2b), [TensorCore.algorithm1Encoded](Encoded.md#decl-8017eca136315bcf), [TensorCore.algorithm1Encoded_agrees](Encoded.md#decl-7c68f1eaf0403ab9), [TensorCore.algorithm1Encoded_allZero](Encoded.md#decl-29b7b451e1ee0a65), [TensorCore.algorithm1Encoded_bits_isSome_iff](Encoded.md#decl-c1f2e040881102c8), [TensorCore.algorithm1Encoded_correct](Encoded.md#decl-1519bb799ab513bc), [TensorCore.algorithm1Encoded_nonzero](Encoded.md#decl-81edff15e18bd6d1), [TensorCore.algorithm1Encoded_of_evalBlock](Encoded.md#decl-a76734b92f5db6bb), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_correct](Algorithm1.md#decl-7c971273335df3a8), [TensorCore.algorithm1_exact_iff](Algorithm1.md#decl-b5fbc137128bfc29), [TensorCore.algorithm1_scalar_iff](Algorithm1.md#decl-035c260a0676f872)
 
 </details>
 
@@ -205,7 +205,7 @@ theorem algorithm1_scalar_iff (t : BlockTrace) (b : F32) :
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f)
+**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -243,7 +243,7 @@ theorem algorithm1_exact_iff (t : BlockTrace) (b : F32) :
 
 **Supporting proofs:** [TensorCore.exactConsolidation_eq_corrected](Algorithm1.md#decl-c3b8d88d2995c695), [TensorCore.scalarCorrected_correct](Extraction.md#decl-57f834dbd8f945de), [TensorCore.scalarCorrected_rejects](Extraction.md#decl-2009b13f7b61d30c)
 
-**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](../Core/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e)
+**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](../Numerics/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -291,9 +291,9 @@ theorem algorithm1_correct (t : BlockTrace) (b : F32) (h : t.algorithm1.bits = s
       simp [Algorithm1Result.bits] at h
 ```
 
-**Supporting proofs:** [TensorCore.corrected_eq_round_exactDot](../TC/StageResiduals.md#decl-4f25be9ce5c88c41), [TensorCore.exactConsolidation_eq_corrected](Algorithm1.md#decl-c3b8d88d2995c695), [TensorCore.round32_nearestEven_correct](../Core/CorrectRounding.md#decl-213324c196c49312), [TensorCore.round32_range](../Core/RoundOp.md#decl-cd74c43ff6d7803c), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464)
+**Supporting proofs:** [TensorCore.corrected_eq_round_exactDot](../TC/StageResiduals.md#decl-4f25be9ce5c88c41), [TensorCore.exactConsolidation_eq_corrected](Algorithm1.md#decl-c3b8d88d2995c695), [TensorCore.round32_nearestEven_correct](../Numerics/CorrectRounding.md#decl-213324c196c49312), [TensorCore.round32_range](../Numerics/RoundOp.md#decl-cd74c43ff6d7803c), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464)
 
-**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.Algorithm1Result.bits](Algorithm1.md#decl-813f0f3b4334e3b7), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](../Core/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b)
+**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.Algorithm1Result.bits](Algorithm1.md#decl-813f0f3b4334e3b7), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](../Numerics/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -345,9 +345,9 @@ theorem algorithm1_bits_isSome_iff (t : BlockTrace) :
       contradiction
 ```
 
-**Supporting proofs:** [TensorCore.corrected_eq_round_exactDot](../TC/StageResiduals.md#decl-4f25be9ce5c88c41), [TensorCore.exactConsolidation_eq_corrected](Algorithm1.md#decl-c3b8d88d2995c695), [TensorCore.retained_add_low](Extraction.md#decl-da77fbfd62ee1185), [TensorCore.round32_nearestEven_correct](../Core/CorrectRounding.md#decl-213324c196c49312), [TensorCore.round32_range](../Core/RoundOp.md#decl-cd74c43ff6d7803c), [TensorCore.scalarCorrected_rejects](Extraction.md#decl-2009b13f7b61d30c)
+**Supporting proofs:** [TensorCore.corrected_eq_round_exactDot](../TC/StageResiduals.md#decl-4f25be9ce5c88c41), [TensorCore.exactConsolidation_eq_corrected](Algorithm1.md#decl-c3b8d88d2995c695), [TensorCore.retained_add_low](Extraction.md#decl-da77fbfd62ee1185), [TensorCore.round32_nearestEven_correct](../Numerics/CorrectRounding.md#decl-213324c196c49312), [TensorCore.round32_range](../Numerics/RoundOp.md#decl-cd74c43ff6d7803c), [TensorCore.scalarCorrected_rejects](Extraction.md#decl-2009b13f7b61d30c)
 
-**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.Algorithm1Result.bits](Algorithm1.md#decl-813f0f3b4334e3b7), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.NearestEven32](../Core/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Core/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd)
+**Definitions and types:** [TensorCore.Algorithm1Result](Algorithm1.md#decl-f55fbf06a011ce23), [TensorCore.Algorithm1Result.bits](Algorithm1.md#decl-813f0f3b4334e3b7), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.exactConsolidation](Algorithm1.md#decl-2c3184ccfe7b5745), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.NearestEven32](../Numerics/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Numerics/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Numerics/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -390,7 +390,7 @@ structure ReferenceLedger where
 <details>
 <summary>Used by</summary>
 
-[TensorCore.Regression.table_v_ledger](Regression/Flowback.md#decl-8f03735e686248e7), [TensorCore.referenceLedger](Algorithm1.md#decl-430a31db84876fd5)
+[TensorCore.Regression.table_v_ledger](../Tests/EFT/Flowback.md#decl-8f03735e686248e7), [TensorCore.referenceLedger](Algorithm1.md#decl-430a31db84876fd5)
 
 </details>
 
@@ -415,7 +415,7 @@ def referenceLedger (K : ℕ) : ReferenceLedger :=
 <details>
 <summary>Used by</summary>
 
-[TensorCore.Regression.table_v_ledger](Regression/Flowback.md#decl-8f03735e686248e7)
+[TensorCore.Regression.table_v_ledger](../Tests/EFT/Flowback.md#decl-8f03735e686248e7)
 
 </details>
 
@@ -443,7 +443,7 @@ def scalarBranchOperations (K : ℕ) : ℕ := K + 3
 <details>
 <summary>Used by</summary>
 
-[TensorCore.Regression.table_v_ledger](Regression/Flowback.md#decl-8f03735e686248e7)
+[TensorCore.Regression.table_v_ledger](../Tests/EFT/Flowback.md#decl-8f03735e686248e7)
 
 </details>
 

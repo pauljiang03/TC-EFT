@@ -1,6 +1,6 @@
 import TensorCore.TC.Monotonicity
-import TensorCore.Core.RoundTrip
-import TensorCore.Core.ScalarSum
+import TensorCore.Numerics.RoundTrip
+import TensorCore.Numerics.ScalarSum
 import TensorCore.TC.ErrorBounds
 
 /-! TC-EFT Definitions III.2 and III.3 and Equation 6. `MonotoneInAccumulator` is

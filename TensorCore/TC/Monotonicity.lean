@@ -1,4 +1,4 @@
-import TensorCore.Core.CorrectRounding
+import TensorCore.Numerics.CorrectRounding
 import TensorCore.TC.StageResiduals
 import TensorCore.TC.AlignmentScale
 import TensorCore.TC.Padding

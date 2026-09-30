@@ -1,10 +1,10 @@
 # FP32-output tensor-core arithmetic with FloatLib
 
-This is an isolated Lean project inside `tensor-core-arithmetic`. It independently implements the FP32-output TC block model and the reference TC-EFT algorithm using FloatLib. Its executable runtime imports no `TensorCore` modules. A separate proof layer imports hash-checked copies of the actual original definitions to prove universal equivalence. Building it does not change the parent project's toolchain, Lake configuration, source, or reports.
+This is an isolated Lean project inside `TC-EFT`. It independently implements the FP32-output TC block model and the reference TC-EFT algorithm using FloatLib. Its executable runtime imports no `TensorCore` modules. A separate proof layer imports hash-checked copies of the actual original definitions to prove universal equivalence. Building it does not change the parent project's toolchain, Lake configuration, source, or reports.
 
 Start with the [folder guide](FOLDER_GUIDE.md) for the project layout, what the correctness claims mean, how transferred proofs work, and the verification commands.
 
-Reference repository revision: `990afac10b94a84f3de24743206756dd7acc3276`.
+Arithmetic/proof body reference revision: `990afac10b94a84f3de24743206756dd7acc3276`.
 FloatLib dependency: `https://github.com/lean-dojo/FloatLib`, pinned to `0d91825727839f597fd06b22fdd038ea21480f0c`.
 Lean: **4.34.0**; the parent project uses its own separate toolchain. The committed `lake-manifest.json` pins transitive dependencies.
 
@@ -34,15 +34,17 @@ python3 scripts/check_monotonicity.py
 
 `check_all.py` builds, runs those checks, rejects unfinished proofs and forbidden proof shortcuts in the port, and writes `test-results/summary.json`. The Lean audit checks the transitive axioms of the port's public theorems; only `propext`, `Classical.choice`, and `Quot.sound` are allowed. It also checks that executable correction does not depend on TC model evaluation or the original-input ideal. A negative control deliberately violates that rule and must be rejected.
 
-## Validation snapshot
+## Validation reports
 
-The complete build, proof audit, and the model/EFT test scripts passed with zero mismatches. [verification.json](verification.json) records the pinned revisions, source hashes, and counts: 35,000 unique recorded hardware rows, 2,033 synthetic FP16 cases, 52,031 paper-suite comparisons, and 21,966 scalar-coverage records, plus targeted edge checks and 360 monotonicity boundary cases. The proof audit covers 270 proof roots, including the universal equivalence, inverse maps and paper theorem bridges, and permits only the standard Lean axioms. These counts overlap as explained below. No existing tracked repository file was changed.
+Reproduce validation with `scripts/check_all.py`. Current reports and source hashes are generated under `test-results/summary.json`; the direct comparison writes `test-results/equivalence/report.json`.
+
+The parent cleanup removes one unused application import from the reference dependency graph. `prepare_reference.py` compares every arithmetic and proof body to the pinned revision, accepts only documented module-path relocations and deletion of existing import lines, and copies the actual current parent sources. Its generated manifest records those deletions and the current source hashes.
 
 ## Direct comparison with the original
 
 [COMPARISON.md](COMPARISON.md) maps the definitions and paper statements one by one. **`TCFloat.Equivalence.paper_one_to_one` is a universal Lean theorem**: the two encoded interfaces agree on TC bits, EFT bits and branches, and validation errors for every encoded input in the paper's FP16/BF16/TF32 profile family and every supplied D. `inputEquiv` and `paper_one_to_one_inverse` supply the two-way input correspondence. `round32_eq` proves the actual converters agree for every rational input in both RTZ and RNE modes.
 
-The theorem concerns checked encoded inputs and consistent/canonical numerical representations; it does not identify arbitrary raw `Term` or `Trace` records. See the comparison for the precise scope and inverse laws. Direct differential tests additionally matched 115,029 command observations and 668,944 decoder cases; [equivalence-verification.json](equivalence-verification.json) records the hashes. Reproduce with `python3 scripts/check_equivalence.py` after `check_all.py`.
+The theorem concerns checked encoded inputs and consistent/canonical numerical representations; it does not identify arbitrary raw `Term` or `Trace` records. See the comparison for the precise scope and inverse laws. Direct differential tests additionally compare command observations and exhaustive FP16/BF16/TF32 decoder cases against a snapshot of the current parent sources. Reproduce with `python3 scripts/check_equivalence.py` after `check_all.py`.
 
 ## What FloatLib supplies
 

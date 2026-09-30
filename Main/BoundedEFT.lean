@@ -1,4 +1,4 @@
-import TensorCore.EFT.Native
+import TensorCore.Kernels.EFT.Native
 import Lean
 
 /-! Batch adapter for the bounded EFT. Parsing checks widths before constructing
@@ -58,51 +58,7 @@ private def command (args : List String) : Option Json := do
       return Json.mkObj [("bits", toJson (x.round32.map BitVec.toNat))]
   | _ => none
 
-private abbrev BenchBlock := (path : EFMachine.Path) × BlockInput path.profile × F32
-
-private def benchBlock (args : List String) : Option BenchBlock := do
-  let "block" :: name :: words := args | none
-  let path ← getPath name
-  let ns ← words.mapM String.toNat?
-  if ns.length != path.profile.products * 2 + 2 then none else do
-    let c := ns[path.profile.products * 2]!
-    let D := ns[path.profile.products * 2 + 1]!
-    if c ≥ 2 ^ 32 || D ≥ 2 ^ 32 then none else do
-      let ps ← pairs path (ns.take (path.profile.products * 2))
-      return ⟨path, ⟨ps, BitVec.ofNat _ c⟩, BitVec.ofNat _ D⟩
-
--- Keep the same call boundary in baseline and optimized native measurements.
-@[noinline] private def benchRun (x : BenchBlock) : UInt64 :=
-  match EFMachine.algorithm1WithLean x.1 x.2.1 x.2.2 with
-  | .error _ => 0xffffffffffffffff
-  | .ok .allZero => 0
-  | .ok (.scalar b) => b.toNat.toUInt64 + 0x100000000
-  | .ok (.boundedExact b) => b.toNat.toUInt64 + 0x200000000
-  | .ok .outOfRange => 0x300000000
-
-private def benchmark (repeats : ℕ) (path : String) : IO Unit := do
-  let contents ← IO.FS.readFile path
-  let mut blocks : Array BenchBlock := #[]
-  for line in contents.splitOn "\n" do
-    let words := (line.splitOn " ").filter (· != "")
-    unless words.isEmpty do
-      let some block := benchBlock words | throw (IO.userError "Invalid benchmark block")
-      blocks := blocks.push block
-  if repeats == 0 || blocks.isEmpty then throw (IO.userError "Benchmark needs blocks and positive repeats")
-  let start ← IO.monoNanosNow
-  let mut checksum : UInt64 := 0
-  for _ in [:repeats] do
-    for block in blocks do
-      checksum := checksum + benchRun block
-  let elapsed := (← IO.monoNanosNow) - start
-  IO.println (Json.mkObj [("blocks", toJson blocks.size), ("repeats", toJson repeats),
-    ("elapsed_ns", toJson elapsed), ("checksum", toJson checksum.toNat)]).compress
-
 def main (args : List String) : IO Unit := do
-  if let ["--benchmark", repeats, path] := args then
-    let some n := repeats.toNat? | throw (IO.userError "Invalid repeat count")
-    benchmark n path
-    return
   let [path] := args | throw (IO.userError "Expected a batch input file")
   let contents ← IO.FS.readFile path
   for line in contents.splitOn "\n" do

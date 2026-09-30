@@ -116,14 +116,14 @@ theorem alignmentScale_term (ts : List RawProduct) (t : RawProduct)
 
 **Supporting proofs:** [TensorCore.fold_max_member](AlignmentScale.md#decl-1c6eaa01587ccffa)
 
-**Definitions and types:** [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
+**Definitions and types:** [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.alignmentScale_lower](CanonicalFloor.md#decl-e1b8106c4610681f), [TensorCore.alignmentScale_none](AlignmentScale.md#decl-7a39bdbbb3758c27), [TensorCore.construction_eta](Monotonicity.md#decl-2bc6cc7079bc2e96), [TensorCore.eta_term](AlignmentScale.md#decl-0312f3eb05a1fc6b), [TensorCore.quantumExponent_le](StaticBudget.md#decl-53da2dc9d7457364), [TensorCore.zero_products_eta](Instruction.md#decl-7cd0d6b0b17d9032)
+[TensorCore.alignmentScale_lower](CanonicalFloor.md#decl-e1b8106c4610681f), [TensorCore.alignmentScale_none](AlignmentScale.md#decl-7a39bdbbb3758c27), [TensorCore.construction_eta](Monotonicity.md#decl-2bc6cc7079bc2e96), [TensorCore.eta_term](AlignmentScale.md#decl-0312f3eb05a1fc6b), [TensorCore.zero_products_eta](Instruction.md#decl-7cd0d6b0b17d9032)
 
 </details>
 
@@ -156,7 +156,7 @@ theorem alignmentScale_none (ts : List RawProduct) :
 
 **Supporting proofs:** [TensorCore.alignmentScale_term](AlignmentScale.md#decl-b69cdabe679ea4e6)
 
-**Definitions and types:** [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
+**Definitions and types:** [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -188,7 +188,7 @@ theorem eta_term (b : PreparedBlock) (t : RawProduct) (ht : t ∈ b.terms)
 
 **Supporting proofs:** [TensorCore.alignmentScale_term](AlignmentScale.md#decl-b69cdabe679ea4e6)
 
-**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.applyFloor](Defs.md#decl-d4a79527e066b037), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
+**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.applyFloor](Defs.md#decl-d4a79527e066b037), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
@@ -229,9 +229,9 @@ theorem aligned_term_coefficient_bound (t : RawProduct) (eta : ℤ) (F : ℕ)
   grind
 ```
 
-**Supporting proofs:** [TensorCore.pow2_add](../Core/Exact.md#decl-7127823e49ce5599), [TensorCore.pow2_le_of_le](../Core/Exact.md#decl-064be6edf8651285), [TensorCore.pow2_natCast](../Core/Exact.md#decl-997b22af00ef82dd), [TensorCore.pow2_pos](../Core/Exact.md#decl-8f231b6648575120), [TensorCore.truncCoeff_abs_le](../Core/Truncation.md#decl-fc0fb5f55225cc0e)
+**Supporting proofs:** [TensorCore.pow2_add](../Numerics/Exact.md#decl-7127823e49ce5599), [TensorCore.pow2_le_of_le](../Numerics/Exact.md#decl-064be6edf8651285), [TensorCore.pow2_natCast](../Numerics/Exact.md#decl-997b22af00ef82dd), [TensorCore.pow2_pos](../Numerics/Exact.md#decl-8f231b6648575120), [TensorCore.truncCoeff_abs_le](../Numerics/Truncation.md#decl-fc0fb5f55225cc0e)
 
-**Definitions and types:** [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.Bounded](../Core/RawProduct.md#decl-3e529071d4e652db), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.absQ](../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.truncCoeff](../Core/Exact.md#decl-282a0db962f1b274)
+**Definitions and types:** [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.Bounded](../Numerics/RawProduct.md#decl-3e529071d4e652db), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.absQ](../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.truncCoeff](../Numerics/Exact.md#decl-282a0db962f1b274)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -290,16 +290,16 @@ theorem prepareProducts_bounds (p : Profile) (ps : List (p.Word × p.Word))
             · exact hi.2 q hq
 ```
 
-**Supporting proofs:** [TensorCore.classifyNat_bounded](../Core/FormatProperties.md#decl-210634dc2026dbec)
+**Supporting proofs:** [TensorCore.classifyNat_bounded](../Numerics/FormatProperties.md#decl-210634dc2026dbec)
 
-**Definitions and types:** [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.Bounded](../Core/Defs.md#decl-716025aa0e922bfd), [TensorCore.Format.width](../Core/Defs.md#decl-950f9d663ce32954), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Profile.decode](Defs.md#decl-178599198b2d538e), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2)
+**Definitions and types:** [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.Bounded](../Numerics/Defs.md#decl-716025aa0e922bfd), [TensorCore.Format.width](../Numerics/Defs.md#decl-950f9d663ce32954), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.Profile.decode](Defs.md#decl-178599198b2d538e), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.checkGroup_sound](Program/GroupAnalysis.md#decl-0eb9c5d6e9fead1f), [TensorCore.idealProducts_abs_le_of_scale](Program/Bounds/Scales.md#decl-8ac3fa4265b04b8a), [TensorCore.inferGroups_complete](Program/GroupAnalysis.md#decl-f38baddc12606950), [TensorCore.prepare_terms_bounded](AlignmentScale.md#decl-73a22edb6efb821c)
+[TensorCore.prepare_terms_bounded](AlignmentScale.md#decl-73a22edb6efb821c)
 
 </details>
 
@@ -337,16 +337,16 @@ theorem prepare_terms_bounded {p : Profile} {x : BlockInput p} {b : PreparedBloc
           exact rawMul_bounded q.1 q.2 (hps.2 q hq).1 (hps.2 q hq).2
 ```
 
-**Supporting proofs:** [TensorCore.c_term_bounded](../Core/RawProduct.md#decl-a5b1dc2326008483), [TensorCore.classifyNat_bounded](../Core/FormatProperties.md#decl-210634dc2026dbec), [TensorCore.prepareProducts_bounds](AlignmentScale.md#decl-24fca5acfef90681), [TensorCore.rawMul_bounded](../Core/RawProduct.md#decl-8b1220a1d4a27018)
+**Supporting proofs:** [TensorCore.c_term_bounded](../Numerics/RawProduct.md#decl-a5b1dc2326008483), [TensorCore.classifyNat_bounded](../Numerics/FormatProperties.md#decl-210634dc2026dbec), [TensorCore.prepareProducts_bounds](AlignmentScale.md#decl-24fca5acfef90681), [TensorCore.rawMul_bounded](../Numerics/RawProduct.md#decl-8b1220a1d4a27018)
 
-**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.Decoded](../Core/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.Bounded](../Core/Defs.md#decl-716025aa0e922bfd), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.Bounded](../Core/RawProduct.md#decl-3e529071d4e652db), [TensorCore.decode32](../Core/Encoding.md#decl-a4001029898e709f), [TensorCore.fp32](../Core/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2), [TensorCore.rawMul](../Core/RawProduct.md#decl-ebe5dd867373b275)
+**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.Decoded](../Numerics/Defs.md#decl-f4e0107ee6679350), [TensorCore.Decoded.Bounded](../Numerics/Defs.md#decl-716025aa0e922bfd), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.Bounded](../Numerics/RawProduct.md#decl-3e529071d4e652db), [TensorCore.decode32](../Numerics/Encoding.md#decl-a4001029898e709f), [TensorCore.fp32](../Numerics/Defs.md#decl-1a6343dd8d7b7ab4), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.prepareProducts](Block.md#decl-90abac48864edcd2), [TensorCore.rawMul](../Numerics/RawProduct.md#decl-ebe5dd867373b275)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.evalBlock_static](StaticBudget.md#decl-9aa42bb13a9657f0), [TensorCore.fp16Fp32_contract](Canonical.md#decl-cf62ece4228e9418), [TensorCore.prepare_coefficient_capacity](AlignmentScale.md#decl-c04538f02bc7d682), [TensorCore.profile_contract](CanonicalFormats.md#decl-ccfc8f82aa7974cb)
+[TensorCore.fp16Fp32_contract](Canonical.md#decl-cf62ece4228e9418), [TensorCore.prepare_coefficient_capacity](AlignmentScale.md#decl-c04538f02bc7d682), [TensorCore.profile_contract](CanonicalFormats.md#decl-ccfc8f82aa7974cb)
 
 </details>
 
@@ -377,7 +377,7 @@ theorem prepared_coefficient_bound (b : PreparedBlock) (F : ℕ)
 
 **Supporting proofs:** [TensorCore.aligned_term_coefficient_bound](AlignmentScale.md#decl-5d30bccb64b9e9ad), [TensorCore.eta_term](AlignmentScale.md#decl-0312f3eb05a1fc6b)
 
-**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.Bounded](../Core/RawProduct.md#decl-3e529071d4e652db), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.truncCoeff](../Core/Exact.md#decl-282a0db962f1b274)
+**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.Bounded](../Numerics/RawProduct.md#decl-3e529071d4e652db), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.truncCoeff](../Numerics/Exact.md#decl-282a0db962f1b274)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -410,9 +410,9 @@ theorem prepare_coefficient_capacity {p : Profile} {x : BlockInput p} {b : Prepa
   · simpa [PreparedBlock.coefficients, hb.1, hshape] using hcount
 ```
 
-**Supporting proofs:** [TensorCore.coefficient_width_sufficient](../Core/Sum.md#decl-50e5b749a17f1c03), [TensorCore.prepare_profile](StageResiduals.md#decl-b234945333f4196c), [TensorCore.prepare_terms_bounded](AlignmentScale.md#decl-73a22edb6efb821c), [TensorCore.prepared_coefficient_bound](AlignmentScale.md#decl-929725522df30cf8)
+**Supporting proofs:** [TensorCore.coefficient_width_sufficient](../Numerics/Sum.md#decl-50e5b749a17f1c03), [TensorCore.prepare_profile](StageResiduals.md#decl-b234945333f4196c), [TensorCore.prepare_terms_bounded](AlignmentScale.md#decl-73a22edb6efb821c), [TensorCore.prepared_coefficient_bound](AlignmentScale.md#decl-929725522df30cf8)
 
-**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.Bounded](../Core/RawProduct.md#decl-3e529071d4e652db), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.truncCoeff](../Core/Exact.md#decl-282a0db962f1b274)
+**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.Bounded](../Numerics/RawProduct.md#decl-3e529071d4e652db), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.prepare](Block.md#decl-32c2d7273540d876), [TensorCore.truncCoeff](../Numerics/Exact.md#decl-282a0db962f1b274)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -446,7 +446,7 @@ theorem evalBlock_coefficient_capacity {p : Profile} {x : BlockInput p} {t : Blo
 
 **Supporting proofs:** [TensorCore.evalBlock_prepared](StageResiduals.md#decl-7b1107ad8e7189d9), [TensorCore.prepare_coefficient_capacity](AlignmentScale.md#decl-c04538f02bc7d682)
 
-**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.prepare](Block.md#decl-32c2d7273540d876)
+**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.Word](Defs.md#decl-3bca3de3cb04fb71), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.evalPrepared](Block.md#decl-700b85398ddd8f12), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.prepare](Block.md#decl-32c2d7273540d876)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -510,7 +510,7 @@ theorem evalBlock_machinePrefix {p : Profile} {x : BlockInput p} {t : BlockTrace
 
 **Supporting proofs:** [TensorCore.evalBlock_coefficient_capacity](AlignmentScale.md#decl-7692a0e5a779d42b), [TensorCore.machineAccumulate_prefix_exact](AccumulatorWidth.md#decl-9b23fe9fc6ec5adf)
 
-**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.sumZ](../Core/Exact.md#decl-eba77bb372c3b3ff)
+**Definitions and types:** [TensorCore.BlockInput](Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.evalBlock](Block.md#decl-58fdfbbb09a9ba58), [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.sumZ](../Numerics/Exact.md#decl-eba77bb372c3b3ff)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -620,14 +620,14 @@ theorem alignmentScale_upper (ts : List RawProduct) (upper : ℤ)
 
 **Supporting proofs:** [TensorCore.fold_max_upper](AlignmentScale.md#decl-e8217749aaf0c131)
 
-**Definitions and types:** [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
+**Definitions and types:** [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.canonical_padding_exact](Padding.md#decl-29f3596b590b969d), [TensorCore.construction_eta](Monotonicity.md#decl-2bc6cc7079bc2e96), [TensorCore.eta_upper](AlignmentScale.md#decl-e33a1ecf006bdb03), [TensorCore.quantumExponent_le](StaticBudget.md#decl-53da2dc9d7457364), [TensorCore.zero_products_eta](Instruction.md#decl-7cd0d6b0b17d9032)
+[TensorCore.canonical_padding_exact](Padding.md#decl-29f3596b590b969d), [TensorCore.construction_eta](Monotonicity.md#decl-2bc6cc7079bc2e96), [TensorCore.eta_upper](AlignmentScale.md#decl-e33a1ecf006bdb03), [TensorCore.zero_products_eta](Instruction.md#decl-7cd0d6b0b17d9032)
 
 </details>
 
@@ -662,7 +662,7 @@ theorem eta_upper (b : PreparedBlock) (upper : ℤ)
 
 **Supporting proofs:** [TensorCore.alignmentScale_upper](AlignmentScale.md#decl-4c48f1374c92ea89)
 
-**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.applyFloor](Defs.md#decl-d4a79527e066b037), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
+**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.eta](Block.md#decl-e0fb0ac9eab867d5), [TensorCore.PreparedBlock.terms](Block.md#decl-5c50cde42f4cd44c), [TensorCore.Profile](Defs.md#decl-a2404f64f289a40a), [TensorCore.Profile.applyFloor](Defs.md#decl-d4a79527e066b037), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.alignmentScale](Block.md#decl-2785502e5e4cba7a)
 
 **Transitive Lean axioms:** `Quot.sound`, `propext`.
 

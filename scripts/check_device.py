@@ -123,7 +123,6 @@ def main():
     report = dict(source='MATLAB Tensor Core v0.5 model_validation/V100/fp16', profile='V100 FP16->FP32',
                   vectors=n, model_errors=errors, bit_mismatches=len(mismatches) - errors,
                   coverage=coverage, exercised=exercised,
-                  fp16_output_evidence_archived='wip/data/regressions/device-half-report.json',
                   method='Exact FP32-word to FP16 conversion, one evaluator call per row, bitwise output comparison')
     (ROOT / 'data/regressions/device-report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))

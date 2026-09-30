@@ -2,7 +2,7 @@
 """Direct original-vs-FloatLib differential comparison (not a universal equivalence proof).
 
 Prerequisite: python3 scripts/check_all.py generates the existing corpus inputs.
-Builds a pinned original checkout under test-results; never changes the parent sources.
+Builds a current parent source snapshot under test-results; never changes the parent sources.
 """
 from pathlib import Path
 import argparse, hashlib, itertools, json, random, shutil, subprocess
@@ -16,12 +16,13 @@ def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 
 def build_reference():
     SOURCE.mkdir(parents=True,exist_ok=True)
-    # Re-extract the actual pinned sources, not a hand-translated original model.
-    archive=OUT/'reference.tar'
-    with archive.open('wb') as f:
-        subprocess.run(['git','archive',REV],cwd=ROOT,stdout=f,check=True)
-    subprocess.run(['tar','-xf',str(archive),'-C',str(SOURCE)],check=True)
-    archive.unlink()
+    # Copy the current implementation, preserving caches but removing stale source modules.
+    for name in ['TensorCore', 'Main', 'tests']:
+        dest = SOURCE/name
+        if dest.exists(): shutil.rmtree(dest)
+        shutil.copytree(ROOT/name, dest)
+    for source in [*ROOT.glob('*.lean'), ROOT/'lakefile.toml', ROOT/'lake-manifest.json', ROOT/'lean-toolchain']:
+        shutil.copy2(source, SOURCE/source.name)
     p=subprocess.run(['lake','build','tc_eft_paper'],cwd=SOURCE,text=True,capture_output=True)
     (OUT/'reference-build.log').write_text(p.stdout+p.stderr)
     p.check_returncode()
@@ -103,7 +104,8 @@ def main():
     OUT.mkdir(parents=True,exist_ok=True)
     assert (PORT/'test-results/eft-paper/inputs.txt').exists(),'Run scripts/check_all.py first'
     build_reference()
-    result={'reference_commit':REV,'scope':'Differential tests; not a universal equivalence theorem',
+    result={'reference_base_commit':REV,
+            'reference_source_sha256':{str(p.relative_to(SOURCE)):sha(p) for p in sorted(SOURCE.rglob('*.lean')) if '.lake' not in p.parts},'scope':'Differential tests; not a universal equivalence theorem',
             'observations':execute_pair('observations',list(block_rows()))}
     if not args.skip_decode: result['decoding']=execute_pair('decoding',list(decode_rows()),True)
     # Verify the equality comparator rejects a one-bit mutation.

@@ -2,8 +2,6 @@
 
 import TensorCore.TC.Profiles
 import TensorCore.TC.CanonicalDefs
-import TensorCore.TC.Program.Partition
-import TensorCore.TC.Examples.BoundedDot
 import TensorCore.TC.CanonicalFormatDefs
 import Lean
 
@@ -67,33 +65,6 @@ private def parseFp16Pairs : List ℕ → Option (List (F16 × F16))
     if a ≥ 65536 || b ≥ 65536 then none
     else return (BitVec.ofNat 16 a, BitVec.ofNat 16 b) :: (← parseFp16Pairs rest)
   | _ => none
-
-private def dotJson (K extra : ℕ) (floor : Option ℤ) (ns : List ℕ) : Option Json := do
-  if hK : 0 < K then
-    let c ← ns.getLast?
-    if c ≥ 2 ^ 32 then none else do
-      let ps ← parseFp16Pairs ns.dropLast
-      let p := fp16Fp32Profile K extra floor
-      let cBits : F32 := BitVec.ofNat 32 c
-      let failure (e : ModelError) := Json.mkObj [("error", toJson (reprStr e))]
-      match finite32 cBits with
-      | some initial =>
-        return match runCanonicalDot K extra floor hK ps cBits with
-        | .error e => failure e
-        | .ok ts =>
-          match idealProducts p ps with
-          | none => failure .nonfiniteInput
-          | some products =>
-            let result := lastOutput initial ts
-            Json.mkObj [
-              ("bits", toJson result.bits.toNat), ("value", toJson (qText result.value)),
-              ("ideal", toJson (qText (initial.value + products))),
-              ("groups", toJson ts.length), ("tailPadding", toJson (tailPadding K ps.length)),
-              ("outputs", toJson (ts.map fun t => t.output.bits.toNat)),
-              ("errorBudget", toJson (qText (sumQ (ts.map BlockTrace.errorBudget)))),
-              ("absoluteError", toJson (qText (absQ (initial.value + products - result.value))))]
-      | none => return failure .nonfiniteInput
-  else none
 
 private def parseProfilePairs (p : Profile) : List ℕ → Option (List (p.Word × p.Word))
   | [] => some []
@@ -175,38 +146,6 @@ private def command (args : List String) : Option Json := do
     let floor ← if floorText = "none" then some none else floorText.toInt? |>.map some
     let ns ← words.mapM String.toNat?
     if ns.dropLast.length % 2 != 0 then none else tf32Json K E floor ns
-  | "dot" :: k :: extra :: floorText :: words =>
-    let K ← k.toNat?
-    let E ← extra.toNat?
-    let floor ← if floorText = "none" then some none else floorText.toInt? |>.map some
-    let ns ← words.mapM String.toNat?
-    dotJson K E floor ns
-  | "certificate" :: kind :: words =>
-    let ns ← words.mapM String.toNat?
-    let c ← ns.getLast?
-    if c ≥ 2 ^ 32 then none else do
-      let ps ← parseFp16Pairs ns.dropLast
-      let bits : F32 := BitVec.ofNat 32 c
-      let groups := groupCount 4 ps.length
-      let budget := (groups : ℚ) * staticBudget 5 23 1 3
-      if kind = "family" then
-        return Json.mkObj [
-          ("accepted", toJson (boundedDotCheck ps bits)),
-          ("lengthPass", toJson (decide (ps.length ≤ 256))),
-          ("operandsPass", toJson (ps.all fun (a, b) => small16 a && small16 b)),
-          ("initialPass", toJson (match value32 bits with
-            | none => false | some v => decide (absQ v ≤ 1))),
-          ("groups", toJson groups), ("budget", toJson (qText budget)),
-          ("tolerance", toJson (qText (1 / 2048)))]
-      else if kind = "concrete" then
-        let r := (boundedDot ps).certificateReport 1 3 bits (1 / 2048)
-        return Json.mkObj [
-          ("accepted", toJson (r.inputConditionsPass && r.tolerancePass)),
-          ("inputConditionsPass", toJson r.inputConditionsPass),
-          ("tolerancePass", toJson r.tolerancePass),
-          ("groups", toJson r.groups), ("budget", toJson (qText r.budget)),
-          ("tolerance", toJson (qText r.tolerance))]
-      else none
   | _ => none
 
 def main (args : List String) : IO Unit := do

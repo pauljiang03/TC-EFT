@@ -9,7 +9,7 @@ Expand a declaration to read its Lean code, then follow the links to its depende
 <details>
 <summary><code>TensorCore.lowPart_bound</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L18)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L17)
 
 ```lean
 /-- Lemma IV.1: every low component is strictly below the extraction grid. -/
@@ -21,9 +21,9 @@ theorem lowPart_bound (t : BlockTrace) :
   exact (alignment_residual x.value t.extractionExponent).2
 ```
 
-**Supporting proofs:** [TensorCore.alignment_residual](../Core/Truncation.md#decl-8fb54cfc251e7721)
+**Supporting proofs:** [TensorCore.alignment_residual](../Numerics/Truncation.md#decl-8fb54cfc251e7721)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.PreparedBlock.terms](../TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.absQ](../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.truncGrid](../Core/Exact.md#decl-104d085b38c6a29b)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.PreparedBlock.terms](../TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.absQ](../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.truncGrid](../Numerics/Exact.md#decl-104d085b38c6a29b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -41,7 +41,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.overlap_recovery</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L26)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L25)
 
 ```lean
 /-- Theorem IV.5, overlap form: `S = D − ε_o + Σ εᵢ`. -/
@@ -58,7 +58,7 @@ theorem overlap_recovery (t : BlockTrace) :
 
 **Supporting proofs:** [TensorCore.sum_stage_residuals](../TC/StageResiduals.md#decl-fec712a2169085b5), [TensorCore.terms_value](../TC/StageResiduals.md#decl-7b530e0eb36f1f90)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.coarse](Defs.md#decl-a31b735e46831516), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.PreparedBlock.terms](../TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd), [TensorCore.truncGrid](../Core/Exact.md#decl-104d085b38c6a29b)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.coarse](Defs.md#decl-a31b735e46831516), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.PreparedBlock.terms](../TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd), [TensorCore.truncGrid](../Numerics/Exact.md#decl-104d085b38c6a29b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -76,7 +76,7 @@ theorem overlap_recovery (t : BlockTrace) :
 <details>
 <summary><code>TensorCore.accumulator_eq_retained</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L40)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L39)
 
 ```lean
 /-- Lemma IV.3, summed: the aligned accumulator is `H + Σ φ(εᵢ)`. -/
@@ -100,9 +100,9 @@ theorem accumulator_eq_retained (t : BlockTrace) :
   rfl
 ```
 
-**Supporting proofs:** [TensorCore.accumulator_value](../TC/StageResiduals.md#decl-ea47979aa889a3dd), [TensorCore.sumQ_map_add](../Core/Sum.md#decl-9a866541e41b56c9), [TensorCore.truncGrid_split](../Core/Truncation.md#decl-803d5c7e1ccf0196)
+**Supporting proofs:** [TensorCore.accumulator_value](../TC/StageResiduals.md#decl-ea47979aa889a3dd), [TensorCore.sumQ_map_add](../Numerics/Sum.md#decl-9a866541e41b56c9), [TensorCore.truncGrid_split](../Numerics/Truncation.md#decl-803d5c7e1ccf0196)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.coarse](Defs.md#decl-a31b735e46831516), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.retainedLowParts](Defs.md#decl-9ea2d33eab35e3e8), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.Finite32](../Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.PreparedBlock.accumulator](../TC/Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.quantumExponent](../TC/Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](../TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Core/RawProduct.md#decl-549312d8d1563679), [TensorCore.outputQuantumExponent](../Core/RoundOp.md#decl-70bb2de461b51682), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd), [TensorCore.truncGrid](../Core/Exact.md#decl-104d085b38c6a29b)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.coarse](Defs.md#decl-a31b735e46831516), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.retainedLowParts](Defs.md#decl-9ea2d33eab35e3e8), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.Finite32](../Numerics/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.PreparedBlock.accumulator](../TC/Block.md#decl-a7916980cd8ee13e), [TensorCore.PreparedBlock.quantumExponent](../TC/Block.md#decl-43c39ff5fd4eef64), [TensorCore.PreparedBlock.terms](../TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4), [TensorCore.RawProduct.value](../Numerics/RawProduct.md#decl-549312d8d1563679), [TensorCore.outputQuantumExponent](../Numerics/RoundOp.md#decl-70bb2de461b51682), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd), [TensorCore.truncGrid](../Numerics/Exact.md#decl-104d085b38c6a29b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -120,7 +120,7 @@ theorem accumulator_eq_retained (t : BlockTrace) :
 <details>
 <summary><code>TensorCore.overlap_eq_retained_sub_outputResidual</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L60)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L59)
 
 ```lean
 /-- Lemma IV.4: `ε_o = Σ φ(εᵢ) − r_out`. -/
@@ -133,7 +133,7 @@ theorem overlap_eq_retained_sub_outputResidual (t : BlockTrace) :
 
 **Supporting proofs:** [TensorCore.accumulator_eq_retained](Extraction.md#decl-3d9c70abef819373)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.outputResidual](../TC/Block.md#decl-d1c97ba3515d5cad), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedLowParts](Defs.md#decl-9ea2d33eab35e3e8), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.PreparedBlock.accumulator](../TC/Block.md#decl-a7916980cd8ee13e), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.outputResidual](../TC/Block.md#decl-d1c97ba3515d5cad), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedLowParts](Defs.md#decl-9ea2d33eab35e3e8), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.PreparedBlock.accumulator](../TC/Block.md#decl-a7916980cd8ee13e), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -151,7 +151,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.BlockTrace.supportExponent</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L68)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L67)
 
 ```lean
 /-- Common grid exponent for the low components: the finest term grid, or the extraction
@@ -162,7 +162,7 @@ def BlockTrace.supportExponent (t : BlockTrace) : ℤ :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.PreparedBlock.terms](../TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Core/RawProduct.md#decl-48ce8d4df2fad1f4)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.extractionExponent](Defs.md#decl-f4644e4a3c22871b), [TensorCore.PreparedBlock.terms](../TC/Block.md#decl-5c50cde42f4cd44c), [TensorCore.RawProduct](../Numerics/RawProduct.md#decl-48ce8d4df2fad1f4)
 
 <details>
 <summary>Used by</summary>
@@ -178,7 +178,7 @@ def BlockTrace.supportExponent (t : BlockTrace) : ℤ :=
 <details>
 <summary><code>TensorCore.BlockTrace.lowCoefficients</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L72)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L71)
 
 ```lean
 /-- Integer coefficients `zᵢ = εᵢ / 2^ℓ`. -/
@@ -188,7 +188,7 @@ def BlockTrace.lowCoefficients (t : BlockTrace) : List ℤ :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3)
 
 <details>
 <summary>Used by</summary>
@@ -204,7 +204,7 @@ def BlockTrace.lowCoefficients (t : BlockTrace) : List ℤ :=
 <details>
 <summary><code>TensorCore.BlockTrace.scalarPredicate</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L80)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L79)
 
 ```lean
 /-- The hypotheses of Theorem IV.9, Lemma IV.10, and Corollary IV.11, decided on the
@@ -223,12 +223,12 @@ def BlockTrace.scalarPredicate (t : BlockTrace) : Bool :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.absQ](../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Core/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.absQ](../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Numerics/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Numerics/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.Regression.eftSnapshot](Regression/EFT.md#decl-3c783b17ffee5336), [TensorCore.Regression.scalar64_corrects_midpoint](Regression/ScalarEFT.md#decl-18ee9a4ee42888ea), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_exact_iff](Algorithm1.md#decl-b5fbc137128bfc29), [TensorCore.scalarChecks_all](Extraction.md#decl-6e6d55a04a30d907), [TensorCore.scalarCorrectedIn_fp32_of_predicate](Scalar.md#decl-b9151e7be93b8672), [TensorCore.scalarCorrectedUnchecked_eq](Extraction.md#decl-421b3488061da23d), [TensorCore.scalarCorrected_correct](Extraction.md#decl-57f834dbd8f945de), [TensorCore.scalarCorrected_eq](Extraction.md#decl-f5da772603f2c94b), [TensorCore.scalarCorrected_rejects](Extraction.md#decl-2009b13f7b61d30c), [TensorCore.scalarPredicate_implies_in_fp32](Scalar.md#decl-f553bd8760a2c5c4), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464), [TensorCore.tceft_eq_corrected](Extraction.md#decl-942f125d26cb2d1b), [TensorCore.tceft_isSome_iff](Extraction.md#decl-bf4ac7118d2101bc)
+[TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.Regression.eftSnapshot](../Tests/EFT/EFT.md#decl-3c783b17ffee5336), [TensorCore.Regression.scalar64_corrects_midpoint](../Tests/EFT/ScalarEFT.md#decl-18ee9a4ee42888ea), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_exact_iff](Algorithm1.md#decl-b5fbc137128bfc29), [TensorCore.scalarChecks_all](Extraction.md#decl-6e6d55a04a30d907), [TensorCore.scalarCorrectedIn_fp32_of_predicate](Scalar.md#decl-b9151e7be93b8672), [TensorCore.scalarCorrectedUnchecked_eq](Extraction.md#decl-421b3488061da23d), [TensorCore.scalarCorrected_correct](Extraction.md#decl-57f834dbd8f945de), [TensorCore.scalarCorrected_eq](Extraction.md#decl-f5da772603f2c94b), [TensorCore.scalarCorrected_rejects](Extraction.md#decl-2009b13f7b61d30c), [TensorCore.scalarPredicate_implies_in_fp32](Scalar.md#decl-f553bd8760a2c5c4), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464), [TensorCore.tceft_eq_corrected](Extraction.md#decl-942f125d26cb2d1b), [TensorCore.tceft_isSome_iff](Extraction.md#decl-bf4ac7118d2101bc)
 
 </details>
 
@@ -239,7 +239,7 @@ def BlockTrace.scalarPredicate (t : BlockTrace) : Bool :=
 <details>
 <summary><code>TensorCore.BlockTrace.scalarChecks</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L90)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L89)
 
 ```lean
 /-- Named diagnostics for the unchanged baseline predicate. These exact-arithmetic
@@ -258,7 +258,7 @@ def BlockTrace.scalarChecks (t : BlockTrace) : List (String × Bool) :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.absQ](../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Core/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.absQ](../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Numerics/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Numerics/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd)
 
 <details>
 <summary>Used by</summary>
@@ -274,7 +274,7 @@ def BlockTrace.scalarChecks (t : BlockTrace) : List (String × Bool) :=
 <details>
 <summary><code>TensorCore.scalarChecks_all</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L102)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L101)
 
 ```lean
 /-- Diagnostic conjunction is exactly the public predicate, including every guard. -/
@@ -285,7 +285,7 @@ theorem scalarChecks_all (t : BlockTrace) :
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.scalarChecks](Extraction.md#decl-8c775638dbe095dd), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.absQ](../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Core/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.scalarChecks](Extraction.md#decl-8c775638dbe095dd), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.absQ](../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Numerics/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Numerics/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -303,7 +303,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.BlockTrace.scalarCorrectedUnchecked</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L109)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L108)
 
 ```lean
 /-- Unchecked diagnostic implementation of Algorithm 1, scalar branch. This can return
@@ -317,12 +317,12 @@ def BlockTrace.scalarCorrectedUnchecked (t : BlockTrace) : Option F32 :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.fp32Add](../Core/ScalarSum.md#decl-c4f5ccdb5e5b9b02), [TensorCore.naiveSum32](../Core/ScalarSum.md#decl-928516c1237c62d4), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.fp32Add](../Numerics/ScalarSum.md#decl-c4f5ccdb5e5b9b02), [TensorCore.naiveSum32](../Numerics/ScalarSum.md#decl-928516c1237c62d4), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.Regression.broad_finite_unchecked_incorrect](Regression/EFT.md#decl-cb45e79b5c259faf), [TensorCore.Regression.eftSnapshot](Regression/EFT.md#decl-3c783b17ffee5336), [TensorCore.scalarCorrectedInUnchecked_fp32](Scalar.md#decl-b8105d432e4f8983), [TensorCore.scalarCorrectedUnchecked_eq](Extraction.md#decl-421b3488061da23d), [TensorCore.scalarCorrected_eq](Extraction.md#decl-f5da772603f2c94b), [TensorCore.scalarCorrected_rejects](Extraction.md#decl-2009b13f7b61d30c), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464), [TensorCore.tceft_eq_corrected](Extraction.md#decl-942f125d26cb2d1b), [TensorCore.tceft_isSome_iff](Extraction.md#decl-bf4ac7118d2101bc)
+[TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.Regression.broad_finite_unchecked_incorrect](../Tests/EFT/EFT.md#decl-cb45e79b5c259faf), [TensorCore.Regression.eftSnapshot](../Tests/EFT/EFT.md#decl-3c783b17ffee5336), [TensorCore.scalarCorrectedInUnchecked_fp32](Scalar.md#decl-b8105d432e4f8983), [TensorCore.scalarCorrectedUnchecked_eq](Extraction.md#decl-421b3488061da23d), [TensorCore.scalarCorrected_eq](Extraction.md#decl-f5da772603f2c94b), [TensorCore.scalarCorrected_rejects](Extraction.md#decl-2009b13f7b61d30c), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464), [TensorCore.tceft_eq_corrected](Extraction.md#decl-942f125d26cb2d1b), [TensorCore.tceft_isSome_iff](Extraction.md#decl-bf4ac7118d2101bc)
 
 </details>
 
@@ -333,7 +333,7 @@ def BlockTrace.scalarCorrectedUnchecked (t : BlockTrace) : Option F32 :=
 <details>
 <summary><code>TensorCore.BlockTrace.scalarCorrected</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L115)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L114)
 
 ```lean
 /-- Safe public scalar correction: reject unless the sufficient predicate holds. -/
@@ -343,12 +343,12 @@ def BlockTrace.scalarCorrected (t : BlockTrace) : Option F32 :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.Regression.broad_finite_unchecked_incorrect](Regression/EFT.md#decl-cb45e79b5c259faf), [TensorCore.Regression.scalar_public_r3](Regression/EFT.md#decl-deb2ed8170b801e3), [TensorCore.Regression.scalar_public_subnormal_rejected](Regression/EFT.md#decl-15c9e1f2ec694c3a), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_correct](Algorithm1.md#decl-7c971273335df3a8), [TensorCore.algorithm1_exact_iff](Algorithm1.md#decl-b5fbc137128bfc29), [TensorCore.algorithm1_scalar_iff](Algorithm1.md#decl-035c260a0676f872), [TensorCore.scalarCorrectedIn_fp32_of_predicate](Scalar.md#decl-b9151e7be93b8672), [TensorCore.scalarCorrected_correct](Extraction.md#decl-57f834dbd8f945de), [TensorCore.scalarCorrected_eq](Extraction.md#decl-f5da772603f2c94b), [TensorCore.scalarCorrected_rejects](Extraction.md#decl-2009b13f7b61d30c), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464), [TensorCore.tceft_eq_corrected](Extraction.md#decl-942f125d26cb2d1b), [TensorCore.tceft_isSome_iff](Extraction.md#decl-bf4ac7118d2101bc)
+[TensorCore.BlockTrace.algorithm1](Algorithm1.md#decl-01de1ae42b7279f3), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.Regression.broad_finite_unchecked_incorrect](../Tests/EFT/EFT.md#decl-cb45e79b5c259faf), [TensorCore.Regression.scalar_public_r3](../Tests/EFT/EFT.md#decl-deb2ed8170b801e3), [TensorCore.Regression.scalar_public_subnormal_rejected](../Tests/EFT/EFT.md#decl-15c9e1f2ec694c3a), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.algorithm1_bits_isSome_iff](Algorithm1.md#decl-d32d1a35b91d3f50), [TensorCore.algorithm1_correct](Algorithm1.md#decl-7c971273335df3a8), [TensorCore.algorithm1_exact_iff](Algorithm1.md#decl-b5fbc137128bfc29), [TensorCore.algorithm1_scalar_iff](Algorithm1.md#decl-035c260a0676f872), [TensorCore.scalarCorrectedIn_fp32_of_predicate](Scalar.md#decl-b9151e7be93b8672), [TensorCore.scalarCorrected_correct](Extraction.md#decl-57f834dbd8f945de), [TensorCore.scalarCorrected_eq](Extraction.md#decl-f5da772603f2c94b), [TensorCore.scalarCorrected_rejects](Extraction.md#decl-2009b13f7b61d30c), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464), [TensorCore.tceft_eq_corrected](Extraction.md#decl-942f125d26cb2d1b), [TensorCore.tceft_isSome_iff](Extraction.md#decl-bf4ac7118d2101bc)
 
 </details>
 
@@ -359,7 +359,7 @@ def BlockTrace.scalarCorrected (t : BlockTrace) : Option F32 :=
 <details>
 <summary><code>TensorCore.BlockTrace.tceft</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L120)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L119)
 
 ```lean
 /-- The scalar EFT: the scalar branch when its predicate holds, and `none` otherwise. A
@@ -369,12 +369,12 @@ def BlockTrace.tceft (t : BlockTrace) : Option F32 := t.scalarCorrected
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.Regression.eftSnapshot](Regression/EFT.md#decl-3c783b17ffee5336), [TensorCore.Regression.scalar_public_subnormal_rejected](Regression/EFT.md#decl-15c9e1f2ec694c3a), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.evalBlock_tceft_correct](Extraction.md#decl-c42bf0d990e653f7), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464), [TensorCore.tceft_eq_corrected](Extraction.md#decl-942f125d26cb2d1b), [TensorCore.tceft_isSome_iff](Extraction.md#decl-bf4ac7118d2101bc)
+[TensorCore.Regression.eftSnapshot](../Tests/EFT/EFT.md#decl-3c783b17ffee5336), [TensorCore.Regression.scalar_public_subnormal_rejected](../Tests/EFT/EFT.md#decl-15c9e1f2ec694c3a), [TensorCore.algorithm1_bits_eq_round](Encoded.md#decl-ff78455708a6f933), [TensorCore.evalBlock_tceft_correct](Extraction.md#decl-c42bf0d990e653f7), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464), [TensorCore.tceft_eq_corrected](Extraction.md#decl-942f125d26cb2d1b), [TensorCore.tceft_isSome_iff](Extraction.md#decl-bf4ac7118d2101bc)
 
 </details>
 
@@ -385,7 +385,7 @@ def BlockTrace.tceft (t : BlockTrace) : Option F32 := t.scalarCorrected
 <details>
 <summary><code>TensorCore.retained_add_low</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L122)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L121)
 
 ```lean
 theorem retained_add_low (t : BlockTrace) :
@@ -397,7 +397,7 @@ theorem retained_add_low (t : BlockTrace) :
 
 **Supporting proofs:** [TensorCore.overlap_recovery](Extraction.md#decl-9a70c4b963b9ff7e)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -415,7 +415,7 @@ theorem retained_add_low (t : BlockTrace) :
 <details>
 <summary><code>TensorCore.scalarCorrectedUnchecked_eq</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L130)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L129)
 
 ```lean
 /-- Theorem IV.9 and Lemma IV.10 applied: under the predicate, the scalar branch computes
@@ -441,9 +441,9 @@ theorem scalarCorrectedUnchecked_eq (t : BlockTrace) (h : t.scalarPredicate = tr
   grind
 ```
 
-**Supporting proofs:** [TensorCore.fp32Add_exact](../Core/ScalarSum.md#decl-91c0a32b3579d248), [TensorCore.naiveSum32_exact](../Core/ScalarSum.md#decl-48c821bc78dd7d52), [TensorCore.overlap_recovery](Extraction.md#decl-9a70c4b963b9ff7e), [TensorCore.representable32_finite](../Core/ScalarSum.md#decl-04f29e613917ad68), [TensorCore.sum_coefficients](../Core/Exact.md#decl-005e2ad99fe60fa3)
+**Supporting proofs:** [TensorCore.fp32Add_exact](../Numerics/ScalarSum.md#decl-91c0a32b3579d248), [TensorCore.naiveSum32_exact](../Numerics/ScalarSum.md#decl-48c821bc78dd7d52), [TensorCore.overlap_recovery](Extraction.md#decl-9a70c4b963b9ff7e), [TensorCore.representable32_finite](../Numerics/ScalarSum.md#decl-04f29e613917ad68), [TensorCore.sum_coefficients](../Numerics/Exact.md#decl-005e2ad99fe60fa3)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.FiniteValue32](../Core/Defs.md#decl-916e7e459d399e32), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.fp32Add](../Core/ScalarSum.md#decl-c4f5ccdb5e5b9b02), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.naiveSum32](../Core/ScalarSum.md#decl-928516c1237c62d4), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Core/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd), [TensorCore.sumZ](../Core/Exact.md#decl-eba77bb372c3b3ff)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.FiniteValue32](../Numerics/Defs.md#decl-916e7e459d399e32), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.fp32Add](../Numerics/ScalarSum.md#decl-c4f5ccdb5e5b9b02), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Numerics/RoundOp.md#decl-49745d9860bef700), [TensorCore.naiveSum32](../Numerics/ScalarSum.md#decl-928516c1237c62d4), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Numerics/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd), [TensorCore.sumZ](../Numerics/Exact.md#decl-eba77bb372c3b3ff)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -461,7 +461,7 @@ theorem scalarCorrectedUnchecked_eq (t : BlockTrace) (h : t.scalarPredicate = tr
 <details>
 <summary><code>TensorCore.scalarCorrected_eq</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L151)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L150)
 
 ```lean
 /-- The guarded public helper preserves all previously justified successful results. -/
@@ -473,7 +473,7 @@ theorem scalarCorrected_eq (t : BlockTrace) (h : t.scalarPredicate = true) :
 
 **Supporting proofs:** [TensorCore.scalarCorrectedUnchecked_eq](Extraction.md#decl-421b3488061da23d)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -491,7 +491,7 @@ theorem scalarCorrected_eq (t : BlockTrace) (h : t.scalarPredicate = true) :
 <details>
 <summary><code>TensorCore.scalarCorrected_rejects</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L157)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L156)
 
 ```lean
 /-- The public helper refuses the known-unsafe branch when its predicate fails. -/
@@ -501,7 +501,7 @@ theorem scalarCorrected_rejects (t : BlockTrace) (h : t.scalarPredicate = false)
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -519,7 +519,7 @@ theorem scalarCorrected_rejects (t : BlockTrace) (h : t.scalarPredicate = false)
 <details>
 <summary><code>TensorCore.scalarCorrected_correct</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L161)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L160)
 
 ```lean
 /-- Corollary IV.11: the scalar branch returns the correctly rounded exact dot product. -/
@@ -533,9 +533,9 @@ theorem scalarCorrected_correct (t : BlockTrace) (h : t.scalarPredicate = true) 
   exact h.2
 ```
 
-**Supporting proofs:** [TensorCore.retained_add_low](Extraction.md#decl-da77fbfd62ee1185), [TensorCore.round32_nearestEven_correct](../Core/CorrectRounding.md#decl-213324c196c49312), [TensorCore.scalarCorrected_eq](Extraction.md#decl-f5da772603f2c94b)
+**Supporting proofs:** [TensorCore.retained_add_low](Extraction.md#decl-da77fbfd62ee1185), [TensorCore.round32_nearestEven_correct](../Numerics/CorrectRounding.md#decl-213324c196c49312), [TensorCore.scalarCorrected_eq](Extraction.md#decl-f5da772603f2c94b)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Core/Encoding.md#decl-453b2816528e5c77), [TensorCore.NearestEven32](../Core/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../Core/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Core/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Core/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Core/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Core/Exact.md#decl-f20062bdc47118bd)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.lowCoefficients](Extraction.md#decl-a13088cbcb9f6e28), [TensorCore.BlockTrace.lowParts](Defs.md#decl-a1697249f111893d), [TensorCore.BlockTrace.overlap](Defs.md#decl-194a0aec6d268873), [TensorCore.BlockTrace.retainedSum](Defs.md#decl-577bbe4b7295f20a), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.supportExponent](Extraction.md#decl-3d45598c93a47213), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32.value](../Numerics/Encoding.md#decl-453b2816528e5c77), [TensorCore.NearestEven32](../Numerics/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.absQ](../Numerics/Exact.md#decl-8dd63ab202e070d3), [TensorCore.magnitudeSum](../Numerics/Sum.md#decl-87fa253b5e1d3c24), [TensorCore.maxFinite32](../Numerics/RoundOp.md#decl-49745d9860bef700), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3), [TensorCore.representable32](../Numerics/ScalarSum.md#decl-8d15644ce94eb22f), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b), [TensorCore.sumQ](../Numerics/Exact.md#decl-f20062bdc47118bd)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -553,7 +553,7 @@ theorem scalarCorrected_correct (t : BlockTrace) (h : t.scalarPredicate = true) 
 <details>
 <summary><code>TensorCore.tceft_correct</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L171)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L170)
 
 ```lean
 /-- Whenever the scalar EFT returns a result, it is the correctly rounded exact sum. -/
@@ -572,7 +572,7 @@ theorem tceft_correct (t : BlockTrace) (b : F32) (h : t.tceft = some b) :
 
 **Supporting proofs:** [TensorCore.scalarCorrected_correct](Extraction.md#decl-57f834dbd8f945de)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](../Core/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](../Numerics/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -590,7 +590,7 @@ theorem tceft_correct (t : BlockTrace) (b : F32) (h : t.tceft = some b) :
 <details>
 <summary><code>TensorCore.tceft_isSome_iff</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L184)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L183)
 
 ```lean
 /-- The scalar EFT succeeds exactly when its predicate holds. -/
@@ -611,7 +611,7 @@ theorem tceft_isSome_iff (t : BlockTrace) : (t.tceft).isSome = true ↔ t.scalar
 
 **Supporting proofs:** [TensorCore.scalarCorrected_correct](Extraction.md#decl-57f834dbd8f945de)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](../Core/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.NearestEven32](../Numerics/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -629,7 +629,7 @@ theorem tceft_isSome_iff (t : BlockTrace) : (t.tceft).isSome = true ↔ t.scalar
 <details>
 <summary><code>TensorCore.tceft_eq_corrected</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L199)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L198)
 
 ```lean
 /-- Under the predicate, the scalar EFT and the exact-rational reference return the same bits. -/
@@ -641,7 +641,7 @@ theorem tceft_eq_corrected (t : BlockTrace) (h : t.scalarPredicate = true) :
 
 **Supporting proofs:** [TensorCore.corrected_eq_round_exactDot](../TC/StageResiduals.md#decl-4f25be9ce5c88c41), [TensorCore.scalarCorrectedUnchecked_eq](Extraction.md#decl-421b3488061da23d)
 
-**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b)
+**Definitions and types:** [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.corrected](../TC/Block.md#decl-f68123201009b874), [TensorCore.BlockTrace.scalarCorrected](Extraction.md#decl-d043d5f94dfed74a), [TensorCore.BlockTrace.scalarCorrectedUnchecked](Extraction.md#decl-b298427558415577), [TensorCore.BlockTrace.scalarPredicate](Extraction.md#decl-8144db00332cc0f8), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 
@@ -659,7 +659,7 @@ No other source declaration in this graph.
 <details>
 <summary><code>TensorCore.evalBlock_tceft_correct</code></summary>
 
-[Lean source](../../../TensorCore/EFT/Extraction.lean#L206)
+[Lean source](../../../TensorCore/EFT/Extraction.lean#L205)
 
 ```lean
 /-- On a successful encoded-input evaluation, a scalar EFT result correctly rounds the
@@ -674,7 +674,7 @@ theorem evalBlock_tceft_correct {p : Profile} {x : BlockInput p} {t : BlockTrace
 
 **Supporting proofs:** [TensorCore.evalBlock_prepared](../TC/StageResiduals.md#decl-7b1107ad8e7189d9), [TensorCore.tceft_correct](Extraction.md#decl-4cc1687d08757464)
 
-**Definitions and types:** [TensorCore.BlockInput](../TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.ModelError](../TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.NearestEven32](../Core/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock](../TC/Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.Profile](../TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.evalBlock](../TC/Block.md#decl-58fdfbbb09a9ba58), [TensorCore.exactDot](../TC/Block.md#decl-451fb68e7faa00f3), [TensorCore.prepare](../TC/Block.md#decl-32c2d7273540d876)
+**Definitions and types:** [TensorCore.BlockInput](../TC/Block.md#decl-ad6b462d69117cc6), [TensorCore.BlockTrace](../TC/Block.md#decl-6e6aa9836448ab93), [TensorCore.BlockTrace.tceft](Extraction.md#decl-7b07b124468a5e26), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.ModelError](../TC/Block.md#decl-f7be0c438a4d4d1d), [TensorCore.NearestEven32](../Numerics/RoundOp.md#decl-e8aa71a6813779de), [TensorCore.PreparedBlock](../TC/Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.exactDot](../TC/Block.md#decl-32d061749cae163e), [TensorCore.Profile](../TC/Defs.md#decl-a2404f64f289a40a), [TensorCore.evalBlock](../TC/Block.md#decl-58fdfbbb09a9ba58), [TensorCore.exactDot](../TC/Block.md#decl-451fb68e7faa00f3), [TensorCore.prepare](../TC/Block.md#decl-32c2d7273540d876)
 
 **Transitive Lean axioms:** `Classical.choice`, `Quot.sound`, `propext`.
 

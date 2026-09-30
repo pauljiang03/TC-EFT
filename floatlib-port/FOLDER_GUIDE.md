@@ -1,6 +1,6 @@
 # Guide to the FloatLib port
 
-`floatlib-port/` is an isolated Lean project inside `tensor-core-arithmetic`. It implements the paper's FP32-output Tensor Core block model and reference TC-EFT using FloatLib, and proves that its checked interfaces agree with the original implementation. The original arithmetic source and project configuration remain unchanged.
+`floatlib-port/` is an isolated Lean project inside `TC-EFT`. It implements the paper's FP32-output Tensor Core block model and reference TC-EFT using FloatLib, and proves that its checked interfaces agree with the original implementation. The port builds independently of the parent project; its equivalence layer verifies the parent arithmetic and proof bodies against the pinned reference.
 
 This guide explains the folder and the strength of its evidence. The [README](README.md) gives the detailed numerical behavior and executable commands. The [comparison document](COMPARISON.md) maps the arithmetic stages and paper statements to their Lean theorems.
 
@@ -58,7 +58,7 @@ The executable remains independent: FloatLib performs its decoding, exact dyadic
 | `reference-compat/` | Generated, ignored compatibility copy of the original proof dependencies. |
 | `test-results/` | Generated, ignored inputs, logs, comparison outputs and reports. |
 | `.lake/` | Downloaded dependencies and compiled artifacts. |
-| [verification.json](verification.json), [equivalence-verification.json](equivalence-verification.json) | Recorded verification results, revisions and source hashes. |
+| `test-results/summary.json`, `test-results/equivalence/report.json` | Recorded verification results, revisions and source hashes. |
 
 The paper additions include the full output error bound, arbitrary-summand flowback, the general perturbation range, overlap identities, any-order exact summation and the paper's chosen-grid scalar conditions. The [comparison table](COMPARISON.md#correspondence-to-the-papers-fp32-statements) lists the individual theorem names.
 
@@ -88,7 +88,7 @@ lake env lean tests/Audit.lean
 
 The port uses Lean 4.34.0 and FloatLib revision `0d91825727839f597fd06b22fdd038ea21480f0c`. The reference revision is `990afac10b94a84f3de24743206756dd7acc3276`; its separate executable uses Lean 4.33.1.
 
-The preparation script verifies original dependency files against the pinned Git revision before copying them. Only three Nat/Int/Rat notation declarations are renamed and scoped to avoid mathlib parser collisions. Arithmetic and proof source is copied verbatim. The parent source is never rewritten. A changed original dependency causes preparation to fail rather than silently proving something about another revision.
+The preparation script verifies current parent dependency bodies against their original source locations at the pinned Git revision. Documented module-path relocations and deletion of unused imports are accepted; arithmetic and proof bodies cannot change. The actual current modules are copied into `reference-compat/`, where three Nat/Int/Rat notation declarations are renamed and scoped to avoid mathlib parser collisions. The parent source is never rewritten. The generated manifest lists original locations, current hashes, and deleted imports. A changed arithmetic/proof body causes preparation to fail.
 
 ## Running Lean and the models against the test cases
 
@@ -237,3 +237,5 @@ The saved successful run records:
 - Negative controls that reject mutated outputs and forbidden executable dependencies.
 
 These are recorded results, not a promise that future edits remain verified. Rerun the commands after changing code. Creating this guide required no arithmetic changes; the recorded source and verification-script hashes were checked against the current files.
+
+The parent cleanup preserves the pinned arithmetic/proof bodies while relocating module paths and deleting unused imports. The generated compatibility manifest lists those import deletions and hashes the current parent sources. Differential validation snapshots the current parent implementation.

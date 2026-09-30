@@ -25,7 +25,7 @@ def machineAccumulate (w : ℕ) (acc : BitVec w) : List ℤ → BitVec w
 <details>
 <summary>Used by</summary>
 
-[TensorCore.PreparedBlock.machineAccumulator](Accumulator.md#decl-9e58c7148c06ae54), [TensorCore.Regression.signed_capacity_prefix](Regression/Features.md#decl-63bc25b56c070053), [TensorCore.evalBlock_machinePrefix](AlignmentScale.md#decl-503fa36f9568f733), [TensorCore.machineAccumulate_eq](AccumulatorWidth.md#decl-297efa863148b988), [TensorCore.machineAccumulate_exact](AccumulatorWidth.md#decl-80c3acbccc8106eb), [TensorCore.machineAccumulate_of_coefficient_bound](AccumulatorWidth.md#decl-c1bb27c5ce2e7d98), [TensorCore.machineAccumulate_prefix_exact](AccumulatorWidth.md#decl-9b23fe9fc6ec5adf), [TensorCore.machineAccumulator_eq](AccumulatorWidth.md#decl-fa564636f9129fb5)
+[TensorCore.PreparedBlock.machineAccumulator](Accumulator.md#decl-9e58c7148c06ae54), [TensorCore.Regression.signed_capacity_prefix](../Tests/TC/Features.md#decl-63bc25b56c070053), [TensorCore.evalBlock_machinePrefix](AlignmentScale.md#decl-503fa36f9568f733), [TensorCore.machineAccumulate_eq](AccumulatorWidth.md#decl-297efa863148b988), [TensorCore.machineAccumulate_exact](AccumulatorWidth.md#decl-80c3acbccc8106eb), [TensorCore.machineAccumulate_of_coefficient_bound](AccumulatorWidth.md#decl-c1bb27c5ce2e7d98), [TensorCore.machineAccumulate_prefix_exact](AccumulatorWidth.md#decl-9b23fe9fc6ec5adf), [TensorCore.machineAccumulator_eq](AccumulatorWidth.md#decl-fa564636f9129fb5)
 
 </details>
 
@@ -46,7 +46,7 @@ def PreparedBlock.machineAccumulator (b : PreparedBlock) (w : ℕ) : ℚ :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.pow2](../Core/Exact.md#decl-b52a0281b35514e3)
+**Definitions and types:** [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.coefficients](Block.md#decl-c0369f010f61825c), [TensorCore.PreparedBlock.quantumExponent](Block.md#decl-43c39ff5fd4eef64), [TensorCore.machineAccumulate](Accumulator.md#decl-5ea736d0760d39b4), [TensorCore.pow2](../Numerics/Exact.md#decl-b52a0281b35514e3)
 
 <details>
 <summary>Used by</summary>
@@ -78,7 +78,7 @@ def evalPreparedMachine (w : ℕ) (b : PreparedBlock) : Except ModelError BlockT
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.F32](../Core/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](../Core/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.machineAccumulator](Accumulator.md#decl-9e58c7148c06ae54), [TensorCore.RoundingMode](../Core/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.finite32](../Core/Encoding.md#decl-82d0e30146423be5), [TensorCore.round32](../Core/RoundOp.md#decl-11a6489236dbb65b)
+**Definitions and types:** [TensorCore.BlockTrace](Block.md#decl-6e6aa9836448ab93), [TensorCore.F32](../Numerics/Defs.md#decl-24fa1e63edeb271f), [TensorCore.Finite32](../Numerics/Encoding.md#decl-f23991ff7c5b3c3b), [TensorCore.ModelError](Block.md#decl-f7be0c438a4d4d1d), [TensorCore.PreparedBlock](Block.md#decl-703939eff806d883), [TensorCore.PreparedBlock.machineAccumulator](Accumulator.md#decl-9e58c7148c06ae54), [TensorCore.RoundingMode](../Numerics/RoundOp.md#decl-3d487bd4115d0af1), [TensorCore.finite32](../Numerics/Encoding.md#decl-82d0e30146423be5), [TensorCore.round32](../Numerics/RoundOp.md#decl-11a6489236dbb65b)
 
 <details>
 <summary>Used by</summary>
@@ -112,7 +112,7 @@ def evalBlockMachine (w : ℕ) {p : Profile} (x : BlockInput p) :
 <details>
 <summary>Used by</summary>
 
-[TensorCore.PaperSpec.machine_eq_paper](Specification/Equivalence.md#decl-a7b3c8171f0fe70d), [TensorCore.Regression.machine_width_changes_result](Regression/Features.md#decl-40bf2a8b421b9a65), [TensorCore.ampere_machine_eq](MachineRefinement.md#decl-16fb9b96706fbec4), [TensorCore.evalBlockMachine_eq](MachineRefinement.md#decl-d4518ab25c18ea58), [TensorCore.fp16Fp32_machine_eq](MachineRefinement.md#decl-528413e0ee3dba60), [TensorCore.hopper_machine_eq](MachineRefinement.md#decl-ec34a5ffce80d97b), [TensorCore.runBlocksMachine](Program/DotProduct.md#decl-c7ff918b61ba39eb), [TensorCore.runBlocksMachine_eq](Program/DotProduct.md#decl-69afa0bf303103ec), [TensorCore.v100_machine_eq](MachineRefinement.md#decl-4818474771f10689)
+[TensorCore.PaperSpec.machine_eq_paper](Specification/Equivalence.md#decl-a7b3c8171f0fe70d), [TensorCore.Regression.machine_width_changes_result](../Tests/TC/Features.md#decl-40bf2a8b421b9a65), [TensorCore.ampere_machine_eq](MachineRefinement.md#decl-16fb9b96706fbec4), [TensorCore.evalBlockMachine_eq](MachineRefinement.md#decl-d4518ab25c18ea58), [TensorCore.fp16Fp32_machine_eq](MachineRefinement.md#decl-528413e0ee3dba60), [TensorCore.hopper_machine_eq](MachineRefinement.md#decl-ec34a5ffce80d97b), [TensorCore.v100_machine_eq](MachineRefinement.md#decl-4818474771f10689)
 
 </details>
 

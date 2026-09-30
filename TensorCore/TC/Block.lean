@@ -1,8 +1,8 @@
 -- Block for the tensor-core model.
 
-import TensorCore.Core.RawProduct
+import TensorCore.Numerics.RawProduct
 import TensorCore.TC.Defs
-import TensorCore.Core.RoundOp
+import TensorCore.Numerics.RoundOp
 
 namespace TensorCore
 

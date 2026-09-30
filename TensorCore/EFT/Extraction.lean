@@ -1,9 +1,8 @@
 import TensorCore.EFT.Defs
-import TensorCore.Core.ScalarSum
+import TensorCore.Numerics.ScalarSum
 import TensorCore.TC.StageResiduals
-import TensorCore.Core.Truncation
-import TensorCore.Core.Sum
-import TensorCore.TC.Program.Correction
+import TensorCore.Numerics.Truncation
+import TensorCore.Numerics.Sum
 
 /-! TC-EFT §IV on one block trace: coarse components on the extraction grid, the overlap
 identities (Lemmas IV.1–IV.4), the overlap form of exact recovery (Theorem IV.5), the

@@ -1,6 +1,6 @@
 -- Trace for the executable examples.
 
-import TensorCore.All
+import TensorCoreTests.TC.Cases
 import Lean
 
 open TensorCore TensorCore.Regression Lean

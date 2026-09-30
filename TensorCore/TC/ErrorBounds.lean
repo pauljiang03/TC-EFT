@@ -1,8 +1,8 @@
 -- Error Bounds for the tensor-core model.
 
-import TensorCore.Core.RoundingError
+import TensorCore.Numerics.RoundingError
 import TensorCore.TC.StageResiduals
-import TensorCore.Core.Truncation
+import TensorCore.Numerics.Truncation
 
 namespace TensorCore
 

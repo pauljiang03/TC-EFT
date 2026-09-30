@@ -127,9 +127,9 @@ def check_dependencies():
 def main():
     start = time.perf_counter()
     WORK.mkdir(parents=True, exist_ok=True)
-    build = subprocess.run(['lake', 'build', 'TensorCore.EFT.Machine.Success',
-                            'TensorCore.EFT.Regression.BoundedEFT',
-                            'TensorCore.EFT.Regression.NativeEFT', 'tc_bounded_eft',
+    build = subprocess.run(['lake', 'build', 'TensorCore.Kernels.EFT.Success',
+                            'TensorCoreTests.EFT.BoundedEFT',
+                            'TensorCoreTests.EFT.NativeEFT', 'tc_bounded_eft',
                             'tc_lean_eft_check'], cwd=ROOT,
                            capture_output=True, text=True)
     (WORK / 'build.log').write_text(build.stdout + build.stderr)
@@ -205,15 +205,15 @@ def main():
         branches[out['branch']] += 1
     for n, out in zip(rounds, outputs[len(cases):]):
         assert out['bits'] == round32(n), (n, out, round32(n))
-    sources = [*sorted((ROOT / 'TensorCore/EFT/Machine').glob('*.lean')),
-               *sorted((ROOT / 'TensorCore/EFT/Machine').glob('*.lean')),
-               ROOT / 'TensorCore/EFT/Bounded.lean', ROOT / 'Main/BoundedEFT.lean',
+    sources = [*sorted((ROOT / 'TensorCore/Kernels/EFT').glob('*.lean')),
+               *sorted((ROOT / 'TensorCore/Kernels/EFT').glob('*.lean')),
+               ROOT / 'TensorCore/Kernels/EFT/Defs.lean', ROOT / 'Main/BoundedEFT.lean',
                ROOT / 'Main/LeanEFTCheck.lean',
-               ROOT / 'TensorCore/EFT/Native.lean',
-               ROOT / 'TensorCore/EFT/Regression/NativeEFT.lean',
-               ROOT / 'TensorCore/IEEE/LeanFiniteAddition.lean',
-               ROOT / 'TensorCore/IEEE/LeanBridge.lean', ROOT / 'TensorCore/IEEE/LeanRounding.lean',
-               ROOT / 'TensorCore/EFT/Regression/BoundedEFT.lean', ROOT / 'scripts/lean/BoundedEFTAudit.lean',
+               ROOT / 'TensorCore/Kernels/EFT/Native.lean',
+               ROOT / 'tests/TensorCoreTests/EFT/NativeEFT.lean',
+               ROOT / 'TensorCore/Scalar/LeanFiniteAddition.lean',
+               ROOT / 'TensorCore/Scalar/LeanBridge.lean', ROOT / 'TensorCore/Scalar/LeanRounding.lean',
+               ROOT / 'tests/TensorCoreTests/EFT/BoundedEFT.lean', ROOT / 'scripts/lean/BoundedEFTAudit.lean',
                ROOT / 'examples/BoundedEFT.lean', ROOT / 'data/regressions/eft-paper-cases.json',
                Path(__file__)]
     report = dict(status='passed', audit=audit,

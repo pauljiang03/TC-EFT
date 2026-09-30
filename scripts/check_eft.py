@@ -79,7 +79,7 @@ def main():
             assert 'TensorCore.algorithm1Encoded_of_evalBlock' in p.stdout
             assert 'TensorCore.monotoneInAccumulator_encoded' in p.stdout
         results.append(result)
-    sources = [*(ROOT/'TensorCore').rglob('*.lean'), *(ROOT/'examples').glob('*.lean'),
+    sources = [*(ROOT/'TensorCore').rglob('*.lean'), *(ROOT/'tests').rglob('*.lean'), *(ROOT/'examples').glob('*.lean'),
                ROOT/'Main/Trace.lean', ROOT/'Main/Features.lean', ROOT/'Main/EFT.lean',
                ROOT/'Main/BoundedEFT.lean']
     for source in sources:

@@ -1,5 +1,5 @@
 import TensorCore.EFT.Scalar
-import TensorCore.Core.Binary.ResidualBudget
+import TensorCore.Numerics.Binary.ResidualBudget
 
 /-! An explicit extraction-grid interface for TC-EFT IV.1–IV.11. Any power-of-two
 grid at least as coarse as alignment is permitted. The existing extractor and

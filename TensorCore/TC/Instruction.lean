@@ -1,8 +1,7 @@
-import TensorCore.Core.RoundTrip
+import TensorCore.Numerics.RoundTrip
 import TensorCore.TC.CanonicalFloor
-import TensorCore.TC.Program.DotProduct
-import TensorCore.TC.Program.ErrorBounds
-import TensorCore.TC.Program.Loops
+import TensorCore.TC.Monotonicity
+import TensorCore.TC.Composition
 
 /-! Instruction paths. An instruction with inner dimension `k` is modeled as an ordered
 partition of its `k` operand pairs into groups of `N_FMA` products, executed in increasing k
@@ -68,6 +67,13 @@ theorem finite32_self (f : Finite32) : finite32 f.bits = some f := by
   split
   · rename_i h; rw [f.valid] at h; contradiction
   · rename_i d h; rw [f.valid] at h; cases Option.some.inj h; rfl
+
+theorem finite32_bits {c : F32} {initial : Finite32} (h : finite32 c = some initial) :
+    initial.bits = c := by
+  unfold finite32 at h
+  split at h
+  · contradiction
+  · cases Option.some.inj h; rfl
 
 /-- The bits of a finite encoding of value zero, other than `−0`, are `0`. -/
 theorem zero_value_bits (c : F32) (d : Decoded) (hd : decode32 c = some d)
@@ -320,29 +326,6 @@ theorem InstructionPath.run_blocks (p : InstructionPath) (c : F32) (pairs : List
   split at h
   · contradiction
   · exact h
-
-/-- Under conformance, a device result is the model's last group output and satisfies the
-composed uncorrected error bound against the original-input ideal. -/
-theorem conforms_uncorrected_error (p : InstructionPath)
-    (device : F32 → List (F16 × F16) → Option F32) (h : Conforms p device) (initial : Finite32)
-    (pairs : List (F16 × F16)) (ts : List BlockTrace)
-    (hrun : p.run initial.bits pairs = .ok ts) (products : ℚ)
-    (hi : idealProducts p.profile pairs = some products) :
-    device initial.bits pairs = some (lastOutput initial ts).bits ∧
-    absQ (initial.value + products - (lastOutput initial ts).value) ≤
-      sumQ (ts.map BlockTrace.errorBudget) := by
-  have hlen := p.run_length _ _ _ hrun
-  have hblocks := p.run_blocks _ _ _ hrun
-  constructor
-  · apply h
-    unfold InstructionPath.output
-    rw [hrun]
-    show some ((ts.getLast?.map fun t => t.output.bits).getD initial.bits) = _
-    rw [lastOutput_bits]
-  · have hi' : idealContributions p.profile (p.schedule pairs) = some products := by
-      rw [idealContributions_flatten, p.schedule_flatten pairs hlen, hi]
-    exact (runBlocks_uncorrected_error p.profile initial (p.schedule pairs) ts products hblocks
-      hi').1
 
 /-- A `k`-wide input whose products beyond the first group are zero pairs returns the first
 group's output: every later group passes the accumulator through. Published single-group

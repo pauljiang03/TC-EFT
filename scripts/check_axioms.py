@@ -12,7 +12,7 @@ import subprocess
 import sys
 
 root = Path(__file__).resolve().parents[1]
-build = subprocess.run(['lake', 'build', 'TensorCore'], cwd=root,
+build = subprocess.run(['lake', 'build', 'TensorCoreTests'], cwd=root,
                        text=True, capture_output=True)
 if build.returncode:
     print(build.stdout + build.stderr, file=sys.stderr, end='')
@@ -32,7 +32,7 @@ for line in theorems:
     assert match, line
     names = set(match.group(2).split(', ')) if match.group(2) else set()
     assert names <= allowed, (line, names - allowed)
-sources = [*(root / 'TensorCore').rglob('*.lean'), *(root / 'examples').glob('*.lean'),
+sources = [*(root / 'TensorCore').rglob('*.lean'), *(root / 'tests').rglob('*.lean'), *(root / 'examples').glob('*.lean'),
            *(root / 'Main').rglob('*.lean'), *root.glob('*.lean')]
 for source in sources:
     text = source.read_text()

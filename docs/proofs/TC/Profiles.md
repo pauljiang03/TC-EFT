@@ -20,7 +20,7 @@ profile names do not assert instruction mapping or independent device conformanc
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.AccumulationKind](Invocation.md#decl-e676df9d836e3187), [TensorCore.BinaryRoundingMode](../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.CPlacement](Invocation.md#decl-465383d437a4df50), [TensorCore.ConversionStage](../Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.OperandEncoding](../Core/Format.md#decl-372baaa74f9e3836), [TensorCore.fp32](../Core/Defs.md#decl-1a6343dd8d7b7ab4)
+**Definitions and types:** [TensorCore.AccumulationKind](Invocation.md#decl-e676df9d836e3187), [TensorCore.BinaryRoundingMode](../Numerics/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.CPlacement](Invocation.md#decl-465383d437a4df50), [TensorCore.ConversionStage](../Numerics/Conversion.md#decl-19660b95e076faa1), [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.OperandEncoding](../Numerics/Format.md#decl-372baaa74f9e3836), [TensorCore.fp32](../Numerics/Defs.md#decl-1a6343dd8d7b7ab4)
 
 <details>
 <summary>Used by</summary>
@@ -44,7 +44,7 @@ def a100F16Invocation : InvocationSpec := alignedInvocation (packedIEEE fp16) 8 
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.fp16](../Core/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.packedIEEE](../Core/Format.md#decl-1c87313094e2d4c0)
+**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.fp16](../Numerics/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.packedIEEE](../Numerics/Format.md#decl-1c87313094e2d4c0)
 
 <details>
 <summary>Used by</summary>
@@ -68,12 +68,12 @@ def a100BF16Invocation : InvocationSpec := alignedInvocation (packedIEEE bf16) 8
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.bf16](../Core/Defs.md#decl-10da45ae98cf5fcc), [TensorCore.packedIEEE](../Core/Format.md#decl-1c87313094e2d4c0)
+**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.bf16](../Numerics/Defs.md#decl-10da45ae98cf5fcc), [TensorCore.packedIEEE](../Numerics/Format.md#decl-1c87313094e2d4c0)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.Regression.a100_bf16_published_row](Regression/CanonicalFormats.md#decl-cdaa9fc7deac3fab), [TensorCore.a100BF16_descriptor](CanonicalFormats.md#decl-73423114ec6e4035)
+[TensorCore.Regression.a100_bf16_published_row](../Tests/TC/CanonicalFormats.md#decl-cdaa9fc7deac3fab), [TensorCore.a100BF16_descriptor](CanonicalFormats.md#decl-73423114ec6e4035)
 
 </details>
 
@@ -92,7 +92,7 @@ def a100TF32Invocation : InvocationSpec := alignedInvocation tf32Register 4 24 (
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.tf32Register](../Core/Format.md#decl-f0af86f5dcba47c8)
+**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.tf32Register](../Numerics/Format.md#decl-f0af86f5dcba47c8)
 
 <details>
 <summary>Used by</summary>
@@ -116,7 +116,7 @@ def hopperF16Invocation : InvocationSpec := alignedInvocation (packedIEEE fp16) 
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.fp16](../Core/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.packedIEEE](../Core/Format.md#decl-1c87313094e2d4c0)
+**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.fp16](../Numerics/Defs.md#decl-2f0f377d9e2ae7dd), [TensorCore.packedIEEE](../Numerics/Format.md#decl-1c87313094e2d4c0)
 
 <details>
 <summary>Used by</summary>
@@ -140,12 +140,12 @@ def hopperBF16Invocation : InvocationSpec := alignedInvocation (packedIEEE bf16)
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.bf16](../Core/Defs.md#decl-10da45ae98cf5fcc), [TensorCore.packedIEEE](../Core/Format.md#decl-1c87313094e2d4c0)
+**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.bf16](../Numerics/Defs.md#decl-10da45ae98cf5fcc), [TensorCore.packedIEEE](../Numerics/Format.md#decl-1c87313094e2d4c0)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.Regression.h100_bf16_published_row](Regression/CanonicalFormats.md#decl-99837dca7e6541e3), [TensorCore.hopperBF16_descriptor](CanonicalFormats.md#decl-3b357b72598d1090)
+[TensorCore.Regression.h100_bf16_published_row](../Tests/TC/CanonicalFormats.md#decl-99837dca7e6541e3), [TensorCore.hopperBF16_descriptor](CanonicalFormats.md#decl-3b357b72598d1090)
 
 </details>
 
@@ -164,7 +164,7 @@ def hopperTF32MmaInvocation : InvocationSpec := alignedInvocation tf32Register 8
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.tf32Register](../Core/Format.md#decl-f0af86f5dcba47c8)
+**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.tf32Register](../Numerics/Format.md#decl-f0af86f5dcba47c8)
 
 <details>
 <summary>Used by</summary>
@@ -188,7 +188,7 @@ def hopperTF32WmmaInvocation : InvocationSpec := alignedInvocation tf32Register 
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.tf32Register](../Core/Format.md#decl-f0af86f5dcba47c8)
+**Definitions and types:** [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.alignedInvocation](Profiles.md#decl-08059dfea19f5f55), [TensorCore.tf32Register](../Numerics/Format.md#decl-f0af86f5dcba47c8)
 
 <details>
 <summary>Used by</summary>
@@ -214,12 +214,12 @@ def binary64Fma (mode : BinaryRoundingMode) : InvocationSpec :=
 
 **Supporting proofs:** None in this repository.
 
-**Definitions and types:** [TensorCore.AccumulationKind](Invocation.md#decl-e676df9d836e3187), [TensorCore.BinaryRoundingMode](../Core/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](../Core/Conversion.md#decl-19660b95e076faa1), [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.fp64](../Core/Defs.md#decl-a9439171a8dcf9cb), [TensorCore.packedIEEE](../Core/Format.md#decl-1c87313094e2d4c0)
+**Definitions and types:** [TensorCore.AccumulationKind](Invocation.md#decl-e676df9d836e3187), [TensorCore.BinaryRoundingMode](../Numerics/Binary/RoundOp.md#decl-00a7255be9b19e5a), [TensorCore.ConversionStage](../Numerics/Conversion.md#decl-19660b95e076faa1), [TensorCore.InvocationSpec](Invocation.md#decl-686e1fb8fa675688), [TensorCore.fp64](../Numerics/Defs.md#decl-a9439171a8dcf9cb), [TensorCore.packedIEEE](../Numerics/Format.md#decl-1c87313094e2d4c0)
 
 <details>
 <summary>Used by</summary>
 
-[TensorCore.Regression.fma64Bits](Regression/DirectedBinary.md#decl-6693e0fc3635ac42), [TensorCore.binary64Fma_correct](FusedRounding.md#decl-818649bb83af8ab6), [TensorCore.binary64Fma_exact_input](Conversion.md#decl-e9ea2eb0949990ef), [TensorCore.binary64Fma_nearestEven](Conversion.md#decl-d04a4eaaeb5ab283), [TensorCore.binary64Fma_success](FusedRounding.md#decl-b369329edfc5a2cd), [TensorCore.binary64Fma_towardNegative](Conversion.md#decl-14d955da110e6975), [TensorCore.binary64Fma_towardPositive](Conversion.md#decl-0c17a7e9421cc1e8), [TensorCore.binary64Fma_towardZero](Conversion.md#decl-73cb656a116a886e)
+[TensorCore.Regression.fma64Bits](../Tests/TC/DirectedBinary.md#decl-6693e0fc3635ac42), [TensorCore.binary64Fma_correct](FusedRounding.md#decl-818649bb83af8ab6), [TensorCore.binary64Fma_exact_input](Conversion.md#decl-e9ea2eb0949990ef), [TensorCore.binary64Fma_nearestEven](Conversion.md#decl-d04a4eaaeb5ab283), [TensorCore.binary64Fma_success](FusedRounding.md#decl-b369329edfc5a2cd), [TensorCore.binary64Fma_towardNegative](Conversion.md#decl-14d955da110e6975), [TensorCore.binary64Fma_towardPositive](Conversion.md#decl-0c17a7e9421cc1e8), [TensorCore.binary64Fma_towardZero](Conversion.md#decl-73cb656a116a886e)
 
 </details>
 

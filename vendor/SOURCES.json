@@ -75,6 +75,5 @@
     "used_by": "scripts/check_features.py",
     "archive_root": "north-numerical-computing-MATLAB-tensor-core-bbcf00a",
     "archive_sha256": "38b84ee13344331e354f10b0321b3ae3050b76cdeb23da101595c9641db8458e"
-  },
-  "archived_candidates": "../wip/vendor/SOURCES.json"
+  }
 }

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Generate the README proof guide from Lean's compiled dependency graph.
+"""Generate the detailed proof guide from Lean's compiled dependency graph.
 
 Run with --check to reject stale documentation without replacing it. Generated
 auxiliary declarations are folded into their source declaration for browsing;
@@ -33,7 +33,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--check', action='store_true')
     args = parser.parse_args()
-    for command in [['lake', 'build', 'TensorCore'],
+    for command in [['lake', 'build', 'TensorCoreTests'],
                     ['lake', 'env', 'lean', 'scripts/lean/ProofGraph.lean']]:
         proc = subprocess.run(command, cwd=ROOT, text=True, capture_output=True)
         if proc.returncode:
@@ -45,7 +45,7 @@ def main():
     for name, entry in raw.items():
         if 'selection' not in entry or 'range' not in entry:
             continue
-        path = ROOT / (entry['module'].replace('.', '/') + '.lean')
+        path = ROOT / (('tests/' if entry['module'].startswith('TensorCoreTests') else '') + entry['module'].replace('.', '/') + '.lean')
         if not path.is_file():
             continue
         source = lines.setdefault(path, path.read_text().splitlines())
@@ -114,7 +114,7 @@ def main():
             reverse[dep].add(name)
 
     def page(name):
-        return ROOT / 'docs/proofs' / (nodes[name]['module'].removeprefix('TensorCore.').replace('.', '/') + '.md')
+        return ROOT / 'docs/proofs' / (nodes[name]['module'].replace('TensorCoreTests.', 'Tests.').removeprefix('TensorCore.').replace('.', '/') + '.md')
 
     def link(name, document, label=None):
         return f'[{label or nodes[name]["display"]}]({relative(page(name), document)}#{anchor(name)})'
@@ -146,7 +146,7 @@ def main():
             'The browsable graph groups compiler-generated helpers with their source declaration. '
             'Its edges include dependencies in types as well as bodies; an edge is not a claim that every '
             'assumption or field is used at runtime. Standard-library declarations are boundary nodes in the JSON.\n',
-            '[Main results](../../README.md#proof-guide) · [Trust and style](../style.md)\n',
+            '[Main results](../proof-guide.md) · [Trust and style](../style.md)\n',
             '| Module | Theorems | Definitions |\n| --- | ---: | ---: |']
     for module, names in sorted(modules.items()):
         path = page(names[0])
@@ -170,7 +170,7 @@ def main():
     output[index] = '\n'.join(text) + '\n'
     graph = {'format_version': 1, 'toolchain': (ROOT / 'lean-toolchain').read_text().strip(),
              'source_sha256': {str(path.relative_to(ROOT)): hashlib.sha256(path.read_bytes()).hexdigest()
-                               for path in sorted((ROOT / 'TensorCore').rglob('*.lean'))},
+                               for path in sorted([*(ROOT / 'TensorCore').rglob('*.lean'), *(ROOT / 'tests').rglob('*.lean')])},
              'compiled_declarations': entries,
              'source_declarations': {name: {'module': entry['module'], 'line': entry['line'],
                                            'dependencies': sorted(edges[name])}
@@ -198,20 +198,18 @@ def main():
     manual = re.sub(r'\[`(TensorCore\.[\w.]+)`\]\([^)]+\)', claim_link, manual)
     output[reference] = manual
 
-    readme = ROOT / 'README.md'
+    readme = ROOT / 'docs/proof-guide.md'
     guide = [BEGIN, '## Proof guide\n',
              'Expand a claim to read its Lean code. Within each declaration, expand the supporting proofs '
              'and follow their links to continue through the dependency graph. The code is copied from '
              'the checked source, including proof bodies.\n',
-             f'The [complete proof index](docs/proofs/README.md) covers **{total_proofs} source theorems** and '
-             f'**{len(nodes) - total_proofs} definitions**. The [machine-readable graph](docs/proofs/dependencies.json) '
+             f'The [complete proof index](proofs/README.md) covers **{total_proofs} source theorems** and '
+             f'**{len(nodes) - total_proofs} definitions**. The [machine-readable graph](proofs/dependencies.json) '
              'also retains generated proofs and standard-library edges. Regenerate with '
              '`python3 scripts/generate_proof_docs.py`; `--check` verifies that this guide is current.\n',
              '```mermaid\nflowchart TD\n  TC[Tensor-core contracts] --> C[Core arithmetic and rounding]\n'
              '  EFT[TC-EFT correctness] --> TC\n  EFT --> C\n  E[Bounded EFT execution] --> EFT\n'
-             '  E --> I[IEEE and Lean scalar refinement]\n  I --> C\n  G[GEMM certificates] --> TC\n'
-             '  G --> C\n  TC --> S[Independent TC specification]\n'
-             '  G --> M[Independent matrix specification]\n```\n',
+             '  E --> I[Native scalar refinement]\n  I --> C\n  TC --> S[Independent TC specification]\n```\n',
              '### Entry points\n']
 
     def render(name, graph=False):
@@ -245,13 +243,11 @@ def main():
                  'TensorCore.signedFiniteBinaryBijection', 'TensorCore.Profile', 'TensorCore.BlockInput', 'TensorCore.evalBlock',
                  'TensorCore.algorithm1Encoded', 'TensorCore.EFMachine.algorithm1WithLean']:
         guide.append(render(name))
-    categories = [('Tensor-core model', ['C04', 'C05', 'C08', 'C03']),
+    categories = [('Tensor-core model and non-monotonicity', ['C04', 'C05', 'C03']),
                   ('TC-EFT', ['C06', 'C07', 'C21']),
-                  ('Core arithmetic', ['C01', 'C02']),
-                  ('GEMM', [f'C{i:02}' for i in range(9, 17)]),
-                  ('IEEE scalar refinement', [f'C{i:02}' for i in range(17, 21)])]
+                  ('Core arithmetic', ['C01', 'C02'])]
     graphed = {'TensorCore.profile_contract', 'TensorCore.EFMachine.algorithm1WithLean_correct',
-               'TensorCore.roundBinary_correct', 'TensorCore.gemmAnalysisCheck_sound'}
+               'TensorCore.roundBinary_correct'}
     for title, keys in categories:
         guide.append('### ' + title + '\n')
         for title, scope, names in claims:
@@ -266,7 +262,7 @@ def main():
     before, tail = readme_text.split(BEGIN, 1)
     _, after = tail.split(END, 1)
     output[readme] = before + '\n'.join(guide) + after
-    assert len(output[readme].encode()) < 500_000, 'README exceeds the GitHub rendering budget'
+    assert len(output[readme].encode()) < 500_000, 'Proof guide exceeds the GitHub rendering budget'
 
     stale = []
     for path, content in output.items():
@@ -280,7 +276,7 @@ def main():
     print(json.dumps({'status': 'passed', 'source_theorems': total_proofs,
                       'source_declarations': len(nodes), 'compiled_declarations': len(raw),
                       'modules': len(modules), 'high_level_claims': len(claims),
-                      'readme_bytes': len(output[readme].encode()), 'checked': args.check}, indent=2))
+                      'proof_guide_bytes': len(output[readme].encode()), 'checked': args.check}, indent=2))
 
 
 if __name__ == '__main__':
