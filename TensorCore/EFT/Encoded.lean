@@ -1,9 +1,6 @@
 import TensorCore.EFT.Algorithm1
 
-/-! TC-EFT Algorithm 1 with its paper interface: encoded operands, an explicit profile,
-and a supplied finite FP32 output D. Preparation decodes the original operands; terms,
-raw scales, grids, and components are reconstructed from them. No tensor-core evaluation
-is performed, and exact recovery does not require the supplied D to conform to the model. -/
+/-! TC-EFT Algorithm 1 with its paper interface: encoded operands, an explicit profile, and a supplied finite FP32 output D. -/
 
 namespace TensorCore
 
@@ -29,9 +26,7 @@ def EncodedEFTResult.bits : EncodedEFTResult → Option F32
 def PreparedBlock.allZeroTerms (b : PreparedBlock) : Bool :=
   b.terms.all fun t => t.significand == 0
 
-/-- Algorithm 1: check the finite encoded interface, return +0 for all-zero terms,
-otherwise reconstruct the grids and overlap components and execute the two-branch reference.
-The range failure is retained as `.consolidated .outOfRange`. -/
+/-- Algorithm 1: check the finite encoded interface, return +0 for all-zero terms, otherwise reconstruct the grids and overlap components and execute the two-branch reference. -/
 def algorithm1Encoded {p : Profile} (x : BlockInput p) (D : F32) :
     Except ModelError EncodedEFTResult :=
   match prepareEncodedEFT x D with

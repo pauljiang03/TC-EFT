@@ -1,5 +1,3 @@
--- Conversion for the arithmetic core.
-
 import TensorCore.Numerics.Binary.RoundOp
 
 namespace TensorCore

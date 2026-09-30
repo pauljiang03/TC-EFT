@@ -1,8 +1,7 @@
 import TensorCore.Kernels.EFT.Native
 import Lean
 
-/-! Batch adapter for the bounded EFT. Parsing checks widths before constructing
-words. Integer projections below are diagnostics, outside the execution path. -/
+/-! Batch adapter for the bounded EFT. -/
 
 open TensorCore Lean
 

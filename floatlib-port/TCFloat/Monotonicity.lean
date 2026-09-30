@@ -1,7 +1,6 @@
 import TCFloat.DirectedRounding
 
-/-! Parameterized TC nonmonotonicity. The TC computation is unchanged: all output
-claims concern the actual FloatLib toward-zero converter, not an abstract replacement. -/
+/-! Parameterized TC nonmonotonicity. -/
 namespace TCFloat
 set_option maxRecDepth 2048
 set_option maxHeartbeats 800000
@@ -152,8 +151,7 @@ theorem round32_rtz_above_one (x : ℚ) (hx : (1:ℚ)/2 ≤ x) (hx2 : x < 2) :
     rw [hv]
     constructor <;> intro h <;> linarith
 
-/-- General TC-EFT nonmonotonicity threshold (Theorem III.4), for all natural p and K.
-The assumptions constrain the actual product value/raw scale, not the final result. -/
+/-- General TC-EFT nonmonotonicity threshold (Theorem III.4), for all natural p and K. -/
 theorem nonmonotone_perturbation (prof : Profile) (p K : Nat) (a b : Term)
     (hp : prof.extra = p) (hf : ∀ f ∈ prof.floor, f ≤ -1)
     (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).rawScale ≤ -1)
@@ -242,8 +240,7 @@ private theorem prepare_replicate (prof : Profile) (K aw bw c : Nat) (a b d : Te
   simp at hm
   simp [prepare, hk, hc, hm]
 
-/-- The parameterized theorem at the actual encoded FP16 entry point, with arbitrary K/p.
-This theorem does not replace decode, alignment, or conversion with assumed oracles. -/
+/-- The parameterized theorem at the actual encoded FP16 entry point, with arbitrary K/p. -/
 theorem nonmonotone_encoded (K p : Nat) (floor : Option Int)
     (hf : ∀ f ∈ floor, f ≤ -1) (aw bw : Nat) (a b : Term)
     (ha : decode .binary16 aw = some a) (hb : decode .binary16 bw = some b)

@@ -1,8 +1,7 @@
 import TensorCore.Scalar.Precision
 import Init.Data.Float.Model.Unpacked.Round
 
-/-! Bridges from Lean's rounding metadata to the existing rational reference.
-The reference remains independent of the implementation being compared. -/
+/-! Bridges from Lean's rounding metadata to the existing rational reference. -/
 
 namespace TensorCore.IEEE.LeanBridge
 
@@ -16,8 +15,7 @@ def AccuracyRepresents (a : Accuracy) (t : ℚ) (m : ℕ) : Prop :=
   | .inexact .eq => 2 * (t - (m : ℚ)) = 1
   | .inexact .gt => 1 < 2 * (t - (m : ℚ))
 
-/-- Lean's rounding decision agrees with the rational nearest-even reference
-whenever the supplied metadata describes the exact input. -/
+/-- Lean's rounding decision agrees with the rational nearest-even reference whenever the supplied metadata describes the exact input. -/
 theorem accuracy_round_eq_rne (a : Accuracy) (t : ℚ) (m : ℕ)
     (h : AccuracyRepresents a t m) :
     (a.roundToNearestEven m : ℤ) = rneInt t := by
@@ -85,8 +83,7 @@ theorem shiftRightOne_represents (em : ExtendedMantissa) (t : ℚ)
     rw [he] at hm <;> simp only [Rat.natCast_ofNat] at hm
   all_goals grind
 
-/-- Arbitrarily many shifts retain enough information for exact nearest-even
-rounding; this is not restricted to any floating-point format. -/
+/-- Arbitrarily many shifts retain enough information for exact nearest-even rounding; this is not restricted to any floating-point format. -/
 theorem shiftRight_represents (em : ExtendedMantissa) (t : ℚ) (n : ℕ)
     (h : AccuracyRepresents em.accuracy t em.mantissa) :
     AccuracyRepresents (em >>> n).accuracy (t / pow2 (n : ℤ)) (em >>> n).mantissa := by
@@ -105,8 +102,7 @@ theorem shiftRight_represents (em : ExtendedMantissa) (t : ℚ) (n : ℕ)
       grind
     simpa [HShiftRight.hShiftRight, Nat.repeat, pow2_succ, he] using hs
 
-/-- Lean's exact mantissa plus shifts agrees with our rational rounding on
-every nonnegative dyadic coefficient. -/
+/-- Lean's exact mantissa plus shifts agrees with our rational rounding on every nonnegative dyadic coefficient. -/
 theorem shifted_round_eq_rne (m n : ℕ) :
     ((ExtendedMantissa.ofMantissaAndAccuracy m .exact >>> n).roundedMantissa : ℤ) =
       rneInt ((m : ℚ) / pow2 (n : ℤ)) := by
@@ -117,8 +113,7 @@ theorem shifted_round_eq_rne (m n : ℕ) :
       Rat.floor_intCast (m : ℤ)
   · rfl
 
-/-- The binade selected by the rational reference agrees with the integer
-logarithm used by Lean's logical model. -/
+/-- The binade selected by the rational reference agrees with the integer logarithm used by Lean's logical model. -/
 theorem magnitudeExponent_dyadic (m : ℕ) (e : ℤ) (hm : 0 < m) :
     magnitudeExponent ((m : ℚ) * pow2 e) = (m.log2 : ℤ) + e := by
   apply magnitudeExponent_eq_of_bounds
@@ -150,8 +145,7 @@ theorem decreaseExponent_value (m : ℕ) (e target : ℤ) :
   congr 2
   omega
 
-/-- The first alignment and rounding pass computes the reference coefficient
-on any coarser dyadic grid. -/
+/-- The first alignment and rounding pass computes the reference coefficient on any coarser dyadic grid. -/
 theorem shiftToExponent_round_eq (m : ℕ) (e target : ℤ) (he : e ≤ target) :
     ((shiftToExponent m e .exact target).1.roundedMantissa : ℤ) =
       rneInt ((m : ℚ) * pow2 e / pow2 target) := by
@@ -199,8 +193,7 @@ theorem secondPass32 (k : ℕ) (e : ℤ) (hk : k ≤ 2 ^ 24) (he : -149 ≤ e) :
     simp [shiftToTargetExponent, shiftToExponent, hn, hc, HShiftRight.hShiftRight,
       Nat.repeat, ExtendedMantissa.ofMantissaAndAccuracy]
 
-/-- The first normalization pass selects the same exponent and nearest-even
-coefficient as the independent rational reference. -/
+/-- The first normalization pass selects the same exponent and nearest-even coefficient as the independent rational reference. -/
 theorem firstPass32 (m : ℕ) (e : ℤ) (hm : 0 < m) :
     let q := Float.Model.Format.binary32.targetExponent (Float.Model.totalExponent m e)
     let d := decreaseExponent m e q

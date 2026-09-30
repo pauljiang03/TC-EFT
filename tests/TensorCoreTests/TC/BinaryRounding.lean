@@ -1,9 +1,7 @@
 import TensorCore.TC.Conversion
 import TensorCoreTests.TC.Cases
 
-/-! The format-generic converter on FP16, BF16, TF32 (`tf19`), and FP64: ties to even,
-truncation, the finite-range guard, and the underflow boundary, kernel-checked; and the
-correctness theorems instantiated on those four formats. -/
+
 
 namespace TensorCore.Regression
 
@@ -22,9 +20,7 @@ theorem binary_rounding_ties :
     (roundBinary fp64 .nearestEven (1 / 3)).map BitVec.toNat = some 0x3fd5555555555555 := by
   decide +kernel
 
-/-- The finite-range guard rejects `65520`, which IEEE FP16 would round to infinity, and
-accepts the largest finite value; `2^-25` is a tie below the smallest subnormal and rounds
-to zero in both modes. -/
+
 theorem binary_rounding_boundaries :
     roundBinary fp16 .nearestEven 65520 = none ∧
     (roundBinary fp16 .nearestEven 65504).map BitVec.toNat = some 0x7bff ∧

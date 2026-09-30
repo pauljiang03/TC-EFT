@@ -17,9 +17,4 @@ import TensorCore.Numerics.ScalarSum
 import TensorCore.Numerics.Sum
 import TensorCore.Numerics.Truncation
 
-/-! # Numerical foundation
-
-Finite binary representations, exact arithmetic, encodings, and rounding contracts.
-This layer has no TC, EFT, kernel, or test dependencies. Use specific submodules for
-smaller imports; `TensorCore.Numerics.Binary` contains generic-format rounding proofs.
--/
+/-! # Numerical foundation -/

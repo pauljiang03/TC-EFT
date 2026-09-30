@@ -1,10 +1,7 @@
 import Lean
 import TCFloat
 
-/-! Axiom audit generated from the environment: every theorem in the `TCFloat` namespace,
-including generated regression theorems, is listed with the axioms its proof depends on.
-The command fails if any theorem uses an axiom other than `propext`, `Classical.choice`,
-and `Quot.sound`. The combined runner checks the audit summary. -/
+/-! Axiom audit generated from the environment: every theorem in the `TCFloat` namespace, including generated regression theorems, is listed with the axioms its proof depends on. -/
 
 open Lean Elab Command
 

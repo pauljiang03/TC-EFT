@@ -1,11 +1,8 @@
--- Exact Alignment for the tensor-core model.
-
 import TensorCore.TC.Canonical
 
 namespace TensorCore
 
-/-- Sufficient alignment precision for this actual input, retaining raw metadata.
-Zero terms place no restriction on the grid. This is not a monotonicity claim. -/
+/-- Sufficient alignment precision for this actual input, retaining raw metadata. -/
 def PreparedBlock.AlignmentExact (b : PreparedBlock) : Prop :=
   ∀ t ∈ b.terms, t.significand ≠ 0 →
     b.quantumExponent ≤ t.rawScale - t.fractionalBits
@@ -24,8 +21,7 @@ theorem exact_alignment_accumulator (b : PreparedBlock) (h : b.AlignmentExact) :
   · exact truncGrid_exact_of_grid t.significand (t.rawScale - t.fractionalBits)
       b.quantumExponent (h t ht hz)
 
-/-- If padding makes every member exactly alignable, the canonical output is a
-single FP32 RTZ conversion of the independently decoded ideal sum. -/
+/-- If padding makes every member exactly alignable, the canonical output is a single FP32 RTZ conversion of the independently decoded ideal sum. -/
 theorem evalBlock_exact_alignment {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (he : evalBlock x = .ok t) (ha : t.block.AlignmentExact) :
     exactDot x = some t.block.exactDot ∧

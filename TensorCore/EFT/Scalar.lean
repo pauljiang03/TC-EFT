@@ -1,16 +1,11 @@
 import TensorCore.EFT.Extraction
 import TensorCore.Numerics.Binary.ScalarSum
 
-/-! Format-generic scalar consolidation of an FP32-output block (TC-EFT IV.9–IV.11).
-The correction format governs residual addition and overlap subtraction. The final exact
-dyadic sum is rounded directly to FP32: an intermediate rounded addition in a wider format
-would require a separate double-rounding proof. Extraction and guards remain exact Rat work. -/
+/-! Format-generic scalar consolidation of an FP32-output block (TC-EFT IV.9–IV.11). -/
 
 namespace TensorCore
 
-/-- The paper's component predicate with separate minimum-grid, coefficient, and absolute
-range budgets. This is a separately named general predicate; the FP32 baseline is unchanged.
-The final range is FP32, even when the correction format is FP64. -/
+/-- The paper's component predicate with separate minimum-grid, coefficient, and absolute range budgets. -/
 def BlockTrace.scalarPredicateIn (t : BlockTrace) (f : Format) : Bool :=
   decide f.WellFormed && decide (f.emin - f.fractionBits ≤ t.supportExponent) &&
   (t.lowParts == t.lowCoefficients.map fun (z : ℤ) => (z : ℚ) * pow2 t.supportExponent) &&
@@ -20,8 +15,7 @@ def BlockTrace.scalarPredicateIn (t : BlockTrace) (f : Format) : Bool :=
   representableBinary f t.retainedSum &&
   decide (absQ (t.retainedSum + sumQ t.lowParts) ≤ maxFinite32)
 
-/-- Scalar residual additions and overlap subtraction in f, then direct nearest-even FP32
-rounding of the exact final sum. No rounded addition in f occurs at the final boundary. -/
+/-- Scalar residual additions and overlap subtraction in f, then direct nearest-even FP32 rounding of the exact final sum. -/
 def BlockTrace.scalarCorrectedInUnchecked (t : BlockTrace) (f : Format) : Option F32 :=
   (naiveSumBinary f t.lowParts).bind fun etot =>
     (binaryAdd f t.output.value (-t.overlap)).bind fun h =>
@@ -93,8 +87,7 @@ theorem evalBlock_scalarCorrectedIn_correct {p : Profile} {x : BlockInput p} {t 
   rw [← Option.some.inj hz]
   exact hn
 
-/-- The FP32 executor retains exactly the existing operation sequence. The generic
-predicate is separate because its absolute-range test covers more possible grids. -/
+/-- The FP32 executor retains exactly the existing operation sequence. -/
 theorem scalarCorrectedInUnchecked_fp32 (t : BlockTrace) :
     t.scalarCorrectedInUnchecked fp32 = t.scalarCorrectedUnchecked := by
   simp only [BlockTrace.scalarCorrectedInUnchecked, BlockTrace.scalarCorrectedUnchecked,

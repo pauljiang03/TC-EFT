@@ -29,22 +29,15 @@ every compiled public theorem in the full development. Foundational definitions 
 building blocks belong to `Numerics`; application assumptions are explicit arguments,
 not global axioms. See [`axioms.txt`](axioms.txt) for the generated dependency audit.
 
-The independent TC specification use separate mathematical definitions.
+The independent TC specification uses separate mathematical definitions.
 They share standard-library arithmetic and the notation syntax, but their compiled
 mathematical dependencies cannot use implementation declarations. The specification
 audit checks this boundary, including dependencies inside propositions and proofs.
 
-## Generated proof guide
+## Documentation
 
-Run `python3 scripts/generate_proof_docs.py` after changing declarations. The tool
-reads Lean's compiled types, proof bodies, and declaration ranges. It generates the
-detailed proof guide and per-module proof pages, preserving exact source text. Run
-`python3 scripts/generate_proof_docs.py --check` to detect stale output; this check is
-part of the full regression suite.
-
-The readable graph groups generated equations and proof helpers with their owning
-source declaration. `proofs/dependencies.json` preserves the uncollapsed graph,
-including standard-library dependencies and the transitive axiom set of every theorem.
+Keep the guide, executable-test walkthrough, and theorem index current. Link directly
+to Lean declarations instead of copying complete proof bodies into Markdown.
 
 Run `python3 scripts/check_docs.py` to check maintained local links and elaborate every
 Lean code block in the README, guide, test walkthrough, and theorem index. Keep those

@@ -1,0 +1,17 @@
+{
+  "status": "passed",
+  "cases": 99,
+  "mismatches": 0,
+  "profiles": {
+    "V100": 42,
+    "A100": 30,
+    "H100": 27
+  },
+  "scope": "16-position FP16/FP32 instruction paths, ordered group accumulation, zeros, subnormals, and cancellation",
+  "oracle": "Lean instruction outputs compared with independent Fraction arithmetic per ordered normalization group",
+  "source_sha256": {
+    "scripts/check_instruction_groups.py": "6b050385652350590bd5275fc41cada0c0b01ef2f19197be5d6421f497c6cb4e",
+    "scripts/check_features.py": "3ef97ce70bae3ff2fa258bf4d7b60a57f2f9a8ef8d715a59be0403243690002e",
+    "examples/InstructionGroups.lean": "2fef9eb156a9edf8eb90331f0fcecdf2bc5ff5fdf60ceafeeb7ac56f5e13f8d5"
+  }
+}

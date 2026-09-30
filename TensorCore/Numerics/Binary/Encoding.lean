@@ -3,13 +3,7 @@ import TensorCore.Numerics.Binary.RoundOp
 import TensorCore.Numerics.FormatProperties
 import TensorCore.Numerics.Rounding
 
-/-! Finite values and constructed encodings of an arbitrary well-formed IEEE-style `Format`
-(TC-EFT Definition II.1 for FP16, BF16, tf19, FP32, and FP64).
-Non-IEEE special encodings are outside this theorem. This generalizes the
-FP32 results of `Core/EncodingProperties.lean`: every finite decoded value is an integer
-coefficient of magnitude below `2^(p+1)` on the quantum `2^(e−p)` with `emin ≤ e ≤ emax`,
-and `encodeBinary` decodes to the value it was built from, with the coefficient's parity in
-its low bit. -/
+/-! Finite values and constructed encodings of an arbitrary well-formed IEEE-style `Format` (TC-EFT Definition II.1 for FP16, BF16, tf19, FP32, and FP64). -/
 
 namespace TensorCore
 

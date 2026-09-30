@@ -1,7 +1,6 @@
 import TCFloat.Model
 
-/-! The paper's two encoded interfaces. They execute only the FloatLib port.
-The EFT accepts a supplied finite D and does not invoke the TC model. -/
+/-! The paper's two encoded interfaces. -/
 namespace TCFloat.Paper
 
 def tc (p : Profile) (pairs : List (Nat × Nat)) (c : Nat) : Option Nat :=
@@ -20,7 +19,7 @@ def outputResidual (t : Trace) : Rat := t.block.accumulator-t.output
 end TCFloat.Trace
 
 namespace TCFloat.Paper
-/-- Bounded encodings for one block. Shape and finiteness are checked by the functions. -/
+/-- Bounded encodings for one block. -/
 structure Input (p : Profile) where
   products : List (Fin (2^p.format.bitWidth) × Fin (2^p.format.bitWidth))
   c : Fin (2^32)

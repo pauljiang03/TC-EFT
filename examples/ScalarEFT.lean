@@ -1,5 +1,3 @@
--- Scalar EFT for the executable examples.
-
 import TensorCore.EFT.Scalar
 
 open TensorCore

@@ -1,5 +1,3 @@
--- Success for TC-EFT.
-
 import TensorCore.Kernels.EFT.Refinement
 import TensorCore.Numerics.Sum
 
@@ -26,10 +24,7 @@ private theorem unit_product (a b : ℚ) (ha : absQ a ≤ 1) (hb : absQ b ≤ 1)
     have h2 := Rat.mul_nonneg hn1 hn2
     grind
 
-/-- A concrete input-only success family, requiring no bound on the ideal:
-all decoded input operands and c have magnitude at most one. Arbitrary finite D
-is permitted, and every returned encoding is nearest-even to the original dot.
-The derived ideal bound is K+1 ≤ 17. -/
+/-- A concrete input-only success family, requiring no bound on the ideal: all decoded input operands and c have magnitude at most one. -/
 theorem algorithm1_unitInputs_success {path : Path} {x : BlockInput path.profile} {D : F32}
     {b : PreparedBlock} {d : ℚ}
     (shape : x.products.length = path.profile.products)

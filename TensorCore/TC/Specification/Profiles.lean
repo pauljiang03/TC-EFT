@@ -1,9 +1,6 @@
 import TensorCore.TC.Specification.Defs
 
-/-! Independently transcribed parameters of the supported FP32-output paths.
-Accurate Models v4 Table 3 supplies K/F/floor; Table 4 and Section 4.1.6
-distinguish Hopper's TF32 WMMA (four products) and MMA (eight products).
-Architecture aliases with identical arithmetic share a path. -/
+/-! Independently transcribed parameters of the supported FP32-output paths. -/
 
 namespace TensorCore.PaperSpec
 

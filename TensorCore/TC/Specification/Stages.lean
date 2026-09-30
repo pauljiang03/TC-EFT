@@ -2,8 +2,7 @@ import TensorCore.TC.Specification.Defs
 import TensorCore.TC.AcceptedDomain
 import TensorCore.TC.CanonicalFormats
 
-/-! Bridges for decoding and the four pre-conversion stages. Only this proof module
-imports executable semantics; PaperSpec.Definition remains independent. -/
+/-! Bridges for decoding and the four pre-conversion stages. -/
 
 namespace TensorCore.PaperSpec
 

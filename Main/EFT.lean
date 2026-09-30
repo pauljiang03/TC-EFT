@@ -2,9 +2,7 @@ import TensorCore.EFT.Encoded
 import TensorCore.TC.CanonicalFormatDefs
 import Lean
 
-/-! Compiled adapter for the pinned TC-EFT paper validation corpus. All numerical work
-uses the public exact Lean definitions. Text input uses decimal words and checks widths
-before constructing BitVecs; packed TF32 uses the 19-bit mathematical format. -/
+/-! Compiled adapter for the pinned TC-EFT paper validation corpus. -/
 
 open TensorCore Lean
 

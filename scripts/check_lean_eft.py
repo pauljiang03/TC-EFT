@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Compare native EFT accumulation to the bounded reference and IEEE oracle.
-
-The oracle rounds after every addition, rejects nonfinite operands and exact
-sums outside the finite range, and applies EFT's positive exact-zero convention.
-The universal Lean preservation theorems are separate from these samples.
-"""
+"""Compare native EFT accumulation to the bounded reference and IEEE oracle."""
 from collections import Counter
 import hashlib
 import json

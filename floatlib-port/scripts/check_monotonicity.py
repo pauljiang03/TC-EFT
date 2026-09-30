@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Boundary regressions for the universally proved nonmonotonicity family.
-
-These exercise the existing compiled TC implementation; the universal claims are
-kernel-checked separately in TCFloat.Monotonicity and the proof audit.
-"""
+"""Boundary regressions for the universally proved nonmonotonicity family."""
 from pathlib import Path
 from fractions import Fraction as Q
 import json, subprocess

@@ -26,16 +26,7 @@ The [guide](README.md), [theorem index](../TensorCore/THEOREMS.md), and [test wa
 
 ## Proof contracts
 
-| Claim | Scope and preconditions | Main declarations |
-| --- | --- | --- |
-| C01. Finite rounding | Every well-formed IEEE-style binary format, all four modes, rational inputs within maximum finite magnitude. Out-of-range inputs are rejected even when a directed finite result could exist. | [`TensorCore.roundBinary_correct`](../TensorCore/Numerics/Binary/RoundingContract.lean), [`TensorCore.roundBinary_isSome_iff`](../TensorCore/Numerics/Binary/RoundingContract.lean) |
-| C02. Encoding and signed zero | Bijection between finite encoded words and a representable rational value paired with a sign bit. Nonzero signs agree with the value; zero has two representations. Arithmetic exact zero remains +0. | [`TensorCore.signedFiniteBinaryBijection`](../TensorCore/Numerics/Binary/SignedBijection.lean), [`TensorCore.roundBinary_zero`](../TensorCore/Numerics/Binary/RoundingContract.lean) |
-| C03. FP64 fused arithmetic | One exact product plus accumulator, one final rounding in each direction; finite decoded inputs and an in-range exact fused result give success. No intermediate product range restriction. | [`TensorCore.binary64Fma_correct`](../TensorCore/TC/FusedRounding.lean), [`TensorCore.binary64Fma_success`](../TensorCore/TC/FusedRounding.lean) |
-| C04. Tensor-core arithmetic | The selected FP16/BF16/TF32 profiles model raw subnormal scales, alignment, floors, signed truncation, and final conversion. Fixed-width refinement has explicit width/carry assumptions. | [`TensorCore.profile_contract`](../TensorCore/TC/CanonicalFormats.lean), [`TensorCore.PaperSpec.supported_eq_paper`](../TensorCore/TC/Specification/Supported.lean) |
-| C05. Error, recovery, and order | Local error includes final conversion; exact residual recovery composes across encoded accumulators. Nonmonotonicity is proved for the specified realizable input family. Accepted traces and the stated range/profile premises remain explicit. | [`TensorCore.evalBlock_error_bound`](../TensorCore/TC/ErrorBounds.lean), [`TensorCore.runBlocks_residual_ledger`](../TensorCore/TC/Composition.lean), [`TensorCore.nonmonotone_range_encoded`](../TensorCore/TC/MonotonicityRange.lean) |
-| C06. Bounded EFT | All eight paths, shape-correct finite inputs and any finite supplied output D. A fixed 576-bit workspace computes the correctly rounded FP32 ideal when that ideal is in range; refinement preserves result bits. | [`TensorCore.EFMachine.algorithm1_success`](../TensorCore/Kernels/EFT/Correctness.lean), [`TensorCore.EFMachine.algorithm1_range_iff`](../TensorCore/Kernels/EFT/Correctness.lean), [`TensorCore.EFMachine.algorithm1_agrees`](../TensorCore/Kernels/EFT/Refinement.lean) |
-| C07. Eq.20 and extraction | Every permitted coarse extraction grid; Eq.20 supplies the coefficient budget for exact scalar summation. Minimum grid, finite magnitude, and guarded component representability remain hypotheses. | [`TensorCore.ExtractionGrid.eq20_exact_sum`](../TensorCore/EFT/ExtractionGrid.lean), [`TensorCore.ExtractionGrid.eq20_scalarPredicate`](../TensorCore/EFT/ExtractionGrid.lean), [`TensorCore.ExtractionGrid.recovery`](../TensorCore/EFT/ExtractionGrid.lean) |
-| C21. Native EFT scalar execution | Native FP32 scalar additions preserve the complete bounded Algorithm 1 result for every input, including branch tags and errors. All eight supported finite, shape-correct paths retain correct rounding and the exact range/success contract. | [`TensorCore.EFMachine.naiveSum32WithLeanFrom_eq`](../TensorCore/Kernels/EFT/Native.lean), [`TensorCore.EFMachine.algorithm1WithLean_eq`](../TensorCore/Kernels/EFT/Native.lean), [`TensorCore.EFMachine.algorithm1WithLean_correct`](../TensorCore/Kernels/EFT/Native.lean), [`TensorCore.EFMachine.algorithm1WithLean_range_iff`](../TensorCore/Kernels/EFT/Native.lean) |
+The [theorem index](../TensorCore/THEOREMS.md) lists the public results and their premises.
 
 The paper's input-budget inequality is numbered (17) in the manuscript; historical `eq20` identifiers refer to that same sufficient condition. The scalar predicate is a conservative executable sufficient condition. Chosen-grid theorems also permit other valid common grids.
 
@@ -53,7 +44,7 @@ The model rejects nonfinite operands, wrong product counts, and exact accumulato
 | `TensorCore/Scalar` | Scalar proof dependencies for native EFT tests |
 | `Main`, `examples` | Compiled adapters and executable Lean tests |
 | `scripts` | Trust audits and model/EFT validation |
-| `vendor`, `data`, `hardware` | Pinned independent oracles, recorded vectors, regression cases, optional TC hardware tests |
+| `vendor`, `data` | Pinned paper oracles, original recorded inputs/outputs, and regression cases |
 | `floatlib-port` | Independent FloatLib model, proofs, and associated tests |
 
-[Generated proof index](proofs/README.md) · [Trust and style](style.md)
+[Theorem index](../TensorCore/THEOREMS.md) · [Trust and style](style.md)

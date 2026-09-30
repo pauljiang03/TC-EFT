@@ -2,8 +2,7 @@ import TensorCore.TC.Specification.Stages
 import TensorCore.Numerics.Binary.CorrectRounding
 import TensorCore.Numerics.RoundTrip
 
-/-! The ordering-based final-rounding relation selects unique *bits*, including
-signed zero, and the executable converter satisfies it throughout its finite domain. -/
+/-! The ordering-based final-rounding relation selects unique *bits*, including signed zero, and the executable converter satisfies it throughout its finite domain. -/
 
 namespace TensorCore.PaperSpec
 

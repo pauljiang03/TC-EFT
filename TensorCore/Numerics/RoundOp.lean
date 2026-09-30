@@ -1,5 +1,3 @@
--- Round Op for the arithmetic core.
-
 import TensorCore.Numerics.Encoding
 
 namespace TensorCore
@@ -27,8 +25,7 @@ def magnitudeExponent (x : ℚ) : ℤ :=
   let e : ℤ := (x.num.natAbs.log2 : ℤ) - (x.den.log2 : ℤ)
   if x < pow2 e then e - 1 else e
 
-/-- Bit pattern for sign, exponent `e`, and coefficient `k` on `2^(e-23)`. A coefficient
-below `2^23` is the subnormal or zero range and requires `e = -126`. -/
+/-- Bit pattern for sign, exponent `e`, and coefficient `k` on `2^(e-23)`. -/
 def encode32 (negative : Bool) (e k : ℤ) : F32 :=
   BitVec.ofNat 32 ((if negative then 2 ^ 31 else 0) +
     (if k < 2 ^ 23 then k.toNat else (e + 127).toNat * 2 ^ 23 + (k - 2 ^ 23).toNat))
@@ -43,22 +40,18 @@ def convCoeff (mode : RoundingMode) (m : ℚ) : ℤ :=
 /-- A coefficient of `2^24` carries into the next binade. -/
 def carry (e k : ℤ) : ℤ × ℤ := if k = 2 ^ 24 then (e + 1, k / 2) else (e, k)
 
-/-- Conversion core. Exponent overflow is rejected; this is not a complete IEEE
-exception/overflow policy. Use `round32` for the public finite-range contract. -/
+/-- Conversion core. -/
 def round32Core (mode : RoundingMode) (x : ℚ) : Option F32 :=
   if x = 0 then some 0
   else
     let (e', k') := carry (convExp (absQ x)) (convCoeff mode (absQ x))
     if e' > 127 then none else some (encode32 (decide (x < 0)) e' k')
 
-/-- Finite-range reference conversion. Magnitudes above `maxFinite32` are rejected
-before conversion. Exact zero is +0; negative nonzero values rounded to zero keep
-their sign. Extending the accepted range requires a separate overflow contract. -/
+/-- Finite-range reference conversion. -/
 def round32 (mode : RoundingMode) (x : ℚ) : Option F32 :=
   if absQ x > maxFinite32 then none else round32Core mode x
 
-/-- Exponent of the quantum of an encoded output: `E - 150` for a normal encoding with
-exponent field `E`, and `-149` for a subnormal or zero encoding. -/
+/-- Exponent of the quantum of an encoded output: `E - 150` for a normal encoding with exponent field `E`, and `-149` for a subnormal or zero encoding. -/
 def outputQuantumExponent (b : F32) : ℤ :=
   max (((b.toNat / 2 ^ 23 % 2 ^ 8 : ℕ) : ℤ) - 127) emin32 - 23
 
@@ -76,8 +69,7 @@ def magnitudeRounded (mode : RoundingMode) (m : ℚ) : ℚ :=
 def signedRounded (mode : RoundingMode) (x : ℚ) : ℚ :=
   if x < 0 then -magnitudeRounded mode (absQ x) else magnitudeRounded mode (absQ x)
 
-/-- Independent mathematical contract: finite result, nearest finite value, and an
-even low encoding bit whenever another distinct value is equally near. -/
+/-- Independent mathematical contract: finite result, nearest finite value, and an even low encoding bit whenever another distinct value is equally near. -/
 def NearestEven32 (x : ℚ) (b : F32) : Prop :=
   ∃ d : ℚ, value32 b = some d ∧
     (∀ y : ℚ, FiniteValue32 y → absQ (x - d) ≤ absQ (x - y)) ∧

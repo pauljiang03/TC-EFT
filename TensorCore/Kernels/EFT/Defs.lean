@@ -1,11 +1,6 @@
 import TensorCore.Kernels.EFT.DecodeDefs
 
-/-! The complete bounded execution path for TC-EFT Algorithm 1. It reconstructs
-coarse components, low components, and the signed overlap, then chooses scalar
-consolidation or fixed-width exact consolidation. No executable definition calls
-the tensor-core model, original-input ideal, Rat arithmetic, or an unbounded exact
-fallback. All numeric data use fixed-width words; at most 17 terms are accepted.
--/
+/-! The complete bounded execution path for TC-EFT Algorithm 1. -/
 
 namespace TensorCore.EFMachine
 
@@ -19,8 +14,7 @@ structure Prepared where
   grid : Grid
   deriving Repr, DecidableEq
 
-/-- Select the common extraction grid from unnormalized raw exponents. Saturate
-below the common workspace grid; qD is at least 123, so this cannot alter qE. -/
+/-- Select the common extraction grid from unnormalized raw exponents. -/
 def selectedGrid (path : Path) (ts : List Term) (D : F32) : Grid :=
   let eta := ts.foldl (fun e t => if t.word.magnitude == 0 then e
     else if e ≤ t.raw then t.raw else e) path.floor
@@ -46,8 +40,7 @@ structure Components where
   recovered : Word
   deriving Repr, DecidableEq
 
-/-- Lines 13–17 and exact consolidation: preserve the signed identity
-S = D - overlap + sum(low). Every integer addition checks its word capacity. -/
+/-- Lines 13–17 and exact consolidation: preserve the signed identity S = D - overlap + sum(low). -/
 def extract (p : Prepared) : Option Components := do
   let splits := p.terms.map fun t => t.word.split p.grid
   let hi := splits.map WordSplit.coarse
@@ -75,10 +68,7 @@ def magnitudeSumWords : List Magnitude → Option Magnitude
     let s := x + y
     if s < x then none else some s
 
-/-- Sufficient scalar support/range predicate. The grid is obtained from the
-actual nonzero residuals (the paper generator's convention), not from normalized
-products. Grid lower bounds, the strict 24-bit coefficient budget, representability
-of the overlap/retained sum, and the final FP32 range are distinct checks. -/
+/-- Sufficient scalar support/range predicate. -/
 def Components.scalarGuard (c : Components) : Bool :=
   let ell := c.low.foldl (fun e x =>
     if x.magnitude == 0 then e else
@@ -91,15 +81,12 @@ def Components.scalarGuard (c : Components) : Bool :=
   c.overlap.exact32.isSome && c.retained.exact32.isSome &&
   (c.recovered.magnitude ≤ maxMagnitude32)
 
-/-- Naive summation in the specified left-to-right ordering, including encoded
-FP32 boundaries. A nonrepresentable component is refused before scalar execution. -/
+/-- Naive summation in the specified left-to-right ordering, including encoded FP32 boundaries. -/
 def scalarSum (xs : List Word) : Option F32 := do
   let bs ← xs.mapM Word.exact32
   bs.foldlM add32 0
 
-/-- The scalar branch checks the exact intermediate values as well as the support
-guard. These checks are bounded and make the branch sound independently of how
-conservative the sufficient support predicate is. -/
+/-- The scalar branch checks the exact intermediate values as well as the support guard. -/
 def Components.scalar (c : Components) : Option F32 := do
   if !c.scalarGuard then none else do
     let eBits ← scalarSum c.low
@@ -123,8 +110,7 @@ def Result.bits : Result → Option F32
   | .scalar b | .boundedExact b => some b
   | .outOfRange => none
 
-/-- Full bounded Algorithm 1, on each of the eight supported encoded input paths.
-The supplied finite D need not be a conforming model result for exact recovery. -/
+/-- Full bounded Algorithm 1, on each of the eight supported encoded input paths. -/
 def algorithm1 (path : Path) (x : BlockInput path.profile) (D : F32) : Except Error Result := do
   let p ← prepare path x D
   if p.terms.all (fun t => t.word.magnitude == 0) then return .allZero

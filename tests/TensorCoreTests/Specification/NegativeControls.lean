@@ -1,9 +1,7 @@
 import TensorCore.TC.Specification.Composition
 import TensorCoreTests.TC.Cases
 
-/-! Deliberately incorrect evaluators and encoded witnesses separating them from
-the paper specification. These definitions are controls, not part of that spec.
-All numerical witness calculations use kernel reduction. -/
+/-! Deliberately incorrect evaluators and encoded witnesses separating them from the paper specification. -/
 
 namespace TensorCore.PaperSpec.Controls
 
@@ -46,8 +44,7 @@ theorem ieee_alignment_detected :
   · rw [← implementation_eq_paper]
     decide +kernel
 
-/-- A100: p1 = sum_{j=150..155} 2^-j, p2 = 2^-156, p3 = p4 = 2^-157.
-The floor discards p3/p4; removing it spuriously produces the minimum subnormal. -/
+/-- A100: p1 = sum_{j=150..155} 2^-j, p2 = 2^-156, p3 = p4 = 2^-157. -/
 def ampereFloorInput : BlockInput a100BF16F32 :=
   ⟨[(0x1a7c, 0x1a00), (0x1880, 0x1880), (0x1880, 0x1800), (0x1880, 0x1800)] ++
     List.replicate 4 (0, 0), 0⟩

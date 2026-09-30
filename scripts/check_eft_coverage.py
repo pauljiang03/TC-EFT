@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Reproduce PLAN's scalar-predicate cohorts using the actual Lean specification.
-
-Writes eft-coverage.json (summary) and eft-coverage-cases.json (every input, guard
-failure and independent original-input comparison). This is exact-reference
-coverage, not a bounded implementation benchmark or new hardware measurement.
-Run from any directory after `lake build`.
-"""
+"""Check scalar-precondition cohorts using the executable Lean specification."""
 from collections import Counter
 from fractions import Fraction as Q
 from pathlib import Path
@@ -65,8 +59,6 @@ def cases():
             yield dict(cohort='published', device=device, k=k, extra=extra,
                        index=index, words=words, measured=d)
     # Additional application-like signed blocks, cancellation and padded partial tails.
-    # Separate seed preserves the review cohorts exactly. These are constructed inputs,
-    # not a claim about the distribution of a production matrix workload.
     rng = random.Random(SEED + 1)
     for device, k, extra in CONFIGS:
         for index in range(160):
@@ -81,9 +73,6 @@ def cases():
             words.append(rng.choice([0, 0x80000000, 0x3f800000, 0xbf800000, 1]))
             yield dict(cohort='bounded_signed_tails', device=device, k=k, extra=extra,
                        index=index, words=words)
-    # One-block samples inside A's bounded-dot input regime: signed FP16
-    # magnitude < 1/16 and |c| <= 1. This measures local correction coverage;
-    # it is not a theorem or a measurement of the entire composed application.
     rng = random.Random(SEED + 2)
     for device, k, extra in CONFIGS:
         for index in range(160):

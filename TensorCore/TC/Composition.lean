@@ -1,5 +1,3 @@
--- Composition for the tensor-core model.
-
 import TensorCore.TC.StageResiduals
 
 namespace TensorCore
@@ -56,8 +54,7 @@ theorem encoded_trace_ledger (initial : Finite32) (ts : List BlockTrace)
     change t.output.value + _ = _ at h'
     grind
 
-/-- Runnable schedule under one profile. Each call receives the bits returned by its
-predecessor. -/
+/-- Runnable schedule under one profile. -/
 def runBlocks (p : Profile) :
     F32 → List (List (p.Word × p.Word)) → Except ModelError (List BlockTrace)
   | _, [] => .ok []

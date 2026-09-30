@@ -1,5 +1,3 @@
--- Native EFT for TC-EFT.
-
 import TensorCore.Kernels.EFT.Native
 
 namespace TensorCore.Regression.NativeEFT
@@ -36,8 +34,7 @@ theorem exact_residual_sum :
     naiveSum32WithLeanFrom 0 [0x3f800000, 0xbf000000, 0x3e800000] = some 0x3f400000 := by
   decide +kernel
 
-/-- The finite EFT contract rejects even an exact sum just above maxFinite that
-ordinary IEEE nearest-even arithmetic could round back to maxFinite. -/
+/-- The finite EFT contract rejects even an exact sum just above maxFinite that ordinary IEEE nearest-even arithmetic could round back to maxFinite. -/
 theorem exact_range_rejection : add32WithLean 0x7f7fffff 0x3f800000 = none := by decide +kernel
 
 theorem intermediate_range_rejection :

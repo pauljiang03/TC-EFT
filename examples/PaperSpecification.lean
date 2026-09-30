@@ -1,5 +1,3 @@
--- Paper Specification for the executable examples.
-
 import TensorCore.TC.Specification.Composition
 
 open TensorCore

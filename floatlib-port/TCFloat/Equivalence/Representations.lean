@@ -145,8 +145,7 @@ theorem eft_checked_eq (p : Profile) (hf : p.format.isIEEE=true)
     simp [Paper.eftChecked,TensorCore.algorithm1Encoded,TensorCore.prepareEncodedEFT,
       input_length,profile,hs',observe,error]
 
-/-- Paper-scope equivalence through a two-sided input isomorphism, preserving errors,
-EFT branches and all output bits. Applies to every encoded input and supplied D. -/
+/-- Paper-scope equivalence through a two-sided input isomorphism, preserving errors, EFT branches and all output bits. -/
 theorem paper_one_to_one (p : Profile) (hf : PaperFormat p.format)
     (x : TensorCore.BlockInput (profile p)) (D : TensorCore.F32) :
     Paper.tcChecked p (inputEquiv p x)=

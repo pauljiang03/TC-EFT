@@ -1,5 +1,3 @@
--- Round Op for the arithmetic core.
-
 import TensorCore.Numerics.Format
 import TensorCore.Numerics.RoundOp
 
@@ -34,8 +32,7 @@ def binaryConvExp (f : Format) (m : ℚ) : ℤ := max (magnitudeExponent m) f.em
 def binaryCarry (f : Format) (e k : ℤ) : ℤ × ℤ :=
   if k = (2 ^ (f.fractionBits + 1) : ℕ) then (e + 1, k / 2) else (e, k)
 
-/-- All formats use the finite reference domain, including every directed mode.
-Each conversion boundary decodes these returned bits before further arithmetic. -/
+/-- All formats use the finite reference domain, including every directed mode. -/
 def roundBinary (f : Format) (mode : BinaryRoundingMode) (x : ℚ) : Option (BitVec f.width) :=
   if ¬ f.WellFormed then none
   else if absQ x > f.maxFinite then none

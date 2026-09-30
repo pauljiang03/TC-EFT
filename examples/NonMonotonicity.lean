@@ -1,9 +1,7 @@
 import TensorCore.TC.MonotonicityRange
 import TensorCore.EFT.Encoded
 
-/-! Executable witness used by the non-monotonicity and test walkthroughs.
-The calculations and kernel-checked equalities use the production definitions.
--/
+/-! Executable witness used by the non-monotonicity and test walkthroughs. -/
 
 open TensorCore
 namespace TensorCoreExamples.NonMonotonicity

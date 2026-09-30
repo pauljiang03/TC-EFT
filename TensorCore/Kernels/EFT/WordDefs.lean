@@ -1,11 +1,6 @@
 import TensorCore.Kernels.EFT.BitScanDefs
 
-/-! Fixed-width dyadics for the complete finite-input TC-EFT. A magnitude word has
-576 bits (nine 64-bit limbs), on the common grid 2^-272. This grid includes every
-finite FP16/BF16/TF32 product and FP32 value. Signs are separate: all shifts truncate
-magnitudes. The executable definitions in this module use only bounded words and
-Boolean operations; the integer/rational projections are specification functions.
--/
+/-! Fixed-width dyadics for the complete finite-input TC-EFT. -/
 
 namespace TensorCore.EFMachine
 
@@ -27,8 +22,7 @@ def Word.value (x : Word) : ℚ := (x.coefficient : ℚ) * pow2 (-272)
 
 def Word.neg (x : Word) : Word := ⟨!x.negative, x.magnitude⟩
 
-/-- Exact signed addition, rejecting unsigned magnitude overflow. Opposite signs
-use an ordered subtraction, so neither subtraction can borrow. -/
+/-- Exact signed addition, rejecting unsigned magnitude overflow. -/
 def Word.add (x y : Word) : Option Word :=
   if x.negative == y.negative then
     let m := x.magnitude + y.magnitude
@@ -49,8 +43,7 @@ structure WordSplit where
   low : Word
   deriving Repr, DecidableEq
 
-/-- Quotient/remainder extraction at 2^(grid-272). Check the full ten-bit gap
-before shifting: narrowing a gap such as 256 to eight bits would lose the term. -/
+/-- Quotient/remainder extraction at 2^(grid-272). -/
 def Word.split (x : Word) (grid : Grid) : WordSplit :=
   if grid ≥ 576 then ⟨⟨x.negative, 0⟩, x⟩
   else
@@ -84,9 +77,7 @@ def encodeRounded (negative : Bool) (g k : Magnitude) : F32 :=
   let (g, k) := if k == 16777216 then (g + 1, k >>> 1) else (g, k)
   encodeAtGrid negative g k
 
-/-- Direct integer nearest-even conversion to FP32. Both the discarded remainder
-and its halfway threshold stay in the wide word. There is no intermediate FP64
-rounding. Exact zero is +0; a negative nonzero underflow retains its sign. -/
+/-- Direct integer nearest-even conversion to FP32. -/
 def Word.round32 (x : Word) : Option F32 :=
   if x.magnitude > maxMagnitude32 then none
   else if x.magnitude == 0 then some 0

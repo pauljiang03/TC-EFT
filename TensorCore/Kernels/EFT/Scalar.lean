@@ -1,5 +1,3 @@
--- Scalar for TC-EFT.
-
 import TensorCore.Kernels.EFT.Extraction
 
 namespace TensorCore.EFMachine
@@ -27,8 +25,7 @@ theorem Word.exact32_value {x : Word} {b : F32} (h : x.exact32 = some b) :
       obtain ⟨he, rfl⟩ := h
       rw [← decode32Word_value, hd, Option.map_some, Word.sameValue_value he]
 
-/-- The executable scalar primitive is exactly one finite-range nearest-even FP32
-addition. Its wide workspace always accommodates two finite FP32 inputs. -/
+/-- The executable scalar primitive is exactly one finite-range nearest-even FP32 addition. -/
 theorem add32_eq (a b : F32) :
     add32 a b = (do
       let x ← TensorCore.value32 a
@@ -46,8 +43,7 @@ theorem add32_eq (a b : F32) :
       obtain ⟨z, hz⟩ := x.add_exists y (by omega)
       simp [add32, ha, hb, hz, Word.round32_eq, Word.add_value hz]
 
-/-- Exact-intermediate checks make scalar acceptance sound even when a sufficient
-support predicate is conservative. No assumption about scalarSum accuracy is hidden. -/
+/-- Exact-intermediate checks make scalar acceptance sound even when a sufficient support predicate is conservative. -/
 theorem Components.scalar_correct {c : Components} {b : F32} (hc : c.scalar = some b) :
     TensorCore.round32 .nearestEven (c.retained.value + c.residualSum.value) = some b := by
   unfold Components.scalar at hc

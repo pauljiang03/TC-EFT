@@ -12,8 +12,4 @@ import TensorCore.Numerics.Binary.RoundingContract
 import TensorCore.Numerics.Binary.ScalarSum
 import TensorCore.Numerics.Binary.SignedBijection
 
-/-! # Generic finite binary arithmetic
-
-Canonical and signed finite representations, encoding bijections, correctly rounded
-conversions, directed rounding, and exact scalar summation for well-formed formats.
--/
+/-! # Generic finite binary arithmetic -/

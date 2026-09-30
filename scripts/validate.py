@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Independent exact IEEE decoder, common-integer-grid alignment, neighbor oracle.
-
-Only Python's standard library is required. This is differential validation,
-not a Lean theorem or a new GPU experiment.
-"""
+"""Independent exact IEEE decoder, common-integer-grid alignment, neighbor oracle."""
 from fractions import Fraction as Q
 from pathlib import Path
 import json
@@ -73,8 +69,7 @@ def block_oracle(words):
         active = [] if values[0] == 0 else [scale(cbits, 23, 8, 127)]
         for a, b in pairs:
             av, bv = ieee(a, 10, 5, 15), ieee(b, 10, 5, 15)
-            # Lean represents a decoded zero with scale zero; nonzero operands
-            # retain their format scale. A zero product never selects eta.
+            # Lean represents a decoded zero with scale zero; nonzero operands retain their format scale.
             rho = (scale(a, 10, 5, 15) if av else 0) + (scale(b, 10, 5, 15) if bv else 0)
             raw_scales.append(rho)
             values.append(av * bv)

@@ -1,5 +1,3 @@
--- Format for the arithmetic core.
-
 import TensorCore.Numerics.Encoding
 
 namespace TensorCore
@@ -32,7 +30,7 @@ def ValueFormat.classifyNat (f : ValueFormat) (n : ℕ) : Classification :=
 def ValueFormat.decode (f : ValueFormat) (bits : BitVec f.layout.width) : Option Decoded :=
   (f.classifyNat bits.toNat).finite
 
-/-- A value word with required zero low padding. Padding checks are not input rounding. -/
+/-- A value word with required zero low padding. -/
 structure OperandEncoding where
   valueFormat : ValueFormat
   lowPadding : ℕ := 0

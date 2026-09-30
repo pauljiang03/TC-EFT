@@ -1,5 +1,3 @@
--- Decode Defs for TC-EFT.
-
 import TensorCore.Kernels.EFT.WordDefs
 import TensorCore.Kernels.EFT.SplitDefs
 import TensorCore.TC.CanonicalFormatDefs
@@ -23,8 +21,7 @@ structure Factor where
   fraction : Grid
   deriving Repr, DecidableEq
 
-/-- Finite IEEE-style input decoding, including subnormal fractions and zero.
-The input has already been checked for its encoded format width by the typed API. -/
+/-- Finite IEEE-style input decoding, including subnormal fractions and zero. -/
 def decodeFactor (kind : InputKind) (bits : F32) : Option Factor :=
   let f := kind.format
   let e := ((bits >>> f.fractionBits) &&& (((1 : F32) <<< f.exponentBits) - 1)).setWidth 10
@@ -41,14 +38,13 @@ def decodeFactor (kind : InputKind) (bits : F32) : Option Factor :=
 
 structure Term where
   word : Word
-  /-- Raw exponent biased by 512. Do not normalize this metadata. -/
+  /-- Raw exponent biased by 512. -/
   raw : Grid
   /-- Coefficient grid, biased by 272; this may differ for equal real products. -/
   support : Grid
   deriving Repr, DecidableEq
 
-/-- Exact 11-by-11-bit multiplication; conversion to the common dyadic grid
-uses a ten-bit shift, which includes the full BF16/TF32 exponent span. -/
+/-- Exact 11-by-11-bit multiplication; conversion to the common dyadic grid uses a ten-bit shift, which includes the full BF16/TF32 exponent span. -/
 def product (a b : Factor) : Term :=
   let raw := a.raw + b.raw
   let grid := raw - (a.fraction + b.fraction) - 240

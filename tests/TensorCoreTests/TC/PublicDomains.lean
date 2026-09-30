@@ -1,5 +1,3 @@
--- Public Domains for the tensor-core model.
-
 import TensorCore.TC.Canonical
 import TensorCore.TC.Composition
 

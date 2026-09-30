@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Independent integer checks of the complete bounded EFT and final conversion.
-
-The oracle rounds by binary search over ordered FP32 encodings, independently of
-the implementation's leading-bit, quotient, remainder, and carry algorithm.
-"""
+"""Independent integer checks of the complete bounded EFT and final conversion."""
 from collections import Counter
 from fractions import Fraction
 from pathlib import Path

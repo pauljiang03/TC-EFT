@@ -1,5 +1,3 @@
--- Extraction for TC-EFT.
-
 import TensorCore.Kernels.EFT.Preparation
 
 namespace TensorCore.EFMachine
@@ -30,8 +28,7 @@ theorem split_sum (ts : List Term) (g : Grid) :
     simp only [List.map_cons, sumQ]
     grind [Rat.add_assoc, Rat.add_comm]
 
-/-- Capacity comes from decoded inputs, including cancellation between products
-far outside FP32. No representability assumption on an intermediate sum is used. -/
+/-- Capacity comes from decoded inputs, including cancellation between products far outside FP32. -/
 theorem extract_exists {p : Prepared}
     (hp : wordBudget (p.terms.map Term.word) < 2 ^ 555)
     (hd : p.output.magnitude.toNat < 2 ^ 424) : ∃ c, extract p = some c := by
@@ -54,8 +51,7 @@ theorem extract_exists {p : Prepared}
     dsimp only [lo] at he
     simp [-List.map_map, extract, hi, lo, Word.sub, hh, ho, he, hdd, hs]⟩
 
-/-- The complete signed extraction identity. In particular the overlap is D-H;
-its sign includes the output truncation residual when the two grids coincide. -/
+/-- The complete signed extraction identity. -/
 theorem extract_spec {p : Prepared} {c : Components} (hc : extract p = some c) :
     c.prepared = p ∧
     c.coarse = (p.terms.map fun t => t.word.split p.grid).map WordSplit.coarse ∧

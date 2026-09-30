@@ -27,8 +27,7 @@ private theorem cast_div_pow2 (x : ℚ) (e : Int) :
     ((x / pow2 e : ℚ) : ℝ) = (x:ℝ)/(2:ℝ)^e := by
   simp only [pow2, Rat.cast_div, Rat.cast_zpow, Rat.cast_ofNat]
 
-/-- Exact executable RTZ behavior within a normal binary interval. This connects the
-FloatLib packer to the rational grid used by the TC model; it is not an assumed contract. -/
+/-- Exact executable RTZ behavior within a normal binary interval. -/
 theorem round32_rtz_normal (x : ℚ) (e : Int) (hmin : -126 ≤ e) (hmax : e ≤ 127)
     (hlow : pow2 e ≤ x) (hhigh : x < pow2 (e+1)) (hrange : |x| ≤ maxFinite32) :
     ∃ bits y, round32 .towardZero x = some bits ∧ value32 bits = some y ∧

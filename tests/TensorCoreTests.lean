@@ -18,9 +18,4 @@ import TensorCoreTests.TC.Instruction
 import TensorCoreTests.TC.Monotonicity
 import TensorCoreTests.TC.PublicDomains
 
-/-! # Regression and trust checks
-
-This separate test library imports the production library and all maintained witnesses.
-`import TensorCore` does not import tests. Mathematical declaration namespaces remain
-unchanged; use `tests/README.md` for the executable test walkthrough.
--/
+/-! # Regression and trust checks -/

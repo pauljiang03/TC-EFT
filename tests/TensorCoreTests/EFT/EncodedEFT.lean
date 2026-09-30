@@ -1,5 +1,3 @@
--- Encoded EFT for TC-EFT.
-
 import TensorCore.EFT.Encoded
 import TensorCore.TC.EncodedMonotonicity
 import TensorCoreTests.EFT.EFT

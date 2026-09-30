@@ -1,10 +1,7 @@
 import TCFloat.Monotonicity
 import TensorCore.EFT.Encoded
 
-/-! Bridges to the actual, unchanged source definitions. The source is compiled into
-this project's build directory from a hash-checked compatibility copy. Only parser
-notation declarations are scoped; source arithmetic is unchanged and never used by
-the port runtime. -/
+/-! Bridges to the actual, unchanged source definitions. -/
 namespace TCFloat.Equivalence
 open FloatLib.Floats.Formats.BinaryInterchange
 
@@ -50,8 +47,7 @@ def project (t : Term) : TensorCore.Decoded :=
   · simp [h, abs_of_neg h]
   · simp [h, Int.natAbs_of_nonneg (le_of_not_gt h)]
 
-/-- Canonical FloatLib terms: consistent scale metadata, with the source's single zero sign.
-The unrestricted runtime carrier remains available; this is the paper representation. -/
+/-- Canonical FloatLib terms: consistent scale metadata, with the source's single zero sign. -/
 def CanonicalTerm := {t : Term // term (project t) = t}
 
 /-- A genuine two-sided representation equivalence, for arbitrary integer terms. -/

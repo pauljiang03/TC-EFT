@@ -1,5 +1,3 @@
--- Composition for the tensor-core model.
-
 import TensorCore.TC.Specification.Supported
 import TensorCore.TC.Specification.Schedule
 import TensorCore.TC.Composition

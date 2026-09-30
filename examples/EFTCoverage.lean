@@ -2,9 +2,7 @@ import TensorCore.EFT.Extraction
 import TensorCore.TC.CanonicalDefs
 import Lean
 
-/-! Exact-reference coverage runner. Input: decimal K, extra, then interleaved hex FP16
-words and one hex FP32 accumulator. No fixed target registration is needed:
-`lake env lean --run examples/EFTCoverage.lean INPUT`. -/
+/-! Exact-reference coverage runner. -/
 
 open TensorCore Lean
 

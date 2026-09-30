@@ -1,8 +1,6 @@
 import TensorCore.Numerics.Encoding
 
-/-! Bounded binary searches for the bit support of a 576-bit magnitude. Numeric
-data remain bitvectors; natural numbers control the search within [0, 576]. Each
-scan makes at most ten probes and never constructs a reversed wide word. -/
+/-! Bounded binary searches for the bit support of a 576-bit magnitude. -/
 
 namespace TensorCore.EFMachine
 

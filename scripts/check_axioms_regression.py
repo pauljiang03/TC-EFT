@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Check the standalone audit against cold, stale, and repaired library sources.
-
-The temporary Lean project uses the real audit scripts with a small imported module.
-No project sources, build caches, or audit reports are modified by this regression.
-"""
+"""Check the standalone audit against cold, stale, and repaired library sources."""
 from pathlib import Path
 import json
 import shutil
@@ -49,8 +45,7 @@ def main():
         baseline = report.read_text()
         require('TensorCore.auditBaseline' in baseline, 'Cold audit omitted the imported theorem')
 
-        # No proof shortcut is used: only rebuilding can catch this invalid proof
-        # while the compiled module still contains the valid baseline theorem.
+        # No proof shortcut is used: only rebuilding can catch this invalid proof while the compiled module still contains the valid baseline theorem.
         source.write_text(valid + 'theorem auditInvalid : False := by decide\nend TensorCore\n')
         stale = audit()
         require(stale.returncode != 0, 'Audit accepted broken source behind a valid build cache')

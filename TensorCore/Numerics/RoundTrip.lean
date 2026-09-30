@@ -1,7 +1,6 @@
 import TensorCore.Numerics.ScalarSum
 
-/-! Decoder/encoder round trip: converting the value of a nonzero finite FP32 encoding, in
-either rounding mode, returns exactly that encoding. -/
+/-! Decoder/encoder round trip: converting the value of a nonzero finite FP32 encoding, in either rounding mode, returns exactly that encoding. -/
 
 namespace TensorCore
 

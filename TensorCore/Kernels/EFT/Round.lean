@@ -1,5 +1,3 @@
--- Round for TC-EFT.
-
 import TensorCore.Kernels.EFT.Dyadic
 import TensorCore.Kernels.EFT.BitScan
 
@@ -269,8 +267,7 @@ theorem Word.range_iff (x : Word) :
   · intro h
     exact Rat.mul_le_mul_of_nonneg_right (Rat.natCast_le_natCast.mpr h) (Rat.le_of_lt hp)
 
-/-- Universal bit-for-bit refinement of the fixed-width final converter, including
-range rejection, ties, carries, subnormals, and both signs of underflowed zero. -/
+/-- Universal bit-for-bit refinement of the fixed-width final converter, including range rejection, ties, carries, subnormals, and both signs of underflowed zero. -/
 theorem Word.round32_eq (x : Word) :
     x.round32 = TensorCore.round32 .nearestEven x.value := by
   by_cases hr : x.magnitude ≤ maxMagnitude32

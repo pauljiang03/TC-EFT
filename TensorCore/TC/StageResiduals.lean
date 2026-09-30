@@ -1,5 +1,3 @@
--- Stage Residuals for the tensor-core model.
-
 import TensorCore.TC.Block
 
 namespace TensorCore

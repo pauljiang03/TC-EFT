@@ -1,5 +1,3 @@
--- Bounded EFT for the executable examples.
-
 import TensorCore.Kernels.EFT.Success
 
 open TensorCore
@@ -16,8 +14,7 @@ example (m : EFMachine.Magnitude) :
     EFMachine.leadingZeros m = m.clz ∧ EFMachine.trailingZeros m = m.ctz :=
   ⟨EFMachine.leadingZeros_eq m, EFMachine.trailingZeros_eq m⟩
 
-/-- The public contract needs only finite decoded inputs, a finite supplied D,
-and the independent ideal's finite range. It does not assume recovery identities. -/
+/-- The public contract needs only finite decoded inputs, a finite supplied D, and the independent ideal's finite range. -/
 example (path : EFMachine.Path) (x : BlockInput path.profile) (D : F32) (s d : ℚ)
     (shape : x.products.length = path.profile.products)
     (inputs : exactDot x = some s) (output : value32 D = some d)

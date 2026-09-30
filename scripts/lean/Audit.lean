@@ -1,10 +1,7 @@
 import Lean
 import TensorCoreTests
 
-/-! Axiom audit generated from the environment: every theorem in the `TensorCore` namespace,
-including generated regression theorems, is listed with the axioms its proof depends on.
-The command fails if any theorem uses an axiom other than `propext`, `Classical.choice`,
-and `Quot.sound`. `scripts/check_axioms.py` parses this output. -/
+/-! Axiom audit generated from the environment: every theorem in the `TensorCore` namespace, including generated regression theorems, is listed with the axioms its proof depends on. -/
 
 open Lean Elab Command
 

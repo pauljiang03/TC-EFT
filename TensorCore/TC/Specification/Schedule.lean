@@ -1,10 +1,6 @@
 import TensorCore.TC.Specification.Defs
 
-/-! Ordered group composition. The order is supplied explicitly, and every group
-consumes its predecessor's encoded FP32 result. The empty low-level schedule is
-a no-op even for a nonfinite initial word, matching the explicit boundary of this
-API; each nonempty group checks its inputs through Result. No grouping, matrix
-indexing, instruction mapping, or physical conformance is inferred here. -/
+/-! Ordered group composition. -/
 
 namespace TensorCore.PaperSpec
 

@@ -1,5 +1,3 @@
--- Canonical Floor for the tensor-core model.
-
 import TensorCore.TC.Canonical
 
 namespace TensorCore
@@ -88,8 +86,7 @@ theorem alignmentScale_lower (ts : List RawProduct) (lower e : ℤ)
   have hl := h t ht hnz
   omega
 
-/-- Any floor at most -126 is inactive on a prepared canonical invocation.
-All-zero is included: the maximum and eta both remain `none`. -/
+/-- Any floor at most -126 is inactive on a prepared canonical invocation. -/
 theorem canonical_eta_floor_inactive (K extra : ℕ) (floor : Option ℤ)
     (hf : ∀ f ∈ floor, f ≤ -126)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)

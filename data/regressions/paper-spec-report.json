@@ -32,19 +32,19 @@
     "Quot.sound"
   ],
   "source_sha256": {
-    "TensorCore/TC/Specification/Composition.lean": "235e79320570a7f26315705b37878bdec89eda8d917e516c9ee646c069eeef8e",
-    "TensorCore/TC/Specification/Defs.lean": "6be5b501f6e1f6ce6415b9180be155a38b0ed079c50b0ffd45f521a4d0f9ad42",
-    "TensorCore/TC/Specification/Equivalence.lean": "21ac12e7a13c3cde7fcb86463666d528f8957d203b77cbffe561e3c444268f96",
-    "TensorCore/TC/Specification/Profiles.lean": "58798ca801609ac7cf545e5b37a638567715d400d2ea2b17e941fb3abed24d24",
-    "TensorCore/TC/Specification/Rounding.lean": "f6a53bfa9e43dd9ef5fa04af571791ab5e884e93f3fce00be7f5d254083c337f",
-    "TensorCore/TC/Specification/Schedule.lean": "415d5e768ea279d06621bc404dada1648370861f6b8c4f6b50df7d0ec4663340",
-    "TensorCore/TC/Specification/Stages.lean": "9bd0eb1881a9eceb316a2a3822a65c3e98cdebc07b1b554ba7e5336d6017d434",
-    "TensorCore/TC/Specification/Supported.lean": "707d5b1d05cdb5ca41394c8c6af4fc5a63c8fa271d43a92db99f513ca0f7bfc3",
-    "tests/TensorCoreTests/Specification/Audit.lean": "6b0883110e76fa1be2a6106702bf6a49db0614e29bdf0bf59bfe0eacb6db4226",
-    "tests/TensorCoreTests/Specification/NegativeControls.lean": "3dba1bd77072156ca6e82e0a0bf5323409f81bfb39f8cd04836ca044f50fccb0",
+    "TensorCore/TC/Specification/Composition.lean": "70862df96b1cd9658a46033b86c7ffb01457175d3de8ce0117384711ff99465c",
+    "TensorCore/TC/Specification/Defs.lean": "b35173c641324bb76d4ed6b8de3e52bc0f50a3b17edd6165a4ca5b09bce6ab51",
+    "TensorCore/TC/Specification/Equivalence.lean": "88a632e2531f6538704b5e79bb53cbc82e638733888c9fcd5cfc9655c2a487c1",
+    "TensorCore/TC/Specification/Profiles.lean": "8ca2d59a5cc3c356db457a7cd270648cfbd701e6e916be02838add9536f70610",
+    "TensorCore/TC/Specification/Rounding.lean": "1cd0b7721ac7359885bb8e3cc73994835ecca5bc105fd01c86812d314354ab32",
+    "TensorCore/TC/Specification/Schedule.lean": "6cda1c65fc6d0863d5680034a8b4644458ddedbbaa657328d358721cb4cc8f12",
+    "TensorCore/TC/Specification/Stages.lean": "946769658a246426d57e83af0911b9e5c82fc57a453078e94a1e39076267a120",
+    "TensorCore/TC/Specification/Supported.lean": "79a645eaa1e906b76fd009e84588f562e7796a673d58c805b252ca4704639631",
+    "tests/TensorCoreTests/Specification/Audit.lean": "8d097db27cb841d52b3712ea9d536d3fe89252b1ce1638e686de8002bfed80ac",
+    "tests/TensorCoreTests/Specification/NegativeControls.lean": "40a0486bb97d7c0f1b681337321748b6038d2a582cfbe1163ea6adbaefbb49be",
     "scripts/lean/PaperSpecAudit.lean": "6eec4a0d9fe5aa0ec15c5c3ade25b3c96f5ce84ff546ed3648e9c22c9f9f18d7",
-    "examples/PaperSpecification.lean": "278654098dfbccc3bb1fb390106ad2f11df064483da1c5ed40319b6fd30a1987",
-    "scripts/check_paper_spec.py": "710f7555bfe15f2f62db638f509121f45a474c4da6d92890bb72d0b3392fdd30"
+    "examples/PaperSpecification.lean": "bfdbf16fa7aadac01315f8edfa1166c0eeaa17ab301bba75f9ee40d45d20111b",
+    "scripts/check_paper_spec.py": "c545cfacfcb1f31985feec3ae0ab2591dd01c089865855fb2467a973e968adc4"
   },
   "limitations": [
     "Paper-to-formula correspondence remains a human review obligation",

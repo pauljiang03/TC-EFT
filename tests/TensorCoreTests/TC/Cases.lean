@@ -1,5 +1,3 @@
--- Cases for the tensor-core model.
-
 import TensorCore.TC.StageResiduals
 
 namespace TensorCore.Regression

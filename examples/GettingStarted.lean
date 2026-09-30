@@ -1,9 +1,7 @@
 import TensorCore.TC
 import TensorCore.EFT
 
-/-! Checked calculation and proof for the first guide chapter.
-Run `lake env lean examples/GettingStarted.lean` from the repository root.
--/
+/-! Checked calculation and proof for the first guide chapter. -/
 
 open TensorCore
 namespace TensorCoreExamples.GettingStarted
@@ -12,7 +10,7 @@ namespace TensorCoreExamples.GettingStarted
 def modelBits {p : Profile} (x : BlockInput p) : Except ModelError F32 :=
   (evalBlock x).map fun t => t.output.bits
 
-/-- Four products of one and a zero accumulator. Words encode values exactly. -/
+/-- Four products of one and a zero accumulator. -/
 def ones : BlockInput v100F16F32 :=
   ⟨List.replicate 4 (0x3c00, 0x3c00), 0⟩
 

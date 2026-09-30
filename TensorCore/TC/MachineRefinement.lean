@@ -1,5 +1,3 @@
--- Machine Refinement for the tensor-core model.
-
 import TensorCore.TC.AlignmentScale
 import TensorCore.TC.CanonicalDefs
 
@@ -11,8 +9,7 @@ theorem evalPreparedMachine_eq (b : PreparedBlock) (w : ℕ) (hw : 0 < w)
   simp only [evalPreparedMachine, evalPrepared, machineAccumulator_eq b w hw h]
   rfl
 
-/-- All encoded inputs have identical reference and machine results at any adequate
-width. This includes wrong shapes, nonfinite operands, and output-range rejections. -/
+/-- All encoded inputs have identical reference and machine results at any adequate width. -/
 theorem evalBlockMachine_eq {p : Profile} (x : BlockInput p) (w F carryBits : ℕ)
     (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits)
     (hw : F + 2 + carryBits + 1 ≤ w) : evalBlockMachine w x = evalBlock x := by

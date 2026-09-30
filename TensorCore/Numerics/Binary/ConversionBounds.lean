@@ -1,9 +1,7 @@
 import TensorCore.Numerics.Binary.Encoding
 import TensorCore.Numerics.ConversionBounds
 
-/-! Exponent and coefficient selection of `roundBinary` for any well-formed format and
-all four directed modes: bounds on the selected exponent, on the selected coefficient, and
-the carry into the next binade. -/
+
 
 namespace TensorCore
 
@@ -60,8 +58,7 @@ theorem floor_le_ceil (t : ℚ) : t.floor ≤ t.ceil := by
   have h2 := Rat.le_ceil (x := t)
   exact Rat.intCast_le_intCast.mp (Rat.le_trans h1 h2)
 
-/-- Every mode selects a coefficient between the floor and the ceiling of the scaled
-magnitude, hence within `[0, N]` for a magnitude below `N`. -/
+/-- Every mode selects a coefficient between the floor and the ceiling of the scaled magnitude, hence within `[0, N]` for a magnitude below `N`. -/
 theorem binaryCoefficient_bounds (mode : BinaryRoundingMode) (negative : Bool) (t : ℚ)
     (N : ℕ) (ht : 0 ≤ t) (htop : t < (N : ℚ)) :
     0 ≤ binaryCoefficient mode negative t ∧ binaryCoefficient mode negative t ≤ N ∧

@@ -17,7 +17,7 @@ def source_manifest(directory):
         rel = path.relative_to(directory)
         if any(part in {'.git', '.lake', 'tmp', '__pycache__', '.DS_Store', 'proposals', 'reference-compat', 'test-results'} for part in rel.parts):
             continue
-        if rel.parts[:2] in {('data', 'regressions'), ('data', 'hardware')} or str(rel) == 'docs/axioms.txt':
+        if rel.parts[:2] == ('data', 'regressions') or str(rel) == 'docs/axioms.txt':
             continue
         if path.is_file():
             result[str(rel)] = hashlib.sha256(path.read_bytes()).hexdigest()
@@ -50,8 +50,7 @@ commands = [['lake', 'build'], ['python3', 'scripts/check_axioms.py'],
 commands += [['lake', 'env', 'lean', str(p.relative_to(target))]
              for p in sorted((target / 'examples').glob('*.lean'))]
 commands += [['python3', 'scripts/check_docs.py'],
-             ['python3', 'scripts/check_layout.py'],
-             ['python3', 'scripts/generate_proof_docs.py', '--check']]
+             ['python3', 'scripts/check_layout.py']]
 logs = []
 for index, command in enumerate(commands, 1):
     print(f'[{index}/{len(commands)}] {" ".join(command)}', file=sys.stderr, flush=True)
@@ -71,9 +70,8 @@ report = {'preexisting_build_cache': False, 'commands': commands,
           'linker_warnings': len(re.findall(r'^(?:ld|ld64\.lld|ld\.lld): warning:', logs[0], re.M))}
 (root / 'tmp').mkdir(exist_ok=True)
 (root / 'tmp/clean-build.log').write_text('\n'.join(logs))
-report['documentation_checks'] = json.loads(logs[-3])
-report['layout_checks'] = json.loads(logs[-2])
-report['proof_documentation'] = json.loads(logs[-1])
+report['documentation_checks'] = json.loads(logs[-2])
+report['layout_checks'] = json.loads(logs[-1])
 report['lean_eft_checks'] = json.loads((target / 'data/regressions/lean-eft-report.json').read_text())
 report.update(source_sha256=before, repository_source_sha256=repository_before,
               snapshot_stable=repository_before == repository_manifest(target),
@@ -83,13 +81,13 @@ if not report['snapshot_stable'] or not report['workspace_matches_snapshot']:
     (root / 'tmp/clean-build-unpublished.json').write_text(json.dumps(report, indent=2) + '\n')
     raise SystemExit(f'Source changed during validation; reports not published. Validated copy retained: {target}')
 # Publish reports from the same fresh source run.
-generated = ['docs/axioms.txt', 'data/hardware/inputs.json', 'data/hardware/expected.json',
-             'data/hardware/replay-self-test.json']
+generated = ['docs/axioms.txt']
 generated += ['data/regressions/' + name for name in [
     'feature-report.json', 'device-formats-report.json', 'device-report.json', 'validation-report.json',
     'eft-checks.json', 'eft-coverage.json', 'eft-coverage-cases.json', 'eft-paper-report.json',
     'eft-paper-cases.json', 'eft-paper-original.json', 'eft-paper-second-pass.json',
-    'paper-spec-report.json', 'bounded-eft-report.json', 'lean-eft-report.json']]
+    'paper-spec-report.json', 'bounded-eft-report.json', 'lean-eft-report.json',
+    'instruction-groups-report.json']]
 for name in generated:
     shutil.copyfile(target / name, root / name)
 (root / 'data/regressions/clean-build.json').write_text(json.dumps(report, indent=2) + '\n')

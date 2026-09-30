@@ -1,5 +1,3 @@
--- Bounded EFT for TC-EFT.
-
 import TensorCore.Kernels.EFT.Correctness
 import TensorCoreTests.EFT.EFT
 
@@ -26,7 +24,7 @@ theorem zero_and_rejections :
     EFMachine.algorithm1 .v100F16 ⟨[(0x3c00, 0x3c00), (0, 0), (0, 0), (0, 0)], 0x7f7fffff⟩ 0 =
       .ok .outOfRange := by decide +kernel
 
-/-- Products near 2^256 cancel exactly. The scalar final input is still ordinary FP32. -/
+/-- Products near 2^256 cancel exactly. -/
 theorem wide_cancellation :
     (EFMachine.algorithm1 .ampereBF16
       ⟨[(0x7f7f, 0x7f7f), (0xff7f, 0x7f7f)] ++ List.replicate 6 (0, 0), 0x3f800000⟩
@@ -53,8 +51,7 @@ theorem tiny_products :
     (EFMachine.algorithm1 .ampereTF32 ⟨[(0x40001, 1)] ++ List.replicate 3 (0, 0), 0⟩ 0).map
       Result.bits = .ok (some 0x80000000) := by decide +kernel
 
-/-- Every workspace bit is a possible support boundary, including positions far
-above FP32's range and shifts that cannot be represented by an eight-bit count. -/
+/-- Every workspace bit is a possible support boundary, including positions far above FP32's range and shifts that cannot be represented by an eight-bit count. -/
 theorem single_bit_scans : ∀ i : Fin 576,
     leadingZeros ((1 : Magnitude) <<< i.val) = BitVec.ofNat 576 (575 - i.val) ∧
     trailingZeros ((1 : Magnitude) <<< i.val) = BitVec.ofNat 576 i.val := by decide +kernel

@@ -11,8 +11,7 @@ import check_revision as oracle
 from check_replay import run
 
 def main():
-    # Exact 1 + 2^-24 is a midpoint; the even result is 1. D is deliberately
-    # unrelated to the TC model, including signed zero and both finite extremes.
+    # Exact 1 + 2^-24 is a midpoint; the even result is 1. unrelated to the TC model, including signed zero and both finite extremes.
     values=[0,0x80000000,1,0x80000001,0x3f000000,0x3f800000,0xbf800000,0x7f7fffff,0xff7fffff]
     rows=[f'block fp16 1 0 none 3072 3072 1065353216 {d}' for d in values]
     results=run(rows,'supplied-D')

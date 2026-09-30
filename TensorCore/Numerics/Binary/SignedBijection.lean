@@ -1,8 +1,6 @@
 import TensorCore.Numerics.Binary.RoundTrip
 
-/-! Numerical finite bijection: a representable rational together with a sign bit.
-For a nonzero rational the sign is forced; zero has two representations. Both
-maps are executable, and the inverse laws are kernel checked. -/
+/-! Numerical finite bijection: a representable rational together with a sign bit. -/
 
 namespace TensorCore
 
@@ -54,8 +52,7 @@ def decodeSignedBinary (f : Format) (hf : f.WellFormed) (b : FiniteBinaryWord f)
   ⟨(decodeBinaryRep f hf b).value, binarySign f b.val,
     (decodeBinaryRep f hf b).finiteValue, (decodeBinaryRep f hf b).sign_of_nonzero⟩
 
-/-- Exact encoding of an arithmetic finite value, using the existing converter.
-Zero here follows the converter's positive-zero convention. -/
+/-- Exact encoding of an arithmetic finite value, using the existing converter. -/
 def exactFiniteWord (f : Format) (hf : f.WellFormed) (v : ℚ) (hv : f.FiniteValue v) :
     FiniteBinaryWord f :=
   match h : roundBinary f .nearestEven v with
@@ -129,8 +126,7 @@ theorem encode_decodeSignedBinary (f : Format) (hf : f.WellFormed) (b : FiniteBi
   · exact decodeBinaryRep_value f hf b
   · exact encodeSignedBinary_sign f hf _
 
-/-- Finite IEEE words correspond bijectively to representable rationals with two zeros.
-For nonzero values the sign is determined, so there is exactly one representation. -/
+/-- Finite IEEE words correspond bijectively to representable rationals with two zeros. -/
 def signedFiniteBinaryBijection (f : Format) (hf : f.WellFormed) :
     BinaryBijection (SignedFiniteValue f) (FiniteBinaryWord f) :=
   ⟨encodeSignedBinary f hf, decodeSignedBinary f hf,

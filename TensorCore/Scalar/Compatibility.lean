@@ -1,11 +1,8 @@
--- Compatibility for IEEE scalar arithmetic.
-
 import TensorCore.Scalar.Specification
 
 namespace TensorCore.IEEE
 
-/-- Same-format IEEE conversion fixes every finite encoding, including both
-zero encodings, and raises no exception in any rounding direction. -/
+/-- Same-format IEEE conversion fixes every finite encoding, including both zero encodings, and raises no exception in any rounding direction. -/
 theorem convert_self_finite (f : BinaryFormat) (cfg : Context) (a : Word f)
     (s : Bool) (x : ℚ) (hd : decode f a = .finite s x) :
     convert f f cfg a = ⟨a, {}⟩ := by
@@ -50,8 +47,7 @@ theorem convert_quietNaN_roundtrip (source target : BinaryFormat) (cfg : Context
   simp [convert, convertDatum, decode_nan, Nat.mod_eq_of_lt hp, Nat.mod_eq_of_lt hpt,
     convertPayload_roundtrip source target p hw]
 
-/-- Finite FMA uses only a final range condition: its exact product is not rounded
-or required to fit the destination before adding the original accumulator. -/
+/-- Finite FMA uses only a final range condition: its exact product is not rounded or required to fit the destination before adding the original accumulator. -/
 theorem fma_finite_contract (f : BinaryFormat) (cfg : Context) (a b c : Word f)
     (sa sb sc : Bool) (x y z : ℚ)
     (ha : decode f a = .finite sa x) (hb : decode f b = .finite sb y)

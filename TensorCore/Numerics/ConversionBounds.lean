@@ -1,5 +1,3 @@
--- Conversion Bounds for the arithmetic core.
-
 import TensorCore.Numerics.Rounding
 
 namespace TensorCore

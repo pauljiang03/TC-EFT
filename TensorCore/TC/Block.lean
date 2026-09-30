@@ -1,5 +1,3 @@
--- Block for the tensor-core model.
-
 import TensorCore.Numerics.RawProduct
 import TensorCore.TC.Defs
 import TensorCore.Numerics.RoundOp
@@ -51,7 +49,7 @@ def alignmentScale (ts : List RawProduct) : Option ℤ :=
 def PreparedBlock.eta (b : PreparedBlock) : Option ℤ :=
   b.profile.applyFloor (alignmentScale b.terms)
 
-/-- Grid exponent `eta - F`. In an all-zero block any grid is equivalent. -/
+/-- Grid exponent `eta - F`. -/
 def PreparedBlock.quantumExponent (b : PreparedBlock) : ℤ :=
   b.eta.getD 0 - b.profile.alignFraction
 
@@ -64,7 +62,7 @@ def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
 def PreparedBlock.alignmentResiduals (b : PreparedBlock) : List ℚ :=
   b.terms.map fun t => t.value - truncGrid t.value b.quantumExponent
 
-/-- Exact stage extractor for any supplied numerical output. No conformance assumption. -/
+/-- Exact stage extractor for any supplied numerical output. -/
 def PreparedBlock.extractReference (b : PreparedBlock) (d : ℚ) : ℚ :=
   (b.accumulator - d) + sumQ b.alignmentResiduals
 

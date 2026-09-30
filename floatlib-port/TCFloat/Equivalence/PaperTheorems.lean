@@ -172,8 +172,7 @@ def belowTerm (j : Nat) : Term :=
 theorem belowTerm_project (j : Nat) : project (belowTerm j)=TensorCore.belowDecoded j :=
   project_term (TensorCore.belowDecoded j)
 
-/-- Paper Theorem III.5 in the port: arbitrary p, K and perturbation j, including
-the exact increase, threshold and maximum. Transport uses the proved converter/block bridge. -/
+/-- Paper Theorem III.5 in the port: arbitrary p, K and perturbation j, including the exact increase, threshold and maximum. -/
 theorem paper_nonmonotone_range (prof : Profile) (p K j : Nat) (a b : Term)
     (hp : prof.extra=p) (ha : ValidTerm a) (hb : ValidTerm b)
     (hf : ∀ f ∈ prof.floor, f≤ -1)
@@ -214,8 +213,7 @@ theorem paper_nonmonotone_range (prof : Profile) (p K j : Nat) (a b : Term)
   · simpa only [pow2_eq] using hy
   · simpa only [pow2_eq] using hu
 
-/-- Every representable value in the source's finite FP32 set passes the port's test,
-and every value passing that test belongs to exactly that set. -/
+/-- Every representable value in the source's finite FP32 set passes the port's test, and every value passing that test belongs to exactly that set. -/
 theorem finiteValue32_iff_representable (x : Rat) :
     TensorCore.FiniteValue32 x ↔ TCFloat.representable x=true := by
   rw [representable_eq]
@@ -231,8 +229,7 @@ private theorem sum_map_difference (xs : List Rat) (f g : Rat → Rat) :
   | nil => simp
   | cons x xs ih => simp only [List.map_cons,List.sum_cons,ih]; ring
 
-/-- Paper Def. III.3 for an arbitrary chosen summand. The grids may be the actual
-before/after TC grids; no unchanged-grid or primary-is-C assumption is made. -/
+/-- Paper Def. -/
 theorem general_flowback_necessary (primary primary' : Rat) (others : List Rat) (q q' : Int)
     (bits bits' : Nat) (d d' : Rat)
     (h : TCFloat.round32 .towardZero

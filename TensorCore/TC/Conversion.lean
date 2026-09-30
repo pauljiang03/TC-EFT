@@ -2,11 +2,7 @@ import TensorCore.Numerics.Binary.DirectedRounding
 import TensorCore.TC.InvocationProperties
 import TensorCore.TC.Profiles
 
-/-! Conversion stages and invocation outputs inherit the format-generic rounding
-correctness: a nearest-even stage returns the nearest finite value of its format with ties
-to even, and a toward-zero stage returns the largest finite value between zero and its
-input. Directed stages select the greatest finite lower bound or least finite upper
-bound. All four FP64 fused directions and every FP32-output descriptor are instances. -/
+
 
 namespace TensorCore
 
@@ -32,8 +28,7 @@ theorem conversionStage_towardZero_correct (s : ConversionStage) (hf : s.format.
   cases Option.some.inj hb
   exact hc
 
-/-- The output of any accepted invocation with a nearest-even output stage is the nearest
-value of the output format to the intermediate value, ties to even. -/
+/-- The output of any accepted invocation with a nearest-even output stage is the nearest value of the output format to the intermediate value, ties to even. -/
 theorem evalInvocation_output_nearestEven {p : InvocationSpec} {x : InvocationInput p}
     {t : InvocationTrace p} (h : evalInvocation x = .ok t) (hmode : p.output.mode = .nearestEven) :
     NearestEven p.output.format t.intermediate.value t.output.bits := by
@@ -101,8 +96,7 @@ theorem binary64Fma_towardPositive {x : InvocationInput (binary64Fma .towardPosi
     TowardPositive fp64 t.intermediate.value t.output.bits :=
   evalInvocation_output_towardPositive h rfl
 
-/-- Fused FP64 rounds the independently decoded exact product plus accumulator;
-there is no intermediate rounding. -/
+/-- Fused FP64 rounds the independently decoded exact product plus accumulator; there is no intermediate rounding. -/
 theorem binary64Fma_exact_input {mode : BinaryRoundingMode}
     {x : InvocationInput (binary64Fma mode)} {t : InvocationTrace (binary64Fma mode)}
     (h : evalInvocation x = .ok t) : invocationIdeal x = some t.intermediate.value := by

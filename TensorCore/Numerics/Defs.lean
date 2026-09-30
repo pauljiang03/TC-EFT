@@ -34,7 +34,7 @@ inductive Classification where
   | nan
   deriving Repr, DecidableEq
 
-/-- A nonempty normal range and at least one stored fraction bit. Bias is explicit. -/
+/-- A nonempty normal range and at least one stored fraction bit. -/
 def Format.WellFormed (f : Format) : Prop := 0 < f.fractionBits ∧ 1 < f.exponentBits
 
 instance (f : Format) : Decidable f.WellFormed := inferInstanceAs (Decidable (_ ∧ _))
@@ -52,8 +52,7 @@ def Format.maxFinite (f : Format) : ℚ :=
 /-- A decoded significand, including a subnormal, has magnitude below two. -/
 def Decoded.Bounded (d : Decoded) : Prop := absQ d.value < 2 * pow2 d.rawScale
 
-/-- Arithmetic form of every finite FP32 value: an integer coefficient of magnitude below
-`2^24` on the quantum `2^(e-23)` with `-126 ≤ e ≤ 127`. -/
+/-- Arithmetic form of every finite FP32 value: an integer coefficient of magnitude below `2^24` on the quantum `2^(e-23)` with `-126 ≤ e ≤ 127`. -/
 def FiniteValue32 (z : ℚ) : Prop :=
   ∃ k e : ℤ, -126 ≤ e ∧ e ≤ 127 ∧ k.natAbs < 2 ^ 24 ∧ z = (k : ℚ) * pow2 (e - 23)
 
@@ -62,8 +61,7 @@ def Format.FiniteValue (f : Format) (z : ℚ) : Prop :=
   ∃ k e : ℤ, f.emin ≤ e ∧ e ≤ f.emax ∧ k.natAbs < 2 ^ (f.fractionBits + 1) ∧
     z = (k : ℚ) * pow2 (e - f.fractionBits)
 
-/-- An explicit bijection package, with executable functions and both inverse laws.
-Lean core has no general-purpose `Equiv` structure. -/
+/-- An explicit bijection package, with executable functions and both inverse laws. -/
 structure BinaryBijection (α β : Type) where
   encode : α → β
   decode : β → α

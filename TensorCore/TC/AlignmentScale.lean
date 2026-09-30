@@ -1,5 +1,3 @@
--- Alignment Scale for the tensor-core model.
-
 import TensorCore.Numerics.FormatProperties
 import TensorCore.Numerics.Truncation
 import TensorCore.TC.AccumulatorWidth
@@ -192,8 +190,7 @@ theorem evalBlock_machinePrefix {p : Profile} {x : BlockInput p} {t : BlockTrace
   rw [← hsplit]
   exact evalBlock_coefficient_capacity h F carryBits hF hcount
 
-/-- The conservative V100 bound is 29 signed bits: 25 magnitude bits per term,
-three carry bits for five terms, and one sign bit. This is not a device register claim. -/
+/-- The conservative V100 bound is 29 signed bits: 25 magnitude bits per term, three carry bits for five terms, and one sign bit. -/
 theorem evalV100_machineAccumulator {x : BlockInput v100F16F32} {t : BlockTrace}
     (h : evalV100 x = .ok t) : t.block.machineAccumulator 29 = t.block.accumulator :=
   evalBlock_machineAccumulator h 23 3 rfl (by decide)

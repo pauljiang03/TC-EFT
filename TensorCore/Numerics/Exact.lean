@@ -5,7 +5,7 @@ import Init.GrindInstances.Ring.Rat
 
 deriving instance DecidableEq for Except
 
-/-! Exact rational arithmetic over integer/dyadic inputs. No native `Float` operations. -/
+/-! Exact rational arithmetic over integer/dyadic inputs. -/
 namespace TensorCore
 
 def pow2 (e : ℤ) : ℚ := (2 : ℚ) ^ e
@@ -66,7 +66,7 @@ theorem absQ_mul_pos (x q : ℚ) (hq : 0 < q) : absQ (x * q) = absQ x * q := by
 theorem absQ_of_nonneg {x : ℚ} (h : 0 ≤ x) : absQ x = x := by unfold absQ; split <;> grind
 theorem absQ_of_neg {x : ℚ} (h : x < 0) : absQ x = -x := by unfold absQ; split <;> grind
 
-/-- Signed magnitude truncation. Division is applied to a nonnegative magnitude. -/
+/-- Signed magnitude truncation. -/
 def truncCoeff (x : ℚ) (e : ℤ) : ℤ :=
   if x < 0 then -((-x / pow2 e).floor) else (x / pow2 e).floor
 

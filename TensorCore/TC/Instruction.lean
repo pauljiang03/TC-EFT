@@ -3,10 +3,7 @@ import TensorCore.TC.CanonicalFloor
 import TensorCore.TC.Monotonicity
 import TensorCore.TC.Composition
 
-/-! Instruction paths. An instruction with inner dimension `k` is modeled as an ordered
-partition of its `k` operand pairs into groups of `N_FMA` products, executed in increasing k
-with each group's encoded FP32 output feeding the next group (the MATLAB v0.5 `GEMM.m` rule).
-Hardware conformance is an explicit premise, `Conforms`, never an unproved assumption. -/
+/-! Instruction paths. -/
 
 namespace TensorCore
 
@@ -110,8 +107,7 @@ theorem Decoded.value_ne_zero (d : Decoded) (h : d.significand ≠ 0) : d.value 
       _ = 0 := by rw [Rat.div_def, Rat.zero_mul]
   exact h (Rat.intCast_inj.mp h1)
 
-/-- With only zero products, the alignment exponent is the accumulator input's raw scale,
-whenever the floor is at most `−126`. -/
+/-- With only zero products, the alignment exponent is the accumulator input's raw scale, whenever the floor is at most `−126`. -/
 theorem zero_products_eta (K extra : ℕ) (floor : Option ℤ) (hfl : ∀ f ∈ floor, f ≤ -126)
     (c : Decoded) (hc : c.significand ≠ 0) (hlow : -126 ≤ c.rawScale) :
     (PreparedBlock.mk (fp16Fp32Profile K extra floor)
@@ -147,8 +143,7 @@ theorem zero_products_eta (K extra : ℕ) (floor : Option ℤ) (hfl : ∀ f ∈ 
     have := hfl f (by rw [hf]; simp)
     simp [Int.max_eq_left (by omega : f ≤ c.rawScale)]
 
-/-- A group whose products are all zero pairs returns its accumulator input unchanged, for
-every finite input other than `−0`. Floors at or below `−126` are inactive on FP16 paths. -/
+/-- A group whose products are all zero pairs returns its accumulator input unchanged, for every finite input other than `−0`. -/
 theorem zero_products_passthrough (K extra : ℕ) (floor : Option ℤ)
     (hfl : ∀ f ∈ floor, f ≤ -126) (c : F32) (f : Finite32) (hf : finite32 c = some f)
     (hneg : c ≠ 0x80000000) :
@@ -256,8 +251,7 @@ theorem runBlocks_zero_groups (K extra : ℕ) (floor : Option ℤ)
         rw [hbits] at hlast
         exact hlast
 
-/-- A pinned instruction path: inner dimension `k`, products per group, extra alignment bits,
-floor, and the source of these parameters. The grouping is contiguous in increasing k. -/
+/-- A pinned instruction path: inner dimension `k`, products per group, extra alignment bits, floor, and the source of these parameters. -/
 structure InstructionPath where
   name : String
   k : ℕ
@@ -278,15 +272,13 @@ def InstructionPath.schedule (p : InstructionPath) (pairs : List (F16 × F16)) :
     List (List (p.profile.Word × p.profile.Word)) :=
   chunks p.products p.groups pairs
 
-/-- Execute the instruction. Inputs that are not exactly `k` pairs are rejected; nothing is
-padded or discarded. -/
+/-- Execute the instruction. -/
 def InstructionPath.run (p : InstructionPath) (c : F32) (pairs : List (F16 × F16)) :
     Except ModelError (List BlockTrace) :=
   if pairs.length != p.k then .error .wrongProductCount
   else runBlocks p.profile c (p.schedule pairs)
 
-/-- The instruction's FP32 result: the last group's output, or the accumulator input when
-there are no groups. `none` when a group is rejected by the finite model. -/
+/-- The instruction's FP32 result: the last group's output, or the accumulator input when there are no groups. -/
 def InstructionPath.output (p : InstructionPath) (c : F32) (pairs : List (F16 × F16)) :
     Option F32 :=
   match p.run c pairs with
@@ -303,11 +295,7 @@ theorem InstructionPath.schedule_flatten (p : InstructionPath) (pairs : List (F1
   rw [h]
   exact (Nat.div_mul_cancel p.kDiv).symm
 
-/-- Conformance of a device function to the modeled path on the model's accepted domain:
-whenever the model produces an output, the device produces the same bits. Inputs the finite
-model rejects (wrong width, nonfinite operands, out-of-range accumulators) are outside the
-modeled domain and leave the device unconstrained. This is the hardware premise; no theorem
-below asserts it for any device. -/
+/-- Conformance of a device function to the modeled path on the model's accepted domain: whenever the model produces an output, the device produces the same bits. -/
 def Conforms (p : InstructionPath) (device : F32 → List (F16 × F16) → Option F32) : Prop :=
   ∀ c pairs out, p.output c pairs = some out → device c pairs = some out
 
@@ -327,9 +315,7 @@ theorem InstructionPath.run_blocks (p : InstructionPath) (c : F32) (pairs : List
   · contradiction
   · exact h
 
-/-- A `k`-wide input whose products beyond the first group are zero pairs returns the first
-group's output: every later group passes the accumulator through. Published single-group
-vectors therefore test the instruction path under the increasing-k rule. -/
+/-- A `k`-wide input whose products beyond the first group are zero pairs returns the first group's output: every later group passes the accumulator through. -/
 theorem single_group_output (p : InstructionPath) (hfl : ∀ f ∈ p.floor, f ≤ -126)
     (hk : p.products ≤ p.k) (c : F32) (g : List (F16 × F16)) (hg : g.length = p.products)
     (t : BlockTrace) (h1 : evalBlock (⟨g, c⟩ : BlockInput p.profile) = .ok t)
@@ -371,8 +357,7 @@ def v100Wmma16 : InstructionPath :=
     "Accurate Models v4 §4.1.1 and Tables 3-4; MATLAB v0.5 GEMM.m increasing-k rule; " ++
     "Jia et al. arXiv:1804.06826 (four sets of four HMMA.884 steps)", by decide, by decide⟩
 
-/-- A100/A2/A30/L40S/Ada: WMMA m16n16k16 FP16 → FP32 lowers to HMMA.1688; two groups of
-eight, validated by the paper on k = 16 inputs. -/
+/-- A100/A2/A30/L40S/Ada: WMMA m16n16k16 FP16 → FP32 lowers to HMMA.1688; two groups of eight, validated by the paper on k = 16 inputs. -/
 def ampereWmma16 : InstructionPath :=
   ⟨"Ampere/Ada WMMA m16n16k16 FP16->FP32 (HMMA.1688)", 16, 8, 1, some (-132),
     "Accurate Models v4 §4.1.2, §4.2 (k = 16 with N_FMA = 8, 10^7-vector validation), Tables 3-4",

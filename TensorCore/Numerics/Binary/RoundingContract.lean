@@ -1,8 +1,7 @@
 import TensorCore.Numerics.Binary.SignedBijection
 import TensorCore.Numerics.Binary.DirectedRounding
 
-/-! A uniform four-direction contract, finite-domain totality, and the existing
-zero/sign conventions. The FP64 instance rounds the exact original-input ideal. -/
+/-! A uniform four-direction contract, finite-domain totality, and the existing zero/sign conventions. -/
 
 namespace TensorCore
 
@@ -51,8 +50,7 @@ theorem roundBinary_zero (f : Format) (hf : f.WellFormed) (mode : BinaryRounding
   simp only [roundBinary, hf, not_true_eq_false, ↓reduceIte]
   rw [if_neg (by simpa [absQ] using Rat.not_lt.mpr hr)]
 
-/-- The output sign is the input's strict negativity, even when it underflows to zero.
-Exact rational zero therefore has a positive sign in every mode. -/
+/-- The output sign is the input's strict negativity, even when it underflows to zero. -/
 theorem roundBinary_sign (f : Format) (mode : BinaryRoundingMode) (x : ℚ)
     (bits : BitVec f.width) (h : roundBinary f mode x = some bits) :
     binarySign f bits = decide (x < 0) := by

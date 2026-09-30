@@ -1,8 +1,7 @@
 import TensorCore.TC.Instruction
 import Lean
 
-/-! Model-only expectations for the pinned instruction paths, with all 16 positions.
-Input: profile, 32 decimal interleaved FP16 words, decimal FP32 accumulator. -/
+/-! Executable model observations for the pinned instruction paths, with all 16 positions. -/
 open TensorCore Lean
 
 private def pairs : List ℕ → List (F16 × F16)

@@ -1,5 +1,3 @@
--- Invocation for the tensor-core model.
-
 import TensorCore.Numerics.Conversion
 import TensorCore.TC.Block
 
@@ -63,12 +61,11 @@ def PreparedInvocation.exactProducts {p : InvocationSpec} (b : PreparedInvocatio
 def PreparedInvocation.exactDot {p : InvocationSpec} (b : PreparedInvocation p) : ℚ :=
   b.c.value + b.exactProducts
 
-/-- Original-bit ideal. It uses decoding and rational multiplication only. -/
+/-- Original-bit ideal. -/
 def invocationIdeal {p : InvocationSpec} (x : InvocationInput p) : Option ℚ :=
   (prepareInvocation x).map PreparedInvocation.exactDot
 
-/-- Reuse the proved raw-product/grid primitive. Late-c uses an exact zero sentinel;
-it neither selects eta nor changes the sum. This does not decode through the old profile. -/
+/-- Reuse the proved raw-product/grid primitive. -/
 def PreparedInvocation.alignedBlock {p : InvocationSpec} (b : PreparedInvocation p)
     (F : ℕ) (floor : Option ℤ) (includeC : Bool) : PreparedBlock :=
   ⟨⟨p.input.valueFormat.layout, p.products, F, floor⟩, b.products,

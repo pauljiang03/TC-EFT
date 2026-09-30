@@ -1,8 +1,7 @@
 import TensorCore.TC.FusedRounding
 import TensorCore.Numerics.Binary.RoundingContract
 
-/-! Kernel reductions cover signs, subnormals, binade carry, exact inputs, signed
-zeros, finite endpoints and rejection; theorem applications check the public contracts. -/
+/-! Kernel reductions cover signs, subnormals, binade carry, exact inputs, signed zeros, finite endpoints and rejection; theorem applications check the public contracts. -/
 
 namespace TensorCore.Regression
 

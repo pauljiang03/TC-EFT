@@ -1,7 +1,6 @@
 import TensorCore.TC.Flowback
 
-/-! TC-EFT Definition III.2 at the encoded interface. Comparisons use decoded numerical
-values, never unsigned word order. Both executions must be accepted by the finite model. -/
+/-! TC-EFT Definition III.2 at the encoded interface. -/
 
 namespace TensorCore
 

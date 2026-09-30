@@ -3,9 +3,7 @@ import FloatLib.Numerics.Exact.Dyadic.Order
 import Mathlib.Data.Rat.Floor
 import Mathlib.Tactic
 
-/-! Independent FP32-output TC semantics. FloatLib owns formats, finite decoding,
-exact dyadic products, and IEEE rounding. Raw TC alignment metadata is separate
-from the dyadic value: normalizing a product must not change its alignment scale. -/
+/-! Independent FP32-output TC semantics. -/
 namespace TCFloat
 open FloatLib.Floats.Formats.BinaryInterchange
 abbrev ExactDyadic := FloatLib.Numerics.Dyadic

@@ -1,14 +1,5 @@
 #!/usr/bin/env python3
-"""Compare the Lean V100 FP16->FP32 block evaluator with GPU-measured vectors.
-
-The vectors are the unmodified model_validation/V100/fp16 files from MATLAB
-Tensor Core v0.5 (hashes in vendor/SOURCES.json). Validate_TC_models.m reshapes
-A and B into rows of K=4 and calls the model once per row with one FP32 c, so
-one row is exactly one normalization group and one evaluator call. Multiplicands
-are stored as FP32 hexadecimal words holding FP16-representable values; c and d
-are 32-bit binary strings. This is a model/device comparison performed by a
-test, not a Lean theorem, and it is limited to what the vectors contain.
-"""
+"""Compare the Lean V100 FP16->FP32 block evaluator with GPU-measured vectors."""
 from fractions import Fraction as Q
 from pathlib import Path
 import json

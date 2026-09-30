@@ -1,8 +1,6 @@
 import TensorCore.Scalar.Operations
 
-/-! Total scalar contracts. Finite cases refer to exact rational operations and
-independently specified rounding optimality. Nonfinite cases specify the decoded
-result and every status flag. The specification does not assume execution success. -/
+/-! Total scalar contracts. -/
 
 namespace TensorCore.IEEE
 

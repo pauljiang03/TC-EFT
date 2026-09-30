@@ -1,8 +1,7 @@
 import TensorCore.Scalar.LeanBridge
 import TensorCore.Numerics.ScalarSum
 
-/-! Native scalar addition with the finite numerical contract used by EFT.
-The exact reference remains separate from the native implementation. -/
+/-! Native scalar addition with the finite numerical contract used by EFT. -/
 
 namespace TensorCore.IEEE.LeanBridge
 
@@ -132,16 +131,14 @@ theorem nonzero32_ne_negative_zero (a : F32) (ha : NonzeroFinite32 a) : a ≠ 0x
   subst a
   exact (by decide : ¬ NonzeroFinite32 0x80000000) ha
 
-/-- Finite EFT arithmetic identifies exact zero with positive zero. Native RNE
-addition differs only for two negative-zero operands, which this adapter normalizes. -/
+/-- Finite EFT arithmetic identifies exact zero with positive zero. -/
 def nativeFiniteAdd32 (a b : F32)
     (ha : a.toNat / 8388608 % 256 < 255) (hb : b.toNat / 8388608 % 256 < 255) : F32 :=
   if a = 0x80000000 ∧ b = 0x80000000 then 0
   else nativeAdd32 a b (native32Valid_finite a ha) (native32Valid_finite b hb)
 
 
-/-- Every finite encoded pair uses native addition, with the EFT zero convention.
-The range premise is the original finite converter's domain, not just finite output. -/
+/-- Every finite encoded pair uses native addition, with the EFT zero convention. -/
 theorem nativeFiniteAdd32_round (a b : F32)
     (ha : a.toNat / 8388608 % 256 < 255) (hb : b.toNat / 8388608 % 256 < 255)
     (x y : ℚ) (hx : TensorCore.value32 a = some x) (hy : TensorCore.value32 b = some y)

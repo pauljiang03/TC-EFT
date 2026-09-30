@@ -1,5 +1,3 @@
--- Compatibility for the tensor-core model.
-
 import TensorCore.TC.InvocationProperties
 
 namespace TensorCore

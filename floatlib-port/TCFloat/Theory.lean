@@ -56,8 +56,7 @@ theorem representable_add_exact (a b : ℚ) (h : representable (a+b) = true) :
 theorem scalar_rejects (t : Trace) (h : t.scalarPredicate = false) : t.scalar = none := by
   simp [Trace.scalar, h]
 
-/-- Local flowback identity for arbitrary term changes, with both grids explicit.
-It does not assert that a perturbation actually selects those grids. -/
+/-- Local flowback identity for arbitrary term changes, with both grids explicit. -/
 theorem flowback_identity (ts us : List Term) (q q' : Int) :
     (us.map fun t => truncGrid t.value q').sum =
       (ts.map fun t => truncGrid t.value q).sum +

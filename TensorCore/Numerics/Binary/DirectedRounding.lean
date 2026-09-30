@@ -1,8 +1,6 @@
 import TensorCore.Numerics.Binary.CorrectRounding
 
-/-! Directed rounding on the existing finite reference domain. The order contracts
-quantify over all arithmetic finite values, including negative values and subnormals.
-The converter's separate sign-bit convention is unchanged. -/
+/-! Directed rounding on the existing finite reference domain. -/
 
 namespace TensorCore
 
@@ -16,8 +14,7 @@ def TowardPositive (f : Format) (x : ℚ) (bits : BitVec f.width) : Prop :=
   ∃ d : ℚ, binaryValue f bits = some d ∧ x ≤ d ∧
     ∀ y : ℚ, f.FiniteValue y → x ≤ y → d ≤ y
 
-/-- Ceiling on the input's grid is the least finite upper bound. A value on a
-strictly lower binade cannot be an upper competitor. -/
+/-- Ceiling on the input's grid is the least finite upper bound. -/
 theorem binary_ceil_magnitude_spec (f : Format) (hf : f.WellFormed) (m : ℚ)
     (hm : 0 < m) (hr : m ≤ f.maxFinite) :
     m ≤ binaryMagnitudeRounded f .towardPositive false m ∧

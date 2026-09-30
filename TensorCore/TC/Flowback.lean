@@ -3,26 +3,17 @@ import TensorCore.Numerics.RoundTrip
 import TensorCore.Numerics.ScalarSum
 import TensorCore.TC.ErrorBounds
 
-/-! TC-EFT Definitions III.2 and III.3 and Equation 6. `MonotoneInAccumulator` is
-monotonicity of a block in its accumulator input for fixed products. For two accumulator
-inputs `c` and `c'`, the flowback `ω` is the change in the retained products between the
-two alignment grids and `ΔA` is the change in the retained accumulator input, so that
-`A'acc = Aacc + ω − ΔA`. The encoded outputs compare exactly as the truncations of those
-two accumulators (Equation 6); `ω > ΔA` is necessary for an output increase because FP32
-truncation is monotone in its real argument, and it is sufficient when both accumulators
-are representable. Theorem III.4 gives a family where monotonicity fails. -/
+/-! TC-EFT Definitions III.2 and III.3 and Equation 6. -/
 
 namespace TensorCore
 
-/-- Definition III.2: for fixed decoded products, a smaller finite accumulator input never
-produces a larger accepted output. -/
+/-- Definition III.2: for fixed decoded products, a smaller finite accumulator input never produces a larger accepted output. -/
 def MonotoneInAccumulator (prof : Profile) (products : List (Decoded × Decoded)) : Prop :=
   ∀ (c c' : Decoded) (t t' : BlockTrace),
     evalPrepared ⟨prof, products, c⟩ = .ok t → evalPrepared ⟨prof, products, c'⟩ = .ok t' →
     c'.value < c.value → t'.output.value ≤ t.output.value
 
-/-- Definition III.3: the flowback `ω = Σᵢ (trunc_{q'A}(Tᵢ) − trunc_{qA}(Tᵢ))` of the
-products between the alignment grids selected by `c` and by `c'`. -/
+/-- Definition III.3: the flowback `ω = Σᵢ (trunc_{q'A}(Tᵢ) − trunc_{qA}(Tᵢ))` of the products between the alignment grids selected by `c` and by `c'`. -/
 def flowback (prof : Profile) (products : List (Decoded × Decoded)) (c c' : Decoded) : ℚ :=
   sumQ (products.map fun (a, b) =>
     truncGrid (rawMul a b).value (PreparedBlock.mk prof products c').quantumExponent -
@@ -193,8 +184,7 @@ theorem signedRounded_rtz_of_finite (x : ℚ) (h : FiniteValue32 x) :
     rw [hv] at hd'
     exact (Option.some.inj hd').symm
 
-/-- Equation 6: the accepted outputs compare exactly as the truncations of
-`Aacc` and `Aacc + ω − ΔA`. -/
+/-- Equation 6: the accepted outputs compare exactly as the truncations of `Aacc` and `Aacc + ω − ΔA`. -/
 theorem output_condition (prof : Profile) (products : List (Decoded × Decoded))
     (c c' : Decoded) (t t' : BlockTrace)
     (h : evalPrepared ⟨prof, products, c⟩ = .ok t)
@@ -248,8 +238,7 @@ theorem accumulatorShift_of_exact (prof : Profile) (products : List (Decoded × 
   unfold accumulatorShift
   rw [hc, hc']
 
-/-- Theorem III.4 as a failure of Definition III.2: the construction's products are not
-monotone in the accumulator input once `K ≥ 3·2^p`. -/
+/-- Theorem III.4 as a failure of Definition III.2: the construction's products are not monotone in the accumulator input once `K ≥ 3·2^p`. -/
 theorem construction_not_monotone (prof : Profile) (p K : ℕ) (da db : Decoded)
     (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
     (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)

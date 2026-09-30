@@ -1,5 +1,3 @@
--- Bit Scan for TC-EFT.
-
 import TensorCore.Kernels.EFT.BitScanDefs
 
 namespace TensorCore.EFMachine
@@ -107,8 +105,7 @@ theorem leadingZeros_eq (m : BitVec 576) : leadingZeros m = m.clz := by
   rw [Nat.mod_eq_of_lt (show 576 - m.clz.toNat < 2 ^ 576 by omega)]
   omega
 
-/-- Specification instrumentation: record exactly the probes made by scanBoundary.
-This trace is absent from the executable EFT dependency graph. -/
+/-- Specification instrumentation: record exactly the probes made by scanBoundary. -/
 def scanBoundaryTrace (test : ℕ → Bool) : ℕ → ℕ → ℕ → ℕ × List ℕ
   | 0, lo, _ => (lo, [])
   | fuel + 1, lo, hi =>
@@ -158,8 +155,7 @@ theorem scanBoundaryTrace_bounds (test : ℕ → Bool) (fuel lo hi : ℕ) :
           · have := ht.2 n he; omega
     · simp
 
-/-- Every probe index is below 576: all intermediate prefix words have width at
-most 576, and at most ten probes are executed, including for the zero word. -/
+/-- Every probe index is below 576: all intermediate prefix words have width at most 576, and at most ten probes are executed, including for the zero word. -/
 theorem bitScan_probe_budget (test : ℕ → Bool) :
     (scanBoundaryTrace test 10 0 576).2.length ≤ 10 ∧
       ∀ n ∈ (scanBoundaryTrace test 10 0 576).2, n < 576 := by

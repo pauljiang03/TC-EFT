@@ -1,5 +1,3 @@
--- Correctness for TC-EFT.
-
 import TensorCore.Kernels.EFT.Scalar
 
 namespace TensorCore.EFMachine
@@ -51,8 +49,7 @@ theorem Prepared.ideal_allZero {p : Prepared}
     have hs := ih (by intro u hu; exact ht u (by simp [hu]))
     simp [sumQ, hv, hs, Rat.zero_add]
 
-/-- Full bounded execution terminates without workspace overflow. Both branches
-return the directly rounded original-input ideal; range rejection is preserved. -/
+/-- Full bounded execution terminates without workspace overflow. -/
 theorem algorithm1_prepared {path : Path} {x : BlockInput path.profile} {D : F32} {p : Prepared}
     (hp : prepare path x D = .ok p) :
     ∃ r, algorithm1 path x D = .ok r ∧
@@ -79,8 +76,7 @@ theorem algorithm1_prepared {path : Path} {x : BlockInput path.profile} {D : F32
       | none => exact ⟨.outOfRange, by rw [if_neg hz, hc]; dsimp +instances only; rw [hb, hf]; rfl, hf.symm.trans hr⟩
       | some b => exact ⟨.boundedExact b, by rw [if_neg hz, hc]; dsimp +instances only; rw [hb, hf]; rfl, hf.symm.trans hr⟩
 
-/-- Universal finite-input theorem for all eight paths and any finite supplied D.
-There is no premise asserting an extraction, overlap, or exact-sum identity. -/
+/-- Universal finite-input theorem for all eight paths and any finite supplied D. -/
 theorem algorithm1_correct {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
     (hlen : x.products.length = path.profile.products)
     (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
@@ -91,8 +87,7 @@ theorem algorithm1_correct {path : Path} {x : BlockInput path.profile} {D : F32}
   obtain ⟨r, hr, hb⟩ := algorithm1_prepared hp
   exact ⟨r, hr, by simpa [hv] using hb⟩
 
-/-- Useful success family: every shape-correct finite block whose *independent*
-ideal is within the finite FP32 interval. This includes arbitrary cancellation. -/
+/-- Useful success family: every shape-correct finite block whose *independent* ideal is within the finite FP32 interval. -/
 theorem algorithm1_success {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
     (hlen : x.products.length = path.profile.products)
     (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d)

@@ -1,12 +1,10 @@
--- Padding for the tensor-core model.
-
 import TensorCore.TC.CanonicalFloor
 import TensorCore.TC.ExactAlignment
 import TensorCore.TC.AcceptedDomain
 
 namespace TensorCore
 
-/-- Uniform finite FP16-product/FP32-c metadata bounds. They include subnormals. -/
+/-- Uniform finite FP16-product/FP32-c metadata bounds. -/
 theorem prepare_fp16_term_metadata (K extra : ℕ) (floor : Option ℤ)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)
     (h : prepare x = some b) :
@@ -75,8 +73,7 @@ theorem prepare_fp16_products_metadata (K extra : ℕ) (floor : Option ℤ)
         pair.1.rawScale + pair.2.rawScale ≤ 30
       omega
 
-/-- A sharper sufficient threshold for floors at most 30, including all source
-canonical profiles. FP16 products and FP32 c need different scale bounds. -/
+/-- A sharper sufficient threshold for floors at most 30, including all source canonical profiles. -/
 theorem canonical_source_padding_exact (K extra : ℕ) (floor : Option ℤ)
     (hf : ∀ f ∈ floor, f ≤ 30) (hextra : 156 ≤ extra)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)
@@ -145,8 +142,7 @@ theorem canonical_source_padding_success_iff (K extra : ℕ) (floor : Option ℤ
     refine ⟨hs, b, hp, ?_⟩
     rwa [canonical_source_padding_accumulator K extra floor hf hextra x b hp]
 
-/-- A conservative uniform padding threshold. It is sufficient, not asserted minimal.
-Floors at most 127 include all currently instantiated canonical source paths. -/
+/-- A conservative uniform padding threshold. -/
 theorem canonical_padding_exact (K extra : ℕ) (floor : Option ℤ)
     (hf : ∀ f ∈ floor, f ≤ 127) (hextra : 253 ≤ extra)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)

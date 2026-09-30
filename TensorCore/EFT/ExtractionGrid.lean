@@ -1,9 +1,7 @@
 import TensorCore.EFT.Scalar
 import TensorCore.Numerics.Binary.ResidualBudget
 
-/-! An explicit extraction-grid interface for TC-EFT IV.1–IV.11. Any power-of-two
-grid at least as coarse as alignment is permitted. The existing extractor and
-scalar guard retain their behavior; the default grid is exposed by exact bridges. -/
+/-! An explicit extraction-grid interface for TC-EFT IV.1–IV.11. -/
 
 namespace TensorCore
 
@@ -78,8 +76,7 @@ theorem overlap_eq_retained_sub_outputResidual (g : ExtractionGrid t) :
 def coefficients (g : ExtractionGrid t) (ℓ : ℤ) : List ℤ :=
   g.lowParts.map fun e => (e / pow2 ℓ).floor
 
-/-- Original terms on a common grid yield exact residual coefficients on it.
-The grid need not be the finest nonzero residual grid, and all-zero terms work. -/
+/-- Original terms on a common grid yield exact residual coefficients on it. -/
 theorem lowParts_on_grid (g : ExtractionGrid t) (ℓ : ℤ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ) :
     g.lowParts = (g.coefficients ℓ).map fun (z : ℤ) => (z : ℚ) * pow2 ℓ := by
@@ -99,8 +96,7 @@ theorem lowParts_on_grid (g : ExtractionGrid t) (ℓ : ℤ) (hℓ : ℓ ≤ g.ex
   dsimp only [Function.comp_def]
   rw [hr, Rat.mul_div_cancel (Rat.ne_of_gt (pow2_pos ℓ)), Rat.floor_intCast]
 
-/-- Equation 20 derives the actual coefficient budget from the original input
-grid, component count (including C), and chosen extraction exponent. -/
+/-- Equation 20 derives the actual coefficient budget from the original input grid, component count (including C), and chosen extraction exponent. -/
 theorem eq20_coefficients (g : ExtractionGrid t) (ℓ : ℤ) (P : ℕ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ P) :
@@ -174,8 +170,7 @@ theorem scalarCorrected_isSome_iff (g : ExtractionGrid t) (f : Format) (ℓ : �
     obtain ⟨bits, hb, _⟩ := g.scalarCorrected_correct f ℓ h
     simp [hb]
 
-/-- Eq.20 is a sufficient precision condition for the actual scalar correction.
-The independent range and representability obligations remain explicit. -/
+/-- Eq.20 is a sufficient precision condition for the actual scalar correction. -/
 theorem eq20_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
     (ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)

@@ -1,5 +1,3 @@
--- Word for TC-EFT.
-
 import TensorCore.Kernels.EFT.WordDefs
 import TensorCore.EFT.Extraction
 

@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Independent exact checks for canonical FP16 -> FP32 groups.
-
-The rounding oracle searches ordered FP32 encodings for the two neighboring
-values. It does not use the Lean converter's exponent/coefficient construction.
-Published V100, A100, and H100 measurements are replayed separately; these
-numerical checks do not establish instruction scheduling or hardware conformance.
-"""
+"""Independent exact checks for canonical FP16 -> FP32 groups."""
 from fractions import Fraction as Q
 from pathlib import Path
 import json

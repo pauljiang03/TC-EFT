@@ -1,5 +1,3 @@
--- Preparation for TC-EFT.
-
 import TensorCore.Kernels.EFT.Defs
 import TensorCore.Kernels.EFT.Decode
 

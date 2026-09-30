@@ -60,8 +60,7 @@ def precision_value(fmt, magnitude, mode, negative):
     exponent = magnitude.numerator.bit_length() - magnitude.denominator.bit_length()
     if magnitude < power(exponent):
         exponent -= 1
-    # A four-exponent-field local format contains the entire input binade,
-    # its predecessor, and its successor, without subnormal or overflow loss.
+    # A four-exponent-field local format contains the entire input binade, its predecessor, and its successor, without subnormal or overflow loss.
     local = (p, 2, 1 - exponent)
     return positive_value(local, select_magnitude(local, magnitude, mode, negative))
 

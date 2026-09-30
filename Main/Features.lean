@@ -1,5 +1,3 @@
--- Features for the executable examples.
-
 import TensorCore.TC.Profiles
 import TensorCore.TC.CanonicalDefs
 import TensorCore.TC.CanonicalFormatDefs

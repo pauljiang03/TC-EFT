@@ -1,5 +1,3 @@
--- Truncation for the arithmetic core.
-
 import TensorCore.Numerics.Exact
 
 namespace TensorCore

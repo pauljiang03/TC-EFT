@@ -1,13 +1,10 @@
--- Grid for TC-EFT.
-
 import TensorCore.Kernels.EFT.Preparation
 
 namespace TensorCore.EFMachine
 
 set_option exponentiation.threshold 1024
 
-/-- Specification of the raw maximum: zero terms are ignored, before any shift or
-normalization. The profile floor is expressed using the same bias as term metadata. -/
+/-- Specification of the raw maximum: zero terms are ignored, before any shift or normalization. -/
 def rawMaximum (ts : List Term) (initial : ℕ) : ℕ :=
   ts.foldl (fun e t => if t.word.magnitude = 0 then e else max e t.raw.toNat) initial
 
@@ -51,9 +48,7 @@ theorem outputGrid_spec (D : F32) :
     rw [Int.max_eq_left (by omega)]
     exact ⟨trivial, by omega, by omega⟩
 
-/-- Exact qE=max(qA,qD), with qA obtained from raw exponents, not product magnitude.
-The biased maximum starts at -512 for V100 (below every nonzero input raw scale),
-and at the characterized architectural floor for Ampere/Hopper. -/
+/-- Exact qE=max(qA,qD), with qA obtained from raw exponents, not product magnitude. -/
 theorem selectedGrid_spec (path : Path) (ts : List Term) (D : F32) :
     ((selectedGrid path ts D).toNat : ℤ) - 272 =
       max ((rawMaximum ts path.floor.toNat : ℤ) - 512 - path.profile.alignFraction)

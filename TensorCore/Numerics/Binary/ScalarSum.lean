@@ -2,9 +2,7 @@ import TensorCore.Numerics.Binary.CorrectRounding
 import TensorCore.Numerics.Sum
 import TensorCore.Numerics.ScalarSum
 
-/-! TC-EFT Lemma IV.7 and Theorem IV.8 for every well-formed IEEE-style format.
-The coefficient budget controls cancellation in every prefix; the separate absolute
-range budget permits grids above the largest binade's quantum when the coefficients fit. -/
+/-! TC-EFT Lemma IV.7 and Theorem IV.8 for every well-formed IEEE-style format. -/
 
 namespace TensorCore
 
@@ -111,8 +109,7 @@ theorem naiveSumBinaryFrom_exact (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
     simp only [List.map_cons, naiveSumBinaryFrom, hstep, Option.bind_some, ih']
     rw [show a + z + sumZ zs = a + sumZ (z :: zs) by simp only [sumZ]; omega]
 
-/-- Theorem IV.8 with exactly the paper's minimum-grid, coefficient, and absolute-range
-conditions. Applied to any ordering of the coefficient list, this proves exact naive sum. -/
+/-- Theorem IV.8 with exactly the paper's minimum-grid, coefficient, and absolute-range conditions. -/
 theorem naiveSumBinary_exact (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
     (h1 : f.emin - f.fractionBits ≤ ℓ) (zs : List ℤ)
     (hbound : magnitudeSum zs < 2 ^ (f.fractionBits + 1))
@@ -139,8 +136,7 @@ theorem naiveSum64_exact (ℓ : ℤ) (h1 : -1074 ≤ ℓ) (zs : List ℤ)
   naiveSumBinary_exact fp64 (by decide) ℓ h1 zs hbound hrange
 
 set_option maxRecDepth 4096 in
-/-- The generic executor specializes to the existing FP32 API, including failures.
-These bridges live here because generic rounding already depends on FP32 scalar theory. -/
+/-- The generic executor specializes to the existing FP32 API, including failures. -/
 theorem binaryAdd_fp32 (x y : ℚ) : binaryAdd fp32 x y = fp32Add x y := rfl
 
 theorem naiveSumBinaryFrom_fp32 (a : ℚ) (ts : List ℚ) :

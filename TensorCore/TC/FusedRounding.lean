@@ -5,8 +5,7 @@ import TensorCore.TC.Conversion
 
 namespace TensorCore
 
-/-- Accepted FP64 DMMA arithmetic is correctly rounded in each of the four modes,
-with the original-input ideal and the output sign made explicit. -/
+/-- Accepted FP64 DMMA arithmetic is correctly rounded in each of the four modes, with the original-input ideal and the output sign made explicit. -/
 theorem binary64Fma_correct {mode : BinaryRoundingMode}
     {x : InvocationInput (binary64Fma mode)} {t : InvocationTrace (binary64Fma mode)}
     (h : evalInvocation x = .ok t) :
@@ -19,8 +18,7 @@ theorem binary64Fma_correct {mode : BinaryRoundingMode}
   rw [heq] at hc
   exact ⟨binary64Fma_exact_input h, hc, roundBinary_sign fp64 mode _ _ hout.1⟩
 
-/-- Finite decoded inputs of the required one-product shape succeed whenever their
-exact fused result is in range; no intermediate-product range bound is imposed. -/
+/-- Finite decoded inputs of the required one-product shape succeed whenever their exact fused result is in range; no intermediate-product range bound is imposed. -/
 theorem binary64Fma_success (mode : BinaryRoundingMode) (x : InvocationInput (binary64Fma mode))
     (b : PreparedInvocation (binary64Fma mode)) (hp : prepareInvocation x = some b)
     (hn : x.products.length = 1) (hr : absQ b.exactDot ≤ fp64.maxFinite) :

@@ -1,10 +1,7 @@
 import Lean
 import TensorCoreTests.Specification.NegativeControls
 
-/-! A compiled-dependency audit of the independently defined specification.
-It examines declaration types and bodies (including propositions and proofs),
-and permits only the listed specification modules and Lean's standard library.
-The bridge modules are deliberately outside this allowlist. -/
+/-! A compiled-dependency audit of the independently defined specification. -/
 
 open Lean Elab Command
 

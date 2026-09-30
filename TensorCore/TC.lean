@@ -36,10 +36,4 @@ import TensorCore.TC.Specification.Stages
 import TensorCore.TC.Specification.Supported
 import TensorCore.TC.StageResiduals
 
-/-! # Tensor-core model
-
-Raw exact products, common-grid alignment, profiles, finite FP32 conversion, local
-error and residual identities, encoded group composition, and non-monotonicity.
-The independent paper specification lives under `TensorCore.TC.Specification`.
-See `docs/guide/02-tensor-core-model.md` and `docs/guide/03-non-monotonicity.md`.
--/
+/-! # Tensor-core model -/

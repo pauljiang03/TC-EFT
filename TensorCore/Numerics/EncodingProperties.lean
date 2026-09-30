@@ -67,8 +67,7 @@ theorem encode32_toNat (negative : Bool) (e k : ℤ) (hk0 : 0 ≤ k) (hk1 : k < 
   simp only [Nat.reducePow]
   split <;> split <;> omega
 
-/-- The constructed encoding decodes to the intended finite value, and its low bit is the
-parity of the coefficient. -/
+/-- The constructed encoding decodes to the intended finite value, and its low bit is the parity of the coefficient. -/
 theorem encode32_value (negative : Bool) (e k : ℤ)
     (he1 : -126 ≤ e) (he2 : e ≤ 127) (hk0 : 0 ≤ k) (hk1 : k < 2 ^ 24)
     (hsub : 2 ^ 23 ≤ k ∨ e = -126) :

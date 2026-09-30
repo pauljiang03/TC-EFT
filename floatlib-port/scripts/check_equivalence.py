@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""Direct original-vs-FloatLib differential comparison (not a universal equivalence proof).
-
-Prerequisite: python3 scripts/check_all.py generates the existing corpus inputs.
-Builds a current parent source snapshot under test-results; never changes the parent sources.
-"""
+"""Direct original-vs-FloatLib differential comparison (not a universal equivalence proof)."""
 from pathlib import Path
 import argparse, hashlib, itertools, json, random, shutil, subprocess
 PORT = Path(__file__).resolve().parents[1]
@@ -58,8 +54,7 @@ def execute_pair(name,rows,decode=False):
 def block_rows():
     for row in (PORT/'test-results/eft-paper/inputs.txt').read_text().splitlines():yield row
     for row in (PORT/'test-results/scalar-coverage.txt').read_text().splitlines():yield row
-    # Feature fixtures converted to the shared packed-word EFT interface. A zero
-    # supplied D is intentional: correction must also work independently of model D.
+    # Feature fixtures converted to the shared packed-word EFT interface. supplied D is intentional: correction must also work independently of model D.
     paths=[*sorted((PORT/'test-results/validation').glob('*.txt')),
            *[PORT/f'test-results/{gpu}-{fmt}.txt' for gpu in ['A100','H100'] for fmt in ['bf16','tf32']]]
     for path in paths:

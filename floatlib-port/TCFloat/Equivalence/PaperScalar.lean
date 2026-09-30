@@ -88,8 +88,7 @@ theorem paper_overlap_subtraction (t : Trace) (hH : representable t.retained=tru
   have he : t.output + -t.overlap=t.retained := by unfold Trace.overlap; ring
   simpa [he] using representable_add_exact t.output (-t.overlap) (by simpa [he] using hH)
 
-/-- IV.11 under IV.9's full coefficient/range conditions, on any chosen common grid.
-This proves the scalar instruction sequence without narrowing it to the executable guard. -/
+/-- IV.11 under IV.9's full coefficient/range conditions, on any chosen common grid. -/
 theorem paper_scalar_on_grid (t : Trace) (e : Int) (hmin : -149 ≤ e)
     (hgrid : t.lowParts=(t.coefficientsAt e).map fun (z : Int) => (z:Rat)*pow2 e)
     (hbudget : ((t.coefficientsAt e).map Int.natAbs).sum<2^24)

@@ -3,24 +3,7 @@ import Std
 import Init.Data.Rat
 import Init.GrindInstances.Ring.Rat
 
-/-!
-Independent specification of the aligned FP32-output paths in Accurate Models v4,
-Section 4.1 (especially 4.1.1, 4.1.2, 4.1.6), Figures 2/3/5, and Table 3.
-
-This module imports only Lean's standard library. In particular, decoding, raw
-products, exponent selection, alignment, accumulation, and the final rounding
-relation have no dependencies on TensorCore's executable arithmetic definitions.
-The final output is a mathematical selection from a relation, not an efficient
-second converter. Existence, uniqueness, and implementation agreement are proved
-in the separate refinement modules.
-
-Scope conventions: finite IEEE-style inputs, one normalization group, FP32 c and
-output, no flushing of subnormals, and rejection when the accumulated magnitude
-exceeds the largest finite FP32 value. Exact zero returns +0; a negative nonzero
-accumulation that underflows at final conversion returns -0. These finite-domain
-and zero conventions are explicit; this is not an overflow/exception model or a
-claim about physical GPU conformance. FP16-output stage order is outside scope.
--/
+/-! Independent specification of the aligned FP32-output paths in Accurate Models v4, Section 4.1 (especially 4.1.1, 4.1.2, 4.1.6), Figures 2/3/5, and Table 3. -/
 
 namespace TensorCore.PaperSpec
 
@@ -51,8 +34,7 @@ structure Term where
   exponent : ℤ
   deriving Repr, DecidableEq
 
-/-- IEEE fields, including the minimum-normal raw exponent of subnormal inputs.
-Zero has no numerical exponent; its sentinel exponent is ignored at selection. -/
+/-- IEEE fields, including the minimum-normal raw exponent of subnormal inputs. -/
 def decode (f : Layout) (word : ℕ) : Option Term :=
   let E := word / 2 ^ f.fraction % 2 ^ f.exponent
   let M := word % 2 ^ f.fraction
@@ -111,8 +93,7 @@ def value32 (bits : BitVec 32) : Option ℚ := (decode binary32 bits.toNat).map 
 def Between (x y : ℚ) : Prop :=
   (0 ≤ x ∧ 0 ≤ y ∧ y ≤ x) ∨ (x ≤ 0 ∧ x ≤ y ∧ y ≤ 0)
 
-/-- FP32 truncation specified by ordering *all finite encoded values*, plus the
-sign bit. In particular, the sign condition distinguishes the two encodings of zero. -/
+/-- FP32 truncation specified by ordering *all finite encoded values*, plus the sign bit. -/
 def Rounds (x : ℚ) (bits : BitVec 32) : Prop :=
   (bits.toNat / 2147483648 != 0) = decide (x < 0) ∧
   ∃ d, value32 bits = some d ∧ Between x d ∧
@@ -123,8 +104,7 @@ def Result (p : Parameters) (x : Input p) (bits : BitVec 32) : Prop :=
     terms p x = some ts ∧ magnitude (accumulated p ts) ≤ maxFinite ∧
       Rounds (accumulated p ts) bits
 
-/-- Mathematical output selector. The refinement proves this relation has exactly
-one result on Valid inputs and none otherwise; choice does not assert existence. -/
+/-- Mathematical output selector. -/
 noncomputable def bits (p : Parameters) (x : Input p) : Option (BitVec 32) := by
   classical
   exact if h : ∃ b, Result p x b then some (Classical.choose h) else none

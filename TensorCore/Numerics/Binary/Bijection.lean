@@ -1,9 +1,7 @@
 import TensorCore.Numerics.Binary.ScalarSum
 import TensorCore.Numerics.Conversion
 
-/-! Finite IEEE encodings and canonical signed representations. Unlike `Decoded`,
-this representation retains the zero sign. Its exponent is `emin` for zero and
-subnormals; normal significands include the implicit leading bit. -/
+/-! Finite IEEE encodings and canonical signed representations. -/
 
 namespace TensorCore
 

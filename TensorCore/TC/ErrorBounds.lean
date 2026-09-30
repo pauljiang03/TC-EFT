@@ -1,5 +1,3 @@
--- Error Bounds for the tensor-core model.
-
 import TensorCore.Numerics.RoundingError
 import TensorCore.TC.StageResiduals
 import TensorCore.Numerics.Truncation
@@ -52,7 +50,7 @@ theorem block_alignment_bound (b : PreparedBlock) :
     (by simp [PreparedBlock.terms])
   simpa [PreparedBlock.alignmentResiduals, List.map_map, Function.comp_def] using h
 
-/-- Two-stage error bound. Both losses are counted; exact Int arithmetic cannot wrap. -/
+/-- Two-stage error bound. -/
 theorem block_error_bound (b : PreparedBlock) (d : Finite32)
     (hr : absQ b.accumulator ≤ maxFinite32)
     (hout : round32 .towardZero b.accumulator = some d.bits) :

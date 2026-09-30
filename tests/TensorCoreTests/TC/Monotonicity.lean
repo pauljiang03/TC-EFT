@@ -1,14 +1,13 @@
 import TensorCore.TC.MonotonicityRange
 import TensorCoreTests.TC.Cases
 
-/-! TC-EFT Theorems III.4 and III.5 on the three source FP16 paths, the Table III witnesses,
-and the witness ranges. -/
+/-! TC-EFT Theorems III.4 and III.5 on the three source FP16 paths, the Table III witnesses, and the witness ranges. -/
 
 namespace TensorCore
 
 def halfDecoded (e : ℤ) : Decoded := ⟨1024, e, 10⟩
 
-/-- V100 family: any `K < 2^24` products `2^-12 · 2^-12`. Non-monotone exactly when `K ≥ 3`. -/
+/-- V100 family: any `K < 2^24` products `2^-12 · 2^-12`. -/
 theorem nonmonotone_v100_family (K : ℕ) (hK : K < 2 ^ 24) :
     ∃ t t' : BlockTrace,
       evalBlock (⟨List.replicate K (0x0c00, 0x0c00), 0x3f800000⟩ :
@@ -21,8 +20,7 @@ theorem nonmonotone_v100_family (K : ℕ) (hK : K < 2 ^ 24) :
     (by show (classify fp16 0x0c00).finite = some _; decide +kernel)
     (by decide +kernel) (by decide +kernel) hK
 
-/-- Ampere family: one extra alignment bit, floor `−132`, products `2^-12 · 2^-13`.
-Non-monotone exactly when `K ≥ 6`. -/
+/-- Ampere family: one extra alignment bit, floor `−132`, products `2^-12 · 2^-13`. -/
 theorem nonmonotone_ampere_family (K : ℕ) (hK : K < 2 ^ 25) :
     ∃ t t' : BlockTrace,
       evalBlock (⟨List.replicate K (0x0c00, 0x0800), 0x3f800000⟩ :
@@ -35,8 +33,7 @@ theorem nonmonotone_ampere_family (K : ℕ) (hK : K < 2 ^ 25) :
     (by show (classify fp16 0x0800).finite = some _; decide +kernel)
     (by decide +kernel) (by decide +kernel) hK
 
-/-- Hopper family: two extra alignment bits, floor `−133`, products `2^-12 · 2^-14`.
-Non-monotone exactly when `K ≥ 12`. -/
+/-- Hopper family: two extra alignment bits, floor `−133`, products `2^-12 · 2^-14`. -/
 theorem nonmonotone_hopper_family (K : ℕ) (hK : K < 2 ^ 26) :
     ∃ t t' : BlockTrace,
       evalBlock (⟨List.replicate K (0x0c00, 0x0400), 0x3f800000⟩ :
@@ -49,9 +46,7 @@ theorem nonmonotone_hopper_family (K : ℕ) (hK : K < 2 ^ 26) :
     (by show (classify fp16 0x0400).finite = some _; decide +kernel)
     (by decide +kernel) (by decide +kernel) hK
 
-/-- V100 family, Theorem III.5: with `c_j = 3f800000 − j`, the output exceeds `1` exactly for
-`1 ≤ j ≤ min(2^23, K − 2)`, equals `1 + 2^-23·⌊(K − j)/2⌋` whenever `j ≤ K`, and never
-exceeds the `j = 1` value. -/
+
 theorem nonmonotone_range_v100_family (K j : ℕ) (hK : K < 2 ^ 24) (hj1 : 1 ≤ j)
     (hj2 : j ≤ 2 ^ 23) :
     ∃ t : BlockTrace,
@@ -103,8 +98,7 @@ namespace Regression
 set_option maxRecDepth 16384
 set_option maxHeartbeats 4000000
 
-/-- TC-EFT Table III: the source block widths `K = 4, 8, 16` all exceed `3·2^p`, and
-decreasing the accumulator from `3f800000` to `3f7fffff` raises the output to `3f800001`. -/
+/-- TC-EFT Table III: the source block widths `K = 4, 8, 16` all exceed `3·2^p`, and decreasing the accumulator from `3f800000` to `3f7fffff` raises the output to `3f800001`. -/
 theorem table_iii_witnesses :
     outputBits (⟨List.replicate 8 (0x0c00, 0x0800), 0x3f800000⟩ : BlockInput ampereF16F32) =
       .ok 0x3f800000 ∧
@@ -115,17 +109,14 @@ theorem table_iii_witnesses :
     outputBits (⟨List.replicate 16 (0x0c00, 0x0400), 0x3f7fffff⟩ : BlockInput hopperF16F32) =
       .ok 0x3f800001 := by decide +kernel
 
-/-- Below the threshold the perturbation is monotone: two V100 products (`K = 2 < 3`)
-leave the output at `1`, and eleven Hopper products (`K = 11 < 12`) do too. -/
+/-- Below the threshold the perturbation is monotone: two V100 products (`K = 2 < 3`) leave the output at `1`, and eleven Hopper products (`K = 11 < 12`) do too. -/
 theorem below_threshold_monotone :
     outputBits (⟨List.replicate 2 (0x0c00, 0x0c00), 0x3f7fffff⟩ :
       BlockInput (fp16Fp32Profile 2 0 none)) = .ok 0x3f800000 ∧
     outputBits (⟨List.replicate 11 (0x0c00, 0x0400), 0x3f7fffff⟩ :
       BlockInput (fp16Fp32Profile 11 2 (some (-133)))) = .ok 0x3f800000 := by decide +kernel
 
-/-- Theorem III.5 witness ranges on the source widths: `J = min(2^23, ⌊K/2^p⌋ − 2) = 2` for
-V100 (`K = 4`), Ampere (`K = 8`), and Hopper (`K = 16`). `c_2 = 3f7ffffe` still raises the
-output to `3f800001`; `c_3 = 3f7ffffd` does not. -/
+/-- Theorem III.5 witness ranges on the source widths: `J = min(2^23, ⌊K/2^p⌋ − 2) = 2` for V100 (`K = 4`), Ampere (`K = 8`), and Hopper (`K = 16`). -/
 theorem range_witnesses :
     outputBits (⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f7ffffe⟩ : BlockInput v100F16F32) =
       .ok 0x3f800001 ∧
@@ -140,8 +131,7 @@ theorem range_witnesses :
     outputBits (⟨List.replicate 16 (0x0c00, 0x0400), 0x3f7ffffd⟩ : BlockInput hopperF16F32) =
       .ok 0x3f800000 := by decide +kernel
 
-/-- The paper's `K = 5`, `p = 0` example: the largest output increase `2·2^-23` occurs at
-`j = 1`, the largest input decrease `3·2^-24` at `J = 3`, and `j = 4` is monotone. -/
+/-- The paper's `K = 5`, `p = 0` example: the largest output increase `2·2^-23` occurs at `j = 1`, the largest input decrease `3·2^-24` at `J = 3`, and `j = 4` is monotone. -/
 theorem range_extrema_k5 :
     outputBits (⟨List.replicate 5 (0x0c00, 0x0c00), 0x3f7fffff⟩ :
       BlockInput (fp16Fp32Profile 5 0 none)) = .ok 0x3f800002 ∧

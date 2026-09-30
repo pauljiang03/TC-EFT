@@ -1,5 +1,3 @@
--- Accumulator for the tensor-core model.
-
 import TensorCore.TC.Block
 
 namespace TensorCore
@@ -13,9 +11,7 @@ def machineAccumulate (w : ℕ) (acc : BitVec w) : List ℤ → BitVec w
 def PreparedBlock.machineAccumulator (b : PreparedBlock) (w : ℕ) : ℚ :=
   ((machineAccumulate w 0 b.coefficients).toInt : ℚ) * pow2 b.quantumExponent
 
-/-- Execute accumulation with w-bit additions, then the ordinary FP32 conversion.
-The trace retains the reference preparation. Equality to its reference accumulator
-requires a sufficient-width proof; it is not part of this definition. -/
+/-- Execute accumulation with w-bit additions, then the ordinary FP32 conversion. -/
 def evalPreparedMachine (w : ℕ) (b : PreparedBlock) : Except ModelError BlockTrace :=
   match round32 .towardZero (b.machineAccumulator w) with
   | none => .error .accumulatorOutOfRange

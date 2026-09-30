@@ -1,5 +1,3 @@
--- Invocation Properties for the tensor-core model.
-
 import TensorCore.TC.Invocation
 import TensorCore.TC.AlignmentScale
 

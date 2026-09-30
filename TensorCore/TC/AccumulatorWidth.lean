@@ -1,5 +1,3 @@
--- Accumulator Width for the tensor-core model.
-
 import TensorCore.Numerics.Sum
 import TensorCore.TC.Accumulator
 

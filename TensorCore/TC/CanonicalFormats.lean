@@ -1,9 +1,7 @@
 import TensorCore.TC.CanonicalFormatDefs
 import TensorCore.TC.Canonical
 
-/-! The FP16 contract generalized to any well-formed operand format, instantiated for the
-BF16 and TF32 families of Accurate Models Table 3, and the descriptors already replayed
-against the published A100 and H100 vectors proved equal to those profiles. -/
+
 
 namespace TensorCore
 

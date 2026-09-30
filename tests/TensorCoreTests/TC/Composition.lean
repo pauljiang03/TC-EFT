@@ -1,5 +1,3 @@
--- Composition for the tensor-core model.
-
 import TensorCore.TC.Correction
 import TensorCoreTests.TC.Cases
 

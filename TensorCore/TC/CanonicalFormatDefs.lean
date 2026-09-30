@@ -1,9 +1,7 @@
 import TensorCore.TC.Profiles
 import TensorCore.TC.CanonicalDefs
 
-/-! BF16 and TF32 products with FP32 accumulation as profiles of the block semantics, with
-the parameters of Accurate Models Table 3. A TF32 register word carries the 19-bit `tf19`
-value above 13 zero bits; `tf32Unpack` recovers the value word for the profile. -/
+/-! BF16 and TF32 products with FP32 accumulation as profiles of the block semantics, with the parameters of Accurate Models Table 3. -/
 
 namespace TensorCore
 

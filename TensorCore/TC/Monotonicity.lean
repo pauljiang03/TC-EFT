@@ -3,9 +3,7 @@ import TensorCore.TC.StageResiduals
 import TensorCore.TC.AlignmentScale
 import TensorCore.TC.Padding
 
-/-! TC-EFT Theorem III.4 as a theorem over the product count `K` and the padding `p`:
-decreasing the accumulator input from `1` to `1 − 2^-24` raises the output exactly when
-`K ≥ 3·2^p`, for `K` equal products of value `2^-(24+p)` whose raw scales are at most `−1`. -/
+
 
 namespace TensorCore
 
@@ -16,8 +14,7 @@ theorem oneDecoded_value : oneDecoded.value = 1 := by decide +kernel
 theorem belowOneDecoded_value : belowOneDecoded.value = 16777215 * pow2 (-24) := by
   decide +kernel
 
-/-- The alignment exponent of the construction is the accumulator input's raw scale when
-every product's raw scale is at most that value. -/
+/-- The alignment exponent of the construction is the accumulator input's raw scale when every product's raw scale is at most that value. -/
 theorem construction_eta (prof : Profile) (K : ℕ) (da db c : Decoded)
     (hc : c.significand ≠ 0) (_hu : (rawMul da db).significand ≠ 0)
     (hs : (rawMul da db).rawScale ≤ c.rawScale) (hfl : ∀ f ∈ prof.alignFloor, f ≤ c.rawScale) :
@@ -137,10 +134,7 @@ theorem construction_accumulator_below (prof : Profile) (p K : ℕ) (da db : Dec
   congr 1
   all_goals rw [Rat.intCast_add, Rat.intCast_natCast, Rat.intCast_natCast, Rat.natCast_add]
 
-/-- TC-EFT Theorem III.4. For any profile with `F = 23 + p`, a floor at most `−1`, and
-`K < 2^(24+p)` equal products of value `2^-(24+p)` with raw scale at most `−1`: the block
-with `c = 1` returns `1`, and the block with `c' = 1 − 2^-24` returns more than `1` exactly
-when `K ≥ 3·2^p`. -/
+/-- TC-EFT Theorem III.4. -/
 theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
     (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
     (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
@@ -274,9 +268,7 @@ theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
       · intro h; omega
       · intro h; omega
 
-/-- The construction on encoded FP16 operands under any canonical profile: `K` copies of
-one factor pair whose raw product is `2^-(24+p)` with raw scale at most `−1`, and the two
-FP32 accumulator inputs `3f800000` and `3f7fffff`. -/
+
 theorem nonmonotone_encoded (K p : ℕ) (floor : Option ℤ) (hfl : ∀ f ∈ floor, f ≤ -1)
     (a b : (fp16Fp32Profile K p floor).Word) (da db : Decoded)
     (ha : (fp16Fp32Profile K p floor).decode a = some da)

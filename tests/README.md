@@ -93,7 +93,7 @@ Python case generator / recorded vectors
 
 Rational diagnostics use `numerator/denominator` strings. Python parses them with `fractions.Fraction` and compares them exactly. Words are integers, so a one-bit difference or signed-zero difference remains visible. The harness checks process success and record counts before accepting comparisons.
 
-[examples/EFTHardware.lean](../examples/EFTHardware.lean) is another IO adapter. `scripts/generate_hardware.py` supplies its batch and compares model expectations with an independent group-order oracle. The optional CUDA harness takes actual GPU measurements separately; generating model expectations does not constitute a hardware measurement.
+[examples/InstructionGroups.lean](../examples/InstructionGroups.lean) is another IO adapter. `python3 scripts/check_instruction_groups.py` generates 99 encoded cases and compares the Lean instruction outputs with an independent exact-arithmetic oracle applied in group order. The cases cover all 16 positions, populated groups, reversed group order, signed zeros, subnormals, and cancellation. This check runs entirely in software.
 
 ## 5. Run a compiled Lean executable
 
@@ -145,7 +145,9 @@ python3 scripts/check_axioms.py
 python3 scripts/check_docs.py
 ```
 
-`validate.py` and the feature scripts compare traces/rounding with independent exact arithmetic and recorded GPU words. `check_eft.py` runs scalar coverage, model hardware expectations and replay controls, pinned paper generators, and the bounded EFT comparisons. `check_lean_eft.py` compares native scalar folds with an ordered-encoding rounding oracle.
+`validate.py` and the feature scripts compare traces/rounding with independent exact arithmetic and recorded GPU words. `check_eft.py` runs scalar coverage, instruction-group comparisons, pinned paper generators, and the bounded EFT comparisons. `check_lean_eft.py` compares native scalar folds with an ordered-encoding rounding oracle.
+
+The Accurate Models paper's original inputs and expected outputs remain under [`vendor/matlab-tensor-core-v0.5/model_validation/`](../vendor/matlab-tensor-core-v0.5/model_validation/), with hashes in [`vendor/SOURCES.json`](../vendor/SOURCES.json). Both implementations replay all 35,000 rows: V100/A100/H100 FP16 and A100/H100 BF16/TF32, 5,000 per group. The original A/B/C inputs and D outputs are preserved.
 
 `check_axioms.py` rebuilds the full regression environment before auditing theorem roots and scanning maintained Lean sources for proof shortcuts. The permitted axioms are `propext`, `Classical.choice`, and `Quot.sound`. The audit regression deliberately puts broken source behind a valid cache and requires rejection. Specification and bounded-execution audits also contain deliberate dependency-contamination controls that must fail.
 
@@ -157,7 +159,7 @@ For the complete gate:
 python3 scripts/check_clean_build.py
 ```
 
-It builds a fresh source snapshot without `.lake`, runs the maintained checks, checks every worked `.lean` file, verifies Markdown Lean examples and local links, and checks generated proof documentation. Source hashes must remain stable before it publishes the reports.
+It builds a fresh source snapshot without `.lake`, runs the maintained checks, checks every worked `.lean` file, and verifies Markdown Lean examples and local links. Source hashes must remain stable before it publishes the reports.
 
 ## 7. Check the independent FloatLib implementation
 
@@ -190,6 +192,6 @@ theorem walkthrough_case_bits :
 end TensorCore.Regression
 ```
 
-Add the module to `tests/TensorCoreTests.lean` so the full audit imports it. Run `lake build TensorCoreTests`, check the individual file, and regenerate the proof guide with `python3 scripts/generate_proof_docs.py`. The layout check rejects a module omitted from the full audit.
+Add the module to `tests/TensorCoreTests.lean` so the full audit imports it. Run `lake build TensorCoreTests` and check the individual file. Update the theorem index when adding a public result. The layout check rejects a module omitted from the full audit.
 
 For an exploratory calculation, use a scratch Lean file and `lake env lean /path/to/scratch.lean`. For a larger family, prefer applying a symbolic production theorem or extending an independent executable comparison; finite examples alone do not prove a universal arithmetic claim.

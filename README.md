@@ -72,4 +72,4 @@ This builds a fresh snapshot, audits theorem dependencies, checks every worked L
 
 The selected paths have FP16/BF16/TF32 operands and FP32 outputs. Scalar EFT correctness keeps its grid, coefficient-budget, representability, and range hypotheses. Non-monotonicity results describe the stated realizable perturbation family. Hardware correspondence remains an external obligation; recorded-vector replay takes no new GPU measurements. Software checks require neither MATLAB nor CUDA.
 
-[Theorem index](TensorCore/THEOREMS.md) · [Detailed proof guide](docs/proof-guide.md) · [Executable reference](docs/reference.md) · [Trust and style](docs/style.md)
+[Theorem index](TensorCore/THEOREMS.md) · [Executable reference](docs/reference.md) · [Trust and style](docs/style.md)

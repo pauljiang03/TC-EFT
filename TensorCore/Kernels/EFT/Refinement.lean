@@ -1,13 +1,9 @@
--- Refinement for TC-EFT.
-
 import TensorCore.Kernels.EFT.Cost
 import TensorCore.EFT.Encoded
 
 namespace TensorCore.EFMachine
 
-/-- Bit refinement of the paper-interface reference on every accepted finite input.
-Branch tags may differ because bounded scalar acceptance additionally checks the
-executed intermediate encodings. Exact consolidation uses a fixed workspace. -/
+/-- Bit refinement of the paper-interface reference on every accepted finite input. -/
 theorem algorithm1_agrees {path : Path} {x : BlockInput path.profile} {D : F32} {t : BlockTrace}
     (ht : prepareEncodedEFT x D = .ok t) :
     (algorithm1 path x D).map Result.bits = .ok t.algorithm1.bits := by

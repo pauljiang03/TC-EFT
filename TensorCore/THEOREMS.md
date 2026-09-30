@@ -68,4 +68,4 @@ open TensorCore
 #check EFMachine.algorithm1WithLean_eq
 ```
 
-The [FloatLib correspondence](../floatlib-port/COMPARISON.md) maps the independent implementation and paper statements to its universal equivalence theorems. The [generated proof index](../docs/proofs/README.md) contains the complete checked declaration graph, including regression witnesses.
+The [FloatLib correspondence](../floatlib-port/COMPARISON.md) maps the independent implementation and paper statements to its universal equivalence theorems. See the linked Lean files for complete statements and proofs.

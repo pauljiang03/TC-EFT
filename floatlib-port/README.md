@@ -38,7 +38,7 @@ python3 scripts/check_monotonicity.py
 
 Reproduce validation with `scripts/check_all.py`. Current reports and source hashes are generated under `test-results/summary.json`; the direct comparison writes `test-results/equivalence/report.json`.
 
-The parent cleanup removes one unused application import from the reference dependency graph. `prepare_reference.py` compares every arithmetic and proof body to the pinned revision, accepts only documented module-path relocations and deletion of existing import lines, and copies the actual current parent sources. Its generated manifest records those deletions and the current source hashes.
+The parent cleanup removes one unused application import from the reference dependency graph. `prepare_reference.py` compares every arithmetic and proof body to the pinned revision, accepts documented module-path relocations, deletion of existing import lines, and comment/whitespace changes while requiring identical mathematical code tokens and string literals, and copies the actual current parent sources. Its generated manifest records those deletions and the current source hashes.
 
 ## Direct comparison with the original
 

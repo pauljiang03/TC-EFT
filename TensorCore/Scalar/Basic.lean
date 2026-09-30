@@ -1,8 +1,6 @@
 import TensorCore.Numerics.Binary.RoundingContract
 
-/-! Binary IEEE scalar values. The existing tensor-core finite semantics remain
-separate. NaN payloads exclude the quiet bit and are aligned at the high end on
-format conversion. Arithmetic prefers a signaling NaN, then the first quiet NaN. -/
+/-! Binary IEEE scalar values. -/
 
 namespace TensorCore.IEEE
 

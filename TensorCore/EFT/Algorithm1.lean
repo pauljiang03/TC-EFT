@@ -1,17 +1,11 @@
 import TensorCore.EFT.Extraction
 import TensorCore.TC.ErrorBounds
 
-/-! TC-EFT Lemma IV.2 and Algorithm 1 as one named procedure. The exact reference branch
-recovers `D − ε_o + Σ εᵢ` in exact dyadic arithmetic and rounds once to nearest even; the
-scalar branch replaces the final exact operations by FP32 additions when the predicate of
-Theorems IV.8–IV.9 holds. Table V is the paper's operation ledger for the reference branch.
-Both branches are the paper's; neither is a fallback added here, and `tceft` remains the
-scalar branch alone. -/
+/-! TC-EFT Lemma IV.2 and Algorithm 1 as one named procedure. -/
 
 namespace TensorCore
 
-/-- Lemma IV.2: the overlap window width `τ = ψ − η + p ≥ 0`, where `qE = 2^(ψ−23)` is the
-extraction grid and `qA = 2^(η − 23 − p)` the alignment grid. -/
+/-- Lemma IV.2: the overlap window width `τ = ψ − η + p ≥ 0`, where `qE = 2^(ψ−23)` is the extraction grid and `qA = 2^(η − 23 − p)` the alignment grid. -/
 theorem overlap_window_width (t : BlockTrace) (η : ℤ) (p : ℕ) (hη : t.block.eta = some η)
     (hF : t.block.profile.alignFraction = 23 + p) :
     0 ≤ t.extractionExponent - t.block.quantumExponent ∧
@@ -22,8 +16,7 @@ theorem overlap_window_width (t : BlockTrace) (η : ℤ) (p : ℕ) (hη : t.bloc
   simp only [Option.getD_some]
   omega
 
-/-- The exact reference branch of Algorithm 1: `RN(D − ε_o + Σ εᵢ)` formed from the
-extracted components in exact dyadic arithmetic. -/
+/-- The exact reference branch of Algorithm 1: `RN(D − ε_o + Σ εᵢ)` formed from the extracted components in exact dyadic arithmetic. -/
 def BlockTrace.exactConsolidation (t : BlockTrace) : Option F32 :=
   round32 .nearestEven (t.output.value - t.overlap + sumQ t.lowParts)
 
@@ -33,8 +26,7 @@ theorem exactConsolidation_eq_corrected (t : BlockTrace) :
   unfold BlockTrace.exactConsolidation
   rw [← overlap_recovery, corrected_eq_round_exactDot]
 
-/-- Outcome of Algorithm 1: the scalar branch, the exact reference branch, or an exact sum
-outside the FP32 range. -/
+/-- Outcome of Algorithm 1: the scalar branch, the exact reference branch, or an exact sum outside the FP32 range. -/
 inductive Algorithm1Result where
   | scalar (bits : F32)
   | exactReference (bits : F32)
@@ -46,8 +38,7 @@ def Algorithm1Result.bits : Algorithm1Result → Option F32
   | .exactReference b => some b
   | .outOfRange => none
 
-/-- Algorithm 1 on a trace: the scalar branch when the predicate holds, otherwise the exact
-reference branch. -/
+/-- Algorithm 1 on a trace: the scalar branch when the predicate holds, otherwise the exact reference branch. -/
 def BlockTrace.algorithm1 (t : BlockTrace) : Algorithm1Result :=
   match t.scalarCorrected with
   | some b => .scalar b
@@ -134,8 +125,7 @@ theorem algorithm1_bits_isSome_iff (t : BlockTrace) :
       rw [hr] at hb
       contradiction
 
-/-- TC-EFT Table V: the reference branch's per-cell operation ledger for `K` products
-(`n = K + 1` terms), as the paper counts it. It is an operation count, not a timing. -/
+/-- TC-EFT Table V: the reference branch's per-cell operation ledger for `K` products (`n = K + 1` terms), as the paper counts it. -/
 structure ReferenceLedger where
   bitDecodes : ℕ
   scaleComparisons : ℕ
@@ -151,10 +141,7 @@ structure ReferenceLedger where
 def referenceLedger (K : ℕ) : ReferenceLedger :=
   ⟨2 * K + 2, K + 1, K, K + 1, K, 1, K, 2, 1⟩
 
-/-- Successful scalar consolidation uses `n + 2` rounded FP32 operations for
-`n = K + 1` terms: `naiveSum32` adds all `n` residuals starting from zero, followed
-by the overlap subtraction and final addition. The paper's `n + 1` count instead
-initializes its sum with the first residual. Extraction and guard work are excluded. -/
+
 def scalarBranchOperations (K : ℕ) : ℕ := K + 3
 
 end TensorCore

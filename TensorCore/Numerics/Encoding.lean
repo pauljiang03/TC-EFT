@@ -1,5 +1,3 @@
--- Encoding for the arithmetic core.
-
 import TensorCore.Numerics.Defs
 
 namespace TensorCore
@@ -31,7 +29,7 @@ def Classification.finite : Classification → Option Decoded
 /-- Width-free restatement used by the encoding proofs. -/
 theorem decode32_eq (x : F32) : decode32 x = (classifyNat fp32 x.toNat).finite := rfl
 
-/-- Numerical projection for encoded boundaries. Special encodings have no value. -/
+/-- Numerical projection for encoded boundaries. -/
 def value32 (x : F32) : Option ℚ := (decode32 x).map Decoded.value
 
 structure Finite32 where

@@ -1,5 +1,3 @@
--- Correct Rounding for the arithmetic core.
-
 import TensorCore.Numerics.ConversionBounds
 
 namespace TensorCore
@@ -10,8 +8,7 @@ theorem rne_grid_nearest (m : ℚ) (e : ℤ) (j : ℤ) :
   rw [dist_scale _ _ (pow2_pos _) _, dist_scale _ _ (pow2_pos _) _]
   exact Rat.mul_le_mul_of_nonneg_right (rneInt_nearest _ j) (Rat.le_of_lt (pow2_pos _))
 
-/-- A finer grid below the input's binade cannot supply an equally near competitor.
-The exact binade boundary is already a strictly better candidate. -/
+/-- A finer grid below the input's binade cannot supply an equally near competitor. -/
 theorem rne_lower_binade_strict (m : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32)
     (j f : ℤ) (hf : -126 ≤ f) (hj : j.natAbs < 2 ^ 24) (he : f < convExp m) :
     absQ (m - magnitudeRounded .nearestEven m) <
@@ -111,8 +108,7 @@ theorem signedRounded_tie_even (x y : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ maxFi
     apply rne_magnitude_tie_even x y (by simpa [absQ_of_nonneg hn] using hm)
       (by simpa [absQ_of_nonneg hn] using hr) hy hne ht
 
-/-- The conversion pipeline actually returns the signed selected grid value.
-This includes subnormals, both signs, a significand carry, and bit parity. -/
+/-- The conversion pipeline actually returns the signed selected grid value. -/
 theorem round32_nonzero_spec (mode : RoundingMode) (x : ℚ)
     (hx : x ≠ 0) (hr : absQ x ≤ maxFinite32) :
     ∃ b : F32, round32 mode x = some b ∧ value32 b = some (signedRounded mode x) ∧

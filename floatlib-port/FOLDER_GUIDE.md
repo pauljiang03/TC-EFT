@@ -88,7 +88,7 @@ lake env lean tests/Audit.lean
 
 The port uses Lean 4.34.0 and FloatLib revision `0d91825727839f597fd06b22fdd038ea21480f0c`. The reference revision is `990afac10b94a84f3de24743206756dd7acc3276`; its separate executable uses Lean 4.33.1.
 
-The preparation script verifies current parent dependency bodies against their original source locations at the pinned Git revision. Documented module-path relocations and deletion of unused imports are accepted; arithmetic and proof bodies cannot change. The actual current modules are copied into `reference-compat/`, where three Nat/Int/Rat notation declarations are renamed and scoped to avoid mathlib parser collisions. The parent source is never rewritten. The generated manifest lists original locations, current hashes, and deleted imports. A changed arithmetic/proof body causes preparation to fail.
+The preparation script verifies current parent dependency bodies against their original source locations at the pinned Git revision. Module-path relocations, deletion of unused imports, and comment/whitespace changes are accepted; mathematical code tokens and string literals cannot change. The actual current modules are copied into `reference-compat/`, where three Nat/Int/Rat notation declarations are renamed and scoped to avoid mathlib parser collisions. The parent source is never rewritten. The generated manifest lists original locations, current hashes, and deleted imports. A changed arithmetic/proof body causes preparation to fail.
 
 ## Running Lean and the models against the test cases
 
@@ -207,7 +207,7 @@ The same script executes 49,005 encoded `family p K j` commands for `p=0..4`, `K
 
 ### Direct original-versus-port checks
 
-[check_equivalence.py](scripts/check_equivalence.py) archives the pinned original revision and builds its `tc_eft_paper` executable with the original toolchain. It combines the generated paper inputs, scalar corpus and feature/hardware fixtures, then adds 2,000 deterministic random encoded blocks and 2,000 deterministic random rational-rounding commands using seed `20260923`. Feature rows are converted to the shared packed-word `block` interface, with D set to zero to exercise supplied-D independence. One malformed feature row is skipped because that shared interface rejects its shape during parsing.
+[check_equivalence.py](scripts/check_equivalence.py) snapshots the current parent implementation and builds its `tc_eft_paper` executable with the parent toolchain. It combines the generated paper inputs, scalar corpus and feature/hardware fixtures, then adds 2,000 deterministic random encoded blocks and 2,000 deterministic random rational-rounding commands using seed `20260923`. Feature rows are converted to the shared packed-word `block` interface, with D set to zero to exercise supplied-D independence. One malformed feature row is skipped because that shared interface rejects its shape during parsing.
 
 Both executables receive the identical input file. `compare_outputs` uses `zip_longest` over the input and both output files, so a missing or extra record fails. It parses both JSON records and requires complete object equality. Dictionary key order and JSON whitespace do not matter; every emitted field value does, including branch labels, errors, exact rational strings and output words. The saved run matched all 115,029 command records. It also recorded identical output-file SHA-256 hashes; structural JSON equality is the comparator's acceptance rule, while the hashes preserve the observed artifacts.
 
@@ -238,4 +238,4 @@ The saved successful run records:
 
 These are recorded results, not a promise that future edits remain verified. Rerun the commands after changing code. Creating this guide required no arithmetic changes; the recorded source and verification-script hashes were checked against the current files.
 
-The parent cleanup preserves the pinned arithmetic/proof bodies while relocating module paths and deleting unused imports. The generated compatibility manifest lists those import deletions and hashes the current parent sources. Differential validation snapshots the current parent implementation.
+The parent cleanup preserves pinned mathematical code tokens and string literals while relocating modules, deleting unused imports, and shortening comments. The generated compatibility manifest lists those import deletions and hashes the current parent sources. Differential validation snapshots the current parent implementation.

@@ -19,9 +19,4 @@ import TensorCore.Kernels.EFT.Success
 import TensorCore.Kernels.EFT.Word
 import TensorCore.Kernels.EFT.WordDefs
 
-/-! # Bounded TC-EFT kernels
-
-Fixed-width workspace operations and their refinement to the reference EFT. The
-`EFMachine` declaration namespace is unchanged. `Native` proves preservation when
-scalar FP32 additions execute through Lean's native floating-point implementation.
--/
+/-! # Bounded TC-EFT kernels -/

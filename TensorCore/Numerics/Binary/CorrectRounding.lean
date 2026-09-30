@@ -1,14 +1,7 @@
 import TensorCore.Numerics.Binary.ConversionBounds
 import TensorCore.Numerics.CorrectRounding
 
-/-! Correctness of `roundBinary` for every well-formed IEEE-style `Format` (TC-EFT
-Definition II.2 for FP16, BF16, tf19, FP32, and FP64).
-Non-IEEE special encodings are outside this theorem. The converter returns an
-encoding whose value is
-the signed selected grid value; in nearest-even mode that value is nearest among the
-format's finite values with ties broken to an even low bit; in toward-zero mode it is the
-finite value of largest magnitude between zero and the input. The FP32 statements of
-`Theory/CorrectRounding.lean` are the `fp32` instances. -/
+/-! Correctness of `roundBinary` for every well-formed IEEE-style `Format` (TC-EFT Definition II.2 for FP16, BF16, tf19, FP32, and FP64). -/
 
 namespace TensorCore
 
@@ -212,8 +205,7 @@ theorem binarySignedRounded_tie_even (f : Format) (hf : f.WellFormed) (x y : ℚ
     apply binary_rne_magnitude_tie_even f hf false x y (by simpa [absQ_of_nonneg hn] using hm)
       (by simpa [absQ_of_nonneg hn] using hr) hy hne ht
 
-/-- The converter returns the signed selected grid value, with the coefficient's parity in
-the low bit. -/
+/-- The converter returns the signed selected grid value, with the coefficient's parity in the low bit. -/
 theorem roundBinary_nonzero_spec (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
     (x : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ f.maxFinite) :
     ∃ bits : BitVec f.width, roundBinary f mode x = some bits ∧
@@ -341,8 +333,7 @@ theorem binary_rtz_magnitude_spec (f : Format) (hf : f.WellFormed) (negative : B
       have := pow2_pos (binaryConvExp f m - f.fractionBits - 1)
       grind
 
-/-- Toward-zero result: between zero and the input, of largest magnitude among the format's
-finite values there. -/
+/-- Toward-zero result: between zero and the input, of largest magnitude among the format's finite values there. -/
 def TowardZero (f : Format) (x : ℚ) (bits : BitVec f.width) : Prop :=
   ∃ d : ℚ, binaryValue f bits = some d ∧ Between0 x d ∧
     ∀ y : ℚ, f.FiniteValue y → Between0 x y → absQ y ≤ absQ d

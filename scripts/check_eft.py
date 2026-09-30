@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""EFT acceptance gate: recovery, encoded Algorithm 1, scalar consolidation, and paper suites.
-
-python3 scripts/check_eft.py
-Builds, audits the imported environment, checks source trust restrictions, runs
-scalar coverage and independently checks hardware expectation/replay preparation.
-Does not compile CUDA or claim hardware measurements or complete EFT extraction.
-"""
+"""Build and audit the reference, scalar, instruction-group, and bounded EFT tests."""
 from pathlib import Path
 import argparse
 import json
@@ -31,7 +25,7 @@ def main():
         for name in ['eft-coverage.json', 'eft-coverage-cases.json', 'eft-checks.json',
                      'eft-paper-report.json', 'eft-paper-cases.json',
                      'eft-paper-original.json', 'eft-paper-second-pass.json',
-                     'bounded-eft-report.json']:
+                     'bounded-eft-report.json', 'instruction-groups-report.json']:
             shutil.copyfile(target/'data/regressions'/name, ROOT/'data/regressions'/name)
         report_path = ROOT/'data/regressions/eft-checks.json'
         report = json.loads(report_path.read_text())
@@ -43,8 +37,7 @@ def main():
         ['lake', 'build'],
         ['lake', 'env', 'lean', 'scripts/lean/Audit.lean'],
         [sys.executable, 'scripts/check_eft_coverage.py'],
-        [sys.executable, 'scripts/generate_hardware.py'],
-        [sys.executable, 'scripts/replay_hardware.py', '--self-test'],
+        [sys.executable, 'scripts/check_instruction_groups.py'],
         [sys.executable, 'scripts/check_paper_eft.py'],
         [sys.executable, 'scripts/check_bounded_eft.py'],
     ]
@@ -87,8 +80,8 @@ def main():
     report = dict(status='passed', commands=results, scanned_lean_sources=len(sources),
                   bounded_scope='Complete eight-path encoded EFT: bounded decoding, signed extraction/overlap, guards, scalar and 576-bit exact consolidation, direct FP32 rounding; universal finite-input correctness, success/range, reference refinement, and source-level operation budgets',
                   bounded_checks=json.loads((ROOT/'data/regressions/bounded-eft-report.json').read_text()),
-                  incomplete=['Optimized machine lowering and performance comparison',
-                              'CUDA compilation and actual GPU measurements'])
+                  instruction_group_checks=json.loads((ROOT/'data/regressions/instruction-groups-report.json').read_text()),
+                  incomplete=['Optimized machine lowering and performance comparison'])
     (ROOT/'data/regressions/eft-checks.json').write_text(json.dumps(report, indent=2)+'\n')
     print(json.dumps(report, indent=2))
 

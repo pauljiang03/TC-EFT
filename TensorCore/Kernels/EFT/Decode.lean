@@ -1,5 +1,3 @@
--- Decode for TC-EFT.
-
 import TensorCore.Kernels.EFT.DecodeDefs
 import TensorCore.Kernels.EFT.Round
 import TensorCore.Kernels.EFT.Split

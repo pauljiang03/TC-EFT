@@ -1,5 +1,3 @@
--- Dyadic for TC-EFT.
-
 import TensorCore.Kernels.EFT.Word
 import TensorCore.TC.Monotonicity
 
@@ -39,8 +37,7 @@ theorem dyadic_div (m : ℕ) (scale : ℤ) (gap : ℕ) :
   rw [Rat.div_def]
   grind
 
-/-- The implemented quotient/remainder split is the paper's magnitude truncation,
-including negative terms and gaps beyond a machine limb's width. -/
+/-- The implemented quotient/remainder split is the paper's magnitude truncation, including negative terms and gaps beyond a machine limb's width. -/
 theorem Word.split_coarse_value (x : Word) (g : Grid) :
     (x.split g).coarse.value = truncGrid x.value ((g.toNat : ℤ) - 272) := by
   have hs := x.split_sign g

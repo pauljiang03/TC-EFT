@@ -1,5 +1,3 @@
--- Lean Bridge for IEEE scalar arithmetic.
-
 import TensorCore.Scalar.LeanRounding
 import TensorCore.Scalar.Compatibility
 import Init.Data.Float
@@ -13,8 +11,7 @@ open Float.Model.UnpackedFloat
 /-- Lean's representation permits every non-NaN encoding and one canonical NaN. -/
 abbrev Native32Valid (bits : F32) : Prop := Float.Model.Format.binary32.Valid bits
 
-/-- No arithmetic or rounding occurs in this adapter; the proof guards Lean's
-canonical-NaN representation invariant. -/
+/-- No arithmetic or rounding occurs in this adapter; the proof guards Lean's canonical-NaN representation invariant. -/
 def toNative32 (bits : F32) (h : Native32Valid bits) : Float32 :=
   .ofModel ⟨UInt32.ofBitVec bits, h⟩
 
@@ -173,8 +170,7 @@ theorem encodeZero32_eq (negative : Bool) (e : ℤ) :
   change BitVec.ofNat 32 ((if negative then 2147483648 else 0) + 0) = _
   cases negative <;> rfl
 
-/-- Once normalization has produced a bounded coefficient, the two output
-encoders agree bit for bit. -/
+/-- Once normalization has produced a bounded coefficient, the two output encoders agree bit for bit. -/
 theorem packFinite32_eq (negative : Bool) (e : ℤ) (k : ℕ)
     (hk : 0 < k) (hu : k < 2 ^ 24) (he : -126 ≤ e) (he' : e ≤ 127) :
     pack Float.Model.Format.binary32 (.finite (nativeSign negative) k (e - 23) hk) =
@@ -213,8 +209,7 @@ theorem packFinite32_eq (negative : Bool) (e : ℤ) (k : ℕ)
     congr 1
     omega
 
-/-- Complete agreement of normalization and packing on the finite reference
-domain. The input mantissa and exponent are arbitrary, not sampled encodings. -/
+/-- Complete agreement of normalization and packing on the finite reference domain. -/
 theorem packRound32_eq (negative : Bool) (m : ℕ) (e : ℤ) (hm : 0 < m)
     (hr : (m : ℚ) * pow2 e ≤ fp32.maxFinite) :
     let x := (m : ℚ) * pow2 e
@@ -377,8 +372,7 @@ theorem aligned_add_value (sa sb : Sign) (ma mb : ℕ) (ea eb : ℤ) :
 def nativeAdd32 (a b : F32) (ha : Native32Valid a) (hb : Native32Valid b) : F32 :=
   fromNative32 (toNative32 a ha + toNative32 b hb)
 
-/-- Every nonzero finite pair with an in-range exact sum agrees bit for bit.
-Tininess affects the reference flags but does not change this value theorem. -/
+/-- Every nonzero finite pair with an in-range exact sum agrees bit for bit. -/
 theorem nativeAdd32_reference (a b : F32) (ha : NonzeroFinite32 a) (hb : NonzeroFinite32 b)
     (tinyMode : Tininess) (hr : absQ (finiteValue32 a + finiteValue32 b) ≤ fp32.maxFinite) :
     nativeAdd32 a b (native32Valid_finite a ha.1) (native32Valid_finite b hb.1) =
@@ -440,8 +434,7 @@ theorem aligned_sub_value (sa sb : Sign) (ma mb : ℕ) (ea eb : ℤ) :
 def nativeSub32 (a b : F32) (ha : Native32Valid a) (hb : Native32Valid b) : F32 :=
   fromNative32 (toNative32 a ha - toNative32 b hb)
 
-/-- Every nonzero finite pair with an in-range exact difference agrees bit for bit.
-Tininess affects the reference flags but does not change this value theorem. -/
+/-- Every nonzero finite pair with an in-range exact difference agrees bit for bit. -/
 theorem nativeSub32_reference (a b : F32) (ha : NonzeroFinite32 a) (hb : NonzeroFinite32 b)
     (tinyMode : Tininess) (hr : absQ (finiteValue32 a - finiteValue32 b) ≤ fp32.maxFinite) :
     nativeSub32 a b (native32Valid_finite a ha.1) (native32Valid_finite b hb.1) =

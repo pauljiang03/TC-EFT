@@ -1,8 +1,6 @@
 import TensorCore.Scalar.Basic
 
-/-! Rounding with unbounded exponent range. The specification uses binade
-inequalities and optimality against integer competitors, not exponent search,
-floor/ceiling selection, or encoded output. This is used for IEEE status flags. -/
+/-! Rounding with unbounded exponent range. -/
 
 namespace TensorCore.IEEE
 
@@ -32,8 +30,7 @@ theorem coefficient_correct (mode : BinaryRoundingMode) (negative : Bool) (t : �
   | towardNegative => cases negative <;> first | exact hf | exact hc
   | towardPositive => cases negative <;> first | exact hf | exact hc
 
-/-- Optimality plus even tie breaking determines one integer, not a set of
-convenient witnesses that could alter exception behavior. -/
+/-- Optimality plus even tie breaking determines one integer, not a set of convenient witnesses that could alter exception behavior. -/
 theorem integerRound_unique (mode : BinaryRoundingMode) (negative : Bool) (t : ℚ)
     (k : ℤ) (h : IntegerRound mode negative t k) :
     k = binaryCoefficient mode negative t := by
@@ -157,8 +154,7 @@ theorem precisionMagnitude_le_max (f : Format) (hf : f.WellFormed)
   rw [precisionMagnitude, if_neg hz, hmj]
   exact Rat.mul_le_mul_of_nonneg_right (Rat.intCast_le_intCast.mpr hc) (Rat.le_of_lt hq)
 
-/-- The normal-precision result is nearest among all bounded-significand dyadics,
-even when a competitor uses a different exponent. -/
+/-- The normal-precision result is nearest among all bounded-significand dyadics, even when a competitor uses a different exponent. -/
 theorem precision_nearest_all (f : Format) (m : ℚ) (hm : 0 < m)
     (j e : ℤ) (hj : j.natAbs < 2 ^ (f.fractionBits + 1)) :
     absQ (m - precisionMagnitude f .nearestEven false m) ≤
@@ -186,8 +182,7 @@ theorem precision_nearest_all (f : Format) (m : ℚ) (hm : 0 < m)
     rw [absQ_of_nonneg h2]
     grind
 
-/-- Directed precision rounding is a greatest lower bound over every bounded-
-significand dyadic, rather than only competitors on the selected grid. -/
+/-- Directed precision rounding is a greatest lower bound over every bounded- significand dyadic, rather than only competitors on the selected grid. -/
 theorem precision_floor_all (f : Format) (m : ℚ) (hm : 0 < m) :
     precisionMagnitude f .towardZero false m ≤ m ∧
     ∀ j e : ℤ, j.natAbs < 2 ^ (f.fractionBits + 1) →

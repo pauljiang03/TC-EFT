@@ -1,9 +1,7 @@
 import TensorCore.Scalar.LeanFiniteAddition
 import TensorCore.Kernels.EFT.Correctness
 
-/-! EFT scalar consolidation using Lean's native FP32 addition. Bounded decoding,
-extraction, range checks, and exact consolidation retain their existing definitions.
-The new execution path does not compute rational intermediates. -/
+/-! EFT scalar consolidation using Lean's native FP32 addition. -/
 
 namespace TensorCore.EFMachine
 
@@ -22,8 +20,7 @@ theorem value32_finite_exponent {a : F32} {x : ℚ} (h : TensorCore.value32 a = 
     simp [TensorCore.value32, TensorCore.decode32, classify, classifyNat, fp32, hz, hm,
       Classification.finite] at h
 
-/-- One native nearest-even addition behind the original finite-input and exact
-range checks. The bounded reference rounder is not executed to obtain the result. -/
+/-- One native nearest-even addition behind the original finite-input and exact range checks. -/
 def add32WithLean (a b : F32) : Option F32 := do
   if ha : a.toNat / 8388608 % 256 < 255 then
     if hb : b.toNat / 8388608 % 256 < 255 then
@@ -36,8 +33,7 @@ def add32WithLean (a b : F32) : Option F32 := do
     else none
   else none
 
-/-- Full scalar primitive preservation, including nonfinite rejection, exact
-range rejection, signed underflow, and normalization of exact zero. -/
+/-- Full scalar primitive preservation, including nonfinite rejection, exact range rejection, signed underflow, and normalization of exact zero. -/
 theorem add32WithLean_eq (a b : F32) : add32WithLean a b = add32 a b := by
   cases hx : decode32Word a with
   | none =>
@@ -96,8 +92,7 @@ def Components.scalarWithLean (c : Components) : Option F32 := do
 theorem Components.scalarWithLean_eq (c : Components) : c.scalarWithLean = c.scalar := by
   simp only [Components.scalarWithLean, Components.scalar, scalarSumWithLean_eq, add32WithLean_eq]
 
-/-- Algorithm 1 with native scalar additions, retaining bounded exact consolidation
-when the scalar guard or intermediate checks refuse the scalar branch. -/
+/-- Algorithm 1 with native scalar additions, retaining bounded exact consolidation when the scalar guard or intermediate checks refuse the scalar branch. -/
 def algorithm1WithLean (path : Path) (x : BlockInput path.profile) (D : F32) : Except Error Result := do
   let p ← prepare path x D
   if p.terms.all (fun t => t.word.magnitude == 0) then return .allZero

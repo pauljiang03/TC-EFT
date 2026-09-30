@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Build the independent paper specification, universal proofs, and negative controls.
-
-The compiled dependency audit checks every declaration in the independent modules.
-The deliberately contaminated proposition tests the audit's transitive rejection,
-including dependencies in propositions rather than just executable return values.
-"""
+"""Build the independent paper specification, universal proofs, and negative controls."""
 from pathlib import Path
 import hashlib
 import json

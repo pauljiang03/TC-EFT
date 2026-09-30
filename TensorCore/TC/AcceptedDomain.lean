@@ -1,5 +1,3 @@
--- Accepted Domain for the tensor-core model.
-
 import TensorCore.TC.Canonical
 
 namespace TensorCore
@@ -31,8 +29,7 @@ theorem evalPrepared_total (b : PreparedBlock) (hr : absQ b.accumulator ≤ maxF
       rfl
   exact ⟨⟨b, ⟨bits, d, hd⟩⟩, by simp [evalPrepared, hb, hf]⟩
 
-/-- Exact accepted domain: correct shape, finite decoded operands, and in-range
-aligned accumulator. No additional output-decoding failure is possible in this domain. -/
+/-- Exact accepted domain: correct shape, finite decoded operands, and in-range aligned accumulator. -/
 theorem evalBlock_success_iff (p : Profile) (x : BlockInput p) :
     (∃ t, evalBlock x = .ok t) ↔
       x.products.length = p.products ∧

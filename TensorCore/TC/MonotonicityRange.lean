@@ -1,10 +1,6 @@
 import TensorCore.TC.Monotonicity
 
-/-! TC-EFT Theorem III.5: range and effect of the non-monotonic perturbation. In the
-construction of Theorem III.4 the accumulator input `1 − 2^-24` is replaced by
-`c_j = 1 − j·2^-24` for `1 ≤ j ≤ 2^23`. The output exceeds `1` exactly when
-`(j + 2)·2^p ≤ K`, that is for `1 ≤ j ≤ min(2^23, ⌊K/2^p⌋ − 2)`; whenever `j·2^p ≤ K` the
-output is `1 + 2^-23·⌊(K − j·2^p)/2^(p+1)⌋`, and this increase is largest at `j = 1`. -/
+/-! TC-EFT Theorem III.5: range and effect of the non-monotonic perturbation. -/
 
 namespace TensorCore
 
@@ -51,8 +47,7 @@ theorem floor_natCast_mul_pow2_neg (N d : ℕ) :
     rw [Rat.intCast_natCast]
     simpa using this
 
-/-- Accumulator with `c_j`: every product is retained and `A_j = 1 + (K − j·2^p)·2^-(24+p)`,
-written as a natural coefficient on the grid `2^-(24+p)`. -/
+/-- Accumulator with `c_j`: every product is retained and `A_j = 1 + (K − j·2^p)·2^-(24+p)`, written as a natural coefficient on the grid `2^-(24+p)`. -/
 theorem construction_accumulator_range (prof : Profile) (p K j : ℕ) (da db : Decoded)
     (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
     (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
@@ -94,11 +89,7 @@ theorem construction_accumulator_range (prof : Profile) (p K j : ℕ) (da db : D
   congr 1
   all_goals rw [Rat.intCast_add, Rat.intCast_natCast, Rat.intCast_natCast, Rat.natCast_add]
 
-/-- TC-EFT Theorem III.5 on prepared blocks. For any profile with `F = 23 + p`, a floor at
-most `−1`, `K < 2^(24+p)` equal products of value `2^-(24+p)` with raw scale at most `−1`,
-and `1 ≤ j ≤ 2^23`: the block with `c_j = 1 − j·2^-24` returns more than `1` exactly when
-`(j + 2)·2^p ≤ K`; when `j·2^p ≤ K` its output is `1 + 2^-23·⌊(K − j·2^p)/2^(p+1)⌋`; and
-its output never exceeds `1 + 2^-23·⌊(K − 2^p)/2^(p+1)⌋`, the value at `j = 1`. -/
+/-- TC-EFT Theorem III.5 on prepared blocks. -/
 theorem nonmonotone_range (prof : Profile) (p K j : ℕ) (da db : Decoded)
     (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
     (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
@@ -246,8 +237,7 @@ theorem nonmonotone_range (prof : Profile) (p K j : ℕ) (da db : Decoded)
       · have := hM ((K - 2 ^ p) / 2 ^ (p + 1))
         grind
 
-/-- Equation 9: with `1 ≤ j`, the witness condition `j ≤ 2^23 ∧ (j + 2)·2^p ≤ K` is
-`j ≤ min(2^23, ⌊K/2^p⌋ − 2)`. -/
+/-- Equation 9: with `1 ≤ j`, the witness condition `j ≤ 2^23 ∧ (j + 2)·2^p ≤ K` is `j ≤ min(2^23, ⌊K/2^p⌋ − 2)`. -/
 theorem nonmonotone_range_iff (p K j : ℕ) (hj1 : 1 ≤ j) :
     (j ≤ 2 ^ 23 ∧ (j + 2) * 2 ^ p ≤ K) ↔ j ≤ min (2 ^ 23) (K / 2 ^ p - 2) := by
   have h : j + 2 ≤ K / 2 ^ p ↔ (j + 2) * 2 ^ p ≤ K := Nat.le_div_iff_mul_le (Nat.two_pow_pos p)
@@ -270,11 +260,7 @@ theorem decode32_below (j : ℕ) (hj1 : 1 ≤ j) (hj2 : j ≤ 2 ^ 23) :
   · omega
   · omega
 
-/-- Theorem III.5 on encoded FP16 operands under any canonical profile: `K` copies of one
-factor pair whose raw product is `2^-(24+p)` with raw scale at most `−1`, and the FP32
-accumulator input `3f800000 − j`. The output exceeds `1` exactly for
-`1 ≤ j ≤ min(2^23, ⌊K/2^p⌋ − 2)`, equals `1 + 2^-23·⌊(K − j·2^p)/2^(p+1)⌋` whenever
-`j·2^p ≤ K`, and never exceeds the `j = 1` value `1 + 2^-23·⌊(K − 2^p)/2^(p+1)⌋`. -/
+
 theorem nonmonotone_range_encoded (K p j : ℕ) (floor : Option ℤ)
     (hfl : ∀ f ∈ floor, f ≤ -1)
     (a b : (fp16Fp32Profile K p floor).Word) (da db : Decoded)

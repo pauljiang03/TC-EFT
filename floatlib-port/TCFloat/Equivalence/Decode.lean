@@ -31,8 +31,7 @@ theorem signBit_eq (f : FloatFormat) (n : Nat) (hn : n < 2^f.bitWidth) :
   rw [← Nat.pos_iff_ne_zero, Nat.div_pos_iff]
   simp [hp]
 
-/-- Full decoder equivalence, including rejection of NaNs/infinities and all metadata.
-Zero signs are identified, as in the paper's exact-number representation. -/
+/-- Full decoder equivalence, including rejection of NaNs/infinities and all metadata. -/
 theorem decode_project (f : FloatFormat) (hf : f.isIEEE = true)
     (n : Nat) (hn : n < 2^f.bitWidth) :
     (decode f n).map project = (TensorCore.classifyNat (format f) n).finite := by

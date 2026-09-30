@@ -1,9 +1,6 @@
 import TCFloat
 
-/-! These are counterexamples to a *literal* representation-preserving identification,
-not counterexamples to the behavior of the checked encoded entry points.
-`project` is the proposed projection to the three fields in TensorCore.Decoded/RawProduct;
-it does not import or redefine the original arithmetic algorithms. -/
+/-! These are counterexamples to a *literal* representation-preserving identification, not counterexamples to the behavior of the checked encoded entry points. -/
 namespace TCFloat.Comparison
 open FloatLib.Floats.Formats.BinaryInterchange
 

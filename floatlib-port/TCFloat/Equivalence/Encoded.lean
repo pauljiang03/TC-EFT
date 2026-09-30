@@ -171,8 +171,7 @@ theorem trace_algorithm_eq (b : Block) (hb : ValidBlock b) (D : TensorCore.F32) 
     rw [ht]
     exact congrArg some (encoded_trace_eq hrel)
 
-/-- Universal encoded TC equality, including malformed product counts, nonfinite inputs,
-subnormals, signed zero and out-of-range accumulator rejection. Errors are observed as none. -/
+/-- Universal encoded TC equality, including malformed product counts, nonfinite inputs, subnormals, signed zero and out-of-range accumulator rejection. -/
 theorem tc_encoded_eq (p : Profile) (hf : p.format.isIEEE=true)
     (x : TensorCore.BlockInput (profile p)) :
     Paper.tc p (inputPairs x) x.c.toNat =
@@ -191,8 +190,7 @@ theorem tc_encoded_eq (p : Profile) (hf : p.format.isIEEE=true)
   · have hs' : (x.products.length != p.products)=true := bne_iff_ne.mpr hs
     simp [Paper.tc,TCFloat.prepare,inputPairs,TensorCore.evalBlock,profile,hs',Except.toOption]
 
-/-- Universal encoded EFT equality: identical validation success, branch and bits, for
-every supplied FP32 D. There is no assumption that D was produced by the TC model. -/
+/-- Universal encoded EFT equality: identical validation success, branch and bits, for every supplied FP32 D. -/
 theorem eft_encoded_eq (p : Profile) (hf : p.format.isIEEE=true)
     (x : TensorCore.BlockInput (profile p)) (D : TensorCore.F32) :
     Paper.eft p (inputPairs x) x.c.toNat D.toNat =
@@ -212,8 +210,7 @@ theorem eft_encoded_eq (p : Profile) (hf : p.format.isIEEE=true)
     simp [Paper.eft,TCFloat.prepare,inputPairs,TensorCore.algorithm1Encoded,
       TensorCore.prepareEncodedEFT,profile,hs',Except.toOption]
 
-/-- The paper's TC and EFT interfaces commute with the same input translation.
-This is a kernel-checked universal theorem, not a finite differential test. -/
+/-- The paper's TC and EFT interfaces commute with the same input translation. -/
 theorem universal_equivalence (p : Profile) (hf : p.format.isIEEE=true)
     (x : TensorCore.BlockInput (profile p)) (D : TensorCore.F32) :
     Paper.tc p (inputPairs x) x.c.toNat =

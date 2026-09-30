@@ -1,17 +1,5 @@
 #!/usr/bin/env python3
-"""Replay the published A100 and H100 BF16 and TF32 vectors through the InvocationSpec descriptors
-and through the proved BF16 and TF32 profiles.
-
-The descriptors (a100-bf16, a100-tf32, hopper-bf16, hopper-tf32-wmma) are executable
-specifications with exact loss accounting. The profiles `bf16Fp32Profile` and `tf19Fp32Profile`
-carry the block contract (`bf16Fp32_contract`, `tf19Fp32_contract`), and the descriptors are
-proved to compute the same block (`bf16Fp32_invocation_compatible`, `tf32_invocation_bits`);
-this replay checks that the two executable paths and the device output agree row by row. Each row is one
-normalization group with K = N_FMA products (8 or 16 for BF16, 4 for TF32), an FP32 c, and an
-FP32 d, exactly as Validate_TC_models.m reshapes the files. BF16 operands are FP32 words with a
-zero low half; TF32 operands are FP32 words with thirteen zero low bits, which is what the
-tf32Register encoding requires. This is a model/device comparison performed by a test.
-"""
+"""Replay the published A100 and H100 BF16 and TF32 vectors through the InvocationSpec descriptors and through the proved BF16 and TF32 profiles."""
 from pathlib import Path
 import json
 import subprocess

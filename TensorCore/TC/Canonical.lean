@@ -1,5 +1,3 @@
--- Canonical for the tensor-core model.
-
 import TensorCore.TC.CanonicalDefs
 import TensorCore.TC.Compatibility
 import TensorCore.TC.ErrorBounds
@@ -12,9 +10,7 @@ theorem fp16Fp32_invocation_compatible (K extra : ℕ) (floor : Option ℤ)
       (evalBlock x).toOption.map (fun t => t.output.bits) :=
   legacy_invocation_bits x (23 + extra) (by change fp16.WellFormed; decide) rfl
 
-/-- One public contract for arbitrary canonical block size and extra alignment bits.
-It states uncorrected output/error behavior and a machine-width refinement. It does
-not require EFT, a final correction, or any architecture-conformance premise. -/
+/-- One public contract for arbitrary canonical block size and extra alignment bits. -/
 theorem fp16Fp32_contract (K extra carryBits : ℕ) (floor : Option ℤ)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (t : BlockTrace)
     (h : evalBlock x = .ok t) (hc : K + 1 ≤ 2 ^ carryBits) :

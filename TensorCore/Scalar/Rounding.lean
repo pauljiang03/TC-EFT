@@ -1,8 +1,6 @@
 import TensorCore.Scalar.Precision
 
-/-! Total IEEE binary rounding under default non-stop handling. The exact input
-is rational and its zero sign is supplied by the operation. The output includes
-all five status flags. Tininess is configurable before/after precision rounding. -/
+/-! Total IEEE binary rounding under default non-stop handling. -/
 
 namespace TensorCore.IEEE
 
@@ -51,9 +49,7 @@ def round (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : ℚ) : Resul
       else maxFiniteWord f negative,
      { overflow, inexact := true }⟩
 
-/-- The numerical specification refers to the previously proved optimality
-relations on the finite domain. Beyond it, the precision-only result determines
-overflow; a non-overflowing excess rounds to the signed endpoint. -/
+/-- The numerical specification refers to the previously proved optimality relations on the finite domain. -/
 def RoundSpec (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : ℚ)
     (r : Result f) : Prop :=
   if x = 0 then r.bits = zero f zeroSign ∧ r.flags = {} else
@@ -71,8 +67,7 @@ def RoundSpec (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : ℚ)
       r.bits = if f.layout.maxFinite < u ∧ overflowToInfinity cfg.mode (decide (x < 0)) = true
         then infinity f (decide (x < 0)) else maxFiniteWord f (decide (x < 0))
 
-/-- All finite rational inputs have a specified result, including zero,
-overflow, gradual underflow, and precision loss; no success premise is assumed. -/
+/-- All finite rational inputs have a specified result, including zero, overflow, gradual underflow, and precision loss; no success premise is assumed. -/
 theorem round_correct (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : ℚ) :
     RoundSpec f cfg zeroSign x (round f cfg zeroSign x) := by
   by_cases hz : x = 0
@@ -90,8 +85,7 @@ theorem round_correct (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : 
     · dsimp only
       simp
 
-/-- On the original domain the new and old numeric encodings coincide whenever
-the exact result is nonzero. IEEE zero signs are governed by the operation. -/
+/-- On the original domain the new and old numeric encodings coincide whenever the exact result is nonzero. -/
 theorem round_agrees_finite (f : BinaryFormat) (cfg : Context) (s : Bool) (x : ℚ)
     (hx : x ≠ 0) (hr : absQ x ≤ f.layout.maxFinite) :
     roundBinary f.layout cfg.mode x = some (round f cfg s x).bits := by
@@ -113,8 +107,7 @@ theorem round_underflow_inexact (f : BinaryFormat) (cfg : Context) (s : Bool) (x
     (round f cfg s x).flags.underflow = true → (round f cfg s x).flags.inexact = true := by
   by_cases hz : x = 0 <;> by_cases hr : absQ x ≤ f.layout.maxFinite <;> simp [round, hz, hr]
 
-/-- The overflow flag exactly matches unbounded-exponent precision rounding,
-including inputs just above the largest finite value that do not overflow. -/
+/-- The overflow flag exactly matches unbounded-exponent precision rounding, including inputs just above the largest finite value that do not overflow. -/
 theorem round_overflow_iff (f : BinaryFormat) (cfg : Context) (s : Bool) (x : ℚ) :
     (round f cfg s x).flags.overflow = true ↔
       f.layout.maxFinite < precisionMagnitude f.layout cfg.mode (decide (x < 0)) (absQ x) := by

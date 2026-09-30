@@ -1,9 +1,6 @@
 import TensorCore.Numerics.EncodingProperties
 
-/-! Specification and correctness of the FP32 converter.
-
-`rneInt` is characterised on the integer grid, `magnitudeExponent` is proved to select the
-binary exponent, and both are later combined into the nearest-value theorem. -/
+/-! Specification and correctness of the FP32 converter. -/
 
 namespace TensorCore
 

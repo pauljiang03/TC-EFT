@@ -1,7 +1,0 @@
-{
-  "evidence": "synthetic_replay_tests_only",
-  "checks": 12,
-  "prepared_vectors": 99,
-  "measured_vectors": 0,
-  "status": "passed; GPU compilation and measurements remain open"
-}

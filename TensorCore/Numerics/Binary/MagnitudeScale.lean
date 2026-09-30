@@ -1,5 +1,3 @@
--- Magnitude Scale for the arithmetic core.
-
 import TensorCore.Numerics.Binary.Encoding
 
 namespace TensorCore

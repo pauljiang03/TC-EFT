@@ -1,22 +1,15 @@
--- Canonical Invocation for the executable examples.
-
 import TensorCore
 
 open TensorCore
 
-/- One Hopper arithmetic invocation: sixteen FP16 products and FP32 c.
-   Its output is one scalar FP32 word. No matrix tile or instruction schedule
-   is implicit in this example. -/
+/- One Hopper arithmetic invocation: sixteen FP16 products and FP32 c. -/
 def hopperOnes : BlockInput hopperF16F32 :=
   ⟨List.replicate 16 (0x3c00, 0x3c00), 0⟩
 
 example : ((evalBlock hopperOnes).toOption.map fun t => t.output.bits) =
     some (BitVec.ofNat 32 0x41800000) := by decide +kernel
 
-/- Arbitrary block size and padding use the same definitions and proofs.
-   `extra` means fractional alignment bits beyond 23, not zero matrix entries.
-   Choose `carryBits` so K+1 <= 2^carryBits; the conservative signed width is
-   26 + extra + carryBits. A hardware implementation needs its own mapping. -/
+/- Arbitrary block size and padding use the same definitions and proofs. -/
 example (K extra carryBits : ℕ) (x : BlockInput (fp16Fp32Profile K extra))
     (t : BlockTrace) (he : evalBlock x = .ok t) (hc : K + 1 ≤ 2 ^ carryBits) :
     t.block.machineAccumulator (26 + extra + carryBits) = t.block.accumulator :=

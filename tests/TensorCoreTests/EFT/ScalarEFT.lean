@@ -1,8 +1,7 @@
 import TensorCore.EFT.Scalar
 import TensorCoreTests.EFT.EFT
 
-/-! Kernel regressions for generic scalar consolidation: subnormals, precision and range
-boundaries, the bit-span condition, and the FP64-to-FP32 double-rounding trap. -/
+/-! Kernel regressions for generic scalar consolidation: subnormals, precision and range boundaries, the bit-span condition, and the FP64-to-FP32 double-rounding trap. -/
 
 namespace TensorCore.Regression
 
@@ -49,8 +48,7 @@ theorem scalar_bitSpan_budget : magnitudeSum [7, -7, 7, -7] < 2 ^ 5 := by
     rcases hz with h | h | h | h <;> subst z <;> decide +kernel
   · decide +kernel
 
-/-- D = 1 and S = 1 + 2^-24 + 2^-53. The FP64 residual budget fits, but rounding S
-to FP64 first lands on the FP32 midpoint and then rounds the wrong way. -/
+/-- D = 1 and S = 1 + 2^-24 + 2^-53. -/
 def scalar64DoubleRound : V100Input :=
   ⟨[(0x3c00, 0x3c00), (0x0001, 0x3c00), (0, 0), (0, 0)], 0x25000000⟩
 

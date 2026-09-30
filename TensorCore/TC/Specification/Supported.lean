@@ -1,5 +1,3 @@
--- Supported for the tensor-core model.
-
 import TensorCore.TC.Specification.Equivalence
 import TensorCore.TC.Specification.Profiles
 
@@ -43,8 +41,7 @@ theorem invocation_eq_paper {p : Profile} (x : BlockInput p) (F : ℕ)
   rw [legacy_invocation_bits x F hf hF]
   exact implementation_eq_paper x
 
-/-- Register-level TF32 agreement on every correctly padded input. The padding
-condition is on input bits; it does not assume execution success or an output. -/
+/-- Register-level TF32 agreement on every correctly padded input. -/
 theorem tf32_eq_paper (K extra : ℕ) (floor : Option ℤ)
     (ps : List (tf32Register.Word × tf32Register.Word)) (c : F32)
     (hp : ∀ pair ∈ ps, tf32Padded pair.1 = true ∧ tf32Padded pair.2 = true) :

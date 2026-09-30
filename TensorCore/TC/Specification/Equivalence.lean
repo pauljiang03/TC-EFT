@@ -1,9 +1,7 @@
 import TensorCore.TC.Specification.Rounding
 import TensorCore.TC.MachineRefinement
 
-/-! Universal, bit-level paper/implementation agreement. The paper definition
-and its validity predicate do not call the implementation. The theorems include
-rejections and establish successful execution for every paper-valid input. -/
+/-! Universal, bit-level paper/implementation agreement. -/
 
 namespace TensorCore.PaperSpec
 
@@ -49,8 +47,7 @@ theorem bits_eq_of_result {p : Parameters} {x : Input p} {b : F32}
   rw [dif_pos ⟨b, h⟩]
   exact congrArg some (result_unique (Classical.choose_spec (show ∃ b, Result p x b from ⟨b, h⟩)) h)
 
-/-- Every encoded input: successful output bits and all rejection cases agree.
-The generic parameter theorem is stronger than its named paper-profile instances. -/
+/-- Every encoded input: successful output bits and all rejection cases agree. -/
 theorem implementation_eq_paper {p : Profile} (x : BlockInput p) :
     (evalBlock x).toOption.map (fun t => t.output.bits) =
       bits (parametersOf p) (inputOf x) := by

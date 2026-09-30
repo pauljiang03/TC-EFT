@@ -1,11 +1,8 @@
--- Profiles for the tensor-core model.
-
 import TensorCore.TC.Invocation
 
 namespace TensorCore
 
-/-- Source-backed FP32-output families. These describe one arithmetic group;
-profile names do not assert instruction mapping or independent device conformance. -/
+/-- Source-backed FP32-output families. -/
 @[implicit_reducible] def alignedInvocation (input : OperandEncoding) (K F : ℕ) (floor : Option ℤ) : InvocationSpec :=
   ⟨input, fp32, K, .aligned F floor .inGroup, [], ⟨fp32, .towardZero⟩⟩
 

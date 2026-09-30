@@ -1,5 +1,3 @@
--- Format Properties for the arithmetic core.
-
 import TensorCore.Numerics.Format
 
 namespace TensorCore
@@ -65,8 +63,7 @@ theorem operand_decode_bounded {s : OperandEncoding} {bits : s.Word} {d : Decode
     (h : s.decode bits = some d) : d.Bounded :=
   valueFormat_decode_bounded _ _ _ (padded_decode_value h)
 
-/-- A nonzero finite IEEE-style encoding uses at least its minimum normal raw scale;
-subnormal values retain that scale instead of normalizing their significand. -/
+/-- A nonzero finite IEEE-style encoding uses at least its minimum normal raw scale; subnormal values retain that scale instead of normalizing their significand. -/
 theorem classifyNat_scale_lower (f : Format) (n : ℕ) (d : Decoded)
     (h : (classifyNat f n).finite = some d) (hnz : d.significand ≠ 0) :
     1 - f.bias ≤ d.rawScale := by
@@ -87,8 +84,7 @@ theorem classifyNat_scale_lower (f : Format) (n : ℕ) (d : Decoded)
       change 1 - f.bias ≤ ((n / 2 ^ f.fractionBits % 2 ^ f.exponentBits : ℕ) : ℤ) - f.bias
       omega
 
-/-- Nonzero finite decoded values retain the format's fraction width and bounded
-raw scale. The exponent field has at least two bits. -/
+/-- Nonzero finite decoded values retain the format's fraction width and bounded raw scale. -/
 theorem classifyNat_metadata (f : Format) (he : 2 ≤ f.exponentBits) (n : ℕ) (d : Decoded)
     (h : (classifyNat f n).finite = some d) (hnz : d.significand ≠ 0) :
     d.fractionalBits = f.fractionBits ∧ 1 - f.bias ≤ d.rawScale ∧

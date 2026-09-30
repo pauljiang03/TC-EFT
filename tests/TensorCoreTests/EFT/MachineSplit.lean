@@ -1,5 +1,3 @@
--- Machine Split for TC-EFT.
-
 import TensorCore.Kernels.EFT.Split
 
 namespace TensorCore.Regression.EFMachine

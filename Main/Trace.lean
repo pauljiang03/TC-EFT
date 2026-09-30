@@ -1,5 +1,3 @@
--- Trace for the executable examples.
-
 import TensorCoreTests.TC.Cases
 import Lean
 

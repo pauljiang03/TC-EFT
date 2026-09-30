@@ -1,5 +1,3 @@
--- Raw Product for the arithmetic core.
-
 import TensorCore.Numerics.FormatProperties
 
 namespace TensorCore

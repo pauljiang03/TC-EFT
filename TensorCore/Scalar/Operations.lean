@@ -1,10 +1,6 @@
 import TensorCore.Scalar.Rounding
 
-/-! Encoded conversions, add/subtract, multiply, and one-rounding FMA. All bit
-patterns are accepted. The NaN policy selects the first signaling NaN, otherwise
-the first quiet NaN; it preserves that operand's sign and payload. Invalid
-operations without a NaN operand produce the positive zero-payload quiet NaN.
-FMA signals invalid for zero times infinity even if its addend is a quiet NaN. -/
+/-! Encoded conversions, add/subtract, multiply, and one-rounding FMA. -/
 
 namespace TensorCore.IEEE
 
@@ -30,8 +26,7 @@ def infinityResult (f : BinaryFormat) (s : Bool) : Result f := ⟨infinity f s, 
 
 def invalidResult (f : BinaryFormat) : Result f := nanResult f [] true
 
-/-- Used only for an exact zero sum. Equal zero signs survive; cancellation of
-opposite signs selects negative zero precisely in the downward mode. -/
+/-- Used only for an exact zero sum. -/
 def sumZeroSign (mode : BinaryRoundingMode) (a b : Bool) : Bool :=
   if a == b then a else mode == .towardNegative
 
@@ -83,8 +78,7 @@ def mul (f : BinaryFormat) (cfg : Context) (a b : Word f) : Result f :=
 def fma (f : BinaryFormat) (cfg : Context) (a b c : Word f) : Result f :=
   fmaDatum f cfg (decode f a) (decode f b) (decode f c)
 
-/-- Payloads are left aligned, matching their positions following the quiet bit.
-Narrowing discards low payload bits; widening followed by narrowing preserves them. -/
+/-- Payloads are left aligned, matching their positions following the quiet bit. -/
 def convertPayload (source target : BinaryFormat) (p : ℕ) : ℕ :=
   if source.layout.fractionBits ≤ target.layout.fractionBits then
     p * 2 ^ (target.layout.fractionBits - source.layout.fractionBits)

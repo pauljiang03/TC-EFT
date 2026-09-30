@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Generate targeted, UNMEASURED WMMA inputs and separate Lean model expectations.
-
-After `lake build`: python3 scripts/generate_hardware.py
-On each target GPU: python3 hardware/run.py --profile V100 --out data/hardware/run-V100
-Replay: python3 scripts/replay_hardware.py data/hardware/run-V100/measurements.json
-No expectation is ever written as a device measurement.
-"""
+"""Compare 16-position Lean instruction outputs with an independent exact-arithmetic oracle."""
 from pathlib import Path
 import hashlib
 import json
@@ -50,7 +44,7 @@ def vectors():
         yield row('cancellation', [(0x3c00, 0x3c00), (0xbc00, 0x3c00)]*8, 1)
         pairs = [(0, 0)]*16
         pairs[0], pairs[1] = (0x3c00, 0x3c00), (1, 0x3c00)
-        yield row('eft_subnormal_counterexample', pairs, 1)
+        yield row('subnormal_mixed_products', pairs, 1)
 
 
 def main():
@@ -60,11 +54,11 @@ def main():
     for v in inputs:
         words = [int(w, 16) for pair in zip(v['a'], v['b']) for w in pair] + [int(v['c'], 16)]
         lines.append(v['profile'] + ' ' + ' '.join(map(str, words)))
-    tmp = ROOT / 'tmp/eft'
+    tmp = ROOT / 'tmp/instruction-groups'
     tmp.mkdir(parents=True, exist_ok=True)
-    path = tmp / 'hardware-model.txt'
+    path = tmp / 'inputs.txt'
     path.write_text('\n'.join(lines) + '\n')
-    proc = subprocess.run(['lake', 'env', 'lean', '--run', 'examples/EFTHardware.lean', str(path)],
+    proc = subprocess.run(['lake', 'env', 'lean', '--run', 'examples/InstructionGroups.lean', str(path)],
                           cwd=ROOT, check=True, text=True, capture_output=True)
     outputs = [json.loads(x) for x in proc.stdout.splitlines()]
     assert len(outputs) == len(inputs)
@@ -79,7 +73,7 @@ def main():
             assert result is not None
             c = result['bits']
         assert bits == c, (v, bits, c)
-        expected.append(dict(id=v['id'], bits=f'{bits:08x}', status='model_expectation_unmeasured'))
+        expected.append(dict(id=v['id'], bits=f'{bits:08x}', status='model_result'))
     lookup = {x['id']: x['bits'] for x in expected}
     assert lookup['A100/order_0_1_0'] == '33800000'
     assert lookup['A100/order_0_1_1'] == '00000000'
@@ -87,14 +81,18 @@ def main():
         for later in range(first+1, 4):
             assert lookup[f'V100/order_{first}_{later}_0'] == '33800000'
             assert lookup[f'V100/order_{first}_{later}_1'] == '00000000'
-    data = ROOT / 'data/hardware'
-    data.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(dict(schema=1, vectors=inputs), indent=2) + '\n'
-    (data / 'inputs.json').write_text(text)
-    (data / 'expected.json').write_text(json.dumps(dict(schema=1,
-        evidence='UNMEASURED: Lean model plus independent Python schedule oracle',
-        inputs_sha256=hashlib.sha256(text.encode()).hexdigest(), expected=expected), indent=2) + '\n')
-    print(f'{len(inputs)} unmeasured vectors; Lean and independent schedule oracle agree; all V100/Ampere ordering witnesses distinguishable.')
+    report = dict(status='passed', cases=len(inputs), mismatches=0,
+                  profiles={profile: sum(v['profile'] == profile for v in inputs)
+                            for profile in PROFILES},
+                  scope='16-position FP16/FP32 instruction paths, ordered group accumulation, zeros, subnormals, and cancellation',
+                  oracle='Lean instruction outputs compared with independent Fraction arithmetic per ordered normalization group',
+                  source_sha256={name: hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
+                                 for name in ['scripts/check_instruction_groups.py',
+                                              'scripts/check_features.py',
+                                              'examples/InstructionGroups.lean']})
+    (ROOT / 'data/regressions/instruction-groups-report.json').write_text(
+        json.dumps(report, indent=2) + '\n')
+    print(json.dumps(report, indent=2))
 
 
 if __name__ == '__main__':

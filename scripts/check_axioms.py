@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Audit every theorem in the TensorCore namespace against a strict standard-axiom allowlist.
-
-scripts/lean/Audit.lean enumerates the theorems from the compiled environment, so nothing has to be
-listed by hand. This script first rebuilds the imported library so cached proofs cannot
-hide broken source, then checks each reported axiom set and theorem count and scans
-every Lean source (library, executables, examples) for proof shortcuts.
-"""
+"""Rebuild and audit all theorem dependencies against the standard Lean axiom allowlist."""
 from pathlib import Path
 import re
 import subprocess
