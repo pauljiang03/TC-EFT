@@ -4,6 +4,8 @@ This Lean library brings executable tensor-core arithmetic together with proofs 
 
 Start with the [guide](docs/README.md). It follows a calculation from encoded words through alignment and correction, then explains how to run and extend the executable Lean tests.
 
+[Test walkthrough](tests/README.md) · [Theorem index](TensorCore/THEOREMS.md) · [FloatLib implementation](floatlib-port/README.md)
+
 ## Build and run
 
 Install elan and Python 3, use the pinned `lean-toolchain`, and run from this directory:
@@ -36,7 +38,7 @@ example : ((evalBlock ones).toOption.map fun t => t.output.bits) =
 
 The calculation prints `Except.ok 1082130432`. The `example` proves the complete result word by kernel reduction. [GettingStarted.lean](examples/GettingStarted.lean) also shows a block whose model result loses tiny products and whose EFT recovers the correctly rounded sum.
 
-## Source layers
+## Repository layout
 
 | Import / directory | What belongs here |
 | --- | --- |
@@ -45,8 +47,14 @@ The calculation prints `Except.ok 1082130432`. The `example` proves the complete
 | [`TensorCore.EFT`](TensorCore/EFT.lean) | Reference extraction, scalar preconditions, chosen-grid conditions, and Algorithm 1 |
 | [`TensorCore.Kernels`](TensorCore/Kernels.lean) | Bounded 576-bit EFT execution and its refinement proofs |
 | [`TensorCore/Scalar`](TensorCore/Scalar.lean) | Native FP32 addition proof support used by the bounded EFT path |
+| [`Main/`](Main/) | Command-line entry points that call the library and print results for test comparisons |
 | [`tests/`](tests/README.md) | Separate `TensorCoreTests` regression modules and executable-test walkthrough |
 | [`examples/`](examples/README.md) | Checked worked examples and Lean batch adapters |
+| [`floatlib-port/`](floatlib-port/README.md) | Independent FloatLib implementation and equivalence proofs, with its own Lake project |
+| [`docs/`](docs/README.md) | Numbered guide, command reference, and trust boundaries |
+| [`scripts/`](scripts/) | Validation runners, exact-arithmetic oracles, and proof audits |
+| [`data/`](data/) | Executable example inputs, regression fixtures, and recorded check reports |
+| [`vendor/`](vendor/SOURCES.json) | Pinned paper inputs and expected outputs, reference models, licenses, and source hashes |
 
 `import TensorCore` loads all production layers. Smaller imports let you use the reference EFT without the bounded kernels. Existing mathematical declaration names, including `TensorCore.EFMachine` and `TensorCore.IEEE`, are preserved. The [guide's module map](docs/guide/01-getting-started.md#finding-the-source) explains the file moves.
 

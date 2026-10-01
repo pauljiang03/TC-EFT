@@ -149,6 +149,27 @@ python3 scripts/check_docs.py
 
 The Accurate Models paper's original inputs and expected outputs remain under [`vendor/matlab-tensor-core-v0.5/model_validation/`](../vendor/matlab-tensor-core-v0.5/model_validation/), with hashes in [`vendor/SOURCES.json`](../vendor/SOURCES.json). Both implementations replay all 35,000 rows: V100/A100/H100 FP16 and A100/H100 BF16/TF32, 5,000 per group. The original A/B/C inputs and D outputs are preserved.
 
+Follow one recorded V100 row through the implementation:
+
+1. [check_device.py](../scripts/check_device.py) reads A/B/C and converts the FP32-stored operand values exactly to FP16 words. D is reserved as the expected output.
+2. [Main/Trace.lean](../Main/Trace.lean) parses the words into `BlockInput` and calls the [snapshot adapter](TensorCoreTests/TC/Cases.lean).
+3. The adapter calls `evalBlock` in [TC/Block.lean](../TensorCore/TC/Block.lean), which performs decoding, exact raw multiplication, grid selection, signed truncation, accumulation, and FP32 conversion.
+4. Python compares the returned `bits` with the original D word and fails on any mismatch. D is never supplied to this model calculation.
+
+The first published V100 row can be run directly:
+
+```sh
+lake build tc_trace
+.lake/build/bin/tc_trace 3bd5 38ca 3c3e b935 b534 36bf 3df8 34ec 3f7f418c
+python3 scripts/check_device.py
+```
+
+The JSON reports `bits` as an integer whose hexadecimal representation is `3f9b7dec`, matching the first recorded D. Its alignment exponent `eta` is `-1` and grid exponent `qExponent` is `-24`. The final command compares all 5,000 V100 rows.
+
+The semantic proof is a separate guarantee: [`PaperSpec.supported_eq_paper`](../TensorCore/TC/Specification/Supported.lean) equates the executable evaluator with the independent mathematical specification for every input of each supported profile, including rejection. `python3 scripts/check_paper_spec.py` checks this development and its dependency-independence controls. The [theorem index](../TensorCore/THEOREMS.md) identifies the non-monotonicity and EFT results and their premises.
+
+The universal proofs concern the defined finite-domain model under their stated hypotheses. Agreement with recorded GPU outputs covers those recorded inputs; correspondence between the specification, the paper, and physical hardware remains a separate specification question.
+
 `check_axioms.py` rebuilds the full regression environment before auditing theorem roots and scanning maintained Lean sources for proof shortcuts. The permitted axioms are `propext`, `Classical.choice`, and `Quot.sound`. The audit regression deliberately puts broken source behind a valid cache and requires rejection. Specification and bounded-execution audits also contain deliberate dependency-contamination controls that must fail.
 
 Use ordinary `python3`, without `-O` or `PYTHONOPTIMIZE`, because numerical harness assertions form part of the check. A parse error, failed Lean process, unexpected record count, or failed comparison stops the harness. Successful reports go under `data/regressions/`; intermediate batches and logs go under ignored `tmp/`.
