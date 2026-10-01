@@ -7,15 +7,15 @@ lake build
 lake env lean examples/GettingStarted.lean
 ```
 
-The worked file prints:
+The worked file prints encoded results. Their decoded FP32 values are:
 
-```text
-Except.ok 1082130432
-Except.ok 1065353216
-Except.ok (some 1065353218)
-```
+| Calculation | FP32 value |
+| --- | --- |
+| Four products of one | `4.0` |
+| TC model with four tiny products and C = 1 | `1.0` |
+| EFT correction of the tiny-product result | `1.0000002384185791015625 = 1 + 2^-22` |
 
-`Except.ok` indicates successful evaluation; `some` indicates that an optional output word is present. The integers encode `4`, `1`, and `1 + 2^-22` in FP32. The first block contains four products of one. The second contains four products of `2^-12 · 2^-12` and an accumulator of one. Its TC model output is one, while scalar EFT returns the correctly rounded exact sum `1 + 4·2^-24`.
+`Except.ok` indicates successful evaluation; `some` indicates that an optional result is present. The first block contains four products of one. The second contains four products of `2^-12 · 2^-12` and an accumulator of one. Its TC model output is `1.0`, while scalar EFT returns the correctly rounded exact sum `1 + 4·2^-24`.
 
 ## Choosing an import
 
@@ -49,7 +49,7 @@ example : ((evalBlock ones).toOption.map fun t => t.output.bits) =
     some 0x40800000 := by decide +kernel
 ```
 
-FP16 `0x3c00` represents one; FP32 `0x40800000` represents four. `evalBlock` returns an `Except ModelError BlockTrace`. On success, the trace retains the prepared terms and output word. On failure, it returns a named domain error.
+The operands above are FP16 `1.0`, and the expected FP32 result is `4.0`. `evalBlock` returns an `Except ModelError BlockTrace`. On success, the trace retains the prepared terms and output word. On failure, it returns a named domain error.
 
 `#eval` runs the calculation and prints an observation. `example` asks Lean to check a proposition. `decide +kernel` discharges this concrete equality by kernel reduction. The assertion compares the full word, including its zero sign.
 

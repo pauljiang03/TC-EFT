@@ -12,15 +12,17 @@ lake env lean examples/GettingStarted.lean
 lake env lean examples/NonMonotonicity.lean
 ```
 
-All three commands must exit successfully. `GettingStarted.lean` prints:
+All three commands must exit successfully. The three numerical results from `GettingStarted.lean`, decoded as FP32 values, are:
 
-```text
-Except.ok 1082130432
-Except.ok 1065353216
-Except.ok (some 1065353218)
-```
+| Calculation | FP32 value |
+| --- | --- |
+| Four products of one | `4.0` |
+| TC model with four tiny products and C = 1 | `1.0` |
+| EFT correction of the tiny-product result | `1.0000002384185791015625 = 1 + 2^-22` |
 
-`Except.ok` indicates success; the integers are FP32 words encoding four, one, and `1 + 2^-22`. The file checks these outputs with proof assertions. `NonMonotonicity.lean` exhibits a decrease in the accumulator that raises the model output from word `1065353216` to `1065353217`; both corrected outputs are word `1065353218`. It also checks the assertions and prints the general theorem types.
+The executable prints encoded results; `Except.ok` indicates success and `some` indicates that an optional result is present. The table shows their floating-point values. The file checks these outputs with proof assertions.
+
+`NonMonotonicity.lean` decreases the accumulator from `1.0` to `0.999999940395355224609375 = 1 - 2^-24`, while the model output rises from `1.0` to `1.00000011920928955078125 = 1 + 2^-23`. Both EFT-corrected outputs are `1.0000002384185791015625 = 1 + 2^-22`: the first exact sum is already representable, and the second is a midpoint that nearest-even rounding maps to the same FP32 value. The file checks these assertions and prints the general theorem types.
 
 ## 2. Paper claims and evidence
 

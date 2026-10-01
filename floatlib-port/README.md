@@ -125,7 +125,7 @@ Write commands to a text file, one per line, and run:
 .lake/build/bin/tc_floatlib input.txt
 ```
 
-Examples (all words are decimal):
+Examples (the executable requires decimal bit encodings):
 
 ```text
 block fp16 1 0 none 3072 3072 1065353216 1065353216
@@ -133,6 +133,8 @@ round 16777217 16777216
 family 0 4 1
 canonical 1 0 none 15360 15360 0
 ```
+
+Decoded as floating-point values, the `block` example uses A = B = `0.000244140625 = 2^-12` and C = D = `1.0`. Its exact sum is `1 + 2^-24`, and its corrected FP32 result is `1.0`. The `round` example rounds the same exact sum to `1.0` in both RNE and RTZ. The `canonical` example uses A = B = `1.0` and C = `0.0`.
 
 `block FORMAT K EXTRA FLOOR a0 b0 ... c D` returns the independent ideal, model-stage diagnostics, and correction using supplied D. FORMAT is `fp16`, `bf16`, or packed `tf32`; FLOOR is an integer or `none`. `round N D` compares FloatLib RNE/RTZ on the exact rational N/D under the source finite-range restriction. `family p K j` evaluates the encoded FP16 perturbation family. `canonical`/`bf16`/`tf32` feature commands omit supplied D; feature `tf32` uses register words.
 

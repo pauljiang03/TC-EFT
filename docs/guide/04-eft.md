@@ -32,7 +32,7 @@ example : algorithm1Encoded tiny 0x3f800000 =
     .ok (.consolidated (.scalar 0x3f800002)) := by decide +kernel
 ```
 
-The supplied D is the FP32 word for one. Each exact product is `2^-24`, so the exact input sum is `1 + 2^-22`. The calculation prints `Except.ok (some 1065353218)`, whose output word is `0x3f800002`. The proof checks both that word and the scalar branch tag.
+The supplied D is FP32 `1.0`. Each exact product is `2^-24`, so the exact input sum is `1 + 2^-22`. The calculation succeeds with the decoded FP32 value `1.0000002384185791015625`. It prints the encoded result inside `Except.ok (some ...)`; the proof checks both its exact bit pattern and the scalar branch tag.
 
 ## Reference and bounded execution
 

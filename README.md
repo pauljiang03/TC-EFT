@@ -36,7 +36,7 @@ example : ((evalBlock ones).toOption.map fun t => t.output.bits) =
     some 0x40800000 := by decide +kernel
 ```
 
-The calculation prints `Except.ok 1082130432`: successful evaluation with the FP32 word `0x40800000`, which encodes four. The `example` proves that exact word by kernel reduction. [GettingStarted.lean](examples/GettingStarted.lean) also shows how TC-EFT recovers contributions lost during alignment and returns the correctly rounded sum.
+The calculation succeeds with the FP32 value `4.0`. It prints the encoded result; `Except.ok` indicates success. The `example` proves its exact bit pattern by kernel reduction. [GettingStarted.lean](examples/GettingStarted.lean) also shows how TC-EFT recovers contributions lost during alignment and returns the correctly rounded sum.
 
 ## Repository layout
 

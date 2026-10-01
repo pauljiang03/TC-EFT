@@ -39,6 +39,10 @@ Keep the guide, executable-test walkthrough, and theorem index current. Link dir
 to Lean declarations instead of copying complete proof bodies into Markdown.
 Write maintained documentation and source comments as a self-contained description of
 this repository. State definitions, hypotheses, interfaces, and verification scope directly.
+Describe numerical inputs and results with decoded floating-point values in prose and
+output summaries. Use exact powers of two or full decimal values when the distinction
+matters. Encoded literals in runnable commands and bitwise proof assertions should have
+their decoded values explained nearby.
 
 Run `python3 scripts/check_docs.py` to check maintained local links and elaborate every
 Lean code block in the README, guide, test walkthrough, and theorem index. Keep those

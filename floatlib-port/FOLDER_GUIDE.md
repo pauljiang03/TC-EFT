@@ -152,7 +152,7 @@ EOF
 cat test-results/example-outputs.jsonl
 ```
 
-There is one JSON output record per input line. The `block` command runs the TC model and EFT with an explicit supplied D. Its arguments are `FORMAT K EXTRA FLOOR a0 b0 ... c D`, with interleaved operand pairs and decimal encoded words. `none` means no alignment floor. The first example uses FP16 operands equal to `2^-12`, C = 1 and D = 1; its exact ideal is `1 + 2^-24`, and the correctly rounded FP32 answer is 1, word `1065353216`. `round` tests the exact rational numerator/denominator in RTZ and RNE. `family` executes a member of the encoded non-monotonicity family.
+There is one JSON output record per input line. The `block` command runs the TC model and EFT with an explicit supplied D. Its arguments are `FORMAT K EXTRA FLOOR a0 b0 ... c D`, with interleaved operand pairs and decimal encoded words. `none` means no alignment floor. Decoded, the first example uses FP16 operands `0.000244140625 = 2^-12`, C = `1.0` and D = `1.0`; its exact ideal is `1 + 2^-24`, and the correctly rounded FP32 answer is `1.0`. `round` tests the exact rational numerator/denominator in RTZ and RNE. `family` executes a member of the encoded non-monotonicity family.
 
 The `block` command expects packed 19-bit TF32 words when FORMAT is `tf32`. The separate feature command named `tf32` expects 32-bit register words with their low 13 bits zero. See the [README's executable interface](README.md#executable-interface) for the command forms.
 

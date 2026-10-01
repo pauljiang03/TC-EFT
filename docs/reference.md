@@ -22,7 +22,13 @@ The [guide](README.md), [theorem index](../TensorCore/THEOREMS.md), and [test wa
 
 `tc_bounded_eft FILE` reads `block PROFILE a0 b0 ... c D` or `round SIGNED_COEFFICIENT`. Profiles are `v100-fp16`, `a100-fp16`, `h100-fp16`, `a100-bf16`, `h100-bf16`, `a100-tf32`, `h100-tf32-wmma`, and `h100-tf32-mma`. The integer rounding command uses the bounded backend's `2^-272` grid.
 
-`tc_lean_eft_check` reads JSON Lines on stdin. `{"acc":0,"terms":[1065353216]}` compares the bounded scalar fold with native Lean FP32 addition. A block request has `profile`, operand arrays `a` and `b`, and encoded `c` and `D`. It compares both complete bounded EFT execution paths.
+`tc_lean_eft_check` reads JSON Lines on stdin. To compare the bounded scalar fold with native Lean FP32 addition for accumulator `0.0` and a single term `1.0`, send this encoded request:
+
+```json
+{"acc":0,"terms":[1065353216]}
+```
+
+Both returned results decode to FP32 `1.0`. A block request has `profile`, operand arrays `a` and `b`, and encoded `c` and `D`. It compares both complete bounded EFT execution paths.
 
 ## Proof contracts
 

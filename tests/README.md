@@ -20,15 +20,15 @@ The regression root is [TensorCoreTests.lean](TensorCoreTests.lean). It imports 
 lake env lean examples/GettingStarted.lean
 ```
 
-The file contains encoded inputs, `#eval` observations, concrete `example` assertions, and a symbolic application of a universal recovery theorem. It prints:
+The file contains encoded inputs, `#eval` observations, concrete `example` assertions, and a symbolic application of a universal recovery theorem. It prints encoded results whose decoded FP32 values are:
 
-```text
-Except.ok 1082130432
-Except.ok 1065353216
-Except.ok (some 1065353218)
-```
+| Calculation | FP32 value |
+| --- | --- |
+| Four products of one | `4.0` |
+| TC model with four tiny products and C = 1 | `1.0` |
+| EFT correction of the tiny-product result | `1.0000002384185791015625 = 1 + 2^-22` |
 
-The integers are FP32 encodings of four, one, and `1 + 2^-22`. The second calculation loses four tiny products in the TC model; the third uses scalar EFT to recover their contribution before final nearest-even rounding.
+`Except.ok` indicates success; `some` indicates that an optional result is present. The second calculation loses four tiny products in the TC model; the third uses scalar EFT to recover their contribution before final nearest-even rounding.
 
 The assertions compare complete words and, for EFT, the branch constructor. `decide +kernel` constructs the proof through Lean's kernel reduction. If a computed word differs from the asserted word, Lean reports an error and the command exits unsuccessfully. The symbolic example checks a proof for arbitrary inputs satisfying its premises.
 
@@ -40,7 +40,7 @@ For the non-monotonicity witness:
 lake env lean examples/NonMonotonicity.lean
 ```
 
-The first two outputs are `1065353216` and `1065353217`: decreasing the accumulator from one to its predecessor raises the TC model output by one FP32 step. The next two outputs are both `some 1065353218`, from EFT correction. The file then prints the general K/p and j-range theorem types. [The non-monotonicity chapter](../docs/guide/03-non-monotonicity.md) explains the changing alignment grid.
+Decoded as FP32 values, the first two outputs are `1.0` and `1.00000011920928955078125 = 1 + 2^-23`: decreasing the accumulator from `1.0` to `0.999999940395355224609375 = 1 - 2^-24` raises the TC model output by one FP32 step. The next two outputs are both `1.0000002384185791015625 = 1 + 2^-22`, from EFT correction. The exact sums differ by `2^-24`, but nearest-even rounding gives the same result. The file then prints the general K/p and j-range theorem types. [The non-monotonicity chapter](../docs/guide/03-non-monotonicity.md) explains the changing alignment grid and midpoint rounding.
 
 ## 3. Check an individual regression module
 
@@ -109,7 +109,7 @@ Run:
 .lake/build/bin/tc_eft_paper /path/to/input.txt
 ```
 
-The eight operand words encode four `2^-12 · 2^-12` products. The final two words are C and supplied D, both one. The JSON's `model.bits` is `1065353216`; `correction.bits` is `1065353218`, with branch `scalar`. The executable also prints exact ideal and extraction diagnostics.
+The command encodes four `2^-12 · 2^-12` products, with C and supplied D both `1.0`. Decoded as FP32 values, the model result is `1.0` and the EFT correction is `1.0000002384185791015625 = 1 + 2^-22`, with branch `scalar`. The executable also prints exact ideal and extraction diagnostics.
 
 | Executable | Input and purpose |
 | --- | --- |
@@ -125,11 +125,12 @@ For the last adapter, one request is:
 {"acc":0,"terms":[1065353216]}
 ```
 
-It adds the encoded FP32 word for one to zero. The result is:
+The encoded request adds FP32 `1.0` to `0.0`. Decoding the returned results gives:
 
-```json
-{"reference":1065353216,"native":1065353216}
-```
+| Execution path | FP32 value |
+| --- | --- |
+| Reference | `1.0` |
+| Native | `1.0` |
 
 The [executable reference](../docs/reference.md) specifies word widths, profile names, packed/register TF32 conventions, and command formats. Lean checks proofs during elaboration; compiled execution evaluates the functions with proofs erased. Numerical comparisons additionally check the compiled path.
 

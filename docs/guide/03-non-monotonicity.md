@@ -6,14 +6,14 @@ A decrease in C can select a finer common alignment grid. Products that truncate
 lake env lean examples/NonMonotonicity.lean
 ```
 
-The first two observations are:
+The executable prints encoded results. Decoded as floating-point values, the observations are:
 
-```text
-Except.ok 1065353216
-Except.ok 1065353217
-```
+| Case | Input accumulator C | TC model output | EFT-corrected output |
+| --- | --- | --- | --- |
+| Before the decrease | `1.0` | `1.0` | `1.0000002384185791015625` |
+| After the decrease | `0.999999940395355224609375` | `1.00000011920928955078125` | `1.0000002384185791015625` |
 
-They are FP32 `0x3f800000 = 1` and `0x3f800001 = 1 + 2^-23`. The input accumulator decreases from `0x3f800000` to `0x3f7fffff = 1 - 2^-24`.
+The input accumulator decreases from `1` to `1 - 2^-24`, while the TC model output increases from `1` to `1 + 2^-23`.
 
 At C = 1, the grid is `2^-23`; each `2^-24` product truncates to zero. After the decrease, the grid is `2^-24`; all four products survive. The exact retained accumulator becomes `1 + 3·2^-24`, and the final FP32 toward-zero conversion yields `1 + 2^-23`.
 
@@ -44,6 +44,6 @@ This checks a concrete encoded counterexample. The general family theorem is [no
 
 [Flowback.lean](../../TensorCore/TC/Flowback.lean) proves necessary and sufficient conditions that account for changed alignment grids and final conversion. Its sufficient output-level criterion retains the required representability premises.
 
-The complete worked file also executes EFT before and after the perturbation. Both corrected words are `0x3f800002`: the exact ideals differ by `2^-24`, yet they round to the same nearest-even FP32 word. See [the EFT chapter](04-eft.md) for that correction.
+The complete worked file also executes EFT before and after the perturbation. Both corrected values are `1.0000002384185791015625 = 1 + 2^-22`. Before the decrease, the exact sum is `1 + 4·2^-24`, which is already representable. After the decrease, it is `1 + 3·2^-24`, exactly halfway between `1 + 2^-23` and `1 + 2^-22`. Nearest-even rounding selects the upper endpoint because its final significand bit is zero. Thus the exact sums differ by `2^-24` but round to the same FP32 value. See [the EFT chapter](04-eft.md) for that correction.
 
 The architecture-family regression witnesses live in [tests/TensorCoreTests/TC/Monotonicity.lean](../../tests/TensorCoreTests/TC/Monotonicity.lean). Run them individually with `lake env lean tests/TensorCoreTests/TC/Monotonicity.lean` after building.
