@@ -87,7 +87,7 @@ theorem evalBlock_scalarCorrectedIn_correct {p : Profile} {x : BlockInput p} {t 
   rw [← Option.some.inj hz]
   exact hn
 
-/-- The FP32 executor retains exactly the existing operation sequence. -/
+/-- Generic scalar correction specialized to FP32 equals the FP32 correction procedure. -/
 theorem scalarCorrectedInUnchecked_fp32 (t : BlockTrace) :
     t.scalarCorrectedInUnchecked fp32 = t.scalarCorrectedUnchecked := by
   simp only [BlockTrace.scalarCorrectedInUnchecked, BlockTrace.scalarCorrectedUnchecked,
@@ -97,7 +97,7 @@ set_option maxRecDepth 4096 in
 theorem representableBinary_fp32 (x : ℚ) : representableBinary fp32 x = representable32 x := rfl
 
 set_option maxRecDepth 4096 in
-/-- Every accepted baseline FP32 case also satisfies the paper's generic range predicate. -/
+/-- The FP32 scalar predicate implies the generic correction predicate specialized to FP32. -/
 theorem scalarPredicate_implies_in_fp32 (t : BlockTrace) (h : t.scalarPredicate = true) :
     t.scalarPredicateIn fp32 = true := by
   unfold BlockTrace.scalarPredicate at h

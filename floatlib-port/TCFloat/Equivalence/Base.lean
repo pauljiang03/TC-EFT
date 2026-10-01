@@ -1,7 +1,7 @@
 import TCFloat.Monotonicity
 import TensorCore.EFT.Encoded
 
-/-! Bridges to the actual, unchanged source definitions. -/
+/-! Arithmetic and representation bridges between the first-principles and FloatLib definitions. -/
 namespace TCFloat.Equivalence
 open FloatLib.Floats.Formats.BinaryInterchange
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Direct original-vs-FloatLib differential comparison (not a universal equivalence proof)."""
+"""Compare first-principles and FloatLib outputs on identical encoded inputs."""
 from pathlib import Path
 import argparse, hashlib, itertools, json, random, shutil, subprocess
 PORT = Path(__file__).resolve().parents[1]

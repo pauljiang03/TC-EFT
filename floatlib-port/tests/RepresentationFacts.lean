@@ -1,6 +1,6 @@
 import TCFloat
 
-/-! These are counterexamples to a *literal* representation-preserving identification, not counterexamples to the behavior of the checked encoded entry points. -/
+/-! Representation checks for zero signs, metadata consistency, trace invariants, and profile scope. -/
 namespace TCFloat.Comparison
 open FloatLib.Floats.Formats.BinaryInterchange
 
@@ -10,7 +10,7 @@ def project (t : Term) : Int × Int × Int :=
 def zeroPositive : Term := ⟨⟨false,0,0⟩,0,0⟩
 def zeroNegative : Term := ⟨⟨true,0,0⟩,0,0⟩
 
-/-- The original finite decode erases this zero sign; the port retains it. -/
+/-- Numerical projection erases the zero sign retained by FloatLib's dyadic representation. -/
 theorem projection_not_injective :
     project zeroPositive = project zeroNegative ∧ zeroPositive ≠ zeroNegative := by
   constructor
@@ -32,7 +32,7 @@ theorem unrestricted_projection_changes_value :
       pow2 (inconsistentTerm.rawScale-inconsistentTerm.fractionBits) ≠ inconsistentTerm.value := by
   decide +kernel
 
-/-- Original Finite32 enforces this relationship by a proof field; Trace does not. -/
+/-- `TensorCore.Finite32` requires bits/value consistency by a proof field; raw `Trace` permits inconsistent fields. -/
 def inconsistentTrace : Trace :=
   ⟨⟨fp16 0 0,zeroPositive,[]⟩,0,1⟩
 
@@ -45,7 +45,7 @@ theorem checked_trace_consistent :
     (trace inconsistentTrace.block 0).map Trace.output = some 0 := by
   decide +kernel
 
-/-- No `extra : Nat` represents the source's permissible raw F=22 profile. -/
+/-- The `23 + extra` profile family cannot represent alignment precision F=22. -/
 theorem profile_subset (extra : Nat) : (23 + extra : Int) ≠ 22 := by omega
 
 end TCFloat.Comparison

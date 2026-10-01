@@ -1,6 +1,6 @@
 # Non-monotonicity
 
-A decrease in C can select a finer common alignment grid. Products previously discarded on the coarser grid then survive, and the model's output can increase. The construction in this chapter uses four products of `2^-12 · 2^-12 = 2^-24` on the V100 profile.
+A decrease in C can select a finer common alignment grid. Products that truncate to zero on the coarser grid can contribute on the finer grid, causing the model's output to increase. The construction in this chapter uses four products of `2^-12 · 2^-12 = 2^-24` on the V100 profile.
 
 ```sh
 lake env lean examples/NonMonotonicity.lean

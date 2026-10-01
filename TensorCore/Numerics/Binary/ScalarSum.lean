@@ -136,7 +136,7 @@ theorem naiveSum64_exact (ℓ : ℤ) (h1 : -1074 ≤ ℓ) (zs : List ℤ)
   naiveSumBinary_exact fp64 (by decide) ℓ h1 zs hbound hrange
 
 set_option maxRecDepth 4096 in
-/-- The generic executor specializes to the existing FP32 API, including failures. -/
+/-- Generic binary summation specialized to FP32 agrees with the FP32 API, including failure results. -/
 theorem binaryAdd_fp32 (x y : ℚ) : binaryAdd fp32 x y = fp32Add x y := rfl
 
 theorem naiveSumBinaryFrom_fp32 (a : ℚ) (ts : List ℚ) :

@@ -11,7 +11,7 @@
   "oracle": "Lean instruction outputs compared with independent Fraction arithmetic per ordered normalization group",
   "source_sha256": {
     "scripts/check_instruction_groups.py": "6b050385652350590bd5275fc41cada0c0b01ef2f19197be5d6421f497c6cb4e",
-    "scripts/check_features.py": "3ef97ce70bae3ff2fa258bf4d7b60a57f2f9a8ef8d715a59be0403243690002e",
+    "scripts/check_features.py": "012d5f14d227563e73ad475127abff8242b88c32626f7591dbbb39b6277f54ea",
     "examples/InstructionGroups.lean": "2fef9eb156a9edf8eb90331f0fcecdf2bc5ff5fdf60ceafeeb7ac56f5e13f8d5"
   }
 }

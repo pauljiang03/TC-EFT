@@ -130,7 +130,7 @@ def evalInvocation {p : InvocationSpec} (x : InvocationInput p) :
     | none => .error .nonfiniteOrInvalidEncoding
     | some b => evalInvocationPrepared b
 
-/-- The old family embedded without changing its numerical policy. -/
+/-- Embed a block profile as an aligned invocation with FP32 toward-zero output. -/
 @[implicit_reducible] def Profile.toInvocation (p : Profile) (F : ℕ) : InvocationSpec :=
   ⟨packedIEEE p.input, fp32, p.products, .aligned F p.alignFloor .inGroup,
     [], ⟨fp32, .towardZero⟩⟩

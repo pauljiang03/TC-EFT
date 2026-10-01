@@ -51,7 +51,7 @@ def encodeBinaryRep (f : Format) (hf : f.WellFormed) (r : BinaryRep f) : FiniteB
     | none => simp [hd] at h
     | some d => exact ⟨d, rfl⟩⟩
 
-/-- Field extraction for the existing generic encoder. -/
+/-- Recover the sign, exponent, and fraction fields of the generic binary encoder. -/
 theorem encodeBinary_fields (f : Format) (hf : f.WellFormed) (r : BinaryRep f) :
     binarySign f r.encode = r.negative ∧
     binaryExponentField f r.encode =

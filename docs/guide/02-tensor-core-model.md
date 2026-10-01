@@ -1,6 +1,6 @@
 # The tensor-core block model
 
-The model evaluates K exact products plus an FP32 accumulator input C. The named architecture profiles select K, extra alignment bits p, and an optional alignment floor. They keep FP32 output, while choosing FP16, BF16, or packed TF32 inputs.
+The model evaluates K exact products plus an FP32 accumulator input C. Each named architecture profile specifies K, extra alignment bits p, an optional alignment floor, and an input format: FP16, BF16, or packed TF32. All profiles in this chapter use FP32 output.
 
 ## Follow one block
 
@@ -45,10 +45,10 @@ open TensorCore
 #check PaperSpec.supported_eq_paper
 ```
 
-`evalBlock_success_iff` characterizes the accepted domain. `profile_contract` bundles arithmetic and width facts under its stated hypotheses. `evalBlock_machinePrefix` relates fixed-width accumulation to exact accumulation when the capacity assumptions hold. `evalBlock_error_bound` includes final FP32 conversion loss, in addition to alignment loss. `supported_eq_paper` equates all encoded inputs of each supported path, including rejection, with the independent specification.
+`evalBlock_success_iff` characterizes the accepted input domain. `profile_contract` states arithmetic and accumulator-width guarantees under explicit hypotheses. `evalBlock_machinePrefix` relates fixed-width accumulation to exact accumulation when the capacity assumptions hold. `evalBlock_error_bound` accounts for alignment loss and final FP32 conversion loss. For every encoded input of a supported path, `supported_eq_paper` proves that the evaluator and independent specification agree on the output or rejection.
 
 The finite model rejects nonfinite operands, wrong group sizes, and exact accumulators larger in magnitude than `maxFinite32`. Exact zero is canonicalized to +0; negative nonzero underflow may produce -0. The `tc_features` interface accepts TF32 register words with thirteen zero low bits; the paper EFT interface accepts packed 19-bit TF32 words.
 
-[CanonicalInvocation.lean](../../examples/CanonicalInvocation.lean) combines a concrete Hopper calculation with a symbolic width/refinement example. Recorded-vector checks compare this software model with archived measured outputs; they take no new hardware measurements.
+[CanonicalInvocation.lean](../../examples/CanonicalInvocation.lean) combines a concrete Hopper calculation with a theorem relating fixed-width and exact accumulation. Hardware checks compare the software model's outputs with recorded GPU measurements.
 
 Next: [execute non-monotonicity](03-non-monotonicity.md).

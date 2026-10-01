@@ -50,7 +50,7 @@ lake env lean tests/TensorCoreTests/EFT/EFT.lean
 lake env lean tests/TensorCoreTests/EFT/NativeEFT.lean
 ```
 
-A successful module may print nothing. Lean has still elaborated and checked its definitions and proofs. These files are mathematical regression modules; they do not each define an IO `main`.
+A successful module may print nothing. Lean elaborates and checks its definitions and proofs. These files are mathematical regression modules; they do not each define an IO `main`.
 
 | Test area | Main contents |
 | --- | --- |
@@ -147,14 +147,14 @@ python3 scripts/check_docs.py
 
 `validate.py` and the feature scripts compare traces/rounding with independent exact arithmetic and recorded GPU words. `check_eft.py` runs scalar coverage, instruction-group comparisons, pinned paper generators, and the bounded EFT comparisons. `check_lean_eft.py` compares native scalar folds with an ordered-encoding rounding oracle.
 
-The Accurate Models paper's original inputs and expected outputs remain under [`vendor/matlab-tensor-core-v0.5/model_validation/`](../vendor/matlab-tensor-core-v0.5/model_validation/), with hashes in [`vendor/SOURCES.json`](../vendor/SOURCES.json). Both implementations replay all 35,000 rows: V100/A100/H100 FP16 and A100/H100 BF16/TF32, 5,000 per group. The original A/B/C inputs and D outputs are preserved.
+The Accurate Models paper's recorded inputs and expected outputs are under [`vendor/matlab-tensor-core-v0.5/model_validation/`](../vendor/matlab-tensor-core-v0.5/model_validation/), with hashes in [`vendor/SOURCES.json`](../vendor/SOURCES.json). Both implementations replay all 35,000 rows: V100/A100/H100 FP16 and A100/H100 BF16/TF32, 5,000 per group. The files contain the published A/B/C inputs and D outputs.
 
 Follow one recorded V100 row through the implementation:
 
 1. [check_device.py](../scripts/check_device.py) reads A/B/C and converts the FP32-stored operand values exactly to FP16 words. D is reserved as the expected output.
 2. [Main/Trace.lean](../Main/Trace.lean) parses the words into `BlockInput` and calls the [snapshot adapter](TensorCoreTests/TC/Cases.lean).
 3. The adapter calls `evalBlock` in [TC/Block.lean](../TensorCore/TC/Block.lean), which performs decoding, exact raw multiplication, grid selection, signed truncation, accumulation, and FP32 conversion.
-4. Python compares the returned `bits` with the original D word and fails on any mismatch. D is never supplied to this model calculation.
+4. Python compares the returned `bits` with the recorded D word and fails on any mismatch. D is never supplied to this model calculation.
 
 The first published V100 row can be run directly:
 
@@ -197,7 +197,7 @@ A complete source ZIP works without TC-EFT's Git history. Reference preparation 
 
 ## Adding a regression
 
-Put a maintained case in `tests/TensorCoreTests/TC/` or `EFT/`, import the relevant production module, and give its assertion a name in the existing regression namespace:
+Put a maintained case in `tests/TensorCoreTests/TC/` or `EFT/`, import the relevant production module, and give its assertion a name in the regression namespace:
 
 ```lean
 import TensorCore.TC.Block

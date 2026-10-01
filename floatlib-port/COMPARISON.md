@@ -1,8 +1,8 @@
-# Paper-scope equivalence: original implementation and FloatLib
+# Paper-scope equivalence: first-principles and FloatLib implementations
 
-The FP32-output TC model and reference EFT now have **kernel-checked universal equivalence**, including output bits, EFT branch choices, and distinct validation errors. This is a theorem about the actual implementations, not an inference from matching tests.
+**Kernel-checked universal equivalence** connects the first-principles and FloatLib implementations of the FP32-output TC model and reference EFT, including output bits, EFT branch choices, and distinct validation errors.
 
-The scope is the FP16, BF16 and packed TF32 inputs in the paper, FP32 output, and profiles with alignment precision `F = 23 + p`, where `p` is any natural number. Product count and alignment floor remain parameters. Other repository applications and backends are not part of this comparison.
+The scope is the FP16, BF16 and packed TF32 inputs in the paper, FP32 output, and profiles with alignment precision `F = 23 + p`, where `p` is any natural number. Product count and alignment floor are parameters. Other repository applications and backends are not part of this comparison.
 
 ## Main theorem and the two-way correspondence
 
@@ -12,23 +12,23 @@ See [`paper_one_to_one`](TCFloat/Equivalence/Representations.lean) and `paper_on
 - The FloatLib EFT interface returns the same branch and word, or the same validation error, as `TensorCore.algorithm1Encoded`.
 - D need not be the model's output. Invalid product counts and nonfinite operands/D are included in the comparison.
 
-The statement uses the independent `Paper.tcChecked` and `Paper.eftChecked` functions. The simpler `universal_equivalence` theorem in [`Encoded.lean`](TCFloat/Equivalence/Encoded.lean) proves the same numerical/branch behavior for the Option interfaces; that earlier statement collapses validation errors to `none`. The checked theorem preserves the error constructors as well.
+The statement uses the independent `Paper.tcChecked` and `Paper.eftChecked` functions. The `universal_equivalence` theorem in [`Encoded.lean`](TCFloat/Equivalence/Encoded.lean) proves the same numerical/branch behavior for the Option interfaces, which represent validation errors as `none`. The checked theorem also preserves the error constructors.
 
-“1:1” has explicit representation proofs:
+The correspondence includes explicit representation proofs:
 
 | Representation | Proved correspondence |
 |---|---|
 | Encoded words | `wordEquiv`: `BitVec w ≃ Fin (2^w)`, preserving every bit |
 | Complete encoded blocks | `inputEquiv`, with both inverse laws; includes arbitrary product-list lengths |
-| Decoded numerical terms | `termEquiv`: original `Decoded` is equivalent to canonical, metadata-consistent FloatLib terms |
+| Decoded numerical terms | `termEquiv`: `TensorCore.Decoded` is equivalent to canonical, metadata-consistent FloatLib terms |
 | Validation errors | `errorEquiv`: all four constructors correspond |
 | Tagged EFT outcomes | `eftResultEquiv`: a bijection onto legitimate `(optional bits, branch)` outcomes; `encodedResult_injective` proves no two source outcomes are merged |
 
-This does not identify unrestricted raw implementation types. A raw port `Term` can contain inconsistent metadata, and a raw `Trace` can contain inconsistent bits/value fields. The encoded constructors establish the required invariants. The term equivalence canonicalizes zero sign, matching the source's numerical representation; the word equivalence retains signed-zero bits. These distinctions are still checked in `tests/RepresentationFacts.lean`.
+This does not identify unrestricted raw implementation types. A raw FloatLib-side `Term` can contain inconsistent metadata, and a raw `Trace` can contain inconsistent bits/value fields. The encoded constructors establish the required invariants. The term equivalence canonicalizes zero sign, matching the source's numerical representation; the word equivalence retains signed-zero bits. [RepresentationFacts.lean](tests/RepresentationFacts.lean) checks these distinctions.
 
 ## Every arithmetic stage is connected
 
-The following equalities are universal under the stated representation invariants. They do not assume that the arithmetic implementations agree.
+The following equalities are proved under the stated representation invariants. RTZ denotes rounding toward zero; RNE denotes rounding to nearest with ties to even.
 
 | Stage | Bridge theorem(s) |
 |---|---|
@@ -43,18 +43,18 @@ The following equalities are universal under the stated representation invariant
 | Scalar correction, exact fallback, branch and zero shortcut | `scalarUnchecked_eq`, `scalar_eq`, `consolidation_eq`, `algorithm_eq`, `encoded_trace_eq` |
 | Encoded preparation and full entry points | `prepare_eq`, `prepare_valid`, `tc_checked_eq`, `eft_checked_eq` |
 
-Files are under [`TCFloat/Equivalence/`](TCFloat/Equivalence/). In particular, the hard converter bridge proves equality of the original custom converter and FloatLib's actual quotient/packing code; it does not replace one converter with the other.
+Files are under [`TCFloat/Equivalence/`](TCFloat/Equivalence/). The converter bridge proves equality between the first-principles rational converter and FloatLib's quotient and packing operations.
 
 ## Correspondence to the paper's FP32 statements
 
-The numbering below follows `arith_2027_tc_eft (4).pdf`. Source identifiers containing `eq20` refer to the input-budget inequality numbered (17) in this manuscript.
+The table follows the manuscript's section and theorem numbering. Source identifiers containing `eq20` denote the input-budget inequality numbered (17).
 
 | Paper statement | FloatLib-side theorem(s) |
 |---|---|
 | II-B: block behavior model | `paper_one_to_one`, plus the individual stage equalities above |
 | III.1: total output error bound | `paper_error_bound`, including the final FP32 output quantum |
 | III.2–III.3: monotonicity and flowback | `truncGrid_mono`, `paper_output_condition`, `general_flowback_necessary`, `general_flowback_sufficient` |
-| III.4: hardware nonmonotonicity family | `nonmonotone_perturbation`, `nonmonotone_encoded`, `construction_not_monotone` |
+| III.4: hardware non-monotonicity family | `nonmonotone_perturbation`, `nonmonotone_encoded`, `construction_not_monotone` |
 | III.5: general perturbation range and size | `paper_nonmonotone_range` for arbitrary admissible K, p and j |
 | IV.1: extraction identity and low-component bound | `retained_add_low`, `paper_lowPart_bound` |
 | IV.2: overlap width | `paper_overlap_window` |
@@ -67,19 +67,19 @@ The numbering below follows `arith_2027_tc_eft (4).pdf`. Source identifiers cont
 | IV.11: scalar correction and one final RNE rounding | `paper_scalar_on_grid`, `scalar_correct`, `encodedAlgorithm_nearest` |
 | Reference full EFT, including the exact alternative described in IV-B | `algorithm_correct`, `algorithm_range`, `paper_one_to_one` |
 
-Flowback is now proved for an **arbitrary chosen summand** and the actual before/after rounded outputs, not only C. The theorem takes the two alignment grids as parameters, so they may differ. Its sufficient condition retains the required representability assumptions. The original C-specialized theorem is unchanged.
+The flowback criteria cover an **arbitrary chosen summand** and the rounded outputs before and after its perturbation. The two alignment grids are parameters and may differ. The sufficient condition includes representability assumptions. C-specialized criteria are proved in [Behavior.lean](TCFloat/Behavior.lean).
 
-The scalar instruction sequence is also proved under the paper's more general chosen-grid, coefficient-budget and absolute-range conditions. The executable guard remains exactly the original repository guard, using its deterministic support grid and the convenient `-149 ≤ λ ≤ 104` restriction. The manuscript allows choosing a suitable common grid and states broader sufficient conditions; it does not specify a unique guard-search algorithm. Thus equality of repository branch decisions is proved, while the paper's sufficient mathematical conditions are documented separately. Failure of that particular guard does not assert that scalar summation is impossible.
+The paper scalar theorems justify the instruction sequence under chosen-grid, coefficient-budget and absolute-range conditions. The executable guard uses a deterministic support grid with the restriction `-149 ≤ λ ≤ 104`. The manuscript allows choosing a suitable common grid and states sufficient conditions without prescribing a unique grid-search algorithm. The equivalence theorem proves equality of executable branch decisions; the chosen-grid theorems establish the paper's mathematical conditions. Failure of the executable guard does not assert that scalar summation is impossible.
 
-Proofs in the bridge layer may transport original theorems through already-proved equalities. They are not all independent rediscoveries. The independent executable and its existing FloatLib correctness proofs remain separate.
+Some bridge proofs transport first-principles theorems through proved equalities. The FloatLib executable and its recovery, scalar-correction, and rounding proofs are defined in separate modules.
 
 ## Reproducible proof boundary
 
-Original revision: `990afac10b94a84f3de24743206756dd7acc3276`. FloatLib revision: `0d91825727839f597fd06b22fdd038ea21480f0c`.
+The [reference manifest](reference-manifest.json) pins the parent arithmetic and proof dependencies. FloatLib is pinned to `0d91825727839f597fd06b22fdd038ea21480f0c`.
 
-The parent project uses Lean 4.33.1; this isolated project uses Lean 4.34.0. `scripts/prepare_reference.py` verifies the current parent dependencies against the bundled [reference manifest](reference-manifest.json), generated from their original locations at the pinned revision. The script fixes the manifest's checksum, so preparation works from a source ZIP without repository history. It permits the documented module-path relocations and deletion of unused imports; non-import code tokens and string literals remain pinned; comments and whitespace may change. It copies the actual current modules into ignored `reference-compat/`. In that compatibility copy, **three notation declarations are renamed and scoped to `TensorCore`** to avoid mathlib parser collisions, with the same Nat, Int and Rat expansions. The generated manifest records current source hashes, original source locations, and deleted imports.
+The parent project uses Lean 4.33.1; the FloatLib project uses Lean 4.34.0. `scripts/prepare_reference.py` checks the reference manifest's SHA-256 and verifies parent dependencies against its code-token, string-literal, and import entries. Module names are resolved through the compatibility map; comments and whitespace do not affect token verification. The verified parent modules are copied into ignored `reference-compat/`. Its Nat, Int and Rat notation is scoped to `TensorCore` with the same expansions to avoid mathlib parser collisions. The generated manifest records source hashes and dependency metadata. Preparation works from a complete source archive.
 
-The equivalence modules import those actual source definitions. The port runtime does not: `Main.lean`, `TCFloat/Model.lean` and `TCFloat/Paper.lean` use the FloatLib implementation. A transitive executable-dependency audit verifies this and also verifies that EFT correction does not call TC evaluation or the original-input ideal. Negative controls must fail when those dependencies are deliberately introduced.
+The equivalence modules import verified parent definitions. `Main.lean`, `TCFloat/Model.lean` and `TCFloat/Paper.lean` execute the FloatLib implementation. A dependency audit checks runtime independence from the parent functions and verifies that EFT correction does not call TC evaluation or the function that computes the exact input sum. Negative controls require rejection when forbidden dependencies are deliberately introduced.
 
 From the repository root:
 
@@ -89,8 +89,8 @@ python3 scripts/check_all.py
 python3 scripts/check_equivalence.py
 ```
 
-The first command prepares the compatibility copy, builds all proofs and the executable, audits allowed axioms, checks representations, and runs the existing regression suites. It rejects unfinished proofs and kernel-bypassing proof shortcuts. The only permitted axioms are `propext`, `Classical.choice` and `Quot.sound`. Original-source deprecation warnings from the newer compiler are allowed; warnings from the new port are rejected.
+The first command prepares the compatibility copy, builds all proofs and the executable, audits allowed axioms, checks representations, and runs the regression suites. It rejects unfinished proofs and kernel-bypassing proof shortcuts. The only permitted axioms are `propext`, `Classical.choice` and `Quot.sound`. Only deprecation warnings from generated compatibility sources are accepted; warnings from `TCFloat` sources fail the check.
 
-The second command independently builds the original executable with its own toolchain and compares 115,029 command observations and 668,944 decoder cases. Those finite comparisons supplement the universal proof. Recorded GPU rows are replayed; no new hardware measurements are taken. Equivalence proves the two formal implementations agree. It does not prove that either model describes every physical Tensor Core execution.
+The second command builds a snapshot of the parent executable with its own toolchain and compares 115,029 command observations and 668,944 decoder cases. Those finite comparisons supplement the universal proof. Hardware comparisons replay recorded GPU rows. Equivalence proves the two formal implementations agree; hardware correspondence is supported by measurements on those recorded inputs.
 
-Reference preparation permits documented module-path relocations, deletion of unused imports, and comment/whitespace changes; mathematical code tokens and string literals must match the revision above. The generated manifest hashes the actual current parent sources used by the equivalence proofs. Differential tests build the current parent snapshot.
+The generated manifests identify the parent source snapshots used by the equivalence proofs and differential tests with SHA-256 hashes.

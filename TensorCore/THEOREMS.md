@@ -1,6 +1,6 @@
 # Public theorem index
 
-Choose the theorem by the contract you need, then read its hypotheses in the linked Lean source. Module moves preserve declaration names; import paths follow the current source layers.
+Choose the theorem by the contract you need, then read its hypotheses in the linked Lean source. Each entry lists the module to import and the result's scope.
 
 ## Numerical foundation
 

@@ -16,7 +16,7 @@ def main():
                            text=True, capture_output=True)
     if build.returncode:
         raise SystemExit(build.stdout + build.stderr)
-    documents = [ROOT / 'README.md', ROOT / 'TensorCore/THEOREMS.md',
+    documents = [ROOT / 'README.md', ROOT / 'ARTIFACT.md', ROOT / 'TensorCore/THEOREMS.md',
                  ROOT / 'tests/README.md', ROOT / 'examples/README.md',
                  *(ROOT / 'docs').rglob('*.md'), *(ROOT / 'floatlib-port').glob('*.md')]
     links = 0

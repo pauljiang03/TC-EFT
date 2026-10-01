@@ -1,6 +1,6 @@
 # TC-EFT: extraction and correction
 
-EFT extraction accepts any finite supplied D. The correction procedure does not need to rerun the TC model or assume that D is its output. Model traces are useful observations; the encoded entry point preserves this separation.
+EFT extraction takes encoded operands and any finite supplied FP32 word D. It reconstructs the exact input sum and corrects D without rerunning the TC model or assuming that D is the model's output.
 
 ## Follow the overlap identity
 
@@ -12,9 +12,9 @@ S = D - εₒ + Σ εᵢ = H + Σ εᵢ
 
 [Extraction.lean](../../TensorCore/EFT/Extraction.lean) proves this identity and the guarded scalar procedure. [ExtractionGrid.lean](../../TensorCore/EFT/ExtractionGrid.lean) gives the chosen-grid and input-budget results.
 
-The scalar procedure sequentially adds the low parts in FP32, computes D - εₒ in FP32, and performs one final nearest-even addition. Its sufficient predicate checks a support grid between -149 and 104, exact integer residual coefficients, total absolute coefficient sum below `2^24`, representable D/overlap/H, and finite final range. These premises justify exact intermediate operations. A failed predicate makes the scalar helper return `none`.
+The scalar procedure sequentially adds the low parts in FP32, computes D - εₒ in FP32, and performs one final nearest-even addition. Its sufficient predicate checks that the support-grid exponent lies between -149 and 104, residual coefficients are exact integers with total absolute sum below `2^24`, D/εₒ/H are representable in FP32, and the final sum is within finite FP32 range. These premises justify exact intermediate operations. A failed predicate makes the scalar helper return `none`.
 
-The deterministic support-grid choice is conservative. The chosen-grid theorems permit other valid common grids; historical `eq20` names refer to the manuscript's input-budget inequality numbered (17).
+The deterministic support-grid choice is conservative. The chosen-grid theorems permit other valid common grids; source identifiers containing `eq20` denote the manuscript's input-budget inequality numbered (17).
 
 ## Execute a correction
 
@@ -32,7 +32,7 @@ example : algorithm1Encoded tiny 0x3f800000 =
     .ok (.consolidated (.scalar 0x3f800002)) := by decide +kernel
 ```
 
-The supplied D is the FP32 word for one. Each exact product is `2^-24`, so the exact original sum is `1 + 2^-22`. The result prints `Except.ok (some 1065353218)`, the word `0x3f800002`. The equality also asserts the scalar branch tag.
+The supplied D is the FP32 word for one. Each exact product is `2^-24`, so the exact input sum is `1 + 2^-22`. The calculation prints `Except.ok (some 1065353218)`, whose output word is `0x3f800002`. The proof checks both that word and the scalar branch tag.
 
 ## Reference and bounded execution
 
@@ -61,6 +61,6 @@ open TensorCore
 #check EFMachine.algorithm1WithLean_eq
 ```
 
-[BoundedEFT.lean](../../examples/BoundedEFT.lean) runs a BF16 cancellation case with a supplied D unrelated to the exact ideal, then applies the universal success contract. [ScalarEFT.lean](../../examples/ScalarEFT.lean) shows the FP64 correction-format generalization; its final output is still FP32.
+[BoundedEFT.lean](../../examples/BoundedEFT.lean) runs a BF16 cancellation case with a supplied D unrelated to the exact ideal, then applies the universal success contract. [ScalarEFT.lean](../../examples/ScalarEFT.lean) shows correction with FP64 intermediates and a final FP32 output.
 
 Next: [how the executable tests work](05-executable-tests.md).

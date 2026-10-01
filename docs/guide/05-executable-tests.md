@@ -21,7 +21,7 @@ lake env lean tests/TensorCoreTests/EFT/EFT.lean
 python3 scripts/check_eft.py
 ```
 
-The separate test root is `tests/TensorCoreTests.lean`. Default `lake build` builds it; `lake build TensorCore` builds production only. The full clean gate also checks all `examples/*.lean` and every `lean` code block in the maintained guide, README, and theorem index.
+The test import root is `tests/TensorCoreTests.lean`. Default `lake build` builds it; `lake build TensorCore` builds production only. The complete validation command, `python3 scripts/check_clean_build.py`, also checks all `examples/*.lean` and every Lean code block in the maintained documentation.
 
 For the independent implementation:
 

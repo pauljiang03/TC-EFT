@@ -52,7 +52,7 @@ def decodeSignedBinary (f : Format) (hf : f.WellFormed) (b : FiniteBinaryWord f)
   ⟨(decodeBinaryRep f hf b).value, binarySign f b.val,
     (decodeBinaryRep f hf b).finiteValue, (decodeBinaryRep f hf b).sign_of_nonzero⟩
 
-/-- Exact encoding of an arithmetic finite value, using the existing converter. -/
+/-- Exact encoding of a representable finite value using the binary converter. -/
 def exactFiniteWord (f : Format) (hf : f.WellFormed) (v : ℚ) (hv : f.FiniteValue v) :
     FiniteBinaryWord f :=
   match h : roundBinary f .nearestEven v with

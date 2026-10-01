@@ -81,5 +81,5 @@
   "published_device_vectors": 15000,
   "new_gpu_measurements": false,
   "source_files_hash_checked": 38,
-  "other_formats": "Deferred by user; not part of this acceptance gate"
+  "other_formats": "This suite covers FP16; BF16 and TF32 are checked by separate validation suites."
 }

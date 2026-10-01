@@ -1,4 +1,4 @@
-# Adapted from ../scripts/check_features.py at 990afac; oracle arithmetic unchanged.
+# Exact-arithmetic feature checks for the FloatLib executable.
 #!/usr/bin/env python3
 """Independent exact checks for canonical FP16 -> FP32 groups."""
 from fractions import Fraction as Q
@@ -192,7 +192,7 @@ def main():
                   published_device_vectors=sum(r['vectors'] for r in device_reports),
                   new_gpu_measurements=False,
                   source_files_hash_checked=len(pins['sha256']),
-                  other_formats='Deferred by user; not part of this acceptance gate')
+                  other_formats='This suite covers FP16; BF16 and TF32 are checked by separate validation suites.')
     (PORT / 'test-results/feature-report.json').write_text(json.dumps(report, indent=2)+'\n')
     print(json.dumps(report, indent=2))
 

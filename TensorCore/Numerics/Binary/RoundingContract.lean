@@ -1,7 +1,7 @@
 import TensorCore.Numerics.Binary.SignedBijection
 import TensorCore.Numerics.Binary.DirectedRounding
 
-/-! A uniform four-direction contract, finite-domain totality, and the existing zero/sign conventions. -/
+/-! Rounding contracts for four modes, finite-domain totality, and explicit zero/sign conventions. -/
 
 namespace TensorCore
 

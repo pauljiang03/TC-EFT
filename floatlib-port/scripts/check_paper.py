@@ -1,4 +1,4 @@
-# Adapted from ../scripts/check_paper_eft.py at 990afac; oracle arithmetic unchanged.
+# Compare the FloatLib executable with the pinned paper oracles.
 #!/usr/bin/env python3
 """Reproduce the pinned TC-EFT paper suites and compare their exact cases with Lean."""
 from collections import Counter

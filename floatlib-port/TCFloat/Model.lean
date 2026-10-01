@@ -121,7 +121,7 @@ def Trace.supportExponent (t : Trace) : Int :=
 def Trace.lowCoefficients (t : Trace) : List Int :=
   t.lowParts.map fun x => ⌊x / pow2 t.supportExponent⌋
 
-/-- Exactly the original Lean support-grid guard; the paper permits a chosen common residual grid. -/
+/-- Conservative scalar guard using the deterministic input-support grid. -/
 def Trace.scalarPredicate (t : Trace) : Bool :=
   decide (-149 ≤ t.supportExponent) && decide (t.supportExponent ≤ 104) &&
   (t.lowParts == t.lowCoefficients.map fun (z : Int) => (z : ℚ)*pow2 t.supportExponent) &&

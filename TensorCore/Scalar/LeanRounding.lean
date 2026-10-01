@@ -1,7 +1,7 @@
 import TensorCore.Scalar.Precision
 import Init.Data.Float.Model.Unpacked.Round
 
-/-! Bridges from Lean's rounding metadata to the existing rational reference. -/
+/-! Bridges between Lean's rounding metadata and rational rounding. -/
 
 namespace TensorCore.IEEE.LeanBridge
 

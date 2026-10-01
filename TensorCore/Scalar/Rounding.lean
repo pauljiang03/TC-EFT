@@ -4,7 +4,7 @@ import TensorCore.Scalar.Precision
 
 namespace TensorCore.IEEE
 
-/-- The old finite converter is total on its proved domain; no default output is used. -/
+/-- Finite conversion returns the proved result for an input within the format's range. -/
 def finiteBits (f : BinaryFormat) (mode : BinaryRoundingMode) (x : ℚ)
     (hr : absQ x ≤ f.layout.maxFinite) : Word f :=
   (roundBinary f.layout mode x).get ((roundBinary_isSome_iff _ _ _).mpr ⟨f.valid, hr⟩)
@@ -49,7 +49,7 @@ def round (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : ℚ) : Resul
       else maxFiniteWord f negative,
      { overflow, inexact := true }⟩
 
-/-- The numerical specification refers to the previously proved optimality relations on the finite domain. -/
+/-- IEEE rounding specification: precision optimality, result bits, sign, and exception flags. -/
 def RoundSpec (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : ℚ)
     (r : Result f) : Prop :=
   if x = 0 then r.bits = zero f zeroSign ∧ r.flags = {} else
@@ -85,7 +85,7 @@ theorem round_correct (f : BinaryFormat) (cfg : Context) (zeroSign : Bool) (x : 
     · dsimp only
       simp
 
-/-- On the original domain the new and old numeric encodings coincide whenever the exact result is nonzero. -/
+/-- IEEE rounding and finite binary conversion agree for nonzero inputs within the format's range. -/
 theorem round_agrees_finite (f : BinaryFormat) (cfg : Context) (s : Bool) (x : ℚ)
     (hx : x ≠ 0) (hr : absQ x ≤ f.layout.maxFinite) :
     roundBinary f.layout cfg.mode x = some (round f cfg s x).bits := by

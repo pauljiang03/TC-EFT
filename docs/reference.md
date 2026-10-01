@@ -28,9 +28,9 @@ The [guide](README.md), [theorem index](../TensorCore/THEOREMS.md), and [test wa
 
 The [theorem index](../TensorCore/THEOREMS.md) lists the public results and their premises.
 
-The paper's input-budget inequality is numbered (17) in the manuscript; historical `eq20` identifiers refer to that same sufficient condition. The scalar predicate is a conservative executable sufficient condition. Chosen-grid theorems also permit other valid common grids.
+The paper's input-budget inequality is numbered (17) in the manuscript; source identifiers containing `eq20` denote that sufficient condition. The scalar predicate is a conservative executable sufficient condition. Chosen-grid theorems also permit other valid common grids.
 
-The model rejects nonfinite operands, wrong product counts, and exact accumulators outside maximum finite FP32 magnitude. Exact arithmetic zero is +0; negative nonzero underflow retains its sign. EFT extraction permits any finite D independently of TC-model conformance. The bounded backend preserves reference result bits; its fallback branch may differ.
+The model rejects nonfinite operands, wrong product counts, and exact accumulators whose magnitude exceeds the maximum finite FP32 value. Exact arithmetic zero is +0; negative nonzero underflow retains its sign. EFT extraction accepts any finite D, whether or not it is the TC model's output. The bounded backend returns the same bits as the reference algorithm; its fallback branch tag may differ.
 
 ## Source layout
 
@@ -44,7 +44,7 @@ The model rejects nonfinite operands, wrong product counts, and exact accumulato
 | `TensorCore/Scalar` | Scalar proof dependencies for native EFT tests |
 | `Main`, `examples` | Compiled adapters and executable Lean tests |
 | `scripts` | Trust audits and model/EFT validation |
-| `vendor`, `data` | Pinned paper oracles, original recorded inputs/outputs, and regression cases |
+| `vendor`, `data` | Pinned paper oracles, recorded hardware inputs/outputs, and regression cases |
 | `floatlib-port` | Independent FloatLib model, proofs, and associated tests |
 
 [Theorem index](../TensorCore/THEOREMS.md) · [Trust and style](style.md)

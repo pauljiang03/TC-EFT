@@ -12,7 +12,7 @@ structure ExtractionGrid (t : BlockTrace) where
 def BlockTrace.defaultExtraction (t : BlockTrace) : ExtractionGrid t :=
   ⟨t.extractionExponent, Int.le_max_left _ _⟩
 
-/-- Reject a grid finer than alignment, without changing the existing extractor. -/
+/-- Accept an extraction grid exactly when it is no finer than the alignment grid. -/
 def BlockTrace.extractAt (t : BlockTrace) (b : ℤ) : Option (ExtractionGrid t) :=
   if h : t.block.quantumExponent ≤ b then some ⟨b, h⟩ else none
 
@@ -96,7 +96,7 @@ theorem lowParts_on_grid (g : ExtractionGrid t) (ℓ : ℤ) (hℓ : ℓ ≤ g.ex
   dsimp only [Function.comp_def]
   rw [hr, Rat.mul_div_cancel (Rat.ne_of_gt (pow2_pos ℓ)), Rat.floor_intCast]
 
-/-- Equation 20 derives the actual coefficient budget from the original input grid, component count (including C), and chosen extraction exponent. -/
+/-- The input-grid budget bounds residual coefficients using component count (including C) and extraction exponent. -/
 theorem eq20_coefficients (g : ExtractionGrid t) (ℓ : ℤ) (P : ℕ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ P) :
@@ -170,7 +170,7 @@ theorem scalarCorrected_isSome_iff (g : ExtractionGrid t) (f : Format) (ℓ : �
     obtain ⟨bits, hb, _⟩ := g.scalarCorrected_correct f ℓ h
     simp [hb]
 
-/-- Eq.20 is a sufficient precision condition for the actual scalar correction. -/
+/-- The input-grid budget and range/representability conditions imply the scalar predicate. -/
 theorem eq20_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
     (ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)

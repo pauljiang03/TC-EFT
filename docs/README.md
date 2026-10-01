@@ -1,6 +1,6 @@
 # Guide to tensor-core arithmetic
 
-The guide follows executable calculations into the definitions and proofs that justify them. Each Lean code block is checked by `python3 scripts/check_docs.py`; complete worked files live in `examples/`.
+The guide connects executable calculations to the definitions and proofs that justify them. `python3 scripts/check_docs.py` checks each Lean code block; complete worked examples live in `examples/`.
 
 1. [Getting started](guide/01-getting-started.md): choose imports, run a calculation, and find the source.
 2. [The tensor-core model](guide/02-tensor-core-model.md): follow raw products, alignment, accumulation, and conversion.

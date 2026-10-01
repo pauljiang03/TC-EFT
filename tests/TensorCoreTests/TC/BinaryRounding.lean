@@ -57,7 +57,7 @@ theorem fp64_rounding_correct (x : ℚ) (hr : absQ x ≤ fp64.maxFinite) :
   ⟨roundBinary_nearestEven_correct fp64 (by decide) x hr,
     roundBinary_towardZero_correct fp64 (by decide) x hr⟩
 
-/-- The FP32 instance of the generic theorem is the original FP32 theorem's statement. -/
+/-- Specializing generic binary rounding correctness to FP32 yields the FP32 rounding contract. -/
 theorem fp32_generic_agrees (x : ℚ) (hr : absQ x ≤ maxFinite32) :
     ∃ b, round32 .nearestEven x = some b ∧ NearestEven32 x b := by
   have h := roundBinary_nearestEven_correct fp32 (by decide) x hr

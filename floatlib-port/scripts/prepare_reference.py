@@ -62,7 +62,7 @@ def imports(data):
             for module in line.split() if module.startswith('TensorCore.')]
 
 def legacy_module(module):
-    """Module relocations change imports, never mathematical declaration namespaces."""
+    """Resolve a parent module to its pinned reference-manifest key."""
     exact = {
         'TensorCore.Kernels.EFT.Defs': 'TensorCore.EFT.Bounded',
         'TensorCore.Kernels.EFT.Native': 'TensorCore.EFT.Native',
@@ -151,7 +151,7 @@ def main():
         'removed_unused_imports':dict(sorted(pruned_imports.items())),
         'source_origin':dict(sorted(origins.items())),
         'source_sha256':dict(sorted(verified.items()))},indent=2)+'\n')
-    print(f"Verified {len(verified)} paper dependencies against pinned bodies; module paths relocated; unused imports pruned; three notation declarations scoped")
+    print(f"Verified {len(verified)} parent dependencies against the reference manifest; compatibility sources prepared with scoped Nat/Int/Rat notation")
 
 if __name__ == "__main__":
     main()

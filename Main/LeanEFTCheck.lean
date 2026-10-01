@@ -1,7 +1,7 @@
 import TensorCore.Kernels.EFT.Native
 import Lean
 
-/-! Test-only observations of the original bounded fold and native scalar fold. -/
+/-! Compare bounded scalar summation with native FP32 summation. -/
 
 open Lean TensorCore
 

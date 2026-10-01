@@ -1,6 +1,6 @@
 import TensorCore.Numerics.Binary.CorrectRounding
 
-/-! Directed rounding on the existing finite reference domain. -/
+/-! Directed rounding on finite binary formats. -/
 
 namespace TensorCore
 

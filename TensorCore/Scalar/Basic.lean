@@ -149,7 +149,7 @@ theorem maxFiniteWord_sign (f : BinaryFormat) (s : Bool) :
 theorem maxFinite_positive (f : BinaryFormat) : 0 < f.layout.maxFinite := by
   cases f <;> decide +kernel
 
-/-- The IEEE finite projection preserves the old numerical value and adds its sign bit. -/
+/-- Finite IEEE decoding agrees with the numerical value and encoded sign bit. -/
 theorem decode_finite_iff (f : BinaryFormat) (b : Word f) (s : Bool) (v : ℚ) :
     decode f b = .finite s v ↔ binaryValue f.layout b = some v ∧ sign f b = s := by
   cases hc : classify f.layout b <;>

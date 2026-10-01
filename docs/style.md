@@ -1,10 +1,9 @@
 # Style and foundations
 
-The organization follows FloatLib's numerical/kernel separation and worked-guide style,
-with subject directories, small public import modules, explicit mathematical hypotheses,
-and properties beside the definitions they concern. Regression modules have a separate
+Source modules are grouped by mathematical role, with small public import modules,
+explicit hypotheses, and properties beside the definitions they concern. The numerical
+foundation uses Lean's standard-library arithmetic. Regression modules have a separate
 source root under `tests/`.
-This project keeps its standard-library arithmetic and existing public declaration names.
 
 - Put reusable arithmetic, representations, encoding, rounding, and inverse laws in `Numerics`.
 - Put tensor-core assumptions in explicit `Profile` or `InvocationSpec` fields and theorem premises.
@@ -15,7 +14,7 @@ This project keeps its standard-library arithmetic and existing public declarati
   The notation in `Numerics/Notation.lean` introduces syntax only. Use `BitVec` for encoded words.
 - Use a short module introduction and declaration comments that explain a definition, its hypotheses,
   or its relationship to a numbered paper result. Explain proof steps when they add mathematical context.
-- Use two-space indentation and descriptive theorem names. Preserve public namespaces during file moves.
+- Use two-space indentation and descriptive theorem names within the relevant subject namespace.
   Import the module that owns a result, without obtaining basic lemmas through unrelated applications.
 - Keep regression witnesses out of subject aggregate imports. `TensorCoreTests` and the default Lake build
   include all maintained regression modules; `scripts/check_layout.py` enforces their boundaries and audit coverage.
@@ -38,6 +37,8 @@ audit checks this boundary, including dependencies inside propositions and proof
 
 Keep the guide, executable-test walkthrough, and theorem index current. Link directly
 to Lean declarations instead of copying complete proof bodies into Markdown.
+Write maintained documentation and source comments as a self-contained description of
+this repository. State definitions, hypotheses, interfaces, and verification scope directly.
 
 Run `python3 scripts/check_docs.py` to check maintained local links and elaborate every
 Lean code block in the README, guide, test walkthrough, and theorem index. Keep those

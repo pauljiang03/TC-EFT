@@ -22,7 +22,7 @@ theorem recovery (t : Trace) : t.output + t.residual = t.block.ideal := by
   unfold Trace.residual
   linarith
 
-/-- The EFT reconstructs the original input sum for ANY supplied output value. -/
+/-- EFT reconstructs the exact input sum for any supplied output value. -/
 theorem overlap_recovery (t : Trace) :
     t.output - t.overlap + t.lowParts.sum = t.block.ideal := by
   have h := split_sum t.block.terms (fun x => truncGrid x.value t.extractionExponent)

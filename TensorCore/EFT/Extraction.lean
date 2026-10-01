@@ -73,7 +73,7 @@ def BlockTrace.scalarPredicate (t : BlockTrace) : Bool :=
   representable32 t.retainedSum &&
   decide (absQ (t.retainedSum + sumQ t.lowParts) ≤ maxFinite32)
 
-/-- Named diagnostics for the unchanged baseline predicate. -/
+/-- Named checks for each condition of the scalar predicate. -/
 def BlockTrace.scalarChecks (t : BlockTrace) : List (String × Bool) :=
   [("support_min", decide (-149 ≤ t.supportExponent)),
    ("support_max", decide (t.supportExponent ≤ 104)),
@@ -130,13 +130,13 @@ theorem scalarCorrectedUnchecked_eq (t : BlockTrace) (h : t.scalarPredicate = tr
   have := overlap_recovery t
   grind
 
-/-- The guarded public helper preserves all previously justified successful results. -/
+/-- Under the scalar predicate, public correction equals nearest-even rounding of the exact dot product. -/
 theorem scalarCorrected_eq (t : BlockTrace) (h : t.scalarPredicate = true) :
     t.scalarCorrected = round32 .nearestEven t.block.exactDot := by
   unfold BlockTrace.scalarCorrected
   rw [if_pos h, scalarCorrectedUnchecked_eq t h]
 
-/-- The public helper refuses the known-unsafe branch when its predicate fails. -/
+/-- Public scalar correction returns `none` when its sufficient predicate fails. -/
 theorem scalarCorrected_rejects (t : BlockTrace) (h : t.scalarPredicate = false) :
     t.scalarCorrected = none := by simp [BlockTrace.scalarCorrected, h]
 

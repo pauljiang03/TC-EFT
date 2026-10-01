@@ -1,10 +1,10 @@
 import TensorCore.Numerics.Binary.ScalarSum
 
-/-! TC-EFT Theorem IV.9, Equation 20. -/
+/-! Residual coefficient budgets for exact scalar consolidation. -/
 
 namespace TensorCore
 
-/-- Equation 20: each residual is smaller than `2^b` and lies on grid `2^ℓ`. -/
+/-- Residual magnitudes below `2^b` on grid `2^ℓ` imply the coefficient budget. -/
 theorem extraction_coefficient_bound (zs : List ℤ) (b ℓ : ℤ) (P : ℕ)
     (hgrid : ℓ ≤ b)
     (hterm : ∀ z ∈ zs, absQ ((z : ℚ) * pow2 ℓ) < pow2 b)
@@ -21,7 +21,7 @@ theorem extraction_coefficient_bound (zs : List ℤ) (b ℓ : ℤ) (P : ℕ)
     omega
   exact Nat.lt_of_le_of_lt (magnitudeSum_le_length_mul zs _ hcoeff) hbudget
 
-/-- Exact scalar consolidation from Equation 20, with the paper's independent minimum-grid and finite-range requirements retained. -/
+/-- Exact scalar consolidation under coefficient-budget, minimum-grid, and finite-range conditions. -/
 theorem naiveSumBinary_exact_of_extraction_bound (f : Format) (hf : f.WellFormed)
     (b ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hgrid : ℓ ≤ b)
     (zs : List ℤ) (hterm : ∀ z ∈ zs, absQ ((z : ℚ) * pow2 ℓ) < pow2 b)

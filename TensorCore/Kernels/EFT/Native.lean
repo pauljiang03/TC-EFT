@@ -20,7 +20,7 @@ theorem value32_finite_exponent {a : F32} {x : ℚ} (h : TensorCore.value32 a = 
     simp [TensorCore.value32, TensorCore.decode32, classify, classifyNat, fp32, hz, hm,
       Classification.finite] at h
 
-/-- One native nearest-even addition behind the original finite-input and exact range checks. -/
+/-- Native nearest-even FP32 addition with finite-input and exact-sum range checks. -/
 def add32WithLean (a b : F32) : Option F32 := do
   if ha : a.toNat / 8388608 % 256 < 255 then
     if hb : b.toNat / 8388608 % 256 < 255 then

@@ -94,7 +94,7 @@ private theorem floor_nat_div (m d : ℕ) (hd : 0 < d) :
 def signedDyadic (negative : Bool) (m : ℕ) (scale : ℤ) : ℚ :=
   if negative then -((m : ℚ) * pow2 scale) else (m : ℚ) * pow2 scale
 
-/-- The machine coarse component refines the existing exact truncation, at arbitrary binary scale and for either sign. -/
+/-- The machine coarse component equals exact truncation at any binary scale and for either sign. -/
 theorem splitMagnitude_coarse_truncGrid (negative : Bool) (m : BitVec 24)
     (gap : BitVec 8) (scale : ℤ) :
     signedDyadic negative (splitMagnitude m gap).coarse.toNat scale =
