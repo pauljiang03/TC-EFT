@@ -8,7 +8,7 @@ Start with the [guide](docs/README.md). It follows a calculation from encoded wo
 
 ## Build and run
 
-Install elan and Python 3, use the pinned `lean-toolchain`, and run from this directory:
+Install [elan](https://github.com/leanprover/elan) and Python 3, use the pinned `lean-toolchain`, and run from this directory. A complete source ZIP works as well as a clone; TC-EFT's Git history is unnecessary. The FloatLib project also needs Git to fetch its pinned dependencies.
 
 ```sh
 lake build
@@ -81,3 +81,7 @@ This builds a fresh snapshot, audits theorem dependencies, checks every worked L
 The selected paths have FP16/BF16/TF32 operands and FP32 outputs. Scalar EFT correctness keeps its grid, coefficient-budget, representability, and range hypotheses. Non-monotonicity results describe the stated realizable perturbation family. Hardware correspondence remains an external obligation; recorded-vector replay takes no new GPU measurements. Software checks require neither MATLAB nor CUDA.
 
 [Theorem index](TensorCore/THEOREMS.md) · [Executable reference](docs/reference.md) · [Trust and style](docs/style.md)
+
+## License
+
+TC-EFT's original code and documentation are available under the [MIT license](LICENSE). Vendored materials retain their own notices, including the [BSD 2-Clause license](vendor/matlab-tensor-core-v0.5/LICENCE) for the Accurate Models code and recorded vectors. Downloaded dependencies retain their upstream licenses.

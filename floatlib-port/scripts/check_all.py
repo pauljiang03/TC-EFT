@@ -51,7 +51,7 @@ def main():
              'source_sha256':{str(p.relative_to(PORT)):hashlib.sha256(p.read_bytes()).hexdigest() for p in sources},
              'verification_sha256':{str(p.relative_to(PORT)):hashlib.sha256(p.read_bytes()).hexdigest()
                for p in [*sorted((PORT/'scripts').glob('*.py')), *sorted((PORT/'tests').glob('*.lean')),
-                         PORT/'lakefile.toml',PORT/'lake-manifest.json',PORT/'lean-toolchain']}}
+                         PORT/'reference-manifest.json',PORT/'lakefile.toml',PORT/'lake-manifest.json',PORT/'lean-toolchain']}}
     (OUT/'summary.json').write_text(json.dumps(summary,indent=2)+'\n')
     print('All FloatLib-port checks passed. Reports: floatlib-port/test-results/')
 

@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 """Verify pinned Lean code and copy current sources into the compatibility project."""
 from pathlib import Path
-import hashlib, json, re, subprocess
+import hashlib, json, re
 
 PORT = Path(__file__).resolve().parents[1]
 REPO = PORT.parent
 PIN = "990afac10b94a84f3de24743206756dd7acc3276"
+REFERENCE = PORT / "reference-manifest.json"
+REFERENCE_SHA256 = "0788366fb0dd3a6d1886d6abcb15005a82e4aa6c78bd234ee8ee9d2e91560548"
 OUT = PORT / "reference-compat"
 
 def lean_tokens(source):
@@ -84,12 +86,25 @@ def legacy_import(line):
     return ('import ' + ' '.join(legacy_module(word) for word in words[1:]) + '\n').encode()
 
 
+def body_hash(lines):
+    body = b''.join(line for line in lines if not line.startswith(b'import ')).decode()
+    tokens = json.dumps(lean_tokens(body), ensure_ascii=False, separators=(',', ':')).encode()
+    return hashlib.sha256(tokens).hexdigest()
+
+
 def main():
+    reference_data = REFERENCE.read_bytes()
+    if hashlib.sha256(reference_data).hexdigest() != REFERENCE_SHA256:
+        raise RuntimeError('Pinned reference manifest checksum mismatch')
+    reference = json.loads(reference_data)
+    if reference['format'] != 1 or reference['revision'] != PIN:
+        raise RuntimeError('Unexpected pinned reference manifest version or revision')
     pending = [module for p in (PORT/'TCFloat/Equivalence').glob('*.lean')
                for module in imports(p.read_text())]
     verified = {}
     pruned_imports = {}
     origins = {}
+    sources = {}
     while pending:
         module = pending.pop()
         name = module.replace('.', '/') + '.lean'
@@ -97,21 +112,26 @@ def main():
             continue
         origin = legacy_module(module).replace('.', '/') + '.lean'
         origins[name] = origin
-        pinned = subprocess.check_output(["git", "show", f"{PIN}:{origin}"], cwd=REPO)
+        if origin not in reference['files']:
+            raise RuntimeError(f'Unpinned original dependency: {name}')
+        pinned = reference['files'][origin]
         data = (REPO / name).read_bytes()
-        if data != pinned:
-            pinned_lines, current_lines = pinned.splitlines(keepends=True), [legacy_import(line) for line in data.splitlines(keepends=True)]
-            body = lambda lines: b''.join(line for line in lines if not line.startswith(b'import '))
-            if lean_tokens(body(pinned_lines).decode()) != lean_tokens(body(current_lines).decode()):
+        digest = hashlib.sha256(data).hexdigest()
+        if digest != pinned['source_sha256']:
+            current_lines = [legacy_import(line) for line in data.splitlines(keepends=True)]
+            if body_hash(current_lines) != pinned['body_tokens_sha256']:
                 raise RuntimeError(f"Original arithmetic/proof source differs from pinned revision: {name}")
-            old = [line for line in pinned_lines if line.startswith(b'import ')]
-            new = [line for line in current_lines if line.startswith(b'import ')]
+            old = pinned['imports']
+            new = [line.decode() for line in current_lines if line.startswith(b'import ')]
             remaining = iter(old)
             if not all(any(line == candidate for candidate in remaining) for line in new):
                 raise RuntimeError(f"Original imports are not a subset of pinned imports: {name}")
-            pruned_imports[name] = [line.decode().strip() for line in old if line not in new]
-        verified[name] = hashlib.sha256(data).hexdigest()
+            pruned_imports[name] = [line.strip() for line in old if line not in new]
+        verified[name] = digest
+        sources[name] = data
         pending.extend(imports(data.decode()))
+
+    for name, data in sources.items():
         if name == "TensorCore/Numerics/Notation.lean":
             data = data.replace(b'notation "', b'namespace TensorCore\nnotation "', 1) + b"\nend TensorCore\n"
             for symbol, suffix in [("ℕ", "Nat"), ("ℤ", "Int"), ("ℚ", "Rat")]:
@@ -125,6 +145,7 @@ def main():
         if str(stale.relative_to(OUT)) not in verified:
             stale.unlink()
     (OUT/'manifest.json').write_text(json.dumps({'revision':PIN,
+        'reference_manifest_sha256':REFERENCE_SHA256,
         'comparison':'exact non-import code tokens and string literals; comments and whitespace ignored',
         'notation_shim':'three declarations renamed and scoped; same expansions',
         'removed_unused_imports':dict(sorted(pruned_imports.items())),

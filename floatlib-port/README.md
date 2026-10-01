@@ -10,7 +10,7 @@ Lean: **4.34.0**; the parent project uses its own separate toolchain. The commit
 
 ## Build and run
 
-Install [elan](https://github.com/leanprover/elan) and Python 3. No third-party Python packages, MATLAB, CUDA, or GPU are required for these checks. The first build needs network access to fetch Lean, FloatLib, mathlib, and their dependencies. Expect several GB of dependency/build storage.
+Install [elan](https://github.com/leanprover/elan), Git, and Python 3. A complete source ZIP or clone works; TC-EFT's Git history is unnecessary. Git is used by Lake to fetch pinned dependencies. No third-party Python packages, MATLAB, CUDA, or GPU are required for these checks. The first build needs network access to fetch Lean, FloatLib, mathlib, and their dependencies. Expect several GB of dependency/build storage.
 
 From the repository root:
 
@@ -38,7 +38,7 @@ python3 scripts/check_monotonicity.py
 
 Reproduce validation with `scripts/check_all.py`. Current reports and source hashes are generated under `test-results/summary.json`; the direct comparison writes `test-results/equivalence/report.json`.
 
-The parent cleanup removes one unused application import from the reference dependency graph. `prepare_reference.py` compares every arithmetic and proof body to the pinned revision, accepts documented module-path relocations, deletion of existing import lines, and comment/whitespace changes while requiring identical mathematical code tokens and string literals, and copies the actual current parent sources. Its generated manifest records those deletions and the current source hashes.
+The parent cleanup removes one unused application import from the reference dependency graph. `prepare_reference.py` checks current parent sources against the bundled [reference manifest](reference-manifest.json), generated from the pinned revision. Its checksum is fixed in the script; each entry records the original source hash, non-import code-token hash, and import lines. Preparation accepts documented module-path relocations, deletion of existing import lines, and comment/whitespace changes while requiring identical mathematical code tokens and string literals, then copies the actual current parent sources. Its generated manifest records those deletions and the current source hashes. Edge checks require preparation to work without Git and reject changed arithmetic, strings, imports, manifest contents, and unpinned dependencies.
 
 ## Direct comparison with the original
 

@@ -55,6 +55,7 @@ The executable remains independent: FloatLib performs its decoding, exact dyadic
 | [TCFloat.lean](TCFloat.lean) | Root import that includes the equivalence and paper proof modules in the build. |
 | [tests/](tests/) | Axiom/dependency audit, representation checks and decoder comparison programs. |
 | [scripts/](scripts/) | Source preparation, regression runners and direct comparison with the original executable. |
+| [reference-manifest.json](reference-manifest.json) | Pinned original-source hashes, code-token hashes and imports, allowing preparation without Git history. |
 | `reference-compat/` | Generated, ignored compatibility copy of the original proof dependencies. |
 | `test-results/` | Generated, ignored inputs, logs, comparison outputs and reports. |
 | `.lake/` | Downloaded dependencies and compiled artifacts. |
@@ -66,7 +67,7 @@ The executable scalar guard deliberately matches the original repository's conse
 
 ## How to build and verify
 
-Use a full repository checkout, since the scripts read the parent project's source, Git history and saved test data. Install elan/Lean and Python 3. Initial dependency setup needs network access and several GB of storage. MATLAB, CUDA and a GPU are unnecessary for replaying the saved measurements.
+Use a complete repository clone or source ZIP, since the scripts read the parent project's source and saved test data. TC-EFT's Git history is unnecessary. Install elan/Lean, Git and Python 3; Lake uses Git to fetch pinned dependencies. Initial dependency setup needs network access and several GB of storage. MATLAB, CUDA and a GPU are unnecessary for replaying the saved measurements.
 
 From the repository root:
 
@@ -88,7 +89,7 @@ lake env lean tests/Audit.lean
 
 The port uses Lean 4.34.0 and FloatLib revision `0d91825727839f597fd06b22fdd038ea21480f0c`. The reference revision is `990afac10b94a84f3de24743206756dd7acc3276`; its separate executable uses Lean 4.33.1.
 
-The preparation script verifies current parent dependency bodies against their original source locations at the pinned Git revision. Module-path relocations, deletion of unused imports, and comment/whitespace changes are accepted; mathematical code tokens and string literals cannot change. The actual current modules are copied into `reference-compat/`, where three Nat/Int/Rat notation declarations are renamed and scoped to avoid mathlib parser collisions. The parent source is never rewritten. The generated manifest lists original locations, current hashes, and deleted imports. A changed arithmetic/proof body causes preparation to fail.
+The preparation script verifies current parent dependencies against the bundled [reference manifest](reference-manifest.json), generated from their original source locations at the pinned revision. The script fixes the manifest's SHA-256; entries record full-source hashes, SHA-256 hashes of UTF-8 JSON code-token arrays, and original import lines. Module-path relocations, deletion of unused imports, and comment/whitespace changes are accepted; mathematical code tokens and string literals cannot change. The actual current modules are copied into `reference-compat/`, where three Nat/Int/Rat notation declarations are renamed and scoped to avoid mathlib parser collisions. The parent source is never rewritten. The generated manifest lists original locations, current hashes, and deleted imports. A changed arithmetic/proof body or unpinned dependency causes preparation to fail. Edge checks exercise a history-free source copy and deliberate mutations of each protected input.
 
 ## Running Lean and the models against the test cases
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Supplied-D independence, signed underflow, padding validation and negative controls."""
-import json, sys, subprocess
+import json, os, shutil, sys, subprocess, tempfile
 from pathlib import Path
 from fractions import Fraction as Q
 PORT=Path(__file__).resolve().parents[1]
@@ -9,6 +9,63 @@ sys.path.insert(0,str(PORT.parent/'vendor/tc-eft-validation'))
 import exact_model as ref
 import check_revision as oracle
 from check_replay import run
+
+def check_reference_preparation():
+    reference=json.loads((PORT/'reference-compat/manifest.json').read_text())
+    checks={}
+    with tempfile.TemporaryDirectory(prefix='tc-reference-archive-') as directory:
+        root=Path(directory)
+        port=root/'floatlib-port'
+        (port/'scripts').mkdir(parents=True)
+        shutil.copy2(PORT/'scripts/prepare_reference.py',port/'scripts/prepare_reference.py')
+        shutil.copy2(PORT/'reference-manifest.json',port/'reference-manifest.json')
+        shutil.copytree(PORT/'TCFloat/Equivalence',port/'TCFloat/Equivalence')
+        for name in reference['source_sha256']:
+            target=root/name
+            target.parent.mkdir(parents=True,exist_ok=True)
+            shutil.copy2(PORT.parent/name,target)
+        environment={**os.environ,'PATH':str(root/'no-external-commands')}
+
+        def prepare(label,error=None):
+            proc=subprocess.run([sys.executable,str(port/'scripts/prepare_reference.py')],
+                                cwd=port,env=environment,capture_output=True,text=True)
+            if error is None:
+                assert proc.returncode==0,(label,proc.stdout,proc.stderr)
+            else:
+                assert proc.returncode and error in proc.stderr,(label,proc.stdout,proc.stderr)
+            checks[label]='passed'
+
+        prepare('archive_without_git')
+        generated=port/'reference-compat/manifest.json'
+        assert json.loads(generated.read_text())==reference
+        for name in reference['source_sha256']:
+            assert (port/'reference-compat'/name).read_bytes()==(PORT/'reference-compat'/name).read_bytes(),name
+        block=root/'TensorCore/TC/Block.lean'
+        original=block.read_text()
+        expression='b.eta.getD 0 - b.profile.alignFraction'
+        assert original.count(expression)==1
+        block.write_text('-- Archive regression\n'+original.replace(expression,expression.replace(' - ','   -   ')))
+        prepare('comments_and_whitespace')
+        block.write_text(original.replace(expression,expression.replace(' - ',' + ')))
+        prepare('arithmetic_mutation','Original arithmetic/proof source differs')
+        block.write_text(original)
+        notation=root/'TensorCore/Numerics/Notation.lean'
+        text=notation.read_text()
+        assert 'notation "ℕ"' in text
+        notation.write_text(text.replace('notation "ℕ"','notation " ℕ"'))
+        prepare('string_literal_mutation','Original arithmetic/proof source differs')
+        notation.write_text(text)
+        block.write_text('import Std.Data.HashMap\n'+original)
+        prepare('added_import','Original imports are not a subset')
+        block.write_text(original)
+        manifest=port/'reference-manifest.json'
+        data=manifest.read_bytes()
+        manifest.write_bytes(data+b'\n')
+        prepare('manifest_mutation','Pinned reference manifest checksum mismatch')
+        manifest.write_bytes(data)
+        (port/'TCFloat/Equivalence/Unpinned.lean').write_text('import TensorCore.Numerics.Unpinned\n')
+        prepare('unpinned_dependency','Unpinned original dependency')
+    return checks
 
 def main():
     # Exact 1 + 2^-24 is a midpoint; the even result is 1. unrelated to the TC model, including signed zero and both finite extremes.
@@ -45,7 +102,8 @@ def main():
     proc=subprocess.run(['lake','env','lean',str(bad_source)],cwd=PORT,capture_output=True,text=True)
     assert proc.returncode and 'Original implementation in executable dependencies' in proc.stdout+proc.stderr
     report={'supplied_D_cases':len(values),'rounding_cases':len(xs),'domain_cases':len(rows),
-            'dependency_negative_control':'passed','source_independence_negative_control':'passed','mismatches':0}
+            'dependency_negative_control':'passed','source_independence_negative_control':'passed',
+            'reference_preparation':check_reference_preparation(),'mismatches':0}
     (PORT/'test-results/edges-report.json').write_text(json.dumps(report,indent=2)+'\n')
     print(json.dumps(report,indent=2))
 
