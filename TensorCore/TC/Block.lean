@@ -53,11 +53,11 @@ def PreparedBlock.alignExp (b : PreparedBlock) : Option ℤ :=
 def PreparedBlock.alignGridExponent (b : PreparedBlock) : ℤ :=
   b.alignExp.getD 0 - b.profile.alignMantissaBits
 
-def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
-  b.terms.map fun t => truncCoeff t.value b.alignGridExponent
+def PreparedBlock.alignedBits (b : PreparedBlock) : List ℤ :=
+  b.terms.map fun t => truncBits t.value b.alignGridExponent
 
 def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
-  (sumZ b.coefficients : ℚ) * pow2 b.alignGridExponent
+  (sumZ b.alignedBits : ℚ) * pow2 b.alignGridExponent
 
 def PreparedBlock.alignmentResiduals (b : PreparedBlock) : List ℚ :=
   b.terms.map fun t => t.value - truncGrid t.value b.alignGridExponent
@@ -85,7 +85,7 @@ inductive ModelError where
   deriving Repr, DecidableEq
 
 def evalPrepared (b : PreparedBlock) : Except ModelError BlockTrace :=
-  match round32 .towardZero b.accumulator with
+  match round32 .truncate b.accumulator with
   | none => .error .accumulatorOutOfRange
   | some bits => match finite32 bits with
     | none => .error .nonfiniteOutput
@@ -111,12 +111,12 @@ theorem prepareProducts_replicate (p : Profile) (a b : p.Word) (da db : Decoded)
     simp [prepareProducts, List.replicate_succ, List.mapM_cons, ha, hb, ih']
 
 /-- Coefficients of a block with one repeated operand pair. -/
-theorem construction_coefficients (prof : Profile) (K : ℕ) (da db c : Decoded) :
-    (PreparedBlock.mk prof (List.replicate K (da, db)) c).coefficients =
-      truncCoeff c.value (PreparedBlock.mk prof (List.replicate K (da, db)) c).alignGridExponent ::
-      List.replicate K (truncCoeff (unnormalizedMul da db).value
+theorem construction_alignedBits (prof : Profile) (K : ℕ) (da db c : Decoded) :
+    (PreparedBlock.mk prof (List.replicate K (da, db)) c).alignedBits =
+      truncBits c.value (PreparedBlock.mk prof (List.replicate K (da, db)) c).alignGridExponent ::
+      List.replicate K (truncBits (unnormalizedMul da db).value
         (PreparedBlock.mk prof (List.replicate K (da, db)) c).alignGridExponent) := by
-  simp [PreparedBlock.coefficients, PreparedBlock.terms, List.map_replicate, UnnormalizedProduct.value,
+  simp [PreparedBlock.alignedBits, PreparedBlock.terms, List.map_replicate, UnnormalizedProduct.value,
     Decoded.value]
 
 end TensorCore

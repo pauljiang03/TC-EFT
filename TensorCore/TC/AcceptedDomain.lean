@@ -2,7 +2,7 @@ import TensorCore.TC.Canonical
 
 namespace TensorCore
 
-/-- Toward-zero and nearest-even conversion return decodable finite FP32 words for inputs within range. -/
+/-- Truncation and nearest-even rounding return decodable finite FP32 words for inputs within range. -/
 theorem round32_finite_exists (mode : RoundingMode) (x : ℚ) (hr : absQ x ≤ maxFinite32) :
     ∃ bits d, round32 mode x = some bits ∧ decode32 bits = some d := by
   by_cases hz : x = 0
@@ -16,7 +16,7 @@ theorem round32_finite_exists (mode : RoundingMode) (x : ℚ) (hr : absQ x ≤ m
 
 theorem evalPrepared_total (b : PreparedBlock) (hr : absQ b.accumulator ≤ maxFinite32) :
     ∃ t, evalPrepared b = .ok t := by
-  obtain ⟨bits, d, hb, hd⟩ := round32_finite_exists .towardZero b.accumulator hr
+  obtain ⟨bits, d, hb, hd⟩ := round32_finite_exists .truncate b.accumulator hr
   have hf : finite32 bits = some ⟨bits, d, hd⟩ := by
     unfold finite32
     split

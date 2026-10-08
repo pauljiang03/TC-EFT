@@ -65,9 +65,9 @@ theorem binarySignedRounded_towardNegative (f : Format) (hf : f.WellFormed) (x :
     have h := hc.2 (-y) (f.finiteValue_neg hy) (by grind)
     grind
   · rw [if_neg hn]
-    have hc := binary_rtz_magnitude_spec f hf false (absQ x) hm hr
+    have hc := binary_trunc_magnitude_spec f hf false (absQ x) hm hr
     have ha := absQ_of_nonneg (show 0 ≤ x by grind)
-    change binaryMagnitudeRounded f .towardZero false (absQ x) ≤ x ∧ _
+    change binaryMagnitudeRounded f .truncate false (absQ x) ≤ x ∧ _
     refine ⟨by grind, ?_⟩
     intro y hy hyx
     exact hc.2.2 y hy (by grind)
@@ -80,13 +80,13 @@ theorem binarySignedRounded_towardPositive (f : Format) (hf : f.WellFormed) (x :
   unfold binarySignedRounded
   by_cases hn : x < 0
   · rw [if_pos hn]
-    have hc := binary_rtz_magnitude_spec f hf true (absQ x) hm hr
+    have hc := binary_trunc_magnitude_spec f hf true (absQ x) hm hr
     have ha := absQ_of_neg hn
-    change x ≤ -binaryMagnitudeRounded f .towardZero true (absQ x) ∧ _
+    change x ≤ -binaryMagnitudeRounded f .truncate true (absQ x) ∧ _
     refine ⟨by grind, ?_⟩
     intro y hy hxy
     have h := hc.2.2 (-y) (f.finiteValue_neg hy) (by grind)
-    change -binaryMagnitudeRounded f .towardZero true (absQ x) ≤ y
+    change -binaryMagnitudeRounded f .truncate true (absQ x) ≤ y
     grind
   · rw [if_neg hn]
     have hc := binary_ceil_magnitude_spec f hf (absQ x) hm hr

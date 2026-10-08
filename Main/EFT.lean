@@ -77,7 +77,7 @@ private def command (args : List String) : Option Json := do
     if d = 0 then none else do
       let x : ℚ := n / (d : ℚ)
       return Json.mkObj [("rne", toJson ((round32 .nearestEven x).map BitVec.toNat)),
-        ("rtz", toJson ((round32 .towardZero x).map BitVec.toNat))]
+        ("rtz", toJson ((round32 .truncate x).map BitVec.toNat))]
   | _ => none
 
 def main (args : List String) : IO Unit := do

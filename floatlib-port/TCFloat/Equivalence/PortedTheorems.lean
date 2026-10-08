@@ -100,13 +100,13 @@ theorem floatlib_overlap_eq_retained_sub_outputResidual (t : Trace) :
 
 theorem rtz_value_spec (x : Rat) (bits : Nat) (y : Rat)
     (hr : TCFloat.round32 .towardZero x=some bits) (hv : TCFloat.value32 bits=some y) :
-    y=TensorCore.signedRounded .towardZero x := by
+    y=TensorCore.signedRounded .truncate x := by
   rw [round32_rtz_eq] at hr
   obtain ⟨b,hb,hbits⟩ := Option.map_eq_some_iff.mp hr
   rw [← hbits,value32_eq] at hv
   by_cases hz : x=0
   · subst x
-    have h0 : TensorCore.round32 .towardZero 0=some 0 := by decide +kernel
+    have h0 : TensorCore.round32 .truncate 0=some 0 := by decide +kernel
     rw [h0] at hb
     cases Option.some.inj hb
     have hz : TensorCore.value32 0=some 0 := by decide +kernel
@@ -114,7 +114,7 @@ theorem rtz_value_spec (x : Rat) (bits : Nat) (y : Rat)
     have hy : y=0 := (Option.some.inj hv).symm
     rw [hy]
     decide +kernel
-  · obtain ⟨b',hb',hv',_,_⟩ := TensorCore.round32_nonzero_spec .towardZero x hz (TensorCore.round32_range hb)
+  · obtain ⟨b',hb',hv',_,_⟩ := TensorCore.round32_nonzero_spec .truncate x hz (TensorCore.round32_range hb)
     rw [hb] at hb'
     cases Option.some.inj hb'
     rw [hv] at hv'
@@ -131,15 +131,15 @@ theorem rtz_output_monotone (x y : Rat) (bx by' : Nat) (dx dy : Rat)
     (hx : TCFloat.round32 .towardZero x=some bx) (hy : TCFloat.round32 .towardZero y=some by')
     (hdx : TCFloat.value32 bx=some dx) (hdy : TCFloat.value32 by'=some dy) (hxy : x≤y) : dx≤dy := by
   rw [rtz_value_spec x bx dx hx hdx,rtz_value_spec y by' dy hy hdy]
-  exact TensorCore.signedRounded_rtz_monotone x y hxy (rtz_range x bx hx) (rtz_range y by' hy)
+  exact TensorCore.signedRounded_trunc_monotone x y hxy (rtz_range x bx hx) (rtz_range y by' hy)
 
 /-- Under a perturbation of C, the output increases exactly when the round-truncation of the shifted accumulator increases (TC-EFT paper, Eq. 6). -/
 theorem floatlib_output_increase_iff (p : Profile) (ps : List (Term×Term)) (c c' : Term)
     (bits bits' : Nat) (d d' : Rat)
     (h : (Block.mk p c ps).evaluate=some bits) (h' : (Block.mk p c' ps).evaluate=some bits')
     (hd : TCFloat.value32 bits=some d) (hd' : TCFloat.value32 bits'=some d') :
-    (d<d' ↔ TensorCore.signedRounded .towardZero (Block.mk p c ps).accumulator <
-      TensorCore.signedRounded .towardZero ((Block.mk p c ps).accumulator+
+    (d<d' ↔ TensorCore.signedRounded .truncate (Block.mk p c ps).accumulator <
+      TensorCore.signedRounded .truncate ((Block.mk p c ps).accumulator+
         TCFloat.flowback p ps c c'-TCFloat.accumulatorShift p ps c c')) := by
   rw [rtz_value_spec _ _ _ h hd,rtz_value_spec _ _ _ h' hd',TCFloat.perturbed_accumulator p ps c c']
 
@@ -162,7 +162,7 @@ theorem floatlib_flowback_sufficient (p : Profile) (ps : List (Term×Term)) (c c
     (ha' : TensorCore.FiniteValue32 (Block.mk p c' ps).accumulator)
     (hi : TCFloat.accumulatorShift p ps c c' < TCFloat.flowback p ps c c') : d<d' := by
   rw [rtz_value_spec _ _ _ h hd,rtz_value_spec _ _ _ h' hd',
-    TensorCore.signedRounded_rtz_of_finite _ ha,TensorCore.signedRounded_rtz_of_finite _ ha',
+    TensorCore.signedRounded_trunc_of_finite _ ha,TensorCore.signedRounded_trunc_of_finite _ ha',
     TCFloat.perturbed_accumulator p ps c c']
   linarith
 
@@ -258,8 +258,8 @@ theorem general_flowback_sufficient (primary primary' : Rat) (others : List Rat)
     (hi : truncGrid primary q-truncGrid primary' q' <
       (others.map fun x => truncGrid x q'-truncGrid x q).sum) : d<d' := by
   rw [rtz_value_spec _ _ _ h hd,rtz_value_spec _ _ _ h' hd',
-    TensorCore.signedRounded_rtz_of_finite _ ((finiteValue32_iff_representable _).mpr ha),
-    TensorCore.signedRounded_rtz_of_finite _ ((finiteValue32_iff_representable _).mpr ha')]
+    TensorCore.signedRounded_trunc_of_finite _ ((finiteValue32_iff_representable _).mpr ha),
+    TensorCore.signedRounded_trunc_of_finite _ ((finiteValue32_iff_representable _).mpr ha')]
   rw [sum_map_difference] at hi
   linarith
 

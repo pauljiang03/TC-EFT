@@ -17,13 +17,13 @@ theorem roundingStage_nearestEven_correct (s : RoundingStage) (hf : s.format.Wel
   cases Option.some.inj hb
   exact hc
 
-theorem roundingStage_towardZero_correct (s : RoundingStage) (hf : s.format.WellFormed)
-    (hmode : s.mode = .towardZero) (x : ℚ) (d : FiniteBinary s.format)
-    (h : s.roundValue x = some d) : TowardZero s.format x d.bits := by
+theorem roundingStage_truncate_correct (s : RoundingStage) (hf : s.format.WellFormed)
+    (hmode : s.mode = .truncate) (x : ℚ) (d : FiniteBinary s.format)
+    (h : s.roundValue x = some d) : Truncated s.format x d.bits := by
   have hout := roundingStage_output h
   have hr := (roundingStage_range h).2
   rw [hmode] at hout
-  obtain ⟨bits, hb, hc⟩ := roundBinary_towardZero_correct s.format hf x hr
+  obtain ⟨bits, hb, hc⟩ := roundBinary_truncate_correct s.format hf x hr
   rw [hout] at hb
   cases Option.some.inj hb
   exact hc
@@ -35,11 +35,11 @@ theorem evalInvocation_output_nearestEven {p : InvocationSpec} {x : InvocationIn
   obtain ⟨hv, _, _, _, _, hout⟩ := evalInvocation_spec h
   exact roundingStage_nearestEven_correct p.output hv.2.2.2.1 hmode _ _ hout
 
-theorem evalInvocation_output_towardZero {p : InvocationSpec} {x : InvocationInput p}
-    {t : InvocationTrace p} (h : evalInvocation x = .ok t) (hmode : p.output.mode = .towardZero) :
-    TowardZero p.output.format t.intermediate.value t.output.bits := by
+theorem evalInvocation_output_truncate {p : InvocationSpec} {x : InvocationInput p}
+    {t : InvocationTrace p} (h : evalInvocation x = .ok t) (hmode : p.output.mode = .truncate) :
+    Truncated p.output.format t.intermediate.value t.output.bits := by
   obtain ⟨hv, _, _, _, _, hout⟩ := evalInvocation_spec h
-  exact roundingStage_towardZero_correct p.output hv.2.2.2.1 hmode _ _ hout
+  exact roundingStage_truncate_correct p.output hv.2.2.2.1 hmode _ _ hout
 
 /-- FP64 fused specification: one correctly rounded result in the stated direction. -/
 theorem binary64Fma_nearestEven {x : InvocationInput (binary64Fma .nearestEven)}
@@ -47,10 +47,10 @@ theorem binary64Fma_nearestEven {x : InvocationInput (binary64Fma .nearestEven)}
     NearestEven fp64 t.intermediate.value t.output.bits :=
   evalInvocation_output_nearestEven h rfl
 
-theorem binary64Fma_towardZero {x : InvocationInput (binary64Fma .towardZero)}
-    {t : InvocationTrace (binary64Fma .towardZero)} (h : evalInvocation x = .ok t) :
-    TowardZero fp64 t.intermediate.value t.output.bits :=
-  evalInvocation_output_towardZero h rfl
+theorem binary64Fma_truncate {x : InvocationInput (binary64Fma .truncate)}
+    {t : InvocationTrace (binary64Fma .truncate)} (h : evalInvocation x = .ok t) :
+    Truncated fp64 t.intermediate.value t.output.bits :=
+  evalInvocation_output_truncate h rfl
 
 theorem roundingStage_towardNegative_correct (s : RoundingStage) (hf : s.format.WellFormed)
     (hmode : s.mode = .towardNegative) (x : ℚ) (d : FiniteBinary s.format)

@@ -115,17 +115,30 @@ def naiveSumFrom (a : ℚ) : List ℚ → Option ℚ
   | [] => some a
   | x :: xs => (add32 a x).bind fun s => naiveSumFrom s xs
 
+/-- Trailing zero bits of `n` (`0` for `n = 0`), by structural recursion on a fuel argument. -/
+def trailingZeroBitsAux : Nat → Nat → Nat
+  | 0, _ => 0
+  | fuel + 1, n => if n ≠ 0 ∧ n % 2 = 0 then trailingZeroBitsAux fuel (n / 2) + 1 else 0
+
+/-- Exponent of the lowest set bit of a nonzero dyadic rational. -/
+def lowestBitExp (x : ℚ) : Int := (trailingZeroBitsAux x.num.natAbs x.num.natAbs : Int) - (x.den.log2 : Int)
+
+/-- Lowest bit actually set in any low part, capped at the extraction grid; zeros are ignored. -/
 def Trace.supportExponent (t : Trace) : Int :=
-  (t.block.terms.map fun x => x.unnormalizedExp-x.mantissaBits).foldl min t.extractionExponent
+  t.lowParts.foldl (fun e x => if x = 0 then e else min e (lowestBitExp x)) t.extractionExponent
 
 def Trace.lowCoefficients (t : Trace) : List Int :=
-  t.lowParts.map fun x => ⌊x / pow2 t.supportExponent⌋
+  let q := pow2 t.supportExponent
+  t.lowParts.map fun x => ⌊x / q⌋
 
-/-- Conservative scalar guard using the deterministic input-support grid. -/
+/-- Scalar guard on the tightest common grid of the low parts. -/
 def Trace.scalarPredicate (t : Trace) : Bool :=
-  decide (-149 ≤ t.supportExponent) && decide (t.supportExponent ≤ 104) &&
-  (t.lowParts == t.lowCoefficients.map fun (z : Int) => (z : ℚ)*pow2 t.supportExponent) &&
-  decide ((t.lowCoefficients.map Int.natAbs).sum < 2^24) &&
+  let ℓ := t.supportExponent
+  let q := pow2 ℓ
+  let zs := t.lowCoefficients
+  decide (-149 ≤ ℓ) && decide (ℓ ≤ 104) &&
+  (t.lowParts == zs.map fun (z : Int) => (z : ℚ)*q) &&
+  decide ((zs.map Int.natAbs).sum < 2^24) &&
   representable t.output && representable t.overlap && representable t.retained &&
   decide (|t.retained + t.lowParts.sum| ≤ maxFinite32)
 

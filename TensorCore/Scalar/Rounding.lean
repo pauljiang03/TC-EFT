@@ -24,7 +24,7 @@ theorem finiteBits_correct (f : BinaryFormat) (mode : BinaryRoundingMode) (x : â
 def overflowToInfinity (mode : BinaryRoundingMode) (negative : Bool) : Bool :=
   match mode with
   | .nearestEven => true
-  | .towardZero => false
+  | .truncate => false
   | .towardNegative => negative
   | .towardPositive => !negative
 

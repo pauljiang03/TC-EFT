@@ -3,7 +3,7 @@ import TensorCore.Numerics.Exact
 namespace TensorCore
 
 theorem alignment_value (x : ℚ) (e : ℤ) :
-    truncGrid x e = (truncCoeff x e : ℚ) * pow2 e := rfl
+    truncGrid x e = (truncBits x e : ℚ) * pow2 e := rfl
 
 /-- Strict signed bounds, valid for every positive binary grid and either input sign. -/
 theorem alignment_residual_bounds (x : ℚ) (e : ℤ) :
@@ -11,7 +11,7 @@ theorem alignment_residual_bounds (x : ℚ) (e : ℤ) :
   have hq := pow2_pos e
   have hq0 : 0 ≤ pow2 e := by grind
   have hqn : pow2 e ≠ 0 := by grind
-  unfold truncGrid truncCoeff
+  unfold truncGrid truncBits
   split
   · have lo := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (-x / pow2 e)) hq0
     rw [Rat.div_mul_cancel hqn] at lo
@@ -45,20 +45,20 @@ theorem floor_grid_split (m : ℚ) (N : ℕ) :
   rw [hq, floor_sub_intCast]
   omega
 
-theorem truncCoeff_nonneg_eq (x : ℚ) (e : ℤ) (hx : 0 ≤ x) :
-    truncCoeff x e = (x / pow2 e).floor := by
-  unfold truncCoeff
+theorem truncBits_nonneg_eq (x : ℚ) (e : ℤ) (hx : 0 ≤ x) :
+    truncBits x e = (x / pow2 e).floor := by
+  unfold truncBits
   rw [if_neg (by grind)]
 
 theorem truncGrid_le_self (x : ℚ) (e : ℤ) (hx : 0 ≤ x) : truncGrid x e ≤ x := by
   have hq := pow2_pos e
   unfold truncGrid
-  rw [truncCoeff_nonneg_eq x e hx]
+  rw [truncBits_nonneg_eq x e hx]
   have := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (x / pow2 e)) (Rat.le_of_lt hq)
   rwa [Rat.div_mul_cancel (Rat.ne_of_gt hq)] at this
 
 theorem truncGrid_zero (e : ℤ) : truncGrid 0 e = 0 := by
-  unfold truncGrid truncCoeff
+  unfold truncGrid truncBits
   rw [if_neg (by decide +kernel), Rat.div_def, Rat.zero_mul, ← Rat.intCast_zero,
     Rat.floor_intCast]
   simp
@@ -68,7 +68,7 @@ theorem truncGrid_neg (z : ℚ) (e : ℤ) : truncGrid (-z) e = -truncGrid z e :=
   · subst hz0
     rw [Rat.neg_zero, truncGrid_zero]
     simp
-  · unfold truncGrid truncCoeff
+  · unfold truncGrid truncBits
     by_cases hz : z < 0
     · rw [if_pos hz, if_neg (by grind)]
       rw [Rat.intCast_neg]
@@ -100,14 +100,14 @@ theorem truncGrid_split (x : ℚ) (a : ℤ) (τ : ℕ) :
       Rat.floor_le _
     have hdivN : m / ((2 ^ τ : ℕ) : ℚ) * ((2 ^ τ : ℕ) : ℚ) = m := Rat.div_mul_cancel hNne
     have h1 : truncGrid (m * pow2 a) a = ((m.floor : ℤ) : ℚ) * pow2 a := by
-      rw [alignment_value, truncCoeff_nonneg_eq _ _ hy, Rat.mul_div_cancel hne]
+      rw [alignment_value, truncBits_nonneg_eq _ _ hy, Rat.mul_div_cancel hne]
     have hcoarse : m * pow2 a / pow2 (a + τ) = m / ((2 ^ τ : ℕ) : ℚ) := by
       rw [hN]
       have : m * pow2 a = m / ((2 ^ τ : ℕ) : ℚ) * (pow2 a * ((2 ^ τ : ℕ) : ℚ)) := by grind
       rw [this, Rat.mul_div_cancel hqEne]
     have h2 : truncGrid (m * pow2 a) (a + τ) =
         (((m / ((2 ^ τ : ℕ) : ℚ)).floor : ℤ) : ℚ) * (pow2 a * ((2 ^ τ : ℕ) : ℚ)) := by
-      rw [alignment_value, truncCoeff_nonneg_eq _ _ hy, hcoarse, hN]
+      rw [alignment_value, truncBits_nonneg_eq _ _ hy, hcoarse, hN]
     have hrem_eq : m * pow2 a - truncGrid (m * pow2 a) (a + τ) =
         (m - ((2 ^ τ : ℕ) : ℚ) * (((m / ((2 ^ τ : ℕ) : ℚ)).floor : ℤ) : ℚ)) * pow2 a := by
       rw [h2]; grind
@@ -120,7 +120,7 @@ theorem truncGrid_split (x : ℚ) (a : ℤ) (τ : ℕ) :
         (((m - ((2 ^ τ : ℕ) : ℚ) * (((m / ((2 ^ τ : ℕ) : ℚ)).floor : ℤ) : ℚ)).floor : ℤ) : ℚ) *
           pow2 a := by
       rw [hrem_eq, alignment_value,
-        truncCoeff_nonneg_eq _ _ (Rat.mul_nonneg hrem_nonneg (Rat.le_of_lt hqa)),
+        truncBits_nonneg_eq _ _ (Rat.mul_nonneg hrem_nonneg (Rat.le_of_lt hqa)),
         Rat.mul_div_cancel hne]
     rw [h3, h1, h2, floor_grid_split m (2 ^ τ), Rat.intCast_add, Rat.intCast_mul,
       Rat.intCast_natCast]
@@ -134,9 +134,9 @@ theorem truncGrid_split (x : ℚ) (a : ℤ) (τ : ℕ) :
     grind
 
 /-- A term already on the grid keeps its coefficient. -/
-theorem truncCoeff_of_grid (k e : ℤ) : truncCoeff ((k : ℚ) * pow2 e) e = k := by
+theorem truncBits_of_grid (k e : ℤ) : truncBits ((k : ℚ) * pow2 e) e = k := by
   have hne := Rat.ne_of_gt (pow2_pos e)
-  unfold truncCoeff
+  unfold truncBits
   split
   · rw [show -((k : ℚ) * pow2 e) = ((-k : ℤ) : ℚ) * pow2 e by
         rw [Rat.intCast_neg]; grind,
@@ -145,10 +145,10 @@ theorem truncCoeff_of_grid (k e : ℤ) : truncCoeff ((k : ℚ) * pow2 e) e = k :
   · rw [Rat.mul_div_cancel hne, Rat.floor_intCast]
 
 /-- Truncation never increases the magnitude of a scaled value. -/
-theorem truncCoeff_abs_le (x : ℚ) (e : ℤ) :
-    ((truncCoeff x e).natAbs : ℚ) ≤ absQ x / pow2 e := by
+theorem truncBits_abs_le (x : ℚ) (e : ℤ) :
+    ((truncBits x e).natAbs : ℚ) ≤ absQ x / pow2 e := by
   have hp := pow2_pos e
-  unfold truncCoeff
+  unfold truncBits
   split
   · rename_i hx
     have hn : 0 ≤ -x / pow2 e := by
@@ -169,7 +169,7 @@ theorem truncCoeff_abs_le (x : ℚ) (e : ℤ) :
 
 theorem truncGrid_abs_le (x : ℚ) (e : ℤ) : absQ (truncGrid x e) ≤ absQ x := by
   have hq := pow2_pos e
-  have h := truncCoeff_abs_le x e
+  have h := truncBits_abs_le x e
   unfold truncGrid
   rw [absQ_mul_pos _ _ hq, absQ_intCast]
   have := Rat.mul_le_mul_of_nonneg_right h (Rat.le_of_lt hq)
@@ -177,7 +177,7 @@ theorem truncGrid_abs_le (x : ℚ) (e : ℤ) : absQ (truncGrid x e) ≤ absQ x :
 
 theorem truncGrid_fixed (k e : ℤ) : truncGrid ((k : ℚ) * pow2 e) e = (k : ℚ) * pow2 e := by
   have hn : pow2 e ≠ 0 := Rat.ne_of_gt (pow2_pos e)
-  unfold truncGrid truncCoeff
+  unfold truncGrid truncBits
   split
   · have he : -((k : ℚ) * pow2 e) / pow2 e = ((-k : ℤ) : ℚ) := by
       rw [← Rat.neg_mul, Rat.mul_div_cancel hn, Rat.intCast_neg]

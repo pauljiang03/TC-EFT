@@ -73,14 +73,14 @@ theorem overlap_eq_retained_sub_outputResidual (g : ExtractionGrid t) :
   unfold overlap BlockTrace.outputResidual
   grind
 
-def coefficients (g : ExtractionGrid t) (ℓ : ℤ) : List ℤ :=
+def lowBitsAt (g : ExtractionGrid t) (ℓ : ℤ) : List ℤ :=
   g.lowParts.map fun e => (e / pow2 ℓ).floor
 
 /-- Original terms on a common grid yield exact residual coefficients on it. -/
 theorem lowParts_on_grid (g : ExtractionGrid t) (ℓ : ℤ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ) :
-    g.lowParts = (g.coefficients ℓ).map fun (z : ℤ) => (z : ℚ) * pow2 ℓ := by
-  unfold coefficients lowParts
+    g.lowParts = (g.lowBitsAt ℓ).map fun (z : ℤ) => (z : ℚ) * pow2 ℓ := by
+  unfold lowBitsAt lowParts
   rw [List.map_map, List.map_map]
   apply List.map_congr_left
   intro x hx
@@ -90,7 +90,7 @@ theorem lowParts_on_grid (g : ExtractionGrid t) (ℓ : ℤ) (hℓ : ℓ ≤ g.ex
     congr 1
     omega
   have hr : x.value - truncGrid x.value g.exponent =
-      ((z - truncCoeff x.value g.exponent * (2 ^ (g.exponent - ℓ).toNat : ℕ) : ℤ) : ℚ) * pow2 ℓ := by
+      ((z - truncBits x.value g.exponent * (2 ^ (g.exponent - ℓ).toNat : ℕ) : ℤ) : ℚ) * pow2 ℓ := by
     rw [alignment_value, he, Rat.intCast_sub, Rat.intCast_mul, Rat.intCast_natCast]
     grind
   dsimp only [Function.comp_def]
@@ -100,20 +100,20 @@ theorem lowParts_on_grid (g : ExtractionGrid t) (ℓ : ℤ) (hℓ : ℓ ≤ g.ex
 theorem inputBudget_coefficient_bound (g : ExtractionGrid t) (ℓ : ℤ) (P : ℕ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ P) :
-    magnitudeSum (g.coefficients ℓ) < 2 ^ P := by
+    magnitudeSum (g.lowBitsAt ℓ) < 2 ^ P := by
   have hg := g.lowParts_on_grid ℓ hℓ hinput
   apply extraction_coefficient_bound _ g.exponent ℓ P hℓ
   · intro z hz
     apply g.lowPart_bound
     rw [hg]
     exact List.mem_map.mpr ⟨z, hz, rfl⟩
-  · simpa [coefficients, lowParts] using hbudget
+  · simpa [lowBitsAt, lowParts] using hbudget
 
 theorem inputBudget_lowParts_sum_exact (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
     (ℓ : ℤ) (hmin : f.emin - f.mantissaBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.mantissaBits + 1))
-    (hrange : (magnitudeSum (g.coefficients ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite) :
+    (hrange : (magnitudeSum (g.lowBitsAt ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite) :
     naiveSumBinary f g.lowParts = some (sumQ g.lowParts) := by
   rw [g.lowParts_on_grid ℓ hℓ hinput,
     naiveSumBinary_exact f hf ℓ hmin _ (g.inputBudget_coefficient_bound ℓ _ hℓ hinput hbudget) hrange,
@@ -121,9 +121,9 @@ theorem inputBudget_lowParts_sum_exact (g : ExtractionGrid t) (f : Format) (hf :
 
 def scalarPredicate (g : ExtractionGrid t) (f : Format) (ℓ : ℤ) : Bool :=
   decide f.WellFormed && decide (f.emin - f.mantissaBits ≤ ℓ) &&
-  (g.lowParts == (g.coefficients ℓ).map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) &&
-  decide (magnitudeSum (g.coefficients ℓ) < 2 ^ (f.mantissaBits + 1)) &&
-  decide ((magnitudeSum (g.coefficients ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite) &&
+  (g.lowParts == (g.lowBitsAt ℓ).map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) &&
+  decide (magnitudeSum (g.lowBitsAt ℓ) < 2 ^ (f.mantissaBits + 1)) &&
+  decide ((magnitudeSum (g.lowBitsAt ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite) &&
   representableBinary f t.output.value && representableBinary f g.overlap &&
   representableBinary f g.retainedSum &&
   decide (absQ (g.retainedSum + sumQ g.lowParts) ≤ maxFinite32)
@@ -175,7 +175,7 @@ theorem inputBudget_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.
     (ℓ : ℤ) (hmin : f.emin - f.mantissaBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.mantissaBits + 1))
-    (hrange : (magnitudeSum (g.coefficients ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite)
+    (hrange : (magnitudeSum (g.lowBitsAt ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite)
     (hD : representableBinary f t.output.value = true)
     (hO : representableBinary f g.overlap = true)
     (hH : representableBinary f g.retainedSum = true)
@@ -195,7 +195,7 @@ theorem defaultExtraction_components (t : BlockTrace) :
       t.defaultExtraction.retainedSum = t.retainedSum := ⟨rfl, rfl, rfl⟩
 
 theorem defaultExtraction_scalar (t : BlockTrace) (f : Format) :
-    t.defaultExtraction.scalarPredicate f t.supportExponent = t.scalarPredicateIn f ∧
-      t.defaultExtraction.scalarCorrected f t.supportExponent = t.scalarCorrectedIn f := ⟨rfl, rfl⟩
+    t.defaultExtraction.scalarPredicate f t.lowestLowBitExp = t.scalarPredicateIn f ∧
+      t.defaultExtraction.scalarCorrected f t.lowestLowBitExp = t.scalarCorrectedIn f := ⟨rfl, rfl⟩
 
 end TensorCore

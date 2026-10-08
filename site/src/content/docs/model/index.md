@@ -26,10 +26,10 @@ once, the way a fused dot product would. It does the following:
 2. Finds the **largest exponent** among the nonzero terms (including `C`),
    optionally raised to a hardware **floor**.
 3. **Aligns** every term to a fixed-point grid `F` bits below that exponent,
-   and **truncates** (toward zero) any bits below the grid.
+   and **truncates** any bits below the grid.
 4. **Adds** the aligned bits exactly, in a fixed-point adder.
 5. **Converts** the sum to FP32 by **truncating** it: bits beyond FP32's 24
-   significant bits are dropped (IEEE calls this round toward zero).
+   significant bits are dropped.
 
 The Lean model implements these five steps directly.
 
@@ -38,7 +38,7 @@ The Lean model implements these five steps directly.
 <div class="pipeline">
   <a href="/TC-EFT/model/formats/"><span class="n">01 · prepare</span><span class="t">Decode</span><span class="d"><code>BlockInput p</code> → <code>PreparedBlock</code></span></a>
   <a href="/TC-EFT/model/products/"><span class="n">02 · unnormalizedMul</span><span class="t">Multiply</span><span class="d"><code>Decoded × Decoded</code> → <code>UnnormalizedProduct</code></span></a>
-  <a href="/TC-EFT/model/alignment/"><span class="n">03 · alignExp, truncCoeff</span><span class="t">Align</span><span class="d">grid <code>2^(η − F)</code>, truncate</span></a>
+  <a href="/TC-EFT/model/alignment/"><span class="n">03 · alignExp, truncBits</span><span class="t">Align</span><span class="d">grid <code>2^(η − F)</code>, truncate</span></a>
   <a href="/TC-EFT/model/accumulation/"><span class="n">04 · accumulator</span><span class="t">Accumulate</span><span class="d">exact <code>Σ coeff · 2^(η−F)</code></span></a>
   <a href="/TC-EFT/model/normalization/"><span class="n">05 · round32</span><span class="t">Normalize &amp; round</span><span class="d">truncate → <code>F32</code></span></a>
 </div>
@@ -69,13 +69,13 @@ def PreparedBlock.alignGridExponent (b : PreparedBlock) : ℤ :=
   b.alignExp.getD 0 - b.profile.alignMantissaBits
 
 def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
-  b.terms.map fun t => truncCoeff t.value b.alignGridExponent
+  b.terms.map fun t => truncBits t.value b.alignGridExponent
 
 def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
   (sumZ b.coefficients : ℚ) * pow2 b.alignGridExponent
 
 def evalPrepared (b : PreparedBlock) : Except ModelError BlockTrace :=
-  match round32 .towardZero b.accumulator with
+  match round32 .truncate b.accumulator with
   | none => .error .accumulatorOutOfRange
   | some bits => match finite32 bits with
     | none => .error .nonfiniteOutput
@@ -105,8 +105,8 @@ Three design choices run through the model:
 
 - **Exact arithmetic everywhere.** Values are `ℤ` and `ℚ`. Neither Lean's
   `Float` nor a floating-point library is used. The only lossy steps are the
-  two the hardware performs: the alignment truncation (`truncCoeff`) and the
-  final rounding (`round32 .towardZero`).
+  two the hardware performs: the alignment truncation (`truncBits`) and the
+  final rounding (`round32 .truncate`).
 - **Bits in, bits out.** Inputs are `BitVec` words and the output is an
   `F32 = BitVec 32`. Theorems can therefore state facts about exact bit
   patterns, including signed zero.

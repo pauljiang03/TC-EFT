@@ -74,13 +74,13 @@ structure InvocationSpec where
 ```
 
 - `Profile.toInvocation` embeds a profile as an aligned, in-group,
-  FP32-toward-zero invocation, and the compatibility theorems show the
+  FP32-truncation invocation, and the compatibility theorems show the
   results are equal.
 - `binary64Fma mode` models an FP64 DMMA as a **fused** operation: one
   correctly rounded result in any of four directions (`binary64Fma_correct`).
 - Output stages may use any well-formed format and rounding direction. Each
   is proved correct (`evalInvocation_output_nearestEven`,
-  `..._towardZero`, `..._towardNegative`, `..._towardPositive`).
+  `..._truncate`, `..._towardNegative`, `..._towardPositive`).
 
 The headline theorems and the hardware validation concern the eight aligned
 FP32-output paths in the table. The general interface is there for

@@ -14,7 +14,7 @@ theorem exact_alignment_accumulator (b : PreparedBlock) (h : b.AlignmentExact) :
   apply List.map_congr_left
   intro t ht
   by_cases hz : t.significand = 0
-  · simp [UnnormalizedProduct.value, hz, truncGrid, truncCoeff, Rat.div_def]
+  · simp [UnnormalizedProduct.value, hz, truncGrid, truncBits, Rat.div_def]
     have hf : (0 : ℚ).floor = 0 := rfl
     rw [hf]
     simp
@@ -25,7 +25,7 @@ theorem exact_alignment_accumulator (b : PreparedBlock) (h : b.AlignmentExact) :
 theorem evalBlock_exact_alignment {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (he : evalBlock x = .ok t) (ha : t.block.AlignmentExact) :
     exactDot x = some t.block.exactDot ∧
-    round32 .towardZero t.block.exactDot = some t.output.bits := by
+    round32 .truncate t.block.exactDot = some t.output.bits := by
   have hout := evalPrepared_output (evalBlock_evalPrepared he)
   rw [exact_alignment_accumulator t.block ha] at hout
   exact ⟨by simp [exactDot, evalBlock_prepared he], hout⟩

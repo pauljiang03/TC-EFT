@@ -37,9 +37,9 @@ theorem machineAccumulate_of_coefficient_bound (zs : List ℤ) (B c : ℕ)
   machineAccumulate_exact _ zs (by omega) (coefficient_width_sufficient zs B c hterm hcount)
 
 theorem machineAccumulator_eq (b : PreparedBlock) (w : ℕ) (hw : 0 < w)
-    (h : magnitudeSum b.coefficients < 2 ^ (w - 1)) :
+    (h : magnitudeSum b.alignedBits < 2 ^ (w - 1)) :
     b.machineAccumulator w = b.accumulator := by
   unfold PreparedBlock.machineAccumulator PreparedBlock.accumulator
-  rw [machineAccumulate_exact w b.coefficients hw h]
+  rw [machineAccumulate_exact w b.alignedBits hw h]
 
 end TensorCore

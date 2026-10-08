@@ -52,8 +52,8 @@ theorem legacy_prepared_bits (p : Profile) (ps : List (Decoded × Decoded)) (c :
     PreparedInvocation.alignedBlock, runRoundings]
   simp only [RoundingStage.roundValue, evalPrepared]
   simp only [packedIEEE, ite_true]
-  rw [roundBinary_fp32 .towardZero]
-  cases hr : round32 .towardZero (PreparedBlock.mk ⟨f, K, F, floor⟩ ps c).accumulator with
+  rw [roundBinary_fp32 .truncate]
+  cases hr : round32 .truncate (PreparedBlock.mk ⟨f, K, F, floor⟩ ps c).accumulator with
   | none => rfl
   | some bits =>
     cases hd : decode32 bits with

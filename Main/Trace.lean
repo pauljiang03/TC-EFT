@@ -11,7 +11,7 @@ def snapshotJson (x : BlockInput v100F16F32) : Json :=
   | .ok s => Json.mkObj [
       ("bits", toJson s.bits), ("eta", toJson s.alignExp),
       ("qExponent", toJson s.qExponent), ("unnormalizedExps", toJson s.unnormalizedExps),
-      ("coefficients", toJson s.coefficients), ("ideal", toJson (ratText s.ideal)),
+      ("coefficients", toJson s.alignedBits), ("ideal", toJson (ratText s.ideal)),
       ("accumulator", toJson (ratText s.accumulator)),
       ("alignmentResiduals", toJson (s.alignmentResiduals.map ratText)),
       ("outputResidual", toJson (ratText s.outputResidual)),
@@ -50,7 +50,7 @@ def printRound (args : List String) : IO Unit := do
       if den = 0 then throw (IO.userError "Rational denominator must be positive.")
       let x : ℚ := num / (den : ℚ)
       IO.println (Json.mkObj [
-        ("rz", toJson ((round32 .towardZero x).map BitVec.toNat)),
+        ("rz", toJson ((round32 .truncate x).map BitVec.toNat)),
         ("rne", toJson ((round32 .nearestEven x).map BitVec.toNat))]).compress
     | _, _ => throw (IO.userError "Expected an integer numerator and positive denominator.")
   | _ => throw (IO.userError "Expected numerator denominator.")

@@ -9,9 +9,9 @@ The model evaluates K exact products plus an FP32 accumulator input C. Each name
 | Decode | `prepare`, `prepareProducts`, `Profile.decode` | Decode finite words and preserve unnormalized exponent/mantissa metadata |
 | Multiply | `unnormalizedMul`, `PreparedBlock.terms` | Form exact products without normalizing their unnormalized exponent sums |
 | Select grid | `PreparedBlock.alignExp`, `alignGridExponent` | Take the nonzero unnormalized-exponent maximum, apply the profile floor, and subtract alignment precision |
-| Align | `truncCoeff`, `PreparedBlock.coefficients` | Truncate signed terms toward zero onto the common grid |
+| Align | `truncBits`, `PreparedBlock.alignedBits` | Truncate each term's magnitude onto the common grid, keeping its sign |
 | Accumulate | `PreparedBlock.accumulator` | Sum retained integer coefficients exactly |
-| Normalize and round | `evalPrepared`, `round32 .towardZero` | Normalize the exact accumulator and truncate it to finite FP32 |
+| Normalize and round | `evalPrepared`, `round32 .truncate` | Normalize the exact accumulator and truncate it to finite FP32 |
 | Explain loss | `alignmentResiduals`, `BlockTrace.residual` | Account for alignment loss and final-rounding loss |
 
 Start with [Block.lean](../../TensorCore/TC/Block.lean), then follow [StageResiduals.lean](../../TensorCore/TC/StageResiduals.lean) and [ErrorBounds.lean](../../TensorCore/TC/ErrorBounds.lean). The [independent specification](../../TensorCore/TC/Specification/Defs.lean) uses separate mathematical definitions; its bridge proves equality of encoded results.

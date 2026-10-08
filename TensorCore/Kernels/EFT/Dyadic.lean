@@ -46,7 +46,7 @@ theorem Word.split_coarse_value (x : Word) (g : Grid) :
   have hpos : ((x.split g).coarse.magnitude.toNat : ℚ) * pow2 (-272) =
       truncGrid ((x.magnitude.toNat : ℚ) * pow2 (-272)) ((g.toNat : ℤ) - 272) := by
     rw [show (g.toNat : ℤ) - 272 = -272 + g.toNat by omega]
-    rw [alignment_value, truncCoeff_nonneg_eq _ _ hn, dyadic_div,
+    rw [alignment_value, truncBits_nonneg_eq _ _ hn, dyadic_div,
       floor_nat_div _ _ (Nat.two_pow_pos _), x.split_coarse, Rat.natCast_mul,
       pow2_add, pow2_natCast]
     simp only [Rat.intCast_natCast]

@@ -5,9 +5,9 @@ import TensorCore.Numerics.Truncation
 namespace TensorCore
 
 theorem evalPrepared_output {b : PreparedBlock} {t : BlockTrace}
-    (h : evalPrepared b = .ok t) : round32 .towardZero b.accumulator = some t.output.bits := by
+    (h : evalPrepared b = .ok t) : round32 .truncate b.accumulator = some t.output.bits := by
   unfold evalPrepared at h
-  cases hr : round32 .towardZero b.accumulator with
+  cases hr : round32 .truncate b.accumulator with
   | none => simp [hr] at h
   | some bits =>
     cases hd : finite32 bits with
@@ -53,7 +53,7 @@ theorem block_alignment_bound (b : PreparedBlock) :
 /-- Two-stage error bound. -/
 theorem block_error_bound (b : PreparedBlock) (d : Finite32)
     (hr : absQ b.accumulator ≤ maxFinite32)
-    (hout : round32 .towardZero b.accumulator = some d.bits) :
+    (hout : round32 .truncate b.accumulator = some d.bits) :
     absQ (b.exactDot - d.value) <
       (b.terms.length : ℚ) * pow2 b.alignGridExponent + pow2 (outputUlpExponent d.bits) := by
   have hd : value32 d.bits = some d.value := by simp [value32, d.valid, Finite32.value]

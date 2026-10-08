@@ -13,7 +13,7 @@ open FloatLib.Floats.Formats.BinaryInterchange
   · exact (abs_of_nonneg (le_of_not_gt h)).symm
 @[simp] theorem maxFinite_eq : TensorCore.maxFinite32 = TCFloat.maxFinite32 := rfl
 @[simp] theorem truncCoeff_eq (x : Rat) (e : Int) :
-    TensorCore.truncCoeff x e = TCFloat.truncCoeff x e := rfl
+    TensorCore.truncBits x e = TCFloat.truncCoeff x e := rfl
 @[simp] theorem truncGrid_eq (x : Rat) (e : Int) :
     TensorCore.truncGrid x e = TCFloat.truncGrid x e := rfl
 @[simp] theorem sumQ_eq (xs : List Rat) : TensorCore.sumQ xs = xs.sum := by
@@ -25,8 +25,9 @@ open FloatLib.Floats.Formats.BinaryInterchange
   | nil => rfl
   | cons x xs ih => simp [TensorCore.sumZ, ih]
 
+/-- The parent's final truncation is FloatLib's IEEE round-toward-zero mode on the finite domain. -/
 def mode : TensorCore.RoundingMode → Mode
-  | .towardZero => .towardZero
+  | .truncate => .towardZero
   | .nearestEven => .nearestEven
 
 def term (d : TensorCore.Decoded) : Term :=

@@ -33,16 +33,12 @@
     "scope": "Reproduced in the original Python generator; not additional Lean comparisons."
   },
   "correction_branches": {
-    "scalar": 263,
-    "exactReference": 2196,
+    "scalar": 290,
+    "exactReference": 2169,
     "allZero": 8,
     "outOfRange": 459
   },
-  "scalar_predicate_differences": {
-    "named": 2,
-    "deterministic": 15,
-    "full_range": 10
-  },
+  "scalar_predicate_differences": {},
   "mismatches": 0,
   "negative_controls": [
     "wrong_model_bits_rejected",
@@ -52,10 +48,10 @@
   ],
   "input_sha256": "edb6e870d29bae5278b07b0179ecabcd6ec18e73a322e71e1f305d7ae95635d6",
   "cases_sha256": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
-  "output_sha256": "d8168f655c2d1fb8fd1a6ea79f3caa8981ed1ce8c901c19fed6c132a80f104b3",
+  "output_sha256": "7b192fefd6d14bdc2efdb5f7c658d5e5ab2fdcf575ca21dbc86ff3017f51e5d9",
   "timing": {
-    "lean_seconds": 14.414,
-    "total_seconds": 18.633
+    "lean_seconds": 20.396,
+    "total_seconds": 24.836
   },
   "historical_v100_experiments": {
     "reported": 100,

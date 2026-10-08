@@ -41,7 +41,7 @@ theorem rne_magnitude_nearest (m y : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32)
 theorem rne_magnitude_tie_even (m y : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32)
     (hy : FiniteValue32 y) (hne : y ≠ magnitudeRounded .nearestEven m)
     (ht : absQ (m - y) = absQ (m - magnitudeRounded .nearestEven m)) :
-    roundedCoeff .nearestEven m % 2 = 0 := by
+    roundedSignificand .nearestEven m % 2 = 0 := by
   obtain ⟨j, f, hf, _, hj, rfl⟩ := hy
   by_cases he : normExp m ≤ f
   · obtain ⟨z, hz⟩ := finite_on_grid j f (normExp m) he
@@ -50,7 +50,7 @@ theorem rne_magnitude_tie_even (m y : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32)
       intro h
       apply hne
       rw [h]; rfl
-    unfold magnitudeRounded roundedCoeff roundCoefficient at ht
+    unfold magnitudeRounded roundedSignificand roundSignificand at ht
     rw [dist_scale _ _ (pow2_pos _) _, dist_scale _ _ (pow2_pos _) _] at ht
     have hcancel := congrArg (fun a : ℚ => a / pow2 (normExp m - 23)) ht
     simp only [Rat.mul_div_cancel (Rat.ne_of_gt (pow2_pos _))] at hcancel
@@ -89,7 +89,7 @@ theorem signedRounded_nearest (x y : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ maxFin
 theorem signedRounded_tie_even (x y : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ maxFinite32)
     (hy : FiniteValue32 y) (hne : y ≠ signedRounded .nearestEven x)
     (ht : absQ (x - y) = absQ (x - signedRounded .nearestEven x)) :
-    roundedCoeff .nearestEven (absQ x) % 2 = 0 := by
+    roundedSignificand .nearestEven (absQ x) % 2 = 0 := by
   have hm := absQ_pos_of_ne_zero x hx
   unfold signedRounded at hne ht
   split at hne
@@ -112,14 +112,14 @@ theorem signedRounded_tie_even (x y : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ maxFi
 theorem round32_nonzero_spec (mode : RoundingMode) (x : ℚ)
     (hx : x ≠ 0) (hr : absQ x ≤ maxFinite32) :
     ∃ b : F32, round32 mode x = some b ∧ value32 b = some (signedRounded mode x) ∧
-      (roundedCoeff mode (absQ x) % 2 = 0 → b.toNat % 2 = 0) ∧
+      (roundedSignificand mode (absQ x) % 2 = 0 → b.toNat % 2 = 0) ∧
       normExp (absQ x) - 23 ≤ outputUlpExponent b := by
   have hm := absQ_pos_of_ne_zero x hx
   obtain ⟨he1, he2, _, _⟩ := normExp_bounds (absQ x) hm hr
-  obtain ⟨hk0, hk1, hsub, htop⟩ := roundedCoeff_bounds mode (absQ x) hm hr
+  obtain ⟨hk0, hk1, hsub, htop⟩ := roundedSignificand_bounds mode (absQ x) hm hr
   have hs := carry_spec _ _ he1 he2 hk0 hk1 hsub htop
-  let e := (carry (normExp (absQ x)) (roundedCoeff mode (absQ x))).1
-  let k := (carry (normExp (absQ x)) (roundedCoeff mode (absQ x))).2
+  let e := (carry (normExp (absQ x)) (roundedSignificand mode (absQ x))).1
+  let k := (carry (normExp (absQ x)) (roundedSignificand mode (absQ x))).2
   let b := encode32 (decide (x < 0)) e k
   refine ⟨b, ?_, ?_, ?_, ?_⟩
   · unfold round32 round32Core

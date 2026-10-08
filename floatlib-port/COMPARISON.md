@@ -28,7 +28,7 @@ This does not identify unrestricted unchecked implementation types. An unchecked
 
 ## Every arithmetic stage is connected
 
-The following equalities are proved under the stated representation invariants. RTZ denotes rounding toward zero; RNE denotes rounding to nearest with ties to even.
+The following equalities are proved under the stated representation invariants. RTZ denotes FloatLib's IEEE round-toward-zero mode, which this port uses to implement the parent's final truncation; on the parent's finite domain the two give the same bits. RNE denotes rounding to nearest with ties to even.
 
 | Stage | Bridge theorem(s) |
 |---|---|
@@ -39,7 +39,7 @@ The following equalities are proved under the stated representation invariants. 
 | Actual RTZ/RNE rounding, including ties, subnormals, signed underflow and finite-range rejection | `round32_eq` for **every rational input** and both modes |
 | FP32 representability, addition and sequential summation | `representable_eq`, `add_eq`, `naiveSum_eq` |
 | Extraction grid, coarse/low parts, retained sum and overlap | `extraction_eq`, `coarse_eq`, `lows_eq`, `retained_eq`, `overlap_eq` |
-| Support grid, coefficients and exact executable guard | `support_eq`, `lowCoefficients_eq`, `guard_eq` |
+| Lowest-set-bit grid, low bits and exact executable guard | `lowestBitExp_eq`, `support_eq`, `lowCoefficients_eq`, `guard_eq` |
 | Scalar correction, exact fallback, branch and zero shortcut | `scalarUnchecked_eq`, `scalar_eq`, `consolidation_eq`, `algorithm_eq`, `encoded_trace_eq` |
 | Encoded preparation and full entry points | `prepare_eq`, `prepare_valid`, `tc_checked_eq`, `eft_checked_eq` |
 
@@ -69,7 +69,7 @@ The table follows the manuscript's section and theorem numbering. Identifiers be
 
 The flowback criteria cover an **arbitrary chosen summand** and the rounded outputs before and after its perturbation. The two alignment grids are parameters and may differ. The sufficient condition includes representability assumptions. C-specialized criteria are proved in [Behavior.lean](TCFloat/Behavior.lean).
 
-The paper scalar theorems justify the instruction sequence under chosen-grid, coefficient-budget and absolute-range conditions. The executable guard uses a deterministic support grid with the restriction `-149 ≤ λ ≤ 104`. The manuscript allows choosing a suitable common grid and states sufficient conditions without prescribing a unique grid-search algorithm. The equivalence theorem proves equality of executable branch decisions; the chosen-grid theorems establish the paper's mathematical conditions. Failure of the executable guard does not assert that scalar summation is impossible.
+The paper scalar theorems justify the instruction sequence under chosen-grid, coefficient-budget and absolute-range conditions. The executable guard uses the lowest bit actually set in the low parts as its common grid, with the restriction `-149 ≤ λ ≤ 104`, matching the TC-EFT paper's generator. The manuscript allows choosing a suitable common grid and states sufficient conditions without prescribing a unique grid-search algorithm. The equivalence theorem proves equality of executable branch decisions; the chosen-grid theorems establish the paper's mathematical conditions. Failure of the executable guard does not assert that scalar summation is impossible.
 
 Some bridge proofs transport first-principles theorems through proved equalities. The FloatLib executable and its recovery, scalar-correction, and rounding proofs are defined in separate modules.
 

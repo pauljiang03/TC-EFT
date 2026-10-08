@@ -4,20 +4,20 @@ import TensorCore.Numerics.RoundOp
 namespace TensorCore
 
 inductive BinaryRoundingMode where
-  | towardZero
+  | truncate
   | nearestEven
   | towardNegative
   | towardPositive
   deriving Repr, DecidableEq
 
 abbrev RoundingMode.toBinary : RoundingMode → BinaryRoundingMode
-  | .towardZero => .towardZero
+  | .truncate => .truncate
   | .nearestEven => .nearestEven
 
 /-- Direction is applied to a nonnegative magnitude, with the original sign available. -/
 def binaryCoefficient (mode : BinaryRoundingMode) (negative : Bool) (m : ℚ) : ℤ :=
   match mode with
-  | .towardZero => m.floor
+  | .truncate => m.floor
   | .nearestEven => rneInt m
   | .towardNegative => if negative then m.ceil else m.floor
   | .towardPositive => if negative then m.floor else m.ceil

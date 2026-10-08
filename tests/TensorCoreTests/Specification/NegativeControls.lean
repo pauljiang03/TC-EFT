@@ -14,19 +14,19 @@ def normalized (t : Term) : Term :=
 
 def normalizedBits (p : Parameters) (x : Input p) : Option F32 := do
   let ts ← terms p x
-  round32 .towardZero (accumulated p (ts.map normalized))
+  round32 .truncate (accumulated p (ts.map normalized))
 
 def noFloorBits (p : Parameters) (x : Input p) : Option F32 := do
   let ts ← terms p x
-  round32 .towardZero (accumulated { p with floor := none } ts)
+  round32 .truncate (accumulated { p with floor := none } ts)
 
 /-- Incorrectly replace common-grid alignment by IEEE-style RTZ of each term. -/
 def ieeeAlignmentBits (p : Parameters) (x : Input p) : Option F32 := do
   let ts ← terms p x
   let rounded ← ts.mapM fun t => do
-    let b ← round32 .towardZero t.value
+    let b ← round32 .truncate t.value
     TensorCore.value32 b
-  round32 .towardZero (rounded.foldr (· + ·) 0)
+  round32 .truncate (rounded.foldr (· + ·) 0)
 
 theorem premature_normalization_detected :
     normalizedBits (parametersOf v100F16F32) (inputOf Regression.r1a) = some 0x40100000 ∧

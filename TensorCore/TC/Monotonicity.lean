@@ -73,18 +73,18 @@ theorem construction_accumulator_one (prof : Profile) (p K : ℕ) (da db : Decod
     rw [hF]
     simp only [oneDecoded]
     omega
-  have hcoef := construction_coefficients prof K da db oneDecoded
+  have hcoef := construction_alignedBits prof K da db oneDecoded
   rw [hq] at hcoef
-  have hc : truncCoeff oneDecoded.value (-(23 + p)) = ((2 ^ (23 + p) : ℕ) : ℤ) := by
+  have hc : truncBits oneDecoded.value (-(23 + p)) = ((2 ^ (23 + p) : ℕ) : ℤ) := by
     rw [oneDecoded_value]
     have h1 : (1 : ℚ) = (((2 ^ (23 + p) : ℕ) : ℤ) : ℚ) * pow2 (-(23 + p)) := by
       rw [Rat.intCast_natCast, ← pow2_natCast, ← pow2_add]
       have : ((23 + p : ℕ) : ℤ) + -(23 + p) = 0 := by omega
       rw [this, pow2_zero]
-    rw [h1, truncCoeff_of_grid]
-  have hp : truncCoeff (unnormalizedMul da db).value (-(23 + p)) = 0 := by
+    rw [h1, truncBits_of_grid]
+  have hp : truncBits (unnormalizedMul da db).value (-(23 + p)) = 0 := by
     rw [hval]
-    unfold truncCoeff
+    unfold truncBits
     have hpos := pow2_pos (-(24 + p))
     rw [if_neg (by grind), pow2_div]
     have : (-(24 + p) : ℤ) - -(23 + p) = -1 := by omega
@@ -113,9 +113,9 @@ theorem construction_accumulator_below (prof : Profile) (p K : ℕ) (da db : Dec
     rw [hF]
     simp only [belowOneDecoded]
     omega
-  have hcoef := construction_coefficients prof K da db belowOneDecoded
+  have hcoef := construction_alignedBits prof K da db belowOneDecoded
   rw [hq] at hcoef
-  have hc : truncCoeff belowOneDecoded.value (-(24 + p)) = ((16777215 * 2 ^ p : ℕ) : ℤ) := by
+  have hc : truncBits belowOneDecoded.value (-(24 + p)) = ((16777215 * 2 ^ p : ℕ) : ℤ) := by
     rw [belowOneDecoded_value]
     have h1 : (16777215 : ℚ) * pow2 (-24) =
         (((16777215 * 2 ^ p : ℕ) : ℤ) : ℚ) * pow2 (-(24 + p)) := by
@@ -123,11 +123,11 @@ theorem construction_accumulator_below (prof : Profile) (p K : ℕ) (da db : Dec
       have : (p : ℤ) + -(24 + p) = -24 := by omega
       rw [this]
       all_goals simp
-    rw [h1, truncCoeff_of_grid]
-  have hp : truncCoeff (unnormalizedMul da db).value (-(24 + p)) = 1 := by
+    rw [h1, truncBits_of_grid]
+  have hp : truncBits (unnormalizedMul da db).value (-(24 + p)) = 1 := by
     rw [hval]
     have h1 : pow2 (-(24 + p)) = ((1 : ℤ) : ℚ) * pow2 (-(24 + p)) := by simp
-    rw [h1, truncCoeff_of_grid]
+    rw [h1, truncBits_of_grid]
   unfold PreparedBlock.accumulator
   rw [hcoef, hq]
   simp only [sumZ, hc, hp, sumZ_replicate, Int.mul_one]
@@ -145,7 +145,7 @@ theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
       t.output.value = 1 ∧ (1 < t'.output.value ↔ 3 * 2 ^ p ≤ K) := by
   have hA1 := construction_accumulator_one prof p K da db hF hfl hval hscale
   have hA2 := construction_accumulator_below prof p K da db hF hfl hval hscale
-  have hr1 : round32 .towardZero 1 = some (BitVec.ofNat 32 0x3f800000) := by decide +kernel
+  have hr1 : round32 .truncate 1 = some (BitVec.ofNat 32 0x3f800000) := by decide +kernel
   have hv1 : value32 (BitVec.ofNat 32 0x3f800000) = some 1 := by decide +kernel
   obtain ⟨f1, hf1, _, hf1v⟩ := finite32_of_value32 _ _ hv1
   have hq := pow2_pos (-(24 + p))
@@ -177,7 +177,7 @@ theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
     rw [absQ_of_nonneg (Rat.le_of_lt hApos)]
     have : (2 : ℚ) ≤ maxFinite32 := by decide +kernel
     grind
-  obtain ⟨b2, hb2, hv2, _, _⟩ := round32_nonzero_spec .towardZero A (Rat.ne_of_gt hApos) hrange
+  obtain ⟨b2, hb2, hv2, _, _⟩ := round32_nonzero_spec .truncate A (Rat.ne_of_gt hApos) hrange
   obtain ⟨f2, hf2, _, hf2v⟩ := finite32_of_value32 _ _ hv2
   refine ⟨⟨⟨prof, List.replicate K (da, db), oneDecoded⟩, f1⟩,
     ⟨⟨prof, List.replicate K (da, db), belowOneDecoded⟩, f2⟩, ?_, ?_, hf1v, ?_⟩
@@ -187,7 +187,7 @@ theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
     rw [hf2v]
     unfold signedRounded
     rw [if_neg (by grind), absQ_of_nonneg (Rat.le_of_lt hApos)]
-    unfold magnitudeRounded roundedCoeff roundCoefficient
+    unfold magnitudeRounded roundedSignificand roundSignificand
     dsimp only
     by_cases hKp : K < 2 ^ p
     · have hAlt : A < 1 := by

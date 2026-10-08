@@ -24,7 +24,7 @@ def main():
     roots = re.search(r'paper_proof_audit: (\d+) theorem roots', audit.stdout)
     assert declarations and roots, audit.stdout
     contaminated = '''import TensorCoreTests.Specification.Audit
-def hiddenImplementationCall (x : Rat) := TensorCore.round32 .towardZero x
+def hiddenImplementationCall (x : Rat) := TensorCore.round32 .truncate x
 def contaminatedProposition (x : Rat) (b : BitVec 32) : Prop :=
   hiddenImplementationCall x = some b
 run_cmd TensorCore.IndependentSpec.Audit.check ``contaminatedProposition

@@ -10,8 +10,8 @@ description: What the Lean Tensor Core model covers and what it deliberately lea
   `K`, `p`, and floor through the generic profile constructors.
 - Every finite input encoding, including subnormals and signed zeros.
 - Exact unnormalized products, maximum-exponent alignment with a floor, truncation
-  toward zero, exact accumulation (and fixed-width accumulation proved
-  equivalent at adequate width), and FP32 round-toward-zero output.
+  of each term's magnitude, exact accumulation (and fixed-width accumulation proved
+  equivalent at adequate width), and truncation of the result to FP32.
 - Ordered chains of groups, as in WMMA instructions, passing encoded FP32
   outputs between groups.
 - A general `InvocationSpec`, including FP64 fused DMMA and configurable

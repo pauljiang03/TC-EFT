@@ -8,7 +8,7 @@ A Tensor Core instruction computes `D = C + Σ aᵢ·bᵢ` over a small group of
 low-precision products. It is **not** an IEEE fused dot product. The products
 are exact, but before the hardware adds them it aligns them to a common grid
 fixed by the largest exponent in the group, and it discards bits below that
-grid. The sum is then truncated to FP32 (round toward zero). Because of this, the output
+grid. The sum is then truncated to FP32. Because of this, the output
 can be less accurate than the input precision suggests, and it can be
 **non-monotone**: making `C` smaller can make `D` larger.
 

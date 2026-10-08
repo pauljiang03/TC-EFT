@@ -117,7 +117,7 @@ theorem splitMagnitude_coarse_truncGrid (negative : Bool) (m : BitVec 24)
     Rat.mul_nonneg Rat.natCast_nonneg (Rat.le_of_lt hp)
   have hpos : ((splitMagnitude m gap).coarse.toNat : ℚ) * pow2 scale =
       truncGrid ((m.toNat : ℚ) * pow2 scale) (scale + gap.toNat) := by
-    rw [alignment_value, truncCoeff_nonneg_eq _ _ hnonneg, hdiv,
+    rw [alignment_value, truncBits_nonneg_eq _ _ hnonneg, hdiv,
       floor_nat_div _ _ hd, splitMagnitude_coarse, Rat.natCast_mul, he]
     simp only [Rat.intCast_natCast]
     grind

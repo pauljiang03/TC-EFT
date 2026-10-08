@@ -108,7 +108,7 @@ theorem q_eq (b : Block) : (block b).alignGridExponent = b.q := by
 
 theorem accumulator_eq (b : Block) (hb : ValidBlock b) : (block b).accumulator = b.accumulator := by
   rw [TensorCore.PreparedBlock.accumulator,← TensorCore.sum_coefficients]
-  simp only [TensorCore.PreparedBlock.coefficients,terms_eq,List.map_map,q_eq,
+  simp only [TensorCore.PreparedBlock.alignedBits,terms_eq,List.map_map,q_eq,
     truncCoeff_eq,pow2_eq,sumQ_eq,Block.accumulator,Block.aligned]
   apply congrArg List.sum
   apply List.map_congr_left

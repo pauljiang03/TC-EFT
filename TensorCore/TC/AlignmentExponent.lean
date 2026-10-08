@@ -62,10 +62,10 @@ theorem alignExp_term (b : PreparedBlock) (t : UnnormalizedProduct) (ht : t ∈ 
 
 theorem aligned_term_coefficient_bound (t : UnnormalizedProduct) (alignExp : ℤ) (F : ℕ)
     (ht : t.Bounded) (he : t.unnormalizedExp ≤ alignExp) :
-    (truncCoeff t.value (alignExp - F)).natAbs < 2 ^ (F + 2) := by
+    (truncBits t.value (alignExp - F)).natAbs < 2 ^ (F + 2) := by
   have hq := pow2_pos (alignExp - F)
   have hp := pow2_le_of_le he
-  have hs := truncCoeff_abs_le t.value (alignExp - F)
+  have hs := truncBits_abs_le t.value (alignExp - F)
   have hb : absQ t.value < 4 * pow2 alignExp := by unfold UnnormalizedProduct.Bounded at ht; grind
   have heq : ((2 ^ (F + 2) : ℕ) : ℚ) * pow2 (alignExp - F) = 4 * pow2 alignExp := by
     rw [← pow2_natCast, ← pow2_add]
@@ -141,11 +141,11 @@ theorem prepare_terms_bounded {p : Profile} {x : BlockInput p} {b : PreparedBloc
 
 theorem prepared_coefficient_bound (b : PreparedBlock) (F : ℕ)
     (hF : b.profile.alignMantissaBits = F) (ht : ∀ t ∈ b.terms, t.Bounded) :
-    ∀ z ∈ b.coefficients, z.natAbs < 2 ^ (F + 2) := by
+    ∀ z ∈ b.alignedBits, z.natAbs < 2 ^ (F + 2) := by
   intro z hz
   obtain ⟨t, hmem, rfl⟩ := List.mem_map.mp hz
   by_cases hzero : t.significand = 0
-  · simp [UnnormalizedProduct.value, hzero, truncCoeff, Rat.div_def]
+  · simp [UnnormalizedProduct.value, hzero, truncBits, Rat.div_def]
     exact Nat.two_pow_pos _
   · obtain ⟨alignExp, he, hle⟩ := alignExp_term b t hmem hzero
     have hq : b.alignGridExponent = alignExp - F := by
@@ -157,18 +157,18 @@ theorem prepared_coefficient_bound (b : PreparedBlock) (F : ℕ)
 theorem prepare_coefficient_capacity {p : Profile} {x : BlockInput p} {b : PreparedBlock}
     (hp : prepare x = some b) (hshape : x.products.length = p.products) (F carryBits : ℕ)
     (hF : p.alignMantissaBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
-    magnitudeSum b.coefficients < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
+    magnitudeSum b.alignedBits < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
   have hb := prepare_terms_bounded hp
   have hprof := prepare_profile hp
   apply coefficient_width_sufficient
   · exact prepared_coefficient_bound b F (by rw [hprof, hF]) hb.2
-  · simpa [PreparedBlock.coefficients, hb.1, hshape] using hcount
+  · simpa [PreparedBlock.alignedBits, hb.1, hshape] using hcount
 
 /-- Width derived from decoded inputs, with c included in the member count. -/
 theorem evalBlock_coefficient_capacity {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) (F carryBits : ℕ)
     (hF : p.alignMantissaBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
-    magnitudeSum t.block.coefficients < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
+    magnitudeSum t.block.alignedBits < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
   have hshape : x.products.length = p.products := by
     unfold evalBlock at h
     split at h <;> simp_all
@@ -184,7 +184,7 @@ theorem evalBlock_machineAccumulator {p : Profile} {x : BlockInput p} {t : Block
 theorem evalBlock_machinePrefix {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) (F carryBits : ℕ)
     (hF : p.alignMantissaBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits)
-    (xs ys : List ℤ) (hsplit : t.block.coefficients = xs ++ ys) :
+    (xs ys : List ℤ) (hsplit : t.block.alignedBits = xs ++ ys) :
     (machineAccumulate (F + 2 + carryBits + 1) 0 xs).toInt = sumZ xs := by
   apply machineAccumulate_prefix_exact _ xs ys (by omega)
   rw [← hsplit]

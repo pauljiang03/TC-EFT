@@ -25,7 +25,7 @@ private def getProfile : String → Option InvocationSpec
   | "hopper-tf32-mma" => some hopperTF32MmaInvocation
   | "hopper-tf32-wmma" => some hopperTF32WmmaInvocation
   | "f64-rne" => some (binary64Fma .nearestEven)
-  | "f64-rz" => some (binary64Fma .towardZero)
+  | "f64-rz" => some (binary64Fma .truncate)
   | "f64-rd" => some (binary64Fma .towardNegative)
   | "f64-ru" => some (binary64Fma .towardPositive)
   | _ => none
@@ -114,7 +114,7 @@ private def command (args : List String) : Option Json := do
     let den ← d.toNat?
     if den = 0 then none else
       let x : ℚ := num / (den : ℚ)
-      return Json.mkObj (([("rz", .towardZero), ("rne", .nearestEven),
+      return Json.mkObj (([("rz", .truncate), ("rne", .nearestEven),
         ("rd", .towardNegative), ("ru", .towardPositive)] : List (String × BinaryRoundingMode)).map
         fun (name, mode) => (name, toJson ((roundBinary f mode x).map BitVec.toNat)))
   | ["decode", fmt, n] =>

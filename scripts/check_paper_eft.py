@@ -246,6 +246,9 @@ def main():
             paper_accepted = case['_stage']['scalar_cr'] is not None
             if paper_accepted != out['model']['scalar_predicate']:
                 predicate_differences[case['cohort']] += 1
+    # The Lean predicate and the paper's generator both use the lowest bit actually set.
+    if predicate_differences:
+        raise SystemExit(f'Lean scalar predicate disagrees with the paper generator: {dict(predicate_differences)}')
     offset = len(records)
     for (row, acc, bits), out in zip(families, outputs[offset:]):
         assert out['bits'] == bits and Q(out['accumulator']) == acc, (row, out, acc, bits)
@@ -302,7 +305,7 @@ def main():
                   limits=['Software model checks; zero new GPU measurements.',
                           'Original generators are pinned and reproduced, not Lean proofs.',
                           'Finite reference ranges exclude overflow; excluded draws are retained and checked.',
-                          'Original scalar support uses the finest residual grid; the Lean baseline remains conservative.',
+                          'The Lean scalar predicate and the paper generator both use the lowest set bit of the low parts; they agree on every case.',
                           'The synthetic family comparison evaluates encoded blocks, not GPU instructions.'])
     (DEST / 'eft-paper-report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))

@@ -51,7 +51,7 @@ The theorem concerns checked encoded inputs and consistent/canonical numerical r
 * `FloatFormat.binary16`, `bfloat16`, `tf32`, and `binary32` describe the actual encodings.
 * `Model.toDyadic?` rejects nonfinite values and decodes finite words exactly.
 * `Numerics.Dyadic.mul` forms exact products, with its rational-semantics theorem used in the proof.
-* `Model.roundRatWithRounding` implements FP32 toward-zero and nearest-even rounding. Every scalar addition uses FloatLib nearest-even rounding and FloatLib decoding.
+* `Model.roundRatWithRounding` implements FP32 truncation (FloatLib's IEEE round-toward-zero mode) and nearest-even rounding. Every scalar addition uses FloatLib nearest-even rounding and FloatLib decoding.
 * FloatLib's real-valued `roundAt` and format-grid theorems prove that the executable EFT result has mathematical nearest-even semantics, including ties. This is a proof connection, not only an output comparison with a second program.
 
 This project defines TC-specific alignment, extraction, scalar conditions, and flowback using FloatLib's numerical operations.
@@ -60,7 +60,7 @@ This project defines TC-specific alignment, extraction, scalar conditions, and f
 
 A block contains K exact products and an FP32 accumulator input C. Each dyadic value is an integer times a power of two; the model tracks unnormalized input exponents separately from that value. A product's unnormalized exponent is the sum of its input scales, even if the product value could be normalized differently. Zero inputs use neutral metadata `(scale, mantissaBits) = (0, 0)`; zero terms do not select the alignment maximum.
 
-The nonzero unnormalized-exponent maximum, optionally clamped by the architecture floor, selects the alignment quantum `2^(eta - 23 - extra)`. Each term is truncated toward zero on that grid; the retained terms are added exactly; FloatLib converts the accumulator to FP32 toward zero. There is no integer accumulator wraparound. Inputs and the accumulated result must satisfy the parent's finite-domain rules. In particular, `|accumulator| > maxFinite32` is rejected before rounding, even though native IEEE toward-zero overflow would saturate.
+The nonzero unnormalized-exponent maximum, optionally clamped by the architecture floor, selects the alignment quantum `2^(eta - 23 - extra)`. Each term's magnitude is truncated on that grid, keeping its sign; the retained terms are added exactly; the accumulator is then truncated to FP32. This port implements that final truncation with FloatLib's IEEE round-toward-zero mode, which on the parent's finite domain gives the same bits (`round32_eq`). There is no integer accumulator wraparound. Inputs and the accumulated result must satisfy the parent's finite-domain rules. In particular, `|accumulator| > maxFinite32` is rejected before rounding, even though native IEEE toward-zero overflow would saturate.
 
 Named FP16 profiles are V100 `(K=4, extra=0, no floor)`, A100 `(8, 1, -132)`, and H100 `(16, 2, -133)`. The same profile constructor supports BF16 and packed 19-bit TF32. Tests also cover A100 TF32 K=4, H100 WMMA TF32 K=4, and the paper's H100 MMA TF32 K=8. Arbitrary K, extra-bit counts, and floors can be evaluated.
 
@@ -72,7 +72,7 @@ Exact zero is canonicalized to +0, as in the parent reference; negative underflo
 
 The extraction grid is the coarser of the alignment grid and supplied D's FP32 grid. Each input term splits into a retained part and a low part. The overlap is `D - sum(retained parts)`. Consequently, `D - overlap + sum(low parts)` recovers the exact input sum. The proof works for **any supplied finite D**, even one unrelated to the TC model output.
 
-The scalar guard checks that the input-term support-grid exponent lies between -149 and 104, residual coefficients are exact integers with total absolute coefficient sum below `2^24`, D/overlap/retained sum are representable in FP32, and the reconstructed sum is within finite FP32 range. The paper permits choosing a suitable common grid and gives sufficient mathematical conditions; this deterministic executable guard is one conservative implementation of them. The equivalence theorem proves that both implementations make the same branch decisions. Separate paper theorems cover the chosen-grid coefficient and absolute-range conditions.
+The scalar guard checks that the low bits of all terms fit together within 24 bits, counted from the lowest bit actually set (zeros ignored); that this lowest bit lies between `2^-149` and `2^104`; that D, the overlap and the retained sum each fit in FP32's 24 significant bits; and that the reconstructed sum is within finite FP32 range. This is the same rule as the TC-EFT paper's generator and the parent's 576-bit implementation. The equivalence theorem proves that both implementations make the same branch decisions. Separate paper theorems cover the chosen-grid coefficient and absolute-range conditions.
 
 The guarded scalar path sequentially adds the low parts in FP32, computes `D - overlap` in FP32, then performs the final FP32 addition. `naiveSumFrom_exact` proves every accepted prefix sum is exact. `scalar_correct` proves the result equals FloatLib nearest-even rounding of the exact input sum. `scalar_success_iff` proves this path succeeds exactly when its guard holds.
 

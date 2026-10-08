@@ -21,8 +21,8 @@ definitions with the implementation and is written in a different style:
 | Decoding | `classifyNat` → `Decoded` (significand, scale, point) | `decode` → `Term` (rational value, exponent) |
 | Products | `unnormalizedMul` on significand bits | `product`: value product, exponent sum |
 | Largest exponent | left fold with `filterMap` | right fold, `joinExponent` |
-| Truncation | `truncCoeff` | `coefficient`: sign × ⌊‖v‖ / q⌋ |
-| FP32 rounding | algorithm `round32 .towardZero` | **relation** `Rounds`: the largest-magnitude finite FP32 value between 0 and `x`, with the sign bit fixed |
+| Truncation | `truncBits` | `coefficient`: sign × ⌊‖v‖ / q⌋ |
+| FP32 rounding | algorithm `round32 .truncate` | **relation** `Rounds`: the largest-magnitude finite FP32 value between 0 and `x`, with the sign bit fixed |
 | Output | computable `Except` | `noncomputable` `Classical.choose` of the unique word satisfying `Result` |
 
 The rounding entry matters most. The specification does not describe *how*

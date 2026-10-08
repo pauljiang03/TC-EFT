@@ -12,9 +12,9 @@ structure TraceRel (s : TensorCore.BlockTrace) (t : Trace) : Prop where
   valid : ValidBlock t.block
 
 theorem evaluate_eq (b : Block) (hb : ValidBlock b) :
-    b.evaluate = (TensorCore.round32 .towardZero (block b).accumulator).map BitVec.toNat := by
+    b.evaluate = (TensorCore.round32 .truncate (block b).accumulator).map BitVec.toNat := by
   rw [accumulator_eq b hb]
-  exact round32_eq .towardZero _
+  exact round32_eq .truncate _
 
 theorem representable_eq (x : Rat) : TCFloat.representable x = TensorCore.representable32 x := by
   unfold TCFloat.representable TensorCore.representable32
@@ -73,15 +73,24 @@ theorem residual_eq {s : TensorCore.BlockTrace} {t : Trace} (h : TraceRel s t) :
   simp only [TensorCore.BlockTrace.residual,TensorCore.PreparedBlock.extractReference,
     h.block_eq,accumulator_eq _ h.valid,h.output_eq,residuals_eq _ h.valid,sumQ_eq,Trace.residual]
 
+theorem trailingZeroBitsAux_eq (fuel n : Nat) :
+    TensorCore.trailingZeroBitsAux fuel n = trailingZeroBitsAux fuel n := by
+  induction fuel generalizing n with
+  | zero => rfl
+  | succ k ih => simp only [TensorCore.trailingZeroBitsAux, trailingZeroBitsAux, ih]
+
+theorem lowestBitExp_eq (x : ℚ) : TensorCore.lowestBitExp x = lowestBitExp x := by
+  simp only [TensorCore.lowestBitExp, TensorCore.trailingZeroBits, lowestBitExp, trailingZeroBitsAux_eq]
+
 theorem support_eq {s : TensorCore.BlockTrace} {t : Trace} (h : TraceRel s t) :
-    s.supportExponent = t.supportExponent := by
-  unfold TensorCore.BlockTrace.supportExponent Trace.supportExponent
-  rw [h.block_eq,terms_eq,extraction_eq h,List.map_map]
-  rfl
+    s.lowestLowBitExp = t.supportExponent := by
+  unfold TensorCore.BlockTrace.lowestLowBitExp Trace.supportExponent
+  rw [lows_eq h,extraction_eq h]
+  simp only [lowestBitExp_eq]
 
 theorem lowCoefficients_eq {s : TensorCore.BlockTrace} {t : Trace} (h : TraceRel s t) :
-    s.lowCoefficients = t.lowCoefficients := by
-  unfold TensorCore.BlockTrace.lowCoefficients Trace.lowCoefficients
+    s.lowBits = t.lowCoefficients := by
+  unfold TensorCore.BlockTrace.lowBits Trace.lowCoefficients
   rw [lows_eq h,support_eq h]
   rfl
 

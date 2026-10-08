@@ -159,18 +159,18 @@ theorem zero_products_passthrough (K extra : ℕ) (floor : Option ℤ)
     K hz hz
   have hlen : ¬ ((List.replicate K ((0 : F16), (0 : F16))).length !=
       (fp16Fp32Profile K extra floor).products) = true := by simp [fp16Fp32Profile]
-  have hcoef := construction_coefficients (fp16Fp32Profile K extra floor) K ⟨0, 0, 0⟩ ⟨0, 0, 0⟩
+  have hcoef := construction_alignedBits (fp16Fp32Profile K extra floor) K ⟨0, 0, 0⟩ ⟨0, 0, 0⟩
     f.decoded
-  have hprod : ∀ q : ℤ, truncCoeff (unnormalizedMul ⟨0, 0, 0⟩ ⟨0, 0, 0⟩).value q = 0 := by
+  have hprod : ∀ q : ℤ, truncBits (unnormalizedMul ⟨0, 0, 0⟩ ⟨0, 0, 0⟩).value q = 0 := by
     intro q
-    simp [unnormalizedMul, UnnormalizedProduct.value, truncCoeff, Rat.div_def]
+    simp [unnormalizedMul, UnnormalizedProduct.value, truncBits, Rat.div_def]
     all_goals decide +kernel
   have hacc : (PreparedBlock.mk (fp16Fp32Profile K extra floor)
       (List.replicate K (⟨0, 0, 0⟩, ⟨0, 0, 0⟩)) f.decoded).accumulator = f.value := by
     by_cases hsig : f.decoded.significand = 0
     · have hv : f.decoded.value = 0 := by simp [Decoded.value, hsig]
-      have hcz : ∀ q : ℤ, truncCoeff f.decoded.value q = 0 := by
-        intro q; rw [hv]; simp [truncCoeff, Rat.div_def]
+      have hcz : ∀ q : ℤ, truncBits f.decoded.value q = 0 := by
+        intro q; rw [hv]; simp [truncBits, Rat.div_def]
         all_goals decide +kernel
       unfold PreparedBlock.accumulator
       rw [hcoef]
@@ -198,9 +198,9 @@ theorem zero_products_passthrough (K extra : ℕ) (floor : Option ℤ)
         rw [hfrac, Rat.intCast_mul, Rat.intCast_natCast, ← pow2_natCast, Rat.mul_assoc, ← pow2_add]
         congr 2
         omega
-      have hcc : truncCoeff f.decoded.value (f.decoded.unnormalizedExp - ((23 + extra : ℕ) : ℤ)) =
+      have hcc : truncBits f.decoded.value (f.decoded.unnormalizedExp - ((23 + extra : ℕ) : ℤ)) =
           f.decoded.significand * ((2 ^ extra : ℕ) : ℤ) := by
-        rw [hcval, truncCoeff_of_grid]
+        rw [hcval, truncBits_of_grid]
       unfold PreparedBlock.accumulator
       rw [hcoef, hq]
       simp only [sumZ, hcc, hprod, sumZ_replicate, Int.mul_zero, Int.add_zero]
@@ -213,13 +213,13 @@ theorem zero_products_passthrough (K extra : ℕ) (floor : Option ℤ)
     by_cases hsig : f.decoded.significand = 0
     · have hc0 : c = 0 := zero_value_bits c f.decoded hc hsig hneg
       have hv : f.value = 0 := by simp [Finite32.value, Decoded.value, hsig]
-      have hr : round32 .towardZero 0 = some (0 : F32) := by decide +kernel
+      have hr : round32 .truncate 0 = some (0 : F32) := by decide +kernel
       have hf0 : finite32 (0 : F32) = some f := by rw [← hc0]; exact hf
       simp only [evalPrepared, hacc, hv, hr, hf0]
     · have hv : f.value ≠ 0 := Decoded.value_ne_zero f.decoded hsig
       have hval32 : value32 c = some f.value := by
         unfold value32; rw [hc]; rfl
-      have hr := value32_round32 .towardZero c f.value hval32 hv
+      have hr := value32_round32 .truncate c f.value hval32 hv
       simp only [evalPrepared, hacc, hr, hf]
   refine ⟨⟨PreparedBlock.mk (fp16Fp32Profile K extra floor)
     (List.replicate K (⟨0, 0, 0⟩, ⟨0, 0, 0⟩)) f.decoded, f⟩, ?_, hbits⟩

@@ -37,24 +37,24 @@ theorem normExp_bounds (m : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32) :
     rw [this]; exact hs.1
   · right; unfold normExp emin32; omega
 
-theorem roundCoefficient_bounds (mode : RoundingMode) (t : ℚ)
+theorem roundSignificand_bounds (mode : RoundingMode) (t : ℚ)
     (ht : 0 ≤ t) (htop : t < 16777216) :
-    0 ≤ roundCoefficient mode t ∧ roundCoefficient mode t ≤ 16777216 ∧
-    t.floor ≤ roundCoefficient mode t := by
+    0 ≤ roundSignificand mode t ∧ roundSignificand mode t ≤ 16777216 ∧
+    t.floor ≤ roundSignificand mode t := by
   have hlo := floor_nonneg_of_nonneg t ht
   have hhi : t.floor < 16777216 := Rat.floor_lt_iff.mpr htop
   cases mode with
-  | towardZero => simp only [roundCoefficient]; omega
+  | truncate => simp only [roundSignificand]; omega
   | nearestEven =>
-    simp only [roundCoefficient]
+    simp only [roundSignificand]
     rcases rneInt_cases t with ⟨h, _⟩ | ⟨h, _⟩ <;> omega
 
-theorem roundCoefficient_le_integer (mode : RoundingMode) (t : ℚ) (n : ℤ)
-    (h : t ≤ n) : roundCoefficient mode t ≤ n := by
+theorem roundSignificand_le_integer (mode : RoundingMode) (t : ℚ) (n : ℤ)
+    (h : t ≤ n) : roundSignificand mode t ≤ n := by
   have hf := Rat.floor_monotone h
   rw [Rat.floor_intCast] at hf
   cases mode with
-  | towardZero => exact hf
+  | truncate => exact hf
   | nearestEven =>
     change rneInt t ≤ n
     rcases rneInt_cases t with ⟨hk, hc⟩ | ⟨hk, hc⟩
@@ -64,11 +64,11 @@ theorem roundCoefficient_le_integer (mode : RoundingMode) (t : ℚ) (n : ℤ)
       · omega
     · omega
 
-theorem roundedCoeff_bounds (mode : RoundingMode) (m : ℚ)
+theorem roundedSignificand_bounds (mode : RoundingMode) (m : ℚ)
     (hm : 0 < m) (hr : m ≤ maxFinite32) :
-    0 ≤ roundedCoeff mode m ∧ roundedCoeff mode m ≤ 16777216 ∧
-    (8388608 ≤ roundedCoeff mode m ∨ normExp m = -126) ∧
-    (normExp m = 127 → roundedCoeff mode m ≤ 16777215) := by
+    0 ≤ roundedSignificand mode m ∧ roundedSignificand mode m ≤ 16777216 ∧
+    (8388608 ≤ roundedSignificand mode m ∨ normExp m = -126) ∧
+    (normExp m = 127 → roundedSignificand mode m ≤ 16777215) := by
   obtain ⟨he1, he2, hupper, hlower⟩ := normExp_bounds m hm hr
   have hq := pow2_pos (normExp m - 23)
   have ht : 0 < m / pow2 (normExp m - 23) := by
@@ -77,9 +77,9 @@ theorem roundedCoeff_bounds (mode : RoundingMode) (m : ℚ)
   have htop : m / pow2 (normExp m - 23) < 16777216 := by
     apply (Rat.div_lt_iff hq).mpr
     rwa [next_binade_grid] at hupper
-  have hb := roundCoefficient_bounds mode _ (Rat.le_of_lt ht) htop
-  change 0 ≤ roundedCoeff mode m ∧ roundedCoeff mode m ≤ 16777216 ∧
-    (m / pow2 (normExp m - 23)).floor ≤ roundedCoeff mode m at hb
+  have hb := roundSignificand_bounds mode _ (Rat.le_of_lt ht) htop
+  change 0 ≤ roundedSignificand mode m ∧ roundedSignificand mode m ≤ 16777216 ∧
+    (m / pow2 (normExp m - 23)).floor ≤ roundedSignificand mode m at hb
   refine ⟨hb.1, hb.2.1, ?_, ?_⟩
   · rcases hlower with hl | he
     · left
@@ -94,8 +94,8 @@ theorem roundedCoeff_bounds (mode : RoundingMode) (m : ℚ)
       omega
     · exact Or.inr he
   · intro he
-    unfold roundedCoeff
-    apply roundCoefficient_le_integer
+    unfold roundedSignificand
+    apply roundSignificand_le_integer
     have hscale : m / pow2 (normExp m - 23) ≤ (16777215 : ℚ) := by
       rw [he]
       apply Classical.byContradiction

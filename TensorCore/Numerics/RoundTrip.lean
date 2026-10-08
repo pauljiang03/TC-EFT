@@ -34,10 +34,10 @@ theorem decode32_fields (b : F32) (d : Decoded) (h : decode32 b = some d) :
       subst h
       exact Or.inr (Or.inr ⟨by omega, by omega, rfl⟩)
 
-theorem roundCoefficient_intCast (mode : RoundingMode) (k : ℤ) :
-    roundCoefficient mode (k : ℚ) = k := by
+theorem roundSignificand_intCast (mode : RoundingMode) (k : ℤ) :
+    roundSignificand mode (k : ℚ) = k := by
   cases mode with
-  | towardZero => exact Rat.floor_intCast k
+  | truncate => exact Rat.floor_intCast k
   | nearestEven =>
     show rneInt (k : ℚ) = k
     unfold rneInt
@@ -105,10 +105,10 @@ theorem round32_canonical (mode : RoundingMode) (negative : Bool) (e k : ℤ)
         have h2 := pow2_le_of_le hge
         grind
       omega
-  have hcoef : roundedCoeff mode ((k : ℚ) * pow2 (e - 23)) = k := by
-    unfold roundedCoeff
+  have hcoef : roundedSignificand mode ((k : ℚ) * pow2 (e - 23)) = k := by
+    unfold roundedSignificand
     rw [hexp, Rat.mul_div_cancel (Rat.ne_of_gt hq)]
-    exact roundCoefficient_intCast mode k
+    exact roundSignificand_intCast mode k
   have hcarry : carry e k = (e, k) := by
     unfold carry
     rw [if_neg (by omega)]
@@ -187,8 +187,8 @@ theorem value32_round32 (mode : RoundingMode) (b : F32) (v : ℚ)
 /-- Nonzero finite values have unique encodings. -/
 theorem value32_injective (b₁ b₂ : F32) (v : ℚ) (h₁ : value32 b₁ = some v)
     (h₂ : value32 b₂ = some v) (hnz : v ≠ 0) : b₁ = b₂ := by
-  have r₁ := value32_round32 .towardZero b₁ v h₁ hnz
-  have r₂ := value32_round32 .towardZero b₂ v h₂ hnz
+  have r₁ := value32_round32 .truncate b₁ v h₁ hnz
+  have r₂ := value32_round32 .truncate b₂ v h₂ hnz
   rw [r₁] at r₂
   exact Option.some.inj r₂
 

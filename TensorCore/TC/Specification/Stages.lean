@@ -129,8 +129,8 @@ theorem exponent_eq (b : PreparedBlock) :
   cases maxTermExp b.terms <;> rfl
 
 theorem coefficient_eq (v : ℚ) (e : ℤ) :
-    coefficient v ((2 : ℚ) ^ e) = truncCoeff v e := by
-  unfold coefficient magnitude truncCoeff pow2
+    keptBits v ((2 : ℚ) ^ e) = truncBits v e := by
+  unfold keptBits magnitude truncBits pow2
   split <;> simp
 
 theorem accumulated_eq (b : PreparedBlock) :
@@ -138,13 +138,13 @@ theorem accumulated_eq (b : PreparedBlock) :
   unfold accumulated
   rw [exponent_eq]
   change ((b.terms.map unnormalizedTermOf).foldr (fun t z =>
-      coefficient t.value ((2 : ℚ) ^ b.alignGridExponent) + z) 0 : ℤ) *
+      keptBits t.value ((2 : ℚ) ^ b.alignGridExponent) + z) 0 : ℤ) *
       (2 : ℚ) ^ b.alignGridExponent = _
-  unfold PreparedBlock.accumulator PreparedBlock.coefficients
+  unfold PreparedBlock.accumulator PreparedBlock.alignedBits
   apply congrArg (fun z : ℤ => (z : ℚ) * pow2 b.alignGridExponent)
   induction b.terms with
   | nil => rfl
-  | cons t ts ih => simpa [unnormalizedTermOf, coefficient_eq, sumZ] using congrArg (truncCoeff t.value b.alignGridExponent + ·) ih
+  | cons t ts ih => simpa [unnormalizedTermOf, coefficient_eq, sumZ] using congrArg (truncBits t.value b.alignGridExponent + ·) ih
 
 theorem valid_iff {p : Profile} (x : BlockInput p) :
     Valid (parametersOf p) (inputOf x) ↔ ∃ t, evalBlock x = .ok t := by

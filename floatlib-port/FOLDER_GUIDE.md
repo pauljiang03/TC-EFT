@@ -63,7 +63,7 @@ The executable uses FloatLib decoding, exact dyadic multiplication and rounding 
 
 The paper proof modules establish the full output error bound, arbitrary-summand flowback, the general perturbation range, overlap identities, any-order exact summation and the paper's chosen-grid scalar conditions. The [comparison table](COMPARISON.md#correspondence-to-the-papers-fp32-statements) lists the individual theorem names.
 
-The two implementations use the same conservative executable scalar guard. The paper theorems also handle a suitably chosen common grid with separate coefficient and absolute-range conditions. A failed executable guard does not prove scalar summation is impossible; the reference EFT can use exact consolidation followed by one FP32 rounding.
+The two implementations use the same executable scalar guard, based on the lowest bit actually set in the low parts. The paper theorems also handle a suitably chosen common grid with separate coefficient and absolute-range conditions. A failed executable guard does not prove scalar summation is impossible; the reference EFT can use exact consolidation followed by one FP32 rounding.
 
 ## How to build and verify
 

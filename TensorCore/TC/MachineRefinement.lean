@@ -4,7 +4,7 @@ import TensorCore.TC.CanonicalDefs
 namespace TensorCore
 
 theorem evalPreparedMachine_eq (b : PreparedBlock) (w : ℕ) (hw : 0 < w)
-    (h : magnitudeSum b.coefficients < 2 ^ (w - 1)) :
+    (h : magnitudeSum b.alignedBits < 2 ^ (w - 1)) :
     evalPreparedMachine w b = evalPrepared b := by
   simp only [evalPreparedMachine, evalPrepared, machineAccumulator_eq b w hw h]
   rfl

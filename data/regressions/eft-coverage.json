@@ -4,50 +4,50 @@
   "cases": 21966,
   "baseline_gate": "passed",
   "input_sha256": "704c7b8b5c3134880dd3cb911fb84039d8edf80d886ea5c7d23f2e07b014cd94",
-  "case_record_sha256": "d78f8f159e2974becee7e4840a0b59e6c906f92451839adcf4bc66b1e9f8d691",
+  "case_record_sha256": "e9cf48a8ba9d59bcd2d3648212626ff499baa4b1ad6bf6c15528de903699bd3e",
   "comparison": "Actual Lean predicate and safe API; binary-search original-input rational oracle",
   "timing": {
-    "lean_reference_runner_seconds": 60.836,
-    "total_seconds": 67.369
+    "lean_reference_runner_seconds": 247.964,
+    "total_seconds": 254.956
   },
   "limits": [
     "All extraction and guard work here is exact arithmetic.",
     "Timings include diagnostics, repeated exact work and JSON; not algorithm phase costs.",
-    "Tighter support is a diagnostic coefficient check, not a new proved predicate.",
+    "The Lean predicate and this oracle both use the lowest bit actually set in the low parts.",
     "Published rows are prior measurements; no GPU was run."
   ],
   "cohorts": {
     "finite_bits/V100": {
       "cases": 1000,
       "model_rejections": 0,
-      "scalar_accepted": 73,
-      "corrected_changed": 38,
+      "scalar_accepted": 86,
+      "corrected_changed": 45,
       "unchecked_mismatches": 1,
       "tighter_support_budget_passes": 86,
       "failures": {
-        "coefficient_budget": 927
+        "low_bits_fit_24": 914
       }
     },
     "finite_bits/A100": {
       "cases": 1000,
       "model_rejections": 0,
-      "scalar_accepted": 13,
-      "corrected_changed": 5,
+      "scalar_accepted": 24,
+      "corrected_changed": 11,
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 24,
       "failures": {
-        "coefficient_budget": 987
+        "low_bits_fit_24": 976
       }
     },
     "finite_bits/H100": {
       "cases": 1000,
       "model_rejections": 0,
-      "scalar_accepted": 0,
-      "corrected_changed": 0,
+      "scalar_accepted": 1,
+      "corrected_changed": 1,
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 1,
       "failures": {
-        "coefficient_budget": 1000
+        "low_bits_fit_24": 999
       }
     },
     "near_one/V100": {
@@ -112,62 +112,62 @@
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 141,
       "failures": {
-        "coefficient_budget": 19
+        "low_bits_fit_24": 19
       }
     },
     "bounded_signed_tails/A100": {
       "cases": 160,
       "model_rejections": 0,
-      "scalar_accepted": 128,
+      "scalar_accepted": 129,
       "corrected_changed": 48,
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 129,
       "failures": {
-        "coefficient_budget": 32
+        "low_bits_fit_24": 31
       }
     },
     "bounded_signed_tails/H100": {
       "cases": 160,
       "model_rejections": 0,
-      "scalar_accepted": 117,
-      "corrected_changed": 47,
+      "scalar_accepted": 121,
+      "corrected_changed": 51,
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 121,
       "failures": {
-        "coefficient_budget": 43
+        "low_bits_fit_24": 39
       }
     },
     "application_small/V100": {
       "cases": 160,
       "model_rejections": 0,
-      "scalar_accepted": 155,
-      "corrected_changed": 72,
+      "scalar_accepted": 159,
+      "corrected_changed": 76,
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 159,
       "failures": {
-        "coefficient_budget": 5
+        "low_bits_fit_24": 1
       }
     },
     "application_small/A100": {
       "cases": 160,
       "model_rejections": 0,
-      "scalar_accepted": 127,
-      "corrected_changed": 51,
+      "scalar_accepted": 140,
+      "corrected_changed": 59,
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 140,
       "failures": {
-        "coefficient_budget": 33
+        "low_bits_fit_24": 20
       }
     },
     "application_small/H100": {
       "cases": 160,
       "model_rejections": 0,
-      "scalar_accepted": 93,
-      "corrected_changed": 29,
+      "scalar_accepted": 119,
+      "corrected_changed": 41,
       "unchecked_mismatches": 1,
       "tighter_support_budget_passes": 119,
       "failures": {
-        "coefficient_budget": 67
+        "low_bits_fit_24": 41
       }
     },
     "adversarial/V100": {
@@ -178,7 +178,7 @@
       "unchecked_mismatches": 1,
       "tighter_support_budget_passes": 2,
       "failures": {
-        "coefficient_budget": 2,
+        "low_bits_fit_24": 2,
         "final_range": 1
       }
     }

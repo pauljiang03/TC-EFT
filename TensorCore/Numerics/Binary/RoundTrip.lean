@@ -7,7 +7,7 @@ namespace TensorCore
 
 theorem binaryCoefficient_intCast (mode : BinaryRoundingMode) (negative : Bool) (k : ℤ) :
     binaryCoefficient mode negative (k : ℚ) = k := by
-  have hr := roundCoefficient_intCast .nearestEven k
+  have hr := roundSignificand_intCast .nearestEven k
   change rneInt (k : ℚ) = k at hr
   cases mode <;> cases negative <;> simp [binaryCoefficient, Rat.floor_intCast, Rat.ceil_intCast, hr]
 
@@ -111,8 +111,8 @@ theorem binaryValue_roundBinary (f : Format) (hf : f.WellFormed) (mode : BinaryR
 theorem binaryValue_injective_nonzero (f : Format) (hf : f.WellFormed)
     (b₁ b₂ : BitVec f.width) (v : ℚ) (h₁ : binaryValue f b₁ = some v)
     (h₂ : binaryValue f b₂ = some v) (hnz : v ≠ 0) : b₁ = b₂ := by
-  have r₁ := binaryValue_roundBinary f hf .towardZero b₁ v h₁ hnz
-  have r₂ := binaryValue_roundBinary f hf .towardZero b₂ v h₂ hnz
+  have r₁ := binaryValue_roundBinary f hf .truncate b₁ v h₁ hnz
+  have r₂ := binaryValue_roundBinary f hf .truncate b₂ v h₂ hnz
   exact Option.some.inj (r₁.symm.trans r₂)
 
 end TensorCore

@@ -287,16 +287,16 @@ theorem roundBinary_nearestEven_correct (f : Format) (hf : f.WellFormed) (x : �
     · intro y hy hne ht
       exact hp (binarySignedRounded_tie_even f hf x y hx hr hy hne ht)
 
-/-! Truncation toward zero. -/
+/-! Truncation. -/
 
 /-- `y` lies between zero and `x`, inclusive. -/
 def Between0 (x y : ℚ) : Prop := (0 ≤ x ∧ 0 ≤ y ∧ y ≤ x) ∨ (x ≤ 0 ∧ x ≤ y ∧ y ≤ 0)
 
-theorem binary_rtz_magnitude_spec (f : Format) (hf : f.WellFormed) (negative : Bool) (m : ℚ)
+theorem binary_trunc_magnitude_spec (f : Format) (hf : f.WellFormed) (negative : Bool) (m : ℚ)
     (hm : 0 < m) (hr : m ≤ f.maxFinite) :
-    0 ≤ binaryMagnitudeRounded f .towardZero negative m ∧
-    binaryMagnitudeRounded f .towardZero negative m ≤ m ∧
-    (∀ y : ℚ, f.FiniteValue y → y ≤ m → y ≤ binaryMagnitudeRounded f .towardZero negative m) := by
+    0 ≤ binaryMagnitudeRounded f .truncate negative m ∧
+    binaryMagnitudeRounded f .truncate negative m ≤ m ∧
+    (∀ y : ℚ, f.FiniteValue y → y ≤ m → y ≤ binaryMagnitudeRounded f .truncate negative m) := by
   have hq := pow2_pos (binaryNormExp f m - f.mantissaBits)
   have hfl : (0 : ℤ) ≤ (m / pow2 (binaryNormExp f m - f.mantissaBits)).floor := by
     apply Rat.le_floor_iff.mpr
@@ -327,23 +327,23 @@ theorem binary_rtz_magnitude_spec (f : Format) (hf : f.WellFormed) (negative : B
       apply Rat.intCast_le_intCast.mpr
       apply Rat.le_floor_iff.mpr
       exact le_div_of_mul_le _ _ _ hq hym
-    · have hlow := binaryMagnitudeRounded_lower f hf .towardZero negative m hm hr (by omega)
+    · have hlow := binaryMagnitudeRounded_lower f hf .truncate negative m hm hr (by omega)
       have hsmall := f.finite_below_binade j fe (binaryNormExp f m) hj (by omega)
       have hsmall' := (absQ_le_iff _ _).mp hsmall
       have := pow2_pos (binaryNormExp f m - f.mantissaBits - 1)
       grind
 
-/-- Toward-zero result: between zero and the input, of largest magnitude among the format's finite values there. -/
-def TowardZero (f : Format) (x : ℚ) (bits : BitVec f.width) : Prop :=
+/-- Truncated result: between zero and the input, of largest magnitude among the format's finite values there. -/
+def Truncated (f : Format) (x : ℚ) (bits : BitVec f.width) : Prop :=
   ∃ d : ℚ, binaryValue f bits = some d ∧ Between0 x d ∧
     ∀ y : ℚ, f.FiniteValue y → Between0 x y → absQ y ≤ absQ d
 
-theorem roundBinary_towardZero_correct (f : Format) (hf : f.WellFormed) (x : ℚ)
+theorem roundBinary_truncate_correct (f : Format) (hf : f.WellFormed) (x : ℚ)
     (hr : absQ x ≤ f.maxFinite) :
-    ∃ bits : BitVec f.width, roundBinary f .towardZero x = some bits ∧ TowardZero f x bits := by
+    ∃ bits : BitVec f.width, roundBinary f .truncate x = some bits ∧ Truncated f x bits := by
   by_cases hx : x = 0
   · subst x
-    have hz : roundBinary f .towardZero 0 = some 0 := by
+    have hz : roundBinary f .truncate 0 = some 0 := by
       unfold roundBinary
       rw [if_neg (by intro h; exact h hf), if_neg (by have := absQ_nonneg (0 : ℚ); grind),
         if_pos rfl]
@@ -352,19 +352,19 @@ theorem roundBinary_towardZero_correct (f : Format) (hf : f.WellFormed) (x : ℚ
     have : y = 0 := by unfold Between0 at hy; grind
     rw [this]
     exact Rat.le_refl
-  · obtain ⟨bits, hb, hv, _⟩ := roundBinary_nonzero_spec f hf .towardZero x hx hr
-    refine ⟨bits, hb, binarySignedRounded f .towardZero x, hv, ?_, ?_⟩
+  · obtain ⟨bits, hb, hv, _⟩ := roundBinary_nonzero_spec f hf .truncate x hx hr
+    refine ⟨bits, hb, binarySignedRounded f .truncate x, hv, ?_, ?_⟩
     · unfold binarySignedRounded
       split
       · rename_i hn
         have hm := absQ_pos_of_ne_zero x hx
-        obtain ⟨h0, hle, _⟩ := binary_rtz_magnitude_spec f hf true (absQ x) hm hr
+        obtain ⟨h0, hle, _⟩ := binary_trunc_magnitude_spec f hf true (absQ x) hm hr
         have hax := absQ_of_neg hn
         right
         exact ⟨Rat.le_of_lt hn, by grind, by grind⟩
       · rename_i hn
         have hm := absQ_pos_of_ne_zero x hx
-        obtain ⟨h0, hle, _⟩ := binary_rtz_magnitude_spec f hf false (absQ x) hm hr
+        obtain ⟨h0, hle, _⟩ := binary_trunc_magnitude_spec f hf false (absQ x) hm hr
         have hn' : 0 ≤ x := by grind
         have hax := absQ_of_nonneg hn'
         left
@@ -374,7 +374,7 @@ theorem roundBinary_towardZero_correct (f : Format) (hf : f.WellFormed) (x : ℚ
       unfold binarySignedRounded
       split
       · rename_i hn
-        obtain ⟨h0, _, hmax⟩ := binary_rtz_magnitude_spec f hf true (absQ x) hm hr
+        obtain ⟨h0, _, hmax⟩ := binary_trunc_magnitude_spec f hf true (absQ x) hm hr
         have hyx : -y ≤ absQ x := by
           rw [absQ_of_neg hn]
           unfold Between0 at hb0
@@ -385,7 +385,7 @@ theorem roundBinary_towardZero_correct (f : Format) (hf : f.WellFormed) (x : ℚ
         apply (absQ_le_iff _ _).mpr
         constructor <;> grind
       · rename_i hn
-        obtain ⟨h0, _, hmax⟩ := binary_rtz_magnitude_spec f hf false (absQ x) hm hr
+        obtain ⟨h0, _, hmax⟩ := binary_trunc_magnitude_spec f hf false (absQ x) hm hr
         have hn' : 0 ≤ x := by grind
         have hyx : y ≤ absQ x := by
           rw [absQ_of_nonneg hn']

@@ -101,28 +101,26 @@ out the inputs' exponents are:
 | --- | --- |
 | Recorded GPU vectors from *Accurate Models* | 5,000 / 5,000 on each GPU |
 | Values near 1 | 1,000 / 1,000 on each GPU |
-| Application-like inputs | 58–97% |
-| Uniformly random bit patterns (exponents spread over the whole range) | 73 (V100), 13 (A100), 0 (H100) out of 1,000 |
+| Application-like inputs | 74–99% |
+| Uniformly random bit patterns (exponents spread over the whole range) | 86 (V100), 24 (A100), 1 (H100) out of 1,000 |
+| The TC-EFT paper's validation suites | 290 of 2,459 finite cases |
 
 When the fast path is not taken, the exact path gives the answer.
 
-**3. The reference version's check is stricter than it needs to be.** To
-judge whether the low bits fit in 24 bits, the reference check uses the
-*lowest bit each term could possibly have*, given its format. It even counts
-zero terms: a zero `C` is treated as having bits down to `2^0`. The 576-bit
-implementation looks at the *lowest bit actually set*. Both are safe, and the
-answers are identical. The reference version just takes the slow path more
-often. For example, with BF16 inputs and `C = +0` the 576-bit version takes
-the fast path while the reference does not.
+**3. The fast-path check uses the tightest grid.** To judge whether the low
+bits fit in 24 bits, the check measures from the *lowest bit actually set*
+in the low parts and ignores zero terms. This is the tightest choice for this
+kind of check: any valid grid must lie at or below that bit, and choosing that
+bit gives the smallest 24-bit budget. The reference version, the 576-bit
+version, and the TC-EFT paper's own test generator (`grid_predicate`) all use
+this rule. On the paper's validation suites the reference version now takes
+the fast path in exactly the cases the paper's generator does, and the test
+suite checks this.
 
-The TC-EFT paper's own test generator (`grid_predicate`, for the paper's revised
-Theorem IV.9) uses the tighter rule too: the lowest bit actually set, ignoring
-zeros. On the paper's validation suites the reference check disagrees with it
-in 27 cases (2 named, 15 deterministic, 10 full-range), always by being
-stricter. Using the lowest bit actually set is the tightest choice for this
-kind of check. The reference version is deliberately left as it is; tightening
-it would change the reference algorithm and require re-pinning the FloatLib
-cross-check.
+(Earlier versions of the reference check measured from the lowest bit each
+term *could* have, given its format, and counted zero terms. That was safe
+but stricter than necessary. It disagreed with the paper's generator in 27
+cases, and was changed.)
 
 **4. The fast path is checked at run time, not proved to apply.** In the
 576-bit implementation, the fast path's intermediate results are compared

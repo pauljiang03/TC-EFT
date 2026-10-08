@@ -43,33 +43,33 @@ theorem perturbed_accumulator (prof : Profile) (products : List (Decoded × Deco
 /-- The value of an accepted output is the signed truncation of the accumulator. -/
 theorem evalPrepared_output_value {b : PreparedBlock} {t : BlockTrace}
     (h : evalPrepared b = .ok t) :
-    t.output.value = signedRounded .towardZero b.accumulator := by
+    t.output.value = signedRounded .truncate b.accumulator := by
   have hout := evalPrepared_output h
   have hd : value32 t.output.bits = some t.output.value := by
     simp [value32, t.output.valid, Finite32.value]
   by_cases hz : b.accumulator = 0
   · rw [hz] at hout
-    have h0 : round32 .towardZero 0 = some 0 := by decide +kernel
+    have h0 : round32 .truncate 0 = some 0 := by decide +kernel
     rw [h0] at hout
     have hb : t.output.bits = 0 := (Option.some.inj hout).symm
     rw [hb] at hd
     have hv : value32 0 = some 0 := by decide +kernel
     rw [hv] at hd
-    have hs : signedRounded .towardZero 0 = 0 := by decide +kernel
+    have hs : signedRounded .truncate 0 = 0 := by decide +kernel
     rw [hz, hs]
     exact (Option.some.inj hd).symm
   · obtain ⟨b', hb', hd', _, _⟩ :=
-      round32_nonzero_spec .towardZero b.accumulator hz (round32_range hout)
+      round32_nonzero_spec .truncate b.accumulator hz (round32_range hout)
     rw [hout] at hb'
     cases Option.some.inj hb'
     rw [hd] at hd'
     exact Option.some.inj hd'
 
-/-- Truncation toward zero of magnitudes is monotone within the finite range. -/
-theorem magnitudeRounded_rtz_monotone (x y : ℚ) (hx : 0 ≤ x) (hxy : x ≤ y)
+/-- Truncation of magnitudes is monotone within the finite range. -/
+theorem magnitudeRounded_trunc_monotone (x y : ℚ) (hx : 0 ≤ x) (hxy : x ≤ y)
     (hy : y ≤ maxFinite32) :
-    magnitudeRounded .towardZero x ≤ magnitudeRounded .towardZero y := by
-  unfold magnitudeRounded roundedCoeff roundCoefficient
+    magnitudeRounded .truncate x ≤ magnitudeRounded .truncate y := by
+  unfold magnitudeRounded roundedSignificand roundSignificand
   by_cases hx0 : x = 0
   · subst hx0
     have hqy := pow2_pos (normExp y - 23)
@@ -132,14 +132,14 @@ theorem magnitudeRounded_rtz_monotone (x y : ℚ) (hx : 0 ≤ x) (hxy : x ≤ y)
       have hfl := Rat.floor_monotone hdiv
       exact Rat.mul_le_mul_of_nonneg_right (Rat.intCast_le_intCast.mpr hfl) (Rat.le_of_lt hq)
 
-/-- Signed truncation toward zero is monotone within the finite range. -/
-theorem signedRounded_rtz_monotone (x y : ℚ) (hxy : x ≤ y) (hx : absQ x ≤ maxFinite32)
+/-- Signed truncation is monotone within the finite range. -/
+theorem signedRounded_trunc_monotone (x y : ℚ) (hxy : x ≤ y) (hx : absQ x ≤ maxFinite32)
     (hy : absQ y ≤ maxFinite32) :
-    signedRounded .towardZero x ≤ signedRounded .towardZero y := by
+    signedRounded .truncate x ≤ signedRounded .truncate y := by
   unfold signedRounded
-  have hnonneg : ∀ z : ℚ, 0 ≤ magnitudeRounded .towardZero (absQ z) := by
+  have hnonneg : ∀ z : ℚ, 0 ≤ magnitudeRounded .truncate (absQ z) := by
     intro z
-    unfold magnitudeRounded roundedCoeff roundCoefficient
+    unfold magnitudeRounded roundedSignificand roundSignificand
     have hq := pow2_pos (normExp (absQ z) - 23)
     have hfl : (0 : ℤ) ≤ (absQ z / pow2 (normExp (absQ z) - 23)).floor := by
       apply Rat.le_floor_iff.mpr
@@ -155,7 +155,7 @@ theorem signedRounded_rtz_monotone (x y : ℚ) (hxy : x ≤ y) (hx : absQ x ≤ 
       have hab : absQ y ≤ absQ x := by
         rw [absQ_of_neg hxn, absQ_of_neg hyn]
         grind
-      have := magnitudeRounded_rtz_monotone (absQ y) (absQ x) (absQ_nonneg y) hab hx
+      have := magnitudeRounded_trunc_monotone (absQ y) (absQ x) (absQ_nonneg y) hab hx
       grind
     · rw [if_pos hxn, if_neg hyn]
       have h1 := hnonneg x
@@ -167,18 +167,18 @@ theorem signedRounded_rtz_monotone (x y : ℚ) (hxy : x ≤ y) (hx : absQ x ≤ 
     have hab : absQ x ≤ absQ y := by
       rw [absQ_of_nonneg hxnn, absQ_of_nonneg (Rat.le_trans hxnn hxy)]
       exact hxy
-    exact magnitudeRounded_rtz_monotone (absQ x) (absQ y) (absQ_nonneg x) hab hy
+    exact magnitudeRounded_trunc_monotone (absQ x) (absQ y) (absQ_nonneg x) hab hy
 
 /-- A representable value is its own truncation. -/
-theorem signedRounded_rtz_of_finite (x : ℚ) (h : FiniteValue32 x) :
-    signedRounded .towardZero x = x := by
+theorem signedRounded_trunc_of_finite (x : ℚ) (h : FiniteValue32 x) :
+    signedRounded .truncate x = x := by
   by_cases hz : x = 0
   · subst hz
     decide +kernel
   · obtain ⟨b, _, hv⟩ := round32_exact_of_finite h
-    have hr := value32_round32 .towardZero b x hv hz
+    have hr := value32_round32 .truncate b x hv hz
     obtain ⟨b', hb', hd', _, _⟩ :=
-      round32_nonzero_spec .towardZero x hz (finiteValue32_abs_le h)
+      round32_nonzero_spec .truncate x hz (finiteValue32_abs_le h)
     rw [hr] at hb'
     cases Option.some.inj hb'
     rw [hv] at hd'
@@ -190,8 +190,8 @@ theorem output_condition (prof : Profile) (products : List (Decoded × Decoded))
     (h : evalPrepared ⟨prof, products, c⟩ = .ok t)
     (h' : evalPrepared ⟨prof, products, c'⟩ = .ok t') :
     (t.output.value < t'.output.value ↔
-      signedRounded .towardZero (PreparedBlock.mk prof products c).accumulator <
-        signedRounded .towardZero ((PreparedBlock.mk prof products c).accumulator +
+      signedRounded .truncate (PreparedBlock.mk prof products c).accumulator <
+        signedRounded .truncate ((PreparedBlock.mk prof products c).accumulator +
           flowback prof products c c' - accumulatorShift prof products c c')) := by
   rw [evalPrepared_output_value h, evalPrepared_output_value h',
     perturbed_accumulator prof products c c']
@@ -209,7 +209,7 @@ theorem flowback_necessary (prof : Profile) (products : List (Decoded × Decoded
   have hA := perturbed_accumulator prof products c c'
   have hr := round32_range (evalPrepared_output h)
   have hr' := round32_range (evalPrepared_output h')
-  have hmono := signedRounded_rtz_monotone _ _
+  have hmono := signedRounded_trunc_monotone _ _
     (show (PreparedBlock.mk prof products c').accumulator ≤
       (PreparedBlock.mk prof products c).accumulator by rw [hA]; grind) hr' hr
   rw [evalPrepared_output_value h, evalPrepared_output_value h'] at hinc
@@ -225,7 +225,7 @@ theorem flowback_sufficient (prof : Profile) (products : List (Decoded × Decode
     (hgt : accumulatorShift prof products c c' < flowback prof products c c') :
     t.output.value < t'.output.value := by
   rw [evalPrepared_output_value h, evalPrepared_output_value h',
-    signedRounded_rtz_of_finite _ hA, signedRounded_rtz_of_finite _ hA',
+    signedRounded_trunc_of_finite _ hA, signedRounded_trunc_of_finite _ hA',
     perturbed_accumulator prof products c c']
   grind
 

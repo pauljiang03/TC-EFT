@@ -56,33 +56,51 @@ theorem overlap_eq_retained_sub_outputResidual (t : BlockTrace) :
   unfold BlockTrace.overlap BlockTrace.outputResidual
   grind
 
-/-- Common grid exponent for the low components: the finest term grid, or the extraction grid if finer. -/
-def BlockTrace.supportExponent (t : BlockTrace) : ℤ :=
-  (t.block.terms.map fun x => x.unnormalizedExp - x.mantissaBits).foldl min t.extractionExponent
+/-- Number of trailing zero bits of `n` (`0` for `n = 0`). Structural recursion on a fuel
+argument, so that kernel evaluation of worked examples reduces it. -/
+def trailingZeroBitsAux : ℕ → ℕ → ℕ
+  | 0, _ => 0
+  | fuel + 1, n => if n ≠ 0 ∧ n % 2 = 0 then trailingZeroBitsAux fuel (n / 2) + 1 else 0
+
+def trailingZeroBits (n : ℕ) : ℕ := trailingZeroBitsAux n n
+
+/-- Exponent of the lowest set bit of a nonzero dyadic rational: `x = odd · 2^(lowestBitExp x)`. -/
+def lowestBitExp (x : ℚ) : ℤ := (trailingZeroBits x.num.natAbs : ℤ) - (x.den.log2 : ℤ)
+
+/-- Exponent of the lowest bit actually set in any low part, capped at the extraction grid.
+This is the tightest grid containing every low part; zero low parts are ignored. -/
+def BlockTrace.lowestLowBitExp (t : BlockTrace) : ℤ :=
+  t.lowParts.foldl (fun e x => if x = 0 then e else min e (lowestBitExp x)) t.extractionExponent
 
 /-- Integer coefficients `zᵢ = εᵢ / 2^ℓ`. -/
-def BlockTrace.lowCoefficients (t : BlockTrace) : List ℤ :=
-  t.lowParts.map fun e => (e / pow2 t.supportExponent).floor
+def BlockTrace.lowBits (t : BlockTrace) : List ℤ :=
+  let q := pow2 t.lowestLowBitExp
+  t.lowParts.map fun e => (e / q).floor
 
 
 def BlockTrace.scalarPredicate (t : BlockTrace) : Bool :=
-  decide (-149 ≤ t.supportExponent) && decide (t.supportExponent ≤ 104) &&
-  (t.lowParts == t.lowCoefficients.map fun (z : ℤ) => (z : ℚ) * pow2 t.supportExponent) &&
-  decide (magnitudeSum t.lowCoefficients < 2 ^ 24) &&
+  let ℓ := t.lowestLowBitExp
+  let q := pow2 ℓ
+  let zs := t.lowBits
+  decide (-149 ≤ ℓ) && decide (ℓ ≤ 104) &&
+  (t.lowParts == zs.map fun (z : ℤ) => (z : ℚ) * q) &&
+  decide (magnitudeSum zs < 2 ^ 24) &&
   representable32 t.output.value && representable32 t.overlap &&
   representable32 t.retainedSum &&
   decide (absQ (t.retainedSum + sumQ t.lowParts) ≤ maxFinite32)
 
 /-- Named checks for each condition of the scalar predicate. -/
 def BlockTrace.scalarChecks (t : BlockTrace) : List (String × Bool) :=
-  [("support_min", decide (-149 ≤ t.supportExponent)),
-   ("support_max", decide (t.supportExponent ≤ 104)),
-   ("integer_grid", t.lowParts == t.lowCoefficients.map fun (z : ℤ) =>
-      (z : ℚ) * pow2 t.supportExponent),
-   ("coefficient_budget", decide (magnitudeSum t.lowCoefficients < 2 ^ 24)),
-   ("output_representable", representable32 t.output.value),
-   ("overlap_representable", representable32 t.overlap),
-   ("retained_representable", representable32 t.retainedSum),
+  let ℓ := t.lowestLowBitExp
+  let q := pow2 ℓ
+  let zs := t.lowBits
+  [("lowest_bit_min", decide (-149 ≤ ℓ)),
+   ("lowest_bit_max", decide (ℓ ≤ 104)),
+   ("low_bits_on_grid", t.lowParts == zs.map fun (z : ℤ) => (z : ℚ) * q),
+   ("low_bits_fit_24", decide (magnitudeSum zs < 2 ^ 24)),
+   ("D_fits_fp32", representable32 t.output.value),
+   ("overlap_fits_fp32", representable32 t.overlap),
+   ("H_fits_fp32", representable32 t.retainedSum),
    ("final_range", decide (absQ (t.retainedSum + sumQ t.lowParts) ≤ maxFinite32))]
 
 /-- Diagnostic conjunction is exactly the public predicate, including every guard. -/

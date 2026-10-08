@@ -3,7 +3,7 @@ import TensorCore.Numerics.Encoding
 namespace TensorCore
 
 inductive RoundingMode where
-  | towardZero
+  | truncate
   | nearestEven
   deriving Repr, DecidableEq
 
@@ -16,8 +16,8 @@ def rneInt (t : ℚ) : ℤ :=
   else t.floor
 
 /-- Integer coefficient selected on a nonnegative scaled magnitude. -/
-def roundCoefficient : RoundingMode → ℚ → ℤ
-  | .towardZero, t => t.floor
+def roundSignificand : RoundingMode → ℚ → ℤ
+  | .truncate, t => t.floor
   | .nearestEven, t => rneInt t
 
 /-- Called on positive magnitudes only; the public converter branches on zero first. -/
@@ -36,8 +36,8 @@ def normExp (m : ℚ) : ℤ := max (magnitudeExponent m) emin32
 
 /-- Final rounding: the 24-bit significand kept on the grid `2^(normExp m - 23)`, truncated or
 rounded to nearest even according to `mode`. -/
-def roundedCoeff (mode : RoundingMode) (m : ℚ) : ℤ :=
-  roundCoefficient mode (m / pow2 (normExp m - 23))
+def roundedSignificand (mode : RoundingMode) (m : ℚ) : ℤ :=
+  roundSignificand mode (m / pow2 (normExp m - 23))
 
 /-- A coefficient of `2^24` carries into the next binade. -/
 def carry (e k : ℤ) : ℤ × ℤ := if k = 2 ^ 24 then (e + 1, k / 2) else (e, k)
@@ -46,7 +46,7 @@ def carry (e k : ℤ) : ℤ × ℤ := if k = 2 ^ 24 then (e + 1, k / 2) else (e,
 def round32Core (mode : RoundingMode) (x : ℚ) : Option F32 :=
   if x = 0 then some 0
   else
-    let (e', k') := carry (normExp (absQ x)) (roundedCoeff mode (absQ x))
+    let (e', k') := carry (normExp (absQ x)) (roundedSignificand mode (absQ x))
     if e' > 127 then none else some (encode32 (decide (x < 0)) e' k')
 
 /-- Finite-range reference conversion. -/
@@ -66,7 +66,7 @@ theorem round32_range {mode : RoundingMode} {x : ℚ} {b : F32}
   · grind
 
 def magnitudeRounded (mode : RoundingMode) (m : ℚ) : ℚ :=
-  (roundedCoeff mode m : ℚ) * pow2 (normExp m - 23)
+  (roundedSignificand mode m : ℚ) * pow2 (normExp m - 23)
 
 def signedRounded (mode : RoundingMode) (x : ℚ) : ℚ :=
   if x < 0 then -magnitudeRounded mode (absQ x) else magnitudeRounded mode (absQ x)

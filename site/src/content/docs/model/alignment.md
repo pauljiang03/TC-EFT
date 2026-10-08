@@ -1,6 +1,6 @@
 ---
 title: 3. Alignment
-description: The alignment exponent η, the profile floor, the grid 2^(η−F), and truncation toward zero.
+description: The alignment exponent η, the profile floor, the grid 2^(η−F), and truncation.
 ---
 
 Alignment is where a Tensor Core loses information, and it is the core of the
@@ -31,7 +31,7 @@ def PreparedBlock.alignExp (b : PreparedBlock) : Option ℤ :=
 - Ampere and Hopper have an **alignment floor** (`−132` and `−133`): η is
   never below it. The floor only matters when every term is tiny, for example
   products of subnormals. It then coarsens the grid and flushes those terms
-  toward zero. V100 has no floor.
+  to zero. V100 has no floor.
 
 ## Step 2: the grid
 
@@ -45,24 +45,25 @@ is the number of **extra alignment bits** the architecture keeps beyond
 FP32's 23 mantissa bits: 0 on V100, 1 on A100, 2 on H100. A larger `p` gives
 a finer grid, so less is lost.
 
-## Step 3: truncation toward zero
+## Step 3: truncation
 
 ```lean
 /-- Signed magnitude truncation. -/
-def truncCoeff (x : ℚ) (e : ℤ) : ℤ :=
+def truncBits (x : ℚ) (e : ℤ) : ℤ :=
   if x < 0 then -((-x / pow2 e).floor) else (x / pow2 e).floor
 
-def truncGrid (x : ℚ) (e : ℤ) : ℚ := (truncCoeff x e : ℚ) * pow2 e
+def truncGrid (x : ℚ) (e : ℤ) : ℚ := (truncBits x e : ℚ) * pow2 e
 
 def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
-  b.terms.map fun t => truncCoeff t.value b.alignGridExponent
+  b.terms.map fun t => truncBits t.value b.alignGridExponent
 ```
 
-[`truncCoeff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Exact.lean#L70)
+[`truncBits`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Exact.lean#L70)
 takes the floor of the **magnitude** and restores the sign. This is the
-sign-magnitude shifter of the hardware, i.e. truncation **toward zero**, not
-toward −∞. Each term keeps only its bits at or above the grid's lowest bit
-`2^(η − F)`. `truncCoeff` returns those kept bits, with the sign, counted in
+sign-magnitude shifter of the hardware: it **truncates** the magnitude and
+keeps the sign. For a negative term this is not the same as rounding down
+(toward −∞). Each term keeps only its bits at or above the grid's lowest bit
+`2^(η − F)`. `truncBits` returns those kept bits, with the sign, counted in
 units of that lowest bit; the code calls this the term's *coefficient*.
 
 ## What is lost

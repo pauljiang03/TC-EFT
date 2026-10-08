@@ -4,7 +4,7 @@ namespace TensorCore
 
 /-- Source-backed FP32-output families. -/
 @[implicit_reducible] def alignedInvocation (input : OperandEncoding) (K F : ℕ) (floor : Option ℤ) : InvocationSpec :=
-  ⟨input, fp32, K, .aligned F floor .inGroup, [], ⟨fp32, .towardZero⟩⟩
+  ⟨input, fp32, K, .aligned F floor .inGroup, [], ⟨fp32, .truncate⟩⟩
 
 def a100F16Invocation : InvocationSpec := alignedInvocation (packedIEEE fp16) 8 24 (some (-132))
 def a100BF16Invocation : InvocationSpec := alignedInvocation (packedIEEE bf16) 8 24 (some (-132))

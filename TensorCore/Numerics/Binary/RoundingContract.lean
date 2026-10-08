@@ -9,7 +9,7 @@ def BinaryRoundSpec (f : Format) (mode : BinaryRoundingMode) (x : ℚ)
     (bits : BitVec f.width) : Prop :=
   match mode with
   | .nearestEven => NearestEven f x bits
-  | .towardZero => TowardZero f x bits
+  | .truncate => Truncated f x bits
   | .towardNegative => TowardNegative f x bits
   | .towardPositive => TowardPositive f x bits
 
@@ -17,7 +17,7 @@ theorem roundBinary_correct (f : Format) (hf : f.WellFormed) (mode : BinaryRound
     (x : ℚ) (hr : absQ x ≤ f.maxFinite) :
     ∃ bits, roundBinary f mode x = some bits ∧ BinaryRoundSpec f mode x bits := by
   cases mode
-  · exact roundBinary_towardZero_correct f hf x hr
+  · exact roundBinary_truncate_correct f hf x hr
   · exact roundBinary_nearestEven_correct f hf x hr
   · exact roundBinary_towardNegative_correct f hf x hr
   · exact roundBinary_towardPositive_correct f hf x hr

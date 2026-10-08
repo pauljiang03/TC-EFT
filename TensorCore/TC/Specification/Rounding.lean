@@ -26,33 +26,33 @@ private theorem encode32_sign (negative : Bool) (e k : ℤ)
   cases negative <;> simp only [Bool.false_eq_true, ↓reduceIte, Nat.reducePow]
   all_goals split <;> simp <;> omega
 
-theorem round32_sign (x : ℚ) (b : F32) (h : round32 .towardZero x = some b) :
+theorem round32_sign (x : ℚ) (b : F32) (h : round32 .truncate x = some b) :
     (b.toNat / 2147483648 != 0) = decide (x < 0) := by
   by_cases hz : x = 0
   · subst x
-    have hzero : round32 .towardZero 0 = some 0 := by decide +kernel
+    have hzero : round32 .truncate 0 = some 0 := by decide +kernel
     have hb : b = 0 := by simpa only [hzero, Option.some.injEq] using h.symm
     subst b
     decide
   have hr := round32_range h
   have hm := absQ_pos_of_ne_zero x hz
   obtain ⟨he1, he2, _, _⟩ := normExp_bounds (absQ x) hm hr
-  obtain ⟨hk0, hk1, hsub, htop⟩ := roundedCoeff_bounds .towardZero (absQ x) hm hr
+  obtain ⟨hk0, hk1, hsub, htop⟩ := roundedSignificand_bounds .truncate (absQ x) hm hr
   have hs := carry_spec _ _ he1 he2 hk0 hk1 hsub htop
   unfold round32 round32Core at h
   rw [if_neg (Rat.not_lt.mpr hr), if_neg hz] at h
-  generalize hp : carry (normExp (absQ x)) (roundedCoeff .towardZero (absQ x)) = pair at h hs
+  generalize hp : carry (normExp (absQ x)) (roundedSignificand .truncate (absQ x)) = pair at h hs
   rcases pair with ⟨e, k⟩
   dsimp only at h hs
   rw [if_neg (by omega)] at h
   cases Option.some.inj h
   exact encode32_sign _ _ _ hs.1 hs.2.1 hs.2.2.1 hs.2.2.2.1
 
-theorem round32_rounds (x : ℚ) (b : F32) (h : round32 .towardZero x = some b) :
+theorem round32_rounds (x : ℚ) (b : F32) (h : round32 .truncate x = some b) :
     Rounds x b := by
   have hr := round32_range h
-  obtain ⟨bits, hb, hc⟩ := roundBinary_towardZero_correct fp32 (by decide) x hr
-  change round32 .towardZero x = some bits at hb
+  obtain ⟨bits, hb, hc⟩ := roundBinary_truncate_correct fp32 (by decide) x hr
+  change round32 .truncate x = some bits at hb
   rw [h] at hb
   cases Option.some.inj hb
   obtain ⟨d, hd, hbetween, hmax⟩ := hc
@@ -101,10 +101,10 @@ theorem rounds_unique (x : ℚ) (a b : F32) (ha : Rounds x a) (hb : Rounds x b) 
   · exact value32_injective a b va hva hvb hz
 
 theorem rounds_iff (x : ℚ) (b : F32) (hr : magnitude x ≤ maxFinite) :
-    Rounds x b ↔ round32 .towardZero x = some b := by
+    Rounds x b ↔ round32 .truncate x = some b := by
   constructor
   · intro h
-    obtain ⟨a, _, ha, _⟩ := round32_finite_exists .towardZero x hr
+    obtain ⟨a, _, ha, _⟩ := round32_finite_exists .truncate x hr
     have hab := rounds_unique x a b (round32_rounds x a ha) h
     rwa [hab] at ha
   · exact round32_rounds x b

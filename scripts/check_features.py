@@ -60,7 +60,7 @@ def reference(words, K, extra, floor):
     if eta is not None and floor is not None:
         eta = max(eta, floor)
     q = Q(2) ** ((eta if eta is not None else 0) - 23 - extra)
-    # int(Fraction) truncates toward zero, including negative terms.
+    # int(Fraction) truncates the magnitude, including negative terms.
     acc = sum((int(v / q) * q for v, _ in terms), Q(0))
     ideal = sum((v for v, _ in terms), Q(0))
     bits = round32_search(acc)

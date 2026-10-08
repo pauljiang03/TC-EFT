@@ -144,12 +144,12 @@ theorem roundingCoefficient_spec (m g : Magnitude)
   · rename_i hc
     rw [if_neg (by intro h; exact hc (hcond.mpr h)), hk']
 
-theorem roundingCoefficient_roundedCoeff (m : Magnitude) (hm : m ≠ 0) :
+theorem roundingCoefficient_roundedSignificand (m : Magnitude) (hm : m ≠ 0) :
     ((roundingCoefficient m (roundingGrid m)).toNat : ℤ) =
-      roundedCoeff .nearestEven (magnitudeValue m) := by
+      roundedSignificand .nearestEven (magnitudeValue m) := by
   have hg := roundingGrid_bounds m
   rw [roundingCoefficient_spec _ _ (by omega) (by omega) (roundingGrid_quotient_bound m)]
-  unfold roundedCoeff roundCoefficient
+  unfold roundedSignificand roundSignificand
   rw [roundingGrid_div m hm]
 
 theorem encodeAtGrid_spec (negative : Bool) (g k : Magnitude)
@@ -287,13 +287,13 @@ theorem Word.round32_eq (x : Word) :
       have hmr : magnitudeValue x.magnitude ≤ maxFinite32 := by rwa [x.abs_value] at hr'
       have hnmr : ¬ magnitudeValue x.magnitude > maxFinite32 := by grind
       obtain ⟨he0, he1, _, _⟩ := normExp_bounds _ hp hmr
-      obtain ⟨hk0, hk1, hsub, htop⟩ := roundedCoeff_bounds .nearestEven _ hp hmr
+      obtain ⟨hk0, hk1, hsub, htop⟩ := roundedSignificand_bounds .nearestEven _ hp hmr
       have hs := carry_spec _ _ he0 he1 hk0 hk1 hsub htop
       have hcarry : ¬ (carry (normExp (magnitudeValue x.magnitude))
-          (roundedCoeff .nearestEven (magnitudeValue x.magnitude))).1 > 127 := by
+          (roundedSignificand .nearestEven (magnitudeValue x.magnitude))).1 > 127 := by
         exact Int.not_lt.mpr hs.2.1
       have hg := roundingGrid_bounds x.magnitude
-      have hk := roundingCoefficient_roundedCoeff x.magnitude hz
+      have hk := roundingCoefficient_roundedSignificand x.magnitude hz
       have hsign := x.sign_value hz
       simp only [Word.round32, if_neg hnr, beq_iff_eq, if_neg hz]
       rw [encodeRounded_spec _ _ _ hg.1 hg.2 (by omega), hk,

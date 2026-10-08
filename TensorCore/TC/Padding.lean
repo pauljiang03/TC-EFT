@@ -124,7 +124,7 @@ theorem canonical_source_padding_output (K extra : ℕ) (floor : Option ℤ)
     (hf : ∀ f ∈ floor, f ≤ 30) (hextra : 156 ≤ extra)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (t : BlockTrace)
     (he : evalBlock x = .ok t) :
-    round32 .towardZero t.block.exactDot = some t.output.bits :=
+    round32 .truncate t.block.exactDot = some t.output.bits :=
   (evalBlock_exact_alignment he (canonical_source_padding_exact K extra floor hf hextra x
     t.block (evalBlock_prepared he))).2
 
@@ -180,7 +180,7 @@ theorem canonical_padding_output (K extra : ℕ) (floor : Option ℤ)
     (hf : ∀ f ∈ floor, f ≤ 127) (hextra : 253 ≤ extra)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (t : BlockTrace)
     (he : evalBlock x = .ok t) :
-    round32 .towardZero t.block.exactDot = some t.output.bits :=
+    round32 .truncate t.block.exactDot = some t.output.bits :=
   (evalBlock_exact_alignment he (canonical_padding_exact K extra floor hf hextra x
     t.block (evalBlock_prepared he))).2
 

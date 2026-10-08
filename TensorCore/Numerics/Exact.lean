@@ -67,10 +67,10 @@ theorem absQ_of_nonneg {x : ℚ} (h : 0 ≤ x) : absQ x = x := by unfold absQ; s
 theorem absQ_of_neg {x : ℚ} (h : x < 0) : absQ x = -x := by unfold absQ; split <;> grind
 
 /-- Signed magnitude truncation. -/
-def truncCoeff (x : ℚ) (e : ℤ) : ℤ :=
+def truncBits (x : ℚ) (e : ℤ) : ℤ :=
   if x < 0 then -((-x / pow2 e).floor) else (x / pow2 e).floor
 
-def truncGrid (x : ℚ) (e : ℤ) : ℚ := (truncCoeff x e : ℚ) * pow2 e
+def truncGrid (x : ℚ) (e : ℤ) : ℚ := (truncBits x e : ℚ) * pow2 e
 
 theorem sum_coefficients (zs : List ℤ) (q : ℚ) :
     sumQ (zs.map fun (z : ℤ) => (z : ℚ) * q) = (sumZ zs : ℚ) * q := by

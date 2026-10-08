@@ -7,10 +7,13 @@ namespace TensorCore
 
 /-- The TC-EFT paper's component predicate with separate minimum-grid, coefficient, and absolute range budgets. -/
 def BlockTrace.scalarPredicateIn (t : BlockTrace) (f : Format) : Bool :=
-  decide f.WellFormed && decide (f.emin - f.mantissaBits ≤ t.supportExponent) &&
-  (t.lowParts == t.lowCoefficients.map fun (z : ℤ) => (z : ℚ) * pow2 t.supportExponent) &&
-  decide (magnitudeSum t.lowCoefficients < 2 ^ (f.mantissaBits + 1)) &&
-  decide ((magnitudeSum t.lowCoefficients : ℚ) * pow2 t.supportExponent ≤ f.maxFinite) &&
+  let ℓ := t.lowestLowBitExp
+  let q := pow2 ℓ
+  let zs := t.lowBits
+  decide f.WellFormed && decide (f.emin - f.mantissaBits ≤ ℓ) &&
+  (t.lowParts == zs.map fun (z : ℤ) => (z : ℚ) * q) &&
+  decide (magnitudeSum zs < 2 ^ (f.mantissaBits + 1)) &&
+  decide ((magnitudeSum zs : ℚ) * q ≤ f.maxFinite) &&
   representableBinary f t.output.value && representableBinary f t.overlap &&
   representableBinary f t.retainedSum &&
   decide (absQ (t.retainedSum + sumQ t.lowParts) ≤ maxFinite32)

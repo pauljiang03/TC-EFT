@@ -77,7 +77,7 @@ theorem binaryCoefficient_bounds (mode : BinaryRoundingMode) (negative : Bool) (
       exact this.mp h3
     omega
   cases mode with
-  | towardZero => simp only [binaryCoefficient]; omega
+  | truncate => simp only [binaryCoefficient]; omega
   | nearestEven =>
     simp only [binaryCoefficient]
     have hr : rneInt t ≤ t.ceil := by
@@ -109,7 +109,7 @@ theorem binaryCoefficient_le_integer (mode : BinaryRoundingMode) (negative : Boo
   rw [Rat.floor_intCast] at hf
   have hc : t.ceil ≤ n := Rat.ceil_le_iff.mpr h
   cases mode with
-  | towardZero => exact hf
+  | truncate => exact hf
   | nearestEven =>
     change rneInt t ≤ n
     rcases rneInt_cases t with ⟨hk, hcond⟩ | ⟨hk, _⟩

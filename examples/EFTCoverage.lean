@@ -37,8 +37,8 @@ private def runRow (row : List String) : IO Json := do
       ("corrected", toJson (t.scalarCorrected.map BitVec.toNat)),
       ("tceft", toJson (t.scalarTcEft.map BitVec.toNat)),
       ("unchecked", toJson (t.scalarCorrectedUnchecked.map BitVec.toNat)),
-      ("support", toJson t.supportExponent),
-      ("coefficient_sum", toJson (toString (magnitudeSum t.lowCoefficients))),
+      ("support", toJson t.lowestLowBitExp),
+      ("coefficient_sum", toJson (toString (magnitudeSum t.lowBits))),
       ("low_parts", toJson (t.lowParts.map fun q => s!"{q.num}/{q.den}"))]
 
 def main (args : List String) : IO Unit := do

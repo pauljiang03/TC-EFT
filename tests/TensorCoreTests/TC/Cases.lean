@@ -18,7 +18,7 @@ structure Snapshot where
   alignExp : Option ℤ
   qExponent : ℤ
   unnormalizedExps : List ℤ
-  coefficients : List ℤ
+  alignedBits : List ℤ
   ideal : ℚ
   accumulator : ℚ
   alignmentResiduals : List ℚ
@@ -31,7 +31,7 @@ def snapshot {p : Profile} (x : BlockInput p) : Except ModelError Snapshot := do
   let t ← evalBlock x
   return ⟨t.output.bits.toNat, t.block.alignExp, t.block.alignGridExponent,
     t.block.products.map (fun (a, b) => (unnormalizedMul a b).unnormalizedExp),
-    t.block.coefficients, t.block.exactDot, t.block.accumulator,
+    t.block.alignedBits, t.block.exactDot, t.block.accumulator,
     t.block.alignmentResiduals, t.outputResidual, t.residual,
     t.corrected.map BitVec.toNat⟩
 
@@ -111,8 +111,8 @@ theorem nonfinite_rejected :
       .error .nonfiniteInput := by decide +kernel
 /-- The accepted domain remains the explicitly specified finite range. -/
 theorem out_of_range_rejected :
-    round32 .towardZero (maxFinite32 + 1) = none ∧
-    round32 .towardZero (pow2 128) = none ∧
+    round32 .truncate (maxFinite32 + 1) = none ∧
+    round32 .truncate (pow2 128) = none ∧
     round32 .nearestEven (maxFinite32 + pow2 102) = none ∧
     round32 .nearestEven (maxFinite32 + pow2 103) = none ∧
     round32 .nearestEven (-(maxFinite32 + pow2 103)) = none := by decide +kernel

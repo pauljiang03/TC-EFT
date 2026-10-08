@@ -20,8 +20,8 @@ theorem fused_requires_one_product :
   decide +kernel
 
 theorem finite_range_rounding_policy :
-    round32 .towardZero (maxFinite32 + 1) = none ∧
+    round32 .truncate (maxFinite32 + 1) = none ∧
     round32 .nearestEven (maxFinite32 + 1) = none ∧
-    round32Core .towardZero (maxFinite32 + 1) = some 0x7f7fffff := by decide +kernel
+    round32Core .truncate (maxFinite32 + 1) = some 0x7f7fffff := by decide +kernel
 
 end TensorCore.Regression

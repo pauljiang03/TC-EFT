@@ -10,7 +10,7 @@ theorem profile_contract (p : Profile) (F carryBits : ℕ) (hF : p.alignMantissa
     (hc : p.products + 1 ≤ 2 ^ carryBits) (x : BlockInput p) (t : BlockTrace)
     (h : evalBlock x = .ok t) :
     exactDot x = some t.block.exactDot ∧
-    round32 .towardZero t.block.accumulator = some t.output.bits ∧
+    round32 .truncate t.block.accumulator = some t.output.bits ∧
     absQ (t.block.exactDot - t.output.value) <
       ((p.products + 1 : ℕ) : ℚ) * pow2 t.block.alignGridExponent +
         pow2 (outputUlpExponent t.output.bits) ∧
@@ -31,7 +31,7 @@ theorem bf16Fp32_contract (K extra carryBits : ℕ) (floor : Option ℤ)
     (x : BlockInput (bf16Fp32Profile K extra floor)) (t : BlockTrace)
     (h : evalBlock x = .ok t) (hc : K + 1 ≤ 2 ^ carryBits) :
     exactDot x = some t.block.exactDot ∧
-    round32 .towardZero t.block.accumulator = some t.output.bits ∧
+    round32 .truncate t.block.accumulator = some t.output.bits ∧
     absQ (t.block.exactDot - t.output.value) <
       ((K + 1 : ℕ) : ℚ) * pow2 t.block.alignGridExponent +
         pow2 (outputUlpExponent t.output.bits) ∧
@@ -44,7 +44,7 @@ theorem tf19Fp32_contract (K extra carryBits : ℕ) (floor : Option ℤ)
     (x : BlockInput (tf19Fp32Profile K extra floor)) (t : BlockTrace)
     (h : evalBlock x = .ok t) (hc : K + 1 ≤ 2 ^ carryBits) :
     exactDot x = some t.block.exactDot ∧
-    round32 .towardZero t.block.accumulator = some t.output.bits ∧
+    round32 .truncate t.block.accumulator = some t.output.bits ∧
     absQ (t.block.exactDot - t.output.value) <
       ((K + 1 : ℕ) : ℚ) * pow2 t.block.alignGridExponent +
         pow2 (outputUlpExponent t.output.bits) ∧
@@ -158,8 +158,8 @@ theorem padded_prepared_bits (f : Format) (pad K F : ℕ) (floor : Option ℤ)
   simp only [evalInvocationPrepared, accumulateInvocation, alignedInvocation,
     PreparedInvocation.alignedBlock, runRoundings]
   simp only [RoundingStage.roundValue, evalPrepared, ite_true]
-  rw [roundBinary_fp32 .towardZero]
-  cases hr : round32 .towardZero (PreparedBlock.mk ⟨f, K, F, floor⟩ ps c).accumulator with
+  rw [roundBinary_fp32 .truncate]
+  cases hr : round32 .truncate (PreparedBlock.mk ⟨f, K, F, floor⟩ ps c).accumulator with
   | none => rfl
   | some bits =>
     cases hd : decode32 bits with

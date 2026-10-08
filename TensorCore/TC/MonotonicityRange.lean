@@ -67,9 +67,9 @@ theorem construction_accumulator_range (prof : Profile) (p K j : ℕ) (da db : D
     rw [hF]
     simp only [belowDecoded]
     omega
-  have hcoef := construction_coefficients prof K da db (belowDecoded j)
+  have hcoef := construction_alignedBits prof K da db (belowDecoded j)
   rw [hq] at hcoef
-  have hc : truncCoeff (belowDecoded j).value (-(24 + p)) =
+  have hc : truncBits (belowDecoded j).value (-(24 + p)) =
       (((16777216 - j) * 2 ^ p : ℕ) : ℤ) := by
     have h1 : (belowDecoded j).value =
         ((((16777216 - j) * 2 ^ p : ℕ) : ℤ) : ℚ) * pow2 (-(24 + p)) := by
@@ -78,11 +78,11 @@ theorem construction_accumulator_range (prof : Profile) (p K j : ℕ) (da db : D
         Rat.mul_assoc, ← pow2_add]
       congr 2
       omega
-    rw [h1, truncCoeff_of_grid]
-  have hp : truncCoeff (unnormalizedMul da db).value (-(24 + p)) = 1 := by
+    rw [h1, truncBits_of_grid]
+  have hp : truncBits (unnormalizedMul da db).value (-(24 + p)) = 1 := by
     rw [hval]
     have h1 : pow2 (-(24 + p)) = ((1 : ℤ) : ℚ) * pow2 (-(24 + p)) := by simp
-    rw [h1, truncCoeff_of_grid]
+    rw [h1, truncBits_of_grid]
   unfold PreparedBlock.accumulator
   rw [hcoef, hq]
   simp only [sumZ, hc, hp, sumZ_replicate, Int.mul_one]
@@ -144,7 +144,7 @@ theorem nonmonotone_range (prof : Profile) (p K j : ℕ) (da db : Decoded)
     rw [absQ_of_nonneg (Rat.le_of_lt hApos)]
     have : (2 : ℚ) ≤ maxFinite32 := by decide +kernel
     grind
-  obtain ⟨b, hb, hv, _, _⟩ := round32_nonzero_spec .towardZero A (Rat.ne_of_gt hApos) hrange
+  obtain ⟨b, hb, hv, _, _⟩ := round32_nonzero_spec .truncate A (Rat.ne_of_gt hApos) hrange
   obtain ⟨f, hf, _, hfv⟩ := finite32_of_value32 _ _ hv
   refine ⟨⟨⟨prof, List.replicate K (da, db), belowDecoded j⟩, f⟩, ?_, ?_⟩
   · simp only [evalPrepared, hA, hb, hf]
@@ -152,7 +152,7 @@ theorem nonmonotone_range (prof : Profile) (p K j : ℕ) (da db : Decoded)
     rw [hfv]
     unfold signedRounded
     rw [if_neg (by grind), absQ_of_nonneg (Rat.le_of_lt hApos)]
-    unfold magnitudeRounded roundedCoeff roundCoefficient
+    unfold magnitudeRounded roundedSignificand roundSignificand
     dsimp only
     by_cases hjK : j * 2 ^ p ≤ K
     · have hAge : 1 ≤ A := by

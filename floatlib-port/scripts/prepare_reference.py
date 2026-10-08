@@ -5,9 +5,9 @@ import hashlib, json, re
 
 PORT = Path(__file__).resolve().parents[1]
 REPO = PORT.parent
-PIN = "990afac10b94a84f3de24743206756dd7acc3276"
+PIN = "c1afea74646a63c2bc5d87fb6f54c3a3f4b88208"
 REFERENCE = PORT / "reference-manifest.json"
-REFERENCE_SHA256 = "0788366fb0dd3a6d1886d6abcb15005a82e4aa6c78bd234ee8ee9d2e91560548"
+REFERENCE_SHA256 = "f7742bf47f7bb281b0af0e666713cf0e4cacec94f671366e7c8c94db14dae9f7"
 OUT = PORT / "reference-compat"
 
 def lean_tokens(source):
@@ -76,27 +76,7 @@ def pinned_spelling(tokens, name):
 
 
 def legacy_module(module):
-    """Resolve a parent module to its pinned reference-manifest key."""
-    exact = {
-        'TensorCore.EFT.TcEft': 'TensorCore.EFT.Algorithm1',
-        'TensorCore.Numerics.UnnormalizedProduct': 'TensorCore.Core.RawProduct',
-        'TensorCore.TC.AlignmentExponent': 'TensorCore.TC.AlignmentScale',
-        'TensorCore.TC.FinalRounding': 'TensorCore.TC.Conversion',
-        'TensorCore.Numerics.RoundingStage': 'TensorCore.Core.Conversion',
-        'TensorCore.Numerics.RoundingBounds': 'TensorCore.Core.ConversionBounds',
-        'TensorCore.Numerics.Binary.RoundingBounds': 'TensorCore.Core.Binary.ConversionBounds',
-        'TensorCore.Kernels.EFT.Defs': 'TensorCore.EFT.Bounded',
-        'TensorCore.Kernels.EFT.Native': 'TensorCore.EFT.Native',
-    }
-    if module in exact:
-        return exact[module]
-    for current, original in [
-        ('TensorCore.Numerics.', 'TensorCore.Core.'),
-        ('TensorCore.Kernels.EFT.', 'TensorCore.EFT.Machine.'),
-        ('TensorCore.Scalar.', 'TensorCore.IEEE.'),
-    ]:
-        if module.startswith(current):
-            return original + module[len(current):]
+    """Resolve a parent module to its pinned reference-manifest key (the pin uses current names)."""
     return module
 
 

@@ -139,11 +139,11 @@ theorem round_finite (m : TensorCore.RoundingMode) (x : Rat) (b : TensorCore.F32
 
 theorem evalPrepared_bits (b : TensorCore.PreparedBlock) :
     (TensorCore.evalPrepared b).toOption.map (fun t => t.output.bits.toNat) =
-      (TensorCore.round32 .towardZero b.accumulator).map BitVec.toNat := by
-  cases hr : TensorCore.round32 .towardZero b.accumulator with
+      (TensorCore.round32 .truncate b.accumulator).map BitVec.toNat := by
+  cases hr : TensorCore.round32 .truncate b.accumulator with
   | none => simp [TensorCore.evalPrepared,hr,Except.toOption]
   | some bits =>
-    obtain ⟨d,hd,hb⟩ := round_finite .towardZero _ bits hr
+    obtain ⟨d,hd,hb⟩ := round_finite .truncate _ bits hr
     simp [TensorCore.evalPrepared,hr,hd,hb,Except.toOption]
 
 theorem trace_algorithm_eq (b : Block) (hb : ValidBlock b) (D : TensorCore.F32) :

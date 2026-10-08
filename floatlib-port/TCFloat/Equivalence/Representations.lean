@@ -114,10 +114,10 @@ theorem tc_checked_eq (p : Profile) (hf : p.format.isIEEE=true)
     | some b =>
       simp only [Option.map_some]
       rw [evaluate_eq b (prepare_valid p hf x b hb)]
-      cases hr : TensorCore.round32 .towardZero (block b).accumulator with
+      cases hr : TensorCore.round32 .truncate (block b).accumulator with
       | none => simp [TensorCore.evalPrepared,hr,observe,error]
       | some bits =>
-        obtain ⟨d,hd,hbits⟩ := round_finite .towardZero _ bits hr
+        obtain ⟨d,hd,hbits⟩ := round_finite .truncate _ bits hr
         simp [TensorCore.evalPrepared,hr,hd,observe,hbits]
   · have hs' : (x.products.length != p.products)=true := bne_iff_ne.mpr hs
     simp [Interface.tcChecked,TensorCore.evalBlock,input_length,profile,hs',observe,error]

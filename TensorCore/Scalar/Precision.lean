@@ -10,7 +10,7 @@ def IntegerRound (mode : BinaryRoundingMode) (negative : Bool) (t : ℚ) (k : �
   | .nearestEven =>
       (∀ j : ℤ, absQ (t - k) ≤ absQ (t - j)) ∧
       (∀ j : ℤ, j ≠ k → absQ (t - j) = absQ (t - k) → k % 2 = 0)
-  | .towardZero => (k : ℚ) ≤ t ∧ ∀ j : ℤ, (j : ℚ) ≤ t → j ≤ k
+  | .truncate => (k : ℚ) ≤ t ∧ ∀ j : ℤ, (j : ℚ) ≤ t → j ≤ k
   | .towardNegative => if negative then
       t ≤ (k : ℚ) ∧ ∀ j : ℤ, t ≤ (j : ℚ) → k ≤ j
     else (k : ℚ) ≤ t ∧ ∀ j : ℤ, (j : ℚ) ≤ t → j ≤ k
@@ -26,7 +26,7 @@ theorem coefficient_correct (mode : BinaryRoundingMode) (negative : Bool) (t : �
     ⟨Rat.le_ceil, fun _ h => Rat.ceil_le_iff.mpr h⟩
   cases mode with
   | nearestEven => exact ⟨rneInt_nearest t, fun j hn ht => rneInt_tie_even t j ht hn⟩
-  | towardZero => exact hf
+  | truncate => exact hf
   | towardNegative => cases negative <;> first | exact hf | exact hc
   | towardPositive => cases negative <;> first | exact hf | exact hc
 
@@ -41,7 +41,7 @@ theorem integerRound_unique (mode : BinaryRoundingMode) (negative : Bool) (t : �
     intro h
     exact Int.le_antisymm (h.2 _ Rat.le_ceil) (Rat.ceil_le_iff.mpr h.1)
   cases mode with
-  | towardZero => exact hf h
+  | truncate => exact hf h
   | towardNegative => cases negative <;> first | exact hf h | exact hc h
   | towardPositive => cases negative <;> first | exact hf h | exact hc h
   | nearestEven =>
@@ -184,10 +184,10 @@ theorem precision_nearest_all (f : Format) (m : ℚ) (hm : 0 < m)
 
 /-- Directed precision rounding is a greatest lower bound over every bounded- significand dyadic, rather than only competitors on the selected grid. -/
 theorem precision_floor_all (f : Format) (m : ℚ) (hm : 0 < m) :
-    precisionMagnitude f .towardZero false m ≤ m ∧
+    precisionMagnitude f .truncate false m ≤ m ∧
     ∀ j e : ℤ, j.natAbs < 2 ^ (f.mantissaBits + 1) →
       (j : ℚ) * pow2 (e - f.mantissaBits) ≤ m →
-      (j : ℚ) * pow2 (e - f.mantissaBits) ≤ precisionMagnitude f .towardZero false m := by
+      (j : ℚ) * pow2 (e - f.mantissaBits) ≤ precisionMagnitude f .truncate false m := by
   let b := magnitudeExponent m
   let q := pow2 (b - f.mantissaBits)
   have hq : 0 < q := pow2_pos _
@@ -205,7 +205,7 @@ theorem precision_floor_all (f : Format) (m : ℚ) (hm : 0 < m) :
       simpa [precisionMagnitude, Rat.ne_of_gt hm, binaryCoefficient] using h
     · have hsmall := f.finite_below_binade j e b hj (by omega)
       have hsmall' := (absQ_le_iff _ _).mp hsmall
-      have hl := precisionMagnitude_lower f .towardZero false m hm
+      have hl := precisionMagnitude_lower f .truncate false m hm
       have hp := pow2_pos (b - f.mantissaBits - 1)
       grind
 

@@ -24,7 +24,7 @@ theorem terms_value (b : PreparedBlock) :
 
 theorem accumulator_value (b : PreparedBlock) :
     b.accumulator = sumQ (b.terms.map fun t => truncGrid t.value b.alignGridExponent) := by
-  unfold PreparedBlock.accumulator PreparedBlock.coefficients
+  unfold PreparedBlock.accumulator PreparedBlock.alignedBits
   rw [← sum_coefficients]
   simp [List.map_map, Function.comp_def, truncGrid]
 
@@ -56,7 +56,7 @@ theorem corrected_eq_round_exactDot (t : BlockTrace) :
 theorem evalPrepared_block {b : PreparedBlock} {t : BlockTrace}
     (h : evalPrepared b = .ok t) : t.block = b := by
   unfold evalPrepared at h
-  cases hr : round32 .towardZero b.accumulator with
+  cases hr : round32 .truncate b.accumulator with
   | none => simp [hr] at h
   | some bits =>
     cases hd : finite32 bits with
