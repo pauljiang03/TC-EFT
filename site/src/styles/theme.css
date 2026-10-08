@@ -1,0 +1,160 @@
+/* TC-EFT: a lab-notebook theme. Paper and ink, with a teal accent for links and rules. */
+
+@import '@fontsource-variable/source-serif-4';
+@import '@fontsource/ibm-plex-mono/400.css';
+@import '@fontsource/ibm-plex-mono/500.css';
+@import '@fontsource/ibm-plex-mono/600.css';
+
+:root,
+[data-theme='light'] {
+  --tc-paper: #f4f1ea;
+  --tc-paper-2: #ebe6da;
+  --tc-paper-3: #ddd5c3;
+  --tc-ink: #16191d;
+  --tc-ink-2: #3b4047;
+  --tc-ink-3: #555c66;
+  --tc-rule: #cbc3b1;
+  --tc-rule-2: #b5ab96;
+  --tc-accent: #0b6b6f;
+  --tc-accent-soft: rgba(11, 107, 111, 0.12);
+  --tc-accent-ink: #07494c;
+  --tc-grid: rgba(22, 25, 29, 0.05);
+}
+
+[data-theme='dark'] {
+  --tc-paper: #0f1215;
+  --tc-paper-2: #171b20;
+  --tc-paper-3: #20262d;
+  --tc-ink: #e6e1d6;
+  --tc-ink-2: #b6b0a3;
+  --tc-ink-3: #9a9588;
+  --tc-rule: #2b3139;
+  --tc-rule-2: #38404a;
+  --tc-accent: #43c3bd;
+  --tc-accent-soft: rgba(67, 195, 189, 0.16);
+  --tc-accent-ink: #79dcd6;
+  --tc-grid: rgba(230, 225, 214, 0.04);
+}
+
+:root {
+  --sl-font: 'Source Serif 4 Variable', 'Iowan Old Style', Palatino, Georgia, serif;
+  --sl-font-system-mono: 'IBM Plex Mono', ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  --sl-text-h1: 2.4rem;
+  --sl-text-h2: 1.6rem;
+  --sl-text-h3: 1.2rem;
+  --sl-line-height: 1.7;
+  --sl-content-width: 50rem;
+}
+
+:root[data-theme='light'],
+:root[data-theme='dark'] {
+  --sl-color-bg: var(--tc-paper);
+  --sl-color-bg-nav: var(--tc-paper);
+  --sl-color-bg-sidebar: var(--tc-paper);
+  --sl-color-bg-inline-code: var(--tc-paper-2);
+  --sl-color-bg-accent: var(--tc-accent);
+  --sl-color-text: var(--tc-ink);
+  --sl-color-text-accent: var(--tc-accent-ink);
+  --sl-color-text-invert: var(--tc-paper);
+  --sl-color-white: var(--tc-ink);
+  --sl-color-gray-1: var(--tc-ink);
+  --sl-color-gray-2: var(--tc-ink-2);
+  --sl-color-gray-3: var(--tc-ink-3);
+  --sl-color-gray-4: var(--tc-rule-2);
+  --sl-color-gray-5: var(--tc-rule);
+  --sl-color-gray-6: var(--tc-paper-3);
+  --sl-color-gray-7: var(--tc-paper-2);
+  --sl-color-black: var(--tc-paper);
+  --sl-color-hairline: var(--tc-rule);
+  --sl-color-hairline-light: var(--tc-rule);
+  --sl-color-hairline-shade: var(--tc-rule-2);
+  --sl-color-accent: var(--tc-accent);
+  --sl-color-accent-low: var(--tc-accent-soft);
+  --sl-color-accent-high: var(--tc-accent-ink);
+}
+
+body {
+  font-optical-sizing: auto;
+  -webkit-font-smoothing: antialiased;
+  background-image:
+    linear-gradient(var(--tc-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--tc-grid) 1px, transparent 1px);
+  background-size: 24px 24px;
+}
+
+.sl-markdown-content h1,
+.sl-markdown-content h2,
+.sl-markdown-content h3 {
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.sl-markdown-content h2 {
+  border-bottom: 1px solid var(--tc-rule);
+  padding-bottom: 0.25rem;
+}
+
+.sl-markdown-content code:not(pre code) {
+  font-size: 0.86em;
+  padding: 0.05em 0.3em;
+  border-radius: 2px;
+}
+
+.sl-markdown-content table {
+  display: block;
+  overflow-x: auto;
+  font-size: 0.92rem;
+}
+
+.sl-markdown-content th {
+  background: var(--tc-paper-2);
+  font-family: var(--sl-font-system-mono);
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* A numbered pipeline used on the model pages. */
+.pipeline {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0;
+  border: 1px solid var(--tc-rule-2);
+  margin: 1.5rem 0;
+}
+.pipeline > a,
+.pipeline > div {
+  padding: 0.75rem 0.85rem;
+  border-right: 1px solid var(--tc-rule);
+  text-decoration: none;
+  color: var(--tc-ink);
+  background: var(--tc-paper);
+}
+.pipeline > a:hover {
+  background: var(--tc-accent-soft);
+}
+.pipeline .n {
+  display: block;
+  font-family: var(--sl-font-system-mono);
+  font-size: 0.72rem;
+  color: var(--tc-accent);
+  letter-spacing: 0.06em;
+}
+.pipeline .t {
+  display: block;
+  font-weight: 600;
+}
+.pipeline .d {
+  display: block;
+  font-size: 0.82rem;
+  color: var(--tc-ink-3);
+  line-height: 1.4;
+  margin-top: 0.2rem;
+}
+
+.lean-ref {
+  font-family: var(--sl-font-system-mono);
+  font-size: 0.8rem;
+  color: var(--tc-ink-3);
+}

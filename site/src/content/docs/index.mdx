@@ -1,0 +1,50 @@
+---
+title: TC-EFT
+description: A Lean 4 model of NVIDIA Tensor Core block arithmetic, with proofs of its error behavior, its non-monotonicity, and the TC-EFT correction algorithm.
+template: splash
+hero:
+  tagline: A Lean 4 model of NVIDIA Tensor Core block arithmetic. One set of definitions both runs as code and carries the proofs, from the encoded input words to the FP32 output bits.
+  actions:
+    - text: How the Tensor Core is modeled
+      link: /TC-EFT/model/
+      icon: right-arrow
+    - text: Overview
+      link: /TC-EFT/overview/
+      variant: minimal
+    - text: GitHub
+      link: https://github.com/pauljiang03/TC-EFT
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<div class="pipeline">
+  <a href="/TC-EFT/model/formats/"><span class="n">01 DECODE</span><span class="t">Bits → values</span><span class="d">FP16, BF16, TF32, FP32 words with raw exponents kept</span></a>
+  <a href="/TC-EFT/model/products/"><span class="n">02 MULTIPLY</span><span class="t">Exact raw products</span><span class="d">No normalization or rounding</span></a>
+  <a href="/TC-EFT/model/alignment/"><span class="n">03 ALIGN</span><span class="t">Common grid</span><span class="d">Largest raw exponent, floor, F = 23 + p; truncate</span></a>
+  <a href="/TC-EFT/model/accumulation/"><span class="n">04 ACCUMULATE</span><span class="t">Integer sum</span><span class="d">Exact; proved equal to w-bit register sums at adequate width</span></a>
+  <a href="/TC-EFT/model/conversion/"><span class="n">05 CONVERT</span><span class="t">FP32 output</span><span class="d">Round toward zero to a finite word</span></a>
+</div>
+
+<CardGrid>
+  <Card title="A model that runs" icon="rocket">
+    `evalBlock` takes encoded operand words and returns FP32 bits. It is
+    ordinary Lean code that can be evaluated with `#eval`, compiled into
+    batch checkers, and reasoned about in proofs.
+  </Card>
+  <Card title="Checked against an independent specification" icon="document">
+    A separate transcription of Khattak and Mikaitis's model, `PaperSpec`, is
+    proved to give the same output or rejection as `evalBlock` for **every**
+    encoded input on all eight supported paths.
+  </Card>
+  <Card title="Replayed against GPU measurements" icon="laptop">
+    35,000 recorded V100/A100/H100 measurements (FP16, BF16, TF32) are replayed
+    through the Lean executable. The recorded result shows zero bit mismatches. [Coverage notes](/TC-EFT/model/validation/#what-the-rows-dont-cover).
+  </Card>
+  <Card title="Non-monotonicity and EFT" icon="random">
+    Proved: in the constructed family, lowering C raises the output exactly when `K ≥ 3·2^p`.
+    TC-EFT recovers the lost low-order parts and returns the correctly rounded
+    sum when its stated preconditions hold.
+  </Card>
+</CardGrid>

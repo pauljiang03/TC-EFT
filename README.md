@@ -4,7 +4,7 @@ This Lean library formalizes Tensor Core (TC) block arithmetic, its non-monotoni
 
 Start with the [guide](docs/README.md). It follows a calculation from encoded input words through alignment and correction, then explains how to run the Lean tests and add cases.
 
-[Reviewer guide](ARTIFACT.md) · [Test walkthrough](tests/README.md) · [Theorem index](TensorCore/THEOREMS.md) · [FloatLib implementation](floatlib-port/README.md)
+[Website](https://pauljiang03.github.io/TC-EFT/) · [Reviewer guide](ARTIFACT.md) · [Test walkthrough](tests/README.md) · [Theorem index](TensorCore/THEOREMS.md) · [FloatLib implementation](floatlib-port/README.md)
 
 ## Build and run
 

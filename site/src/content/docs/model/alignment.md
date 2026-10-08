@@ -1,0 +1,97 @@
+---
+title: 3. Alignment
+description: The alignment exponent η, the profile floor, the grid 2^(η−F), and truncation toward zero.
+---
+
+Alignment is where a Tensor Core loses information, and it is the core of the
+model. All terms (`C` and the `K` raw products) are put on one fixed-point
+grid. Anything below the grid is discarded.
+
+## Step 1: the alignment exponent η
+
+```lean
+/-- A nonempty maximum ignores zero terms; none explicitly represents an all-zero block. -/
+def alignmentScale (ts : List RawProduct) : Option ℤ :=
+  (ts.filterMap fun t => if t.significand = 0 then none else some t.rawScale).foldl
+    (fun acc e => some (match acc with | none => e | some v => max v e)) none
+
+/-- The floor only raises a nonempty maximum; an all-zero block stays `none`. -/
+def Profile.applyFloor (p : Profile) : Option ℤ → Option ℤ
+  | none => none
+  | some e => some (match p.alignFloor with | none => e | some f => max e f)
+
+def PreparedBlock.eta (b : PreparedBlock) : Option ℤ :=
+  b.profile.applyFloor (alignmentScale b.terms)
+```
+
+- η is the **largest raw scale among the nonzero terms**. Zero terms are
+  skipped, so a zero product never coarsens the grid.
+- If every term is zero, η is `none`. The accumulator is then exactly zero
+  and the output is `+0`.
+- Ampere and Hopper have an **alignment floor** (`−132` and `−133`): η is
+  never below it. The floor only matters when every term is tiny, for example
+  products of subnormals. It then coarsens the grid and flushes those terms
+  toward zero. V100 has no floor.
+
+## Step 2: the grid
+
+```lean
+def PreparedBlock.quantumExponent (b : PreparedBlock) : ℤ :=
+  b.eta.getD 0 - b.profile.alignFraction
+```
+
+The grid spacing is `2^(η − F)`, where `F = alignFraction = 23 + p`. Here `p`
+is the number of **extra alignment bits** the architecture keeps beyond
+FP32's 23 fraction bits: 0 on V100, 1 on A100, 2 on H100. A larger `p` gives
+a finer grid, so less is lost.
+
+## Step 3: truncation toward zero
+
+```lean
+/-- Signed magnitude truncation. -/
+def truncCoeff (x : ℚ) (e : ℤ) : ℤ :=
+  if x < 0 then -((-x / pow2 e).floor) else (x / pow2 e).floor
+
+def truncGrid (x : ℚ) (e : ℤ) : ℚ := (truncCoeff x e : ℚ) * pow2 e
+
+def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
+  b.terms.map fun t => truncCoeff t.value b.quantumExponent
+```
+
+[`truncCoeff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Exact.lean#L70)
+takes the floor of the **magnitude** and restores the sign. This is the
+sign-magnitude shifter of the hardware, i.e. truncation **toward zero**, not
+toward −∞. Each term becomes an integer coefficient on the grid.
+
+## What is lost
+
+The discarded parts are named and tracked:
+
+```lean
+def PreparedBlock.alignmentResiduals (b : PreparedBlock) : List ℚ :=
+  b.terms.map fun t => t.value - truncGrid t.value b.quantumExponent
+```
+
+Each residual is strictly smaller in magnitude than one grid step, and has the
+same sign as its term:
+
+```lean
+theorem alignment_residual_bounds (x : ℚ) (e : ℤ) :
+    -pow2 e < x - truncGrid x e ∧ x - truncGrid x e < pow2 e
+```
+
+These residuals are what [TC-EFT](/TC-EFT/properties/eft/) recovers, and the
+first half of the [error bound](/TC-EFT/properties/error-bounds/).
+
+## Example: a small term disappears
+
+V100, `F = 23`, `C = 1.0`, one product `2^-24`:
+
+- η = max(raw scale of `C` = 0, raw scale of the product = −24) = 0.
+- Grid = `2^(0 − 23) = 2^-23`.
+- Product coefficient = `⌊2^-24 / 2^-23⌋ = ⌊0.5⌋ = 0`, so the product is lost.
+
+Four such products are lost the same way, although together they are
+`2^-22`, which an FP32 result near 1 could represent. Lowering `C` slightly
+moves η to −1 and keeps all four: that is the
+[non-monotonicity](/TC-EFT/properties/non-monotonicity/) mechanism.

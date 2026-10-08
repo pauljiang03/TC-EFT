@@ -1,0 +1,34 @@
+---
+title: FloatLib cross-check
+description: A second implementation of the model and reference EFT, built on LeanDojo FloatLib and proved equivalent.
+---
+
+[`floatlib-port/`](https://github.com/pauljiang03/TC-EFT/tree/main/floatlib-port)
+is a separate Lake project. It reimplements the block model and the
+reference EFT on top of [LeanDojo FloatLib](https://github.com/lean-dojo/FloatLib),
+with its own toolchain (Lean 4.34 with Mathlib), dependency graph, and
+runtime.
+
+## The equivalence theorem
+
+[`paper_one_to_one`](https://github.com/pauljiang03/TC-EFT/blob/main/floatlib-port/TCFloat/Equivalence/Representations.lean#L149)
+and its inverse cover every profile with FP16, BF16, or TF32 input (any `K`,
+extra bits, and floor), every encoded input, and every `D`. They prove that
+the two implementations produce corresponding **complete observations**:
+TC results, EFT results, error kinds, and branch tags. The correspondence is
+stated through explicit `Equiv`s.
+
+The FloatLib project compares against a generated copy of the main
+library's sources. Apart from a scoped-notation file, that copy is
+byte-identical to the current sources.
+
+## Running it
+
+```sh
+cd floatlib-port
+python3 scripts/check_all.py          # builds proofs, audits axioms and independence
+python3 scripts/check_equivalence.py  # 115,029 command observations, 668,944 decoding cases
+```
+
+`check_all.py` writes `floatlib-port/test-results/summary.json`. The file is
+generated at run time and is not committed.
