@@ -115,6 +115,15 @@ answers are identical. The reference version just takes the slow path more
 often. For example, with BF16 inputs and `C = +0` the 576-bit version takes
 the fast path while the reference does not.
 
+The TC-EFT paper's own test generator (`grid_predicate`, for the paper's revised
+Theorem IV.9) uses the tighter rule too: the lowest bit actually set, ignoring
+zeros. On the paper's validation suites the reference check disagrees with it
+in 27 cases (2 named, 15 deterministic, 10 full-range), always by being
+stricter. Using the lowest bit actually set is the tightest choice for this
+kind of check. The reference version is deliberately left as it is; tightening
+it would change the reference algorithm and require re-pinning the FloatLib
+cross-check.
+
 **4. The fast path is checked at run time, not proved to apply.** In the
 576-bit implementation, the fast path's intermediate results are compared
 with the exact ones before being accepted. Correctness is proved, but no
