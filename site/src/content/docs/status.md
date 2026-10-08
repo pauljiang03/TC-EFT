@@ -23,6 +23,9 @@ description: Build, audit, and validation status, and known open items.
   no repository instance satisfies all of them.
 - **Scalar fast path.** No theorem shows that the predicate forces the
   bounded kernel to take the fast path.
+- **The reference scalar predicate** derives its support grid from format
+  grids, including those of zero terms, so it falls back more often than the
+  bounded kernel's guard.
 - **Validation scripts** rely on `assert` and must not run under `python -O`.
 - **Signed zero.** The binary rounding helpers return `+0` for exact zero in
   every mode, so the FP64 FMA in round-down mode differs from IEEE here.

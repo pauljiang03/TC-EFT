@@ -81,6 +81,15 @@ real implementation would use:
   path is accepted only after intermediates are compared against exact
   values. No theorem yet shows that the predicate *forces* the fast path to
   be taken.
-- **The scalar path rarely applies on random inputs.** The recorded coverage
-  runs accept it for 73/1000 (V100), 13/1000 (A100), and 0/1000 (H100)
-  random finite-bit blocks. Correctness then comes from the exact fallback.
+- **How often the scalar path applies depends on the inputs.** On the
+  published GPU vectors and the near-one cohort it is taken 5,000/5,000 and
+  1,000/1,000 times on each GPU. On application-like inputs it is taken in
+  58–97% of cases. On uniformly random bit patterns, whose exponents spread
+  widely, it is taken 73, 13, and 0 times out of 1,000 (V100, A100, H100).
+  The exact fallback then supplies the answer.
+- **The reference predicate is conservative.** Its support exponent is the
+  finest *format grid* of any term, even for zero terms (a zero `C` counts as
+  grid 0). The bounded kernel instead uses the finest *nonzero bit*. Both
+  return the same bits, but the reference falls back more often. With BF16
+  and `C = +0`, for example, the bounded kernel takes the scalar path while
+  the reference rejects it on the coefficient budget.
