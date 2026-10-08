@@ -30,8 +30,8 @@ def mode : TensorCore.RoundingMode → Mode
   | .nearestEven => .nearestEven
 
 def term (d : TensorCore.Decoded) : Term :=
-  ⟨FloatLib.Numerics.Dyadic.ofScaledInt d.significand (d.unnormalizedExp-d.binaryPoint),
-    d.unnormalizedExp,d.binaryPoint⟩
+  ⟨FloatLib.Numerics.Dyadic.ofScaledInt d.significand (d.unnormalizedExp-d.mantissaBits),
+    d.unnormalizedExp,d.mantissaBits⟩
 
 def project (t : Term) : TensorCore.Decoded :=
   ⟨t.dyadic.signedSignificand,t.unnormalizedExp,t.mantissaBits⟩

@@ -10,7 +10,7 @@ inductive CPlacement where
   deriving Repr, DecidableEq
 
 inductive AccumulationKind where
-  | aligned (alignSigBits : ℕ) (floor : Option ℤ) (cPlacement : CPlacement)
+  | aligned (alignMantissaBits : ℕ) (floor : Option ℤ) (cPlacement : CPlacement)
   /-- An exact single-product FMA, with no lossy alignment stage. -/
   | fused
   deriving Repr, DecidableEq

@@ -1,10 +1,15 @@
 ---
 title: 5. Output conversion
-description: The exact accumulator is converted to an FP32 word by rounding toward zero, with explicit range and signed-zero behavior.
+description: The exact accumulator is converted to an FP32 word by truncation (round toward zero), with explicit range and signed-zero behavior.
 ---
 
 The final stage turns the exact rational accumulator into an FP32 bit
-pattern. On the modeled paths the hardware **rounds toward zero** (RZ).
+pattern. On the modeled paths the hardware **truncates**: it keeps FP32's 24
+significant bits and drops the rest. IEEE 754 calls this *round toward zero*
+(RZ), and the code uses that name, `.towardZero`. The two descriptions are the
+same operation. Dropping bits shrinks the magnitude, so the result moves
+toward zero for both signs. Note that for a negative number this is not
+rounding down (floor).
 
 ```lean
 def evalPrepared (b : PreparedBlock) : Except ModelError BlockTrace :=

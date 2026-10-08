@@ -140,7 +140,7 @@ theorem prepare_terms_bounded {p : Profile} {x : BlockInput p} {b : PreparedBloc
           exact unnormalizedMul_bounded q.1 q.2 (hps.2 q hq).1 (hps.2 q hq).2
 
 theorem prepared_coefficient_bound (b : PreparedBlock) (F : ℕ)
-    (hF : b.profile.alignSigBits = F) (ht : ∀ t ∈ b.terms, t.Bounded) :
+    (hF : b.profile.alignMantissaBits = F) (ht : ∀ t ∈ b.terms, t.Bounded) :
     ∀ z ∈ b.coefficients, z.natAbs < 2 ^ (F + 2) := by
   intro z hz
   obtain ⟨t, hmem, rfl⟩ := List.mem_map.mp hz
@@ -156,7 +156,7 @@ theorem prepared_coefficient_bound (b : PreparedBlock) (F : ℕ)
 /-- Capacity follows from finite decoded inputs and shape, before any output-range check. -/
 theorem prepare_coefficient_capacity {p : Profile} {x : BlockInput p} {b : PreparedBlock}
     (hp : prepare x = some b) (hshape : x.products.length = p.products) (F carryBits : ℕ)
-    (hF : p.alignSigBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
+    (hF : p.alignMantissaBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
     magnitudeSum b.coefficients < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
   have hb := prepare_terms_bounded hp
   have hprof := prepare_profile hp
@@ -167,7 +167,7 @@ theorem prepare_coefficient_capacity {p : Profile} {x : BlockInput p} {b : Prepa
 /-- Width derived from decoded inputs, with c included in the member count. -/
 theorem evalBlock_coefficient_capacity {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) (F carryBits : ℕ)
-    (hF : p.alignSigBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
+    (hF : p.alignMantissaBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
     magnitudeSum t.block.coefficients < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
   have hshape : x.products.length = p.products := by
     unfold evalBlock at h
@@ -176,14 +176,14 @@ theorem evalBlock_coefficient_capacity {p : Profile} {x : BlockInput p} {t : Blo
 
 theorem evalBlock_machineAccumulator {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) (F carryBits : ℕ)
-    (hF : p.alignSigBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
+    (hF : p.alignMantissaBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
     t.block.machineAccumulator (F + 2 + carryBits + 1) = t.block.accumulator :=
   machineAccumulator_eq _ _ (by omega) (evalBlock_coefficient_capacity h F carryBits hF hcount)
 
 /-- Every prefix of a successful encoded invocation is safe at the derived width. -/
 theorem evalBlock_machinePrefix {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) (F carryBits : ℕ)
-    (hF : p.alignSigBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits)
+    (hF : p.alignMantissaBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits)
     (xs ys : List ℤ) (hsplit : t.block.coefficients = xs ++ ys) :
     (machineAccumulate (F + 2 + carryBits + 1) 0 xs).toInt = sumZ xs := by
   apply machineAccumulate_prefix_exact _ xs ys (by omega)

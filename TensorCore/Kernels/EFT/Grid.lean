@@ -51,11 +51,11 @@ theorem outputGrid_spec (D : F32) :
 /-- Exact qE=max(qA,qD), with qA obtained from unnormalized exponents, not product magnitude. -/
 theorem selectedGrid_spec (path : Path) (ts : List Term) (D : F32) :
     ((selectedGrid path ts D).toNat : ℤ) - 272 =
-      max ((maxBiasedExp ts path.floor.toNat : ℤ) - 512 - path.profile.alignSigBits)
+      max ((maxBiasedExp ts path.floor.toNat : ℤ) - 512 - path.profile.alignMantissaBits)
         (outputUlpExponent D) := by
-  have ho : (path.alignmentBits + 240).toNat = path.profile.alignSigBits.toNat + 240 := by
+  have ho : (path.alignmentBits + 240).toNat = path.profile.alignMantissaBits.toNat + 240 := by
     cases path <;> decide
-  have hal : (path.profile.alignSigBits.toNat : ℤ) = path.profile.alignSigBits := by
+  have hal : (path.profile.alignMantissaBits.toNat : ℤ) = path.profile.alignMantissaBits := by
     cases path <;> decide
   have hd := outputGrid_spec D
   unfold selectedGrid
@@ -72,7 +72,7 @@ theorem selectedGrid_spec (path : Path) (ts : List Term) (D : F32) :
   · have hle : path.alignmentBits + 240 ≤ e := by
       change ¬ e.toNat < _ at hsmall; change _ ≤ e.toNat; omega
     have hsub : (e - (path.alignmentBits + 240)).toNat =
-        maxBiasedExp ts path.floor.toNat - (path.profile.alignSigBits.toNat + 240) := by
+        maxBiasedExp ts path.floor.toNat - (path.profile.alignMantissaBits.toNat + 240) := by
       rw [BitVec.toNat_sub_of_le hle, hem, ho]
     rw [if_neg hsmall]
     split

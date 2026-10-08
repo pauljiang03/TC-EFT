@@ -3,10 +3,16 @@ import TensorCore.Numerics.Encoding
 namespace TensorCore
 
 
+/-- Parameters of one Tensor Core normalization group. -/
 structure Profile where
+  /-- Operand format (FP16, BF16, or packed TF32). -/
   input : Format
+  /-- K, the number of products per group. -/
   products : ℕ
-  alignSigBits : ℤ
+  /-- F = 23 + p: mantissa bits each term keeps after alignment, counted below the alignment
+  exponent. FP32's 23 plus p extra alignment bits. -/
+  alignMantissaBits : ℤ
+  /-- Lower bound on the alignment exponent, if the architecture has one. -/
   alignFloor : Option ℤ
   deriving Repr, DecidableEq
 

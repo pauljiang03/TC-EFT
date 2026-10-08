@@ -14,5 +14,5 @@ def main (args : List String) : IO Unit := do
       | none => IO.println "null"
       | some d => IO.println (Json.mkObj [
           ("significand", toJson d.significand), ("scale", toJson d.unnormalizedExp),
-          ("mantissaBits", toJson d.binaryPoint),
+          ("mantissaBits", toJson d.mantissaBits),
           ("value", toJson s!"{d.value.num}/{d.value.den}")]).compress

@@ -97,13 +97,13 @@ theorem zero_value_bits (c : F32) (d : Decoded) (hd : decode32 c = some d)
 theorem Decoded.value_ne_zero (d : Decoded) (h : d.significand ≠ 0) : d.value ≠ 0 := by
   intro h0
   unfold Decoded.value at h0
-  have hq := pow2_pos (d.unnormalizedExp - d.binaryPoint)
+  have hq := pow2_pos (d.unnormalizedExp - d.mantissaBits)
   have hne := Rat.ne_of_gt hq
   have h1 : (d.significand : ℚ) = ((0 : ℤ) : ℚ) := by
     rw [Rat.intCast_zero]
-    calc (d.significand : ℚ) = (d.significand : ℚ) * pow2 (d.unnormalizedExp - d.binaryPoint) /
-          pow2 (d.unnormalizedExp - d.binaryPoint) := (Rat.mul_div_cancel hne).symm
-      _ = 0 / pow2 (d.unnormalizedExp - d.binaryPoint) := by rw [h0]
+    calc (d.significand : ℚ) = (d.significand : ℚ) * pow2 (d.unnormalizedExp - d.mantissaBits) /
+          pow2 (d.unnormalizedExp - d.mantissaBits) := (Rat.mul_div_cancel hne).symm
+      _ = 0 / pow2 (d.unnormalizedExp - d.mantissaBits) := by rw [h0]
       _ = 0 := by rw [Rat.div_def, Rat.zero_mul]
   exact h (Rat.intCast_inj.mp h1)
 
@@ -114,9 +114,9 @@ theorem zero_products_alignExp (K extra : ℕ) (floor : Option ℤ) (hfl : ∀ f
       (List.replicate K (⟨0, 0, 0⟩, ⟨0, 0, 0⟩)) c).alignExp = some c.unnormalizedExp := by
   have hterms : (PreparedBlock.mk (fp16Fp32Profile K extra floor)
       (List.replicate K (⟨0, 0, 0⟩, ⟨0, 0, 0⟩)) c).terms =
-      ⟨c.significand, c.unnormalizedExp, c.binaryPoint⟩ :: List.replicate K ⟨0, 0, 0⟩ := by
+      ⟨c.significand, c.unnormalizedExp, c.mantissaBits⟩ :: List.replicate K ⟨0, 0, 0⟩ := by
     simp [PreparedBlock.terms, List.map_replicate, unnormalizedMul]
-  have hmem : (⟨c.significand, c.unnormalizedExp, c.binaryPoint⟩ : UnnormalizedProduct) ∈
+  have hmem : (⟨c.significand, c.unnormalizedExp, c.mantissaBits⟩ : UnnormalizedProduct) ∈
       (PreparedBlock.mk (fp16Fp32Profile K extra floor)
         (List.replicate K (⟨0, 0, 0⟩, ⟨0, 0, 0⟩)) c).terms := by
     rw [hterms]; simp
@@ -178,7 +178,7 @@ theorem zero_products_passthrough (K extra : ℕ) (floor : Option ℤ)
       unfold Finite32.value
       rw [hv]
       simp
-    · obtain ⟨hfrac, hlow⟩ : f.decoded.binaryPoint = 23 ∧ -126 ≤ f.decoded.unnormalizedExp := by
+    · obtain ⟨hfrac, hlow⟩ : f.decoded.mantissaBits = 23 ∧ -126 ≤ f.decoded.unnormalizedExp := by
         rcases decode32_fields c f.decoded hc with ⟨_, _, h0⟩ | ⟨_, _, h0⟩ | ⟨hE1, _, h0⟩
         · rw [h0] at hsig; exact absurd rfl hsig
         · rw [h0]; exact ⟨rfl, Int.le_refl _⟩

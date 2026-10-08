@@ -8,7 +8,7 @@ namespace TensorCore.IndependentSpec
 
 @[implicit_reducible] def layoutOf (f : Format) : Layout := ⟨f.mantissaBits, f.exponentBits, f.bias⟩
 def parametersOf (p : Profile) : Parameters :=
-  ⟨layoutOf p.input, p.products, p.alignSigBits, p.alignFloor⟩
+  ⟨layoutOf p.input, p.products, p.alignMantissaBits, p.alignFloor⟩
 def inputOf {p : Profile} (x : BlockInput p) : Input (parametersOf p) := ⟨x.products, x.c⟩
 def termOf (d : Decoded) : Term := ⟨d.value, d.unnormalizedExp⟩
 def unnormalizedTermOf (t : UnnormalizedProduct) : Term := ⟨t.value, t.unnormalizedExp⟩
@@ -78,7 +78,7 @@ theorem terms_eq {p : Profile} (x : BlockInput p) :
 
 theorem unnormalizedProduct_value_zero (t : UnnormalizedProduct) : t.value = 0 ↔ t.significand = 0 := by
   unfold UnnormalizedProduct.value
-  have hp := pow2_pos (t.unnormalizedExp - t.binaryPoint)
+  have hp := pow2_pos (t.unnormalizedExp - t.mantissaBits)
   constructor
   · intro h
     have hcast : (t.significand : ℚ) = 0 := by grind

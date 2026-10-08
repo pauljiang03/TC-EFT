@@ -37,7 +37,7 @@ def exactDot {p : Profile} (x : BlockInput p) : Option ℚ :=
   (prepare x).map PreparedBlock.exactDot
 
 def PreparedBlock.terms (b : PreparedBlock) : List UnnormalizedProduct :=
-  ⟨b.c.significand, b.c.unnormalizedExp, b.c.binaryPoint⟩ ::
+  ⟨b.c.significand, b.c.unnormalizedExp, b.c.mantissaBits⟩ ::
     b.products.map fun (a, b) => unnormalizedMul a b
 
 /-- A nonempty maximum ignores zero terms; none explicitly represents an all-zero block. -/
@@ -51,7 +51,7 @@ def PreparedBlock.alignExp (b : PreparedBlock) : Option ℤ :=
 
 /-- Grid exponent `eta - F`. -/
 def PreparedBlock.alignGridExponent (b : PreparedBlock) : ℤ :=
-  b.alignExp.getD 0 - b.profile.alignSigBits
+  b.alignExp.getD 0 - b.profile.alignMantissaBits
 
 def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
   b.terms.map fun t => truncCoeff t.value b.alignGridExponent

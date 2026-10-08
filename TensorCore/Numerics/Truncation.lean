@@ -165,7 +165,7 @@ theorem truncCoeff_abs_le (x : ℚ) (e : ℤ) :
     rw [← Rat.intCast_natCast, Int.natAbs_of_nonneg hf, absQ_of_nonneg (by grind)]
     exact Rat.floor_le _
 
-/-- Two integer magnitude bits plus F significand bits after the binary point suffice for each aligned term. -/
+/-- Two integer magnitude bits plus F mantissa bits suffice for each aligned term. -/
 
 theorem truncGrid_abs_le (x : ℚ) (e : ℤ) : absQ (truncGrid x e) ≤ absQ x := by
   have hq := pow2_pos e

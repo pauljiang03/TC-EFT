@@ -6,7 +6,7 @@ import TensorCore.TC.Canonical
 namespace TensorCore
 
 /-- Uncorrected output, error, and machine-width contract for any profile. -/
-theorem profile_contract (p : Profile) (F carryBits : ℕ) (hF : p.alignSigBits = F)
+theorem profile_contract (p : Profile) (F carryBits : ℕ) (hF : p.alignMantissaBits = F)
     (hc : p.products + 1 ≤ 2 ^ carryBits) (x : BlockInput p) (t : BlockTrace)
     (h : evalBlock x = .ok t) :
     exactDot x = some t.block.exactDot ∧

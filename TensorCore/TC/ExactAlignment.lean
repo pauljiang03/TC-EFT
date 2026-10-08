@@ -5,7 +5,7 @@ namespace TensorCore
 /-- Sufficient alignment precision for this actual input, retaining unnormalized-exponent metadata. -/
 def PreparedBlock.AlignmentExact (b : PreparedBlock) : Prop :=
   ∀ t ∈ b.terms, t.significand ≠ 0 →
-    b.alignGridExponent ≤ t.unnormalizedExp - t.binaryPoint
+    b.alignGridExponent ≤ t.unnormalizedExp - t.mantissaBits
 
 theorem exact_alignment_accumulator (b : PreparedBlock) (h : b.AlignmentExact) :
     b.accumulator = b.exactDot := by
@@ -18,7 +18,7 @@ theorem exact_alignment_accumulator (b : PreparedBlock) (h : b.AlignmentExact) :
     have hf : (0 : ℚ).floor = 0 := rfl
     rw [hf]
     simp
-  · exact truncGrid_exact_of_grid t.significand (t.unnormalizedExp - t.binaryPoint)
+  · exact truncGrid_exact_of_grid t.significand (t.unnormalizedExp - t.mantissaBits)
       b.alignGridExponent (h t ht hz)
 
 /-- If padding makes every member exactly alignable, the canonical output is a single FP32 RTZ conversion of the independently decoded ideal sum. -/

@@ -35,8 +35,8 @@ theorem perturbed_accumulator (prof : Profile) (products : List (Decoded × Deco
   simp only [PreparedBlock.terms, List.map_cons, List.map_map, sumQ, Function.comp_def]
   unfold flowback accumulatorShift
   rw [sumQ_map_sub]
-  have hc : UnnormalizedProduct.value ⟨c.significand, c.unnormalizedExp, c.binaryPoint⟩ = c.value := rfl
-  have hc' : UnnormalizedProduct.value ⟨c'.significand, c'.unnormalizedExp, c'.binaryPoint⟩ = c'.value := rfl
+  have hc : UnnormalizedProduct.value ⟨c.significand, c.unnormalizedExp, c.mantissaBits⟩ = c.value := rfl
+  have hc' : UnnormalizedProduct.value ⟨c'.significand, c'.unnormalizedExp, c'.mantissaBits⟩ = c'.value := rfl
   rw [hc, hc']
   grind
 
@@ -240,7 +240,7 @@ theorem accumulatorShift_of_exact (prof : Profile) (products : List (Decoded × 
 
 /-- Theorem III.4 as a failure of Definition III.2: the construction's products are not monotone in the accumulator input once `K ≥ 3·2^p`. -/
 theorem construction_not_monotone (prof : Profile) (p K : ℕ) (da db : Decoded)
-    (hF : prof.alignSigBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hF : prof.alignMantissaBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
     (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) (hscale : (unnormalizedMul da db).unnormalizedExp ≤ -1)
     (hK : K < 2 ^ (24 + p)) (hthr : 3 * 2 ^ p ≤ K) :
     ¬ MonotoneInAccumulator prof (List.replicate K (da, db)) := by

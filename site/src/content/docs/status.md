@@ -23,9 +23,13 @@ description: Build, audit, and validation status, and known open items.
   no repository instance satisfies all of them.
 - **Scalar fast path.** No theorem shows that the predicate forces the
   bounded kernel to take the fast path.
-- **The reference scalar predicate** derives its support grid from format
-  grids, including those of zero terms, so it falls back more often than the
-  bounded kernel's guard.
+- **The reference fast-path check is stricter than it needs to be.** To
+  decide whether the cheap FP32 path is safe, it asks how many bits the low
+  parts *could* occupy, based on each term's format. It even counts zero
+  terms: a zero `C` is treated as if it had bits down to `2^0`. The 576-bit
+  implementation instead looks at the bits the low parts *actually* occupy.
+  Both always return the correct answer, but the reference version takes the
+  slower exact path in some cases where the fast path would have been fine.
 - **Validation scripts** rely on `assert` and must not run under `python -O`.
 - **Signed zero.** The binary rounding helpers return `+0` for exact zero in
   every mode, so the FP64 FMA in round-down mode differs from IEEE here.

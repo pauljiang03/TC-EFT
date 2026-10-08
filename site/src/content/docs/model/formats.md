@@ -32,16 +32,19 @@ type `BitVec f.width`.
 
 ```lean
 structure Decoded where
-  significand : ℤ       -- signed integer significand, hidden bit included
-  unnormalizedExp : ℤ          -- unbiased exponent as stored in the word
-  binaryPoint : ℤ    -- position of the binary point in `significand`
+  significand : ℤ      -- signed integer significand, hidden bit included
+  unnormalizedExp : ℤ  -- unbiased exponent as stored in the word
+  mantissaBits : ℤ     -- how many low bits of `significand` lie after the binary point
 
 def Decoded.value (x : Decoded) : ℚ :=
-  (x.significand : ℚ) * pow2 (x.unnormalizedExp - x.binaryPoint)
+  (x.significand : ℚ) * pow2 (x.unnormalizedExp - x.mantissaBits)
 ```
 
-A `Decoded` stores the value as **significand, exponent, binary-point
-position**, not as a single rational. `value` recovers the rational exactly,
+A `Decoded` stores the value as **significand, exponent, and mantissa
+width**, not as a single rational. For an input, `mantissaBits` is simply its
+format's mantissa width: 10 for FP16, 7 for BF16, 23 for FP32. For example
+FP16 `1.5` is significand `1536`, exponent `0`, 10 mantissa bits:
+`1536 · 2^(0 − 10) = 1.5`. `value` recovers the rational exactly,
 and alignment reads `unnormalizedExp`.
 
 [`classifyNat`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Encoding.lean#L6)

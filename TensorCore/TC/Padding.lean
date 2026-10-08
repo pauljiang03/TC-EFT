@@ -9,7 +9,7 @@ theorem prepare_fp16_term_metadata (K extra : ℕ) (floor : Option ℤ)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)
     (h : prepare x = some b) :
     ∀ t ∈ b.terms, t.significand ≠ 0 →
-      -149 ≤ t.unnormalizedExp - t.binaryPoint ∧ t.unnormalizedExp ≤ 127 := by
+      -149 ≤ t.unnormalizedExp - t.mantissaBits ∧ t.unnormalizedExp ≤ 127 := by
   unfold prepare at h
   cases hc : decode32 x.c with
   | none => simp [hc] at h
@@ -24,8 +24,8 @@ theorem prepare_fp16_term_metadata (K extra : ℕ) (floor : Option ℤ)
       rcases ht with ht | ⟨pair, hpair, ht⟩
       · subst t
         have hm := classifyNat_metadata fp32 (by decide) x.c.toNat c hc hnz
-        change c.binaryPoint = 23 ∧ -126 ≤ c.unnormalizedExp ∧ c.unnormalizedExp ≤ 127 at hm
-        change -149 ≤ c.unnormalizedExp - c.binaryPoint ∧ c.unnormalizedExp ≤ 127
+        change c.mantissaBits = 23 ∧ -126 ≤ c.unnormalizedExp ∧ c.unnormalizedExp ≤ 127 at hm
+        change -149 ≤ c.unnormalizedExp - c.mantissaBits ∧ c.unnormalizedExp ≤ 127
         omega
       · subst t
         obtain ⟨w, _, ha, hb⟩ := prepareProducts_origin _ _ _ hp pair hpair
@@ -35,10 +35,10 @@ theorem prepare_fp16_term_metadata (K extra : ℕ) (floor : Option ℤ)
           intro hz; apply hnz; simp [unnormalizedMul, hz]
         have hma := classifyNat_metadata fp16 (by decide) w.1.toNat pair.1 ha hnza
         have hmb := classifyNat_metadata fp16 (by decide) w.2.toNat pair.2 hb hnzb
-        change pair.1.binaryPoint = 10 ∧ -14 ≤ pair.1.unnormalizedExp ∧ pair.1.unnormalizedExp ≤ 15 at hma
-        change pair.2.binaryPoint = 10 ∧ -14 ≤ pair.2.unnormalizedExp ∧ pair.2.unnormalizedExp ≤ 15 at hmb
+        change pair.1.mantissaBits = 10 ∧ -14 ≤ pair.1.unnormalizedExp ∧ pair.1.unnormalizedExp ≤ 15 at hma
+        change pair.2.mantissaBits = 10 ∧ -14 ≤ pair.2.unnormalizedExp ∧ pair.2.unnormalizedExp ≤ 15 at hmb
         change -149 ≤ (pair.1.unnormalizedExp + pair.2.unnormalizedExp) -
-          (pair.1.binaryPoint + pair.2.binaryPoint) ∧
+          (pair.1.mantissaBits + pair.2.mantissaBits) ∧
           pair.1.unnormalizedExp + pair.2.unnormalizedExp ≤ 127
         omega
 
@@ -47,7 +47,7 @@ theorem prepare_fp16_products_metadata (K extra : ℕ) (floor : Option ℤ)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)
     (h : prepare x = some b) :
     ∀ t ∈ b.products.map (fun (a, b) => unnormalizedMul a b), t.significand ≠ 0 →
-      -48 ≤ t.unnormalizedExp - t.binaryPoint ∧ t.unnormalizedExp ≤ 30 := by
+      -48 ≤ t.unnormalizedExp - t.mantissaBits ∧ t.unnormalizedExp ≤ 30 := by
   unfold prepare at h
   cases hc : decode32 x.c with
   | none => simp [hc] at h
@@ -66,10 +66,10 @@ theorem prepare_fp16_products_metadata (K extra : ℕ) (floor : Option ℤ)
         intro hz; apply hnz; simp [unnormalizedMul, hz]
       have hma := classifyNat_metadata fp16 (by decide) w.1.toNat pair.1 ha hnza
       have hmb := classifyNat_metadata fp16 (by decide) w.2.toNat pair.2 hb hnzb
-      change pair.1.binaryPoint = 10 ∧ -14 ≤ pair.1.unnormalizedExp ∧ pair.1.unnormalizedExp ≤ 15 at hma
-      change pair.2.binaryPoint = 10 ∧ -14 ≤ pair.2.unnormalizedExp ∧ pair.2.unnormalizedExp ≤ 15 at hmb
+      change pair.1.mantissaBits = 10 ∧ -14 ≤ pair.1.unnormalizedExp ∧ pair.1.unnormalizedExp ≤ 15 at hma
+      change pair.2.mantissaBits = 10 ∧ -14 ≤ pair.2.unnormalizedExp ∧ pair.2.unnormalizedExp ≤ 15 at hmb
       change -48 ≤ (pair.1.unnormalizedExp + pair.2.unnormalizedExp) -
-        (pair.1.binaryPoint + pair.2.binaryPoint) ∧
+        (pair.1.mantissaBits + pair.2.mantissaBits) ∧
         pair.1.unnormalizedExp + pair.2.unnormalizedExp ≤ 30
       omega
 
@@ -108,8 +108,8 @@ theorem canonical_source_padding_exact (K extra : ℕ) (floor : Option ℤ)
   rcases ht with ht | ht
   · subst t
     have hc := classifyNat_metadata fp32 (by decide) x.c.toNat b.c (prepare_c hp) hnz
-    change b.c.binaryPoint = 23 ∧ -126 ≤ b.c.unnormalizedExp ∧ b.c.unnormalizedExp ≤ 127 at hc
-    change alignExp - (23 + extra : ℕ) ≤ b.c.unnormalizedExp - b.c.binaryPoint
+    change b.c.mantissaBits = 23 ∧ -126 ≤ b.c.unnormalizedExp ∧ b.c.unnormalizedExp ≤ 127 at hc
+    change alignExp - (23 + extra : ℕ) ≤ b.c.unnormalizedExp - b.c.mantissaBits
     omega
   · have hpt := (hpm t ht hnz).1
     omega

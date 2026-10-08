@@ -58,7 +58,7 @@ theorem overlap_eq_retained_sub_outputResidual (t : BlockTrace) :
 
 /-- Common grid exponent for the low components: the finest term grid, or the extraction grid if finer. -/
 def BlockTrace.supportExponent (t : BlockTrace) : ℤ :=
-  (t.block.terms.map fun x => x.unnormalizedExp - x.binaryPoint).foldl min t.extractionExponent
+  (t.block.terms.map fun x => x.unnormalizedExp - x.mantissaBits).foldl min t.extractionExponent
 
 /-- Integer coefficients `zᵢ = εᵢ / 2^ℓ`. -/
 def BlockTrace.lowCoefficients (t : BlockTrace) : List ℤ :=

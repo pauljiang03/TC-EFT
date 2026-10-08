@@ -89,9 +89,13 @@ real implementation would use:
   58–97% of cases. On uniformly random bit patterns, whose exponents spread
   widely, it is taken 73, 13, and 0 times out of 1,000 (V100, A100, H100).
   The exact fallback then supplies the answer.
-- **The reference predicate is conservative.** Its support exponent is the
-  finest *format grid* of any term, even for zero terms (a zero `C` counts as
-  grid 0). The bounded kernel instead uses the finest *nonzero bit*. Both
-  return the same bits, but the reference falls back more often. With BF16
-  and `C = +0`, for example, the bounded kernel takes the scalar path while
-  the reference rejects it on the coefficient budget.
+- **The reference fast-path check is stricter than it needs to be.** The
+  fast path is safe only if all the low parts fit within 24 bits of each
+  other. The reference check estimates their span from each term's *format*,
+  meaning the finest bit the term could possibly have, and it even counts
+  zero terms (a zero `C` is treated as having bits down to `2^0`). The
+  576-bit implementation measures the bits the low parts *actually* use.
+  Both always return the correct answer, but the reference falls back to
+  the slower exact path more often. For example, with BF16 inputs and
+  `C = +0` the 576-bit version takes the fast path while the reference
+  rejects it.

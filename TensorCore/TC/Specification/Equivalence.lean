@@ -71,7 +71,7 @@ theorem valid_success {p : Profile} (x : BlockInput p)
 
 /-- Adequate modular accumulator widths inherit the independent-specification theorem. -/
 theorem machine_eq_spec {p : Profile} (x : BlockInput p) (w F carryBits : ℕ)
-    (hF : p.alignSigBits = F) (hc : p.products + 1 ≤ 2 ^ carryBits)
+    (hF : p.alignMantissaBits = F) (hc : p.products + 1 ≤ 2 ^ carryBits)
     (hw : F + 3 + carryBits ≤ w) :
     (evalBlockMachine w x).toOption.map (fun t => t.output.bits) =
       bits (parametersOf p) (inputOf x) := by

@@ -49,7 +49,7 @@ theorem floor_natCast_mul_pow2_neg (N d : ℕ) :
 
 /-- Accumulator with `c_j`: every product is retained and `A_j = 1 + (K − j·2^p)·2^-(24+p)`, written as a natural coefficient on the grid `2^-(24+p)`. -/
 theorem construction_accumulator_range (prof : Profile) (p K j : ℕ) (da db : Decoded)
-    (hF : prof.alignSigBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hF : prof.alignMantissaBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
     (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) (hscale : (unnormalizedMul da db).unnormalizedExp ≤ -1)
     (hj : j ≤ 2 ^ 23) :
     (PreparedBlock.mk prof (List.replicate K (da, db)) (belowDecoded j)).accumulator =
@@ -63,7 +63,7 @@ theorem construction_accumulator_range (prof : Profile) (p K j : ℕ) (da db : D
       -(24 + p) := by
     unfold PreparedBlock.alignGridExponent
     rw [heta]
-    change (belowDecoded j).unnormalizedExp - prof.alignSigBits = _
+    change (belowDecoded j).unnormalizedExp - prof.alignMantissaBits = _
     rw [hF]
     simp only [belowDecoded]
     omega
@@ -91,7 +91,7 @@ theorem construction_accumulator_range (prof : Profile) (p K j : ℕ) (da db : D
 
 /-- TC-EFT Theorem III.5 on prepared blocks. -/
 theorem nonmonotone_range (prof : Profile) (p K j : ℕ) (da db : Decoded)
-    (hF : prof.alignSigBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hF : prof.alignMantissaBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
     (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) (hscale : (unnormalizedMul da db).unnormalizedExp ≤ -1)
     (hK : K < 2 ^ (24 + p)) (hj1 : 1 ≤ j) (hj2 : j ≤ 2 ^ 23) :
     ∃ t : BlockTrace,
@@ -275,7 +275,7 @@ theorem nonmonotone_range_encoded (K p j : ℕ) (floor : Option ℤ)
       (j * 2 ^ p ≤ K →
         t.output.value = 1 + (((K - j * 2 ^ p) / 2 ^ (p + 1) : ℕ) : ℚ) * pow2 (-23)) ∧
       t.output.value ≤ 1 + (((K - 2 ^ p) / 2 ^ (p + 1) : ℕ) : ℚ) * pow2 (-23) := by
-  have hF : (fp16Fp32Profile K p floor).alignSigBits = 23 + p := by
+  have hF : (fp16Fp32Profile K p floor).alignMantissaBits = 23 + p := by
     show ((23 + p : ℕ) : ℤ) = 23 + (p : ℤ)
     omega
   obtain ⟨t, h1, hiff, hform, hbound⟩ :=

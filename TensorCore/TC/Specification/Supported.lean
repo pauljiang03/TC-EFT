@@ -36,7 +36,7 @@ theorem supported_valid_success (path : Path) (x : BlockInput (implementationPro
 
 /-- The compatibility layer transfers the result to the public aligned invocation API. -/
 theorem invocation_eq_spec {p : Profile} (x : BlockInput p) (F : ℕ)
-    (hf : p.input.WellFormed) (hF : p.alignSigBits = F) :
+    (hf : p.input.WellFormed) (hF : p.alignMantissaBits = F) :
     invocationBits (x.toInvocation F) = bits (parametersOf p) (inputOf x) := by
   rw [legacy_invocation_bits x F hf hF]
   exact evalBlock_eq_spec x

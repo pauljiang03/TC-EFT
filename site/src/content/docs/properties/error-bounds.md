@@ -4,7 +4,7 @@ description: Where a Tensor Core block loses accuracy, with an exact residual id
 ---
 
 The model loses information in exactly two places: alignment truncation and
-the final RZ conversion. The library names both losses and proves that
+the final truncation to FP32. The library names both losses and proves that
 together they account for the whole error.
 
 ## Exact residual identity
@@ -40,7 +40,7 @@ So the error is less than
   alignment loss          conversion loss
 ```
 
-Each of the `K + 1` terms loses less than one grid step, and RZ conversion
+Each of the `K + 1` terms loses less than one grid step, and truncation to FP32
 loses less than one output ulp. The bound uses only quantities in the trace,
 and [`evalBlock_success_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AcceptedDomain.lean#L33)
 says exactly when it applies.

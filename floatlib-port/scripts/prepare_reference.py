@@ -61,42 +61,18 @@ def imports(data):
     return [module for line in re.findall(r'^import ([^\n]+)', data, re.M)
             for module in line.split() if module.startswith('TensorCore.')]
 
-# Descriptive declaration names adopted after the pinned revision. Token comparison maps
-# each current identifier back to its pinned spelling, so a passing check also shows the
-# parent sources differ from the pin only by these renames.
-RENAMED_TOKENS = {
-    'IndependentSpec': 'PaperSpec',
-    'evalBlock_eq_spec': 'implementation_eq_paper',
-    'supported_eq_spec': 'supported_eq_paper',
-    'tf32_eq_spec': 'tf32_eq_paper',
-    'invocation_eq_spec': 'invocation_eq_paper',
-    'machine_eq_spec': 'machine_eq_paper',
-    'runBlocks_eq_spec': 'runBlocks_eq_paper',
-    'schedule_last_eq_spec': 'schedule_last_eq_paper',
-    'inputBudget_coefficient_bound': 'eq20_coefficients',
-    'inputBudget_lowParts_sum_exact': 'eq20_exact_sum',
-    'inputBudget_scalarPredicate': 'eq20_scalarPredicate',
-}
-RENAMED_SUBSTRINGS = [('scalarTcEft', 'tceft'), ('TcEft', 'Algorithm1'), ('tcEft', 'algorithm1')]
+# Identifiers renamed after the pinned revision, as [token index, current, pinned] per file.
+# Restoring exactly these positions must reproduce the pinned token hash, so a passing check
+# shows each parent source differs from the pin only by these renames.
+RENAMED_POSITIONS = json.loads((PORT / 'renamed-identifiers.json').read_text())
 
 
-# Exact current -> previous spellings of renamed parent identifiers: per-file maps
-# (applied first, for names whose meaning depends on the file) and a global map.
-_RENAMED = json.loads((PORT / 'renamed-identifiers.json').read_text())
-RENAMED_BY_FILE = _RENAMED['by_file']
-RENAMED_IDENTIFIERS = _RENAMED['identifiers']
-
-
-def legacy_token(token, name=''):
-    if token.startswith('"'):
-        return token
-    token = RENAMED_BY_FILE.get(name, {}).get(token, token)
-    token = RENAMED_IDENTIFIERS.get(token, token)
-    if token in RENAMED_TOKENS:
-        return RENAMED_TOKENS[token]
-    for current, original in RENAMED_SUBSTRINGS:
-        token = token.replace(current, original)
-    return token
+def pinned_spelling(tokens, name):
+    tokens = list(tokens)
+    for index, current, pinned in RENAMED_POSITIONS.get(name, []):
+        if index < len(tokens) and tokens[index] == current:
+            tokens[index] = pinned
+    return tokens
 
 
 def legacy_module(module):
@@ -129,7 +105,7 @@ def legacy_import(line):
 
 def body_hash(lines, name=''):
     body = b''.join(line for line in lines if not line.startswith(b'import ')).decode()
-    tokens = json.dumps([legacy_token(t, name) for t in lean_tokens(body)], ensure_ascii=False, separators=(',', ':')).encode()
+    tokens = json.dumps(pinned_spelling(lean_tokens(body), name), ensure_ascii=False, separators=(',', ':')).encode()
     return hashlib.sha256(tokens).hexdigest()
 
 

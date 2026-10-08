@@ -50,7 +50,7 @@
     "TensorCore/Kernels/EFT/DecodeDefs.lean": "1fe7beb11981fb4aa32ea7f063ee2dfa1f3c301e7b631b17a0bd206ad8eaabc4",
     "TensorCore/Kernels/EFT/Dyadic.lean": "00fddc253c56d87008ba2cefe26a4697bcbe4b97e1a5f65234e7a37dbdbbf7c5",
     "TensorCore/Kernels/EFT/Extraction.lean": "8ff7e321312b184b495fd88f840fd63a86993f9a7d926e93cc71f4d4ada1b941",
-    "TensorCore/Kernels/EFT/Grid.lean": "b3bfa489eb4900db834596a01593f168614f03b640fdba03f2a6af72b1455cbc",
+    "TensorCore/Kernels/EFT/Grid.lean": "3913bb3ef91981c10728e78942fdaeb89e5ff18c978301a176e6e495f228c0e5",
     "TensorCore/Kernels/EFT/Preparation.lean": "c5f2ad5443ff08ac957d6fbdc444f9e5d6baed6105038b2ed6f710a66d9df2ad",
     "TensorCore/Kernels/EFT/Refinement.lean": "160a52513e9ba403d1beb6946aff955284f5ef0a4a9b8016475618f7e7c81458",
     "TensorCore/Kernels/EFT/Round.lean": "863a03d111555bfaf1058b69d3c8cb4276730d2b5794b98ab00b9c3471289633",
@@ -61,5 +61,5 @@
     "TensorCore/Kernels/EFT/Word.lean": "b5eec2d75afc318e1fe698383d7aa2c1e682a396558bebcdf70628d13b8d9bfa",
     "TensorCore/Kernels/EFT/WordDefs.lean": "256c7d64e6ca5ebf755d952ab00ae6208eeb4cf9265d601bf65b197277817fdd"
   },
-  "elapsed_seconds": 3.406
+  "elapsed_seconds": 3.421
 }

@@ -14,19 +14,19 @@ the input exponents**. The model keeps that distinction.
 structure UnnormalizedProduct where
   significand : ℤ
   unnormalizedExp : ℤ
-  binaryPoint : ℤ
+  mantissaBits : ℤ
 
 def UnnormalizedProduct.value (x : UnnormalizedProduct) : ℚ :=
-  (x.significand : ℚ) * pow2 (x.unnormalizedExp - x.binaryPoint)
+  (x.significand : ℚ) * pow2 (x.unnormalizedExp - x.mantissaBits)
 
 def unnormalizedMul (a b : Decoded) : UnnormalizedProduct :=
   ⟨a.significand * b.significand, a.unnormalizedExp + b.unnormalizedExp,
-    a.binaryPoint + b.binaryPoint⟩
+    a.mantissaBits + b.mantissaBits⟩
 ```
 
-[`unnormalizedMul`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/UnnormalizedProduct.lean#L14)
-multiplies integer significands, adds unnormalized exponents, and adds binary-point
-positions. Nothing is rounded. The value is exact:
+[`unnormalizedMul`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/UnnormalizedProduct.lean#L18)
+multiplies integer significands, adds unnormalized exponents, and adds mantissa widths
+(an FP16 × FP16 product has 20 mantissa bits). Nothing is rounded. The value is exact:
 
 ```lean
 theorem unnormalizedProduct_value (a b : Decoded) :
@@ -39,7 +39,7 @@ theorem unnormalizedProduct_value (a b : Decoded) :
 
 ```lean
 def PreparedBlock.terms (b : PreparedBlock) : List UnnormalizedProduct :=
-  ⟨b.c.significand, b.c.unnormalizedExp, b.c.binaryPoint⟩ ::
+  ⟨b.c.significand, b.c.unnormalizedExp, b.c.mantissaBits⟩ ::
     b.products.map fun (a, b) => unnormalizedMul a b
 ```
 

@@ -37,10 +37,10 @@ def PreparedBlock.alignExp (b : PreparedBlock) : Option ℤ :=
 
 ```lean
 def PreparedBlock.alignGridExponent (b : PreparedBlock) : ℤ :=
-  b.alignExp.getD 0 - b.profile.alignSigBits
+  b.alignExp.getD 0 - b.profile.alignMantissaBits
 ```
 
-The grid spacing is `2^(η − F)`, where `F = alignSigBits = 23 + p`. Here `p`
+The grid spacing is `2^(η − F)`, where `F = alignMantissaBits = 23 + p`. Here `p`
 is the number of **extra alignment bits** the architecture keeps beyond
 FP32's 23 mantissa bits: 0 on V100, 1 on A100, 2 on H100. A larger `p` gives
 a finer grid, so less is lost.

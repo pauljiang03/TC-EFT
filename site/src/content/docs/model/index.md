@@ -28,7 +28,8 @@ once, the way a fused dot product would. It does the following:
 3. **Aligns** every term to a fixed-point grid `F` bits below that exponent,
    and **truncates** (toward zero) any bits below the grid.
 4. **Adds** the aligned integers exactly.
-5. **Converts** the sum to FP32 by **rounding toward zero**.
+5. **Converts** the sum to FP32 by **truncating** it: bits beyond FP32's 24
+   significant bits are dropped (IEEE calls this round toward zero).
 
 The Lean model implements these five steps directly.
 
@@ -39,7 +40,7 @@ The Lean model implements these five steps directly.
   <a href="/TC-EFT/model/products/"><span class="n">02 · unnormalizedMul</span><span class="t">Multiply</span><span class="d"><code>Decoded × Decoded</code> → <code>UnnormalizedProduct</code></span></a>
   <a href="/TC-EFT/model/alignment/"><span class="n">03 · alignExp, truncCoeff</span><span class="t">Align</span><span class="d">grid <code>2^(η − F)</code>, truncate</span></a>
   <a href="/TC-EFT/model/accumulation/"><span class="n">04 · accumulator</span><span class="t">Accumulate</span><span class="d">exact <code>Σ coeff · 2^(η−F)</code></span></a>
-  <a href="/TC-EFT/model/conversion/"><span class="n">05 · round32</span><span class="t">Convert</span><span class="d">toward zero → <code>F32</code></span></a>
+  <a href="/TC-EFT/model/conversion/"><span class="n">05 · round32</span><span class="t">Convert</span><span class="d">truncate → <code>F32</code></span></a>
 </div>
 
 The whole model is about 120 lines, in
@@ -50,7 +51,7 @@ These are its definitions, unchanged apart from omitted comments:
 structure Profile where
   input : Format          -- operand format: fp16, bf16, or tf19 (packed TF32)
   products : ℕ            -- K, the number of products per group
-  alignSigBits : ℤ       -- F = 23 + p, significand bits kept below the alignment exponent
+  alignMantissaBits : ℤ       -- F = 23 + p, mantissa bits kept after alignment
   alignFloor : Option ℤ   -- lower bound on the alignment exponent, if any
 
 structure BlockInput (p : Profile) where
@@ -58,14 +59,14 @@ structure BlockInput (p : Profile) where
   c : F32                             -- encoded FP32 accumulator input
 
 def PreparedBlock.terms (b : PreparedBlock) : List UnnormalizedProduct :=
-  ⟨b.c.significand, b.c.unnormalizedExp, b.c.binaryPoint⟩ ::
+  ⟨b.c.significand, b.c.unnormalizedExp, b.c.mantissaBits⟩ ::
     b.products.map fun (a, b) => unnormalizedMul a b
 
 def PreparedBlock.alignExp (b : PreparedBlock) : Option ℤ :=
   b.profile.applyFloor (maxTermExp b.terms)
 
 def PreparedBlock.alignGridExponent (b : PreparedBlock) : ℤ :=
-  b.alignExp.getD 0 - b.profile.alignSigBits
+  b.alignExp.getD 0 - b.profile.alignMantissaBits
 
 def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
   b.terms.map fun t => truncCoeff t.value b.alignGridExponent
@@ -93,10 +94,10 @@ def evalBlock {p : Profile} (x : BlockInput p) : Except ModelError BlockTrace :=
 | --- | --- | --- |
 | `significand` | Signed integer significand, hidden bit included | significand (`a_sig`, `prod_sig`) |
 | `unnormalizedExp` | Exponent as the hardware sees it. For an input, its unbiased exponent (minimum normal exponent for subnormals). For a product, the sum of the input exponents, with no renormalization. | "sum of exponents"; products "remain denormalised" (`prod_exp`) |
-| `binaryPoint` | Number of significand bits after the binary point, so value = `significand · 2^(unnormalizedExp − binaryPoint)` | (bookkeeping only) |
+| `mantissaBits` | Mantissa width: how many low bits of the significand lie after the binary point. For a format or an input value, the stored mantissa width (10 for FP16). For a product, the sum of both inputs' widths (20 for FP16 × FP16). value = `significand · 2^(unnormalizedExp − mantissaBits)` | mantissa bits (`manBits`) |
 | `UnnormalizedProduct`, `unnormalizedMul` | An exact product kept in that unnormalized form | `prod_sig`, `prod_exp` with `denorm_prd` |
 | `alignExp` (η) | Alignment exponent: largest `unnormalizedExp` of a nonzero term, raised to the floor | maximum exponent, "capped from below" |
-| `alignSigBits` (F) | Significand bits kept below the alignment exponent after alignment, `23 + p` | 23 + `neab` |
+| `alignMantissaBits` (F) | Mantissa bits each term keeps after alignment, counted below the alignment exponent: `23 + p` | 23 + `neab` |
 | `alignGridExponent` | Exponent of the alignment grid step, `η − F` | |
 | `outputUlpExponent` | Exponent of one unit in the last place of the FP32 output | |
 
@@ -129,7 +130,7 @@ Here is the V100 profile (`K = 4`, `F = 23`, no floor) with four FP16 products
 | Coefficient of `C` | `2^23` | `2^24 − 1` |
 | Coefficient of each product | `⌊2^-24 / 2^-23⌋ = 0` (lost) | `1` (kept) |
 | Accumulator | `1` | `1 + 3·2^-24` |
-| Round toward zero to FP32 | `1.0` | `1 + 2^-23` |
+| Truncate to FP32 | `1.0` | `1 + 2^-23` |
 
 The smaller `C` moves the grid one bit lower, so the four products survive
 alignment and the output **increases**. This is the

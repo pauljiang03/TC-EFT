@@ -16,15 +16,20 @@ structure Format where
 abbrev F16 := BitVec 16
 abbrev F32 := BitVec 32
 
-/-- The integer significand is signed; scale remains the unnormalized input scale. -/
+/-- A finite value as an integer significand, its exponent, and its mantissa width:
+`value = significand · 2^(unnormalizedExp − mantissaBits)`. -/
 structure Decoded where
+  /-- Signed integer significand, hidden bit included (e.g. `1.5` in FP16 is `1536`). -/
   significand : ℤ
+  /-- Unbiased exponent as stored in the word; the minimum normal exponent for subnormals. -/
   unnormalizedExp : ℤ
-  binaryPoint : ℤ
+  /-- Mantissa bits of `significand`, i.e. how many of its low bits lie after the binary point:
+  the format's mantissa width for an input (10 for FP16, 23 for FP32). -/
+  mantissaBits : ℤ
   deriving Repr, DecidableEq
 
 def Decoded.value (x : Decoded) : ℚ :=
-  (x.significand : ℚ) * pow2 (x.unnormalizedExp - x.binaryPoint)
+  (x.significand : ℚ) * pow2 (x.unnormalizedExp - x.mantissaBits)
 
 inductive Classification where
   | zero (negative : Bool)
