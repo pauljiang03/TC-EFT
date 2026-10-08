@@ -7,6 +7,7 @@ export default defineConfig({
   base: '/TC-EFT',
   trailingSlash: 'always',
   devToolbar: { enabled: false },
+  redirects: { '/': '/TC-EFT/overview/' },
   integrations: [
     starlight({
       title: 'TC-EFT',
