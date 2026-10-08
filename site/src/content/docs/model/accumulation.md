@@ -1,10 +1,10 @@
 ---
 title: 4. Accumulation
-description: The aligned integers are added exactly, and a fixed-width register model is proved to agree at adequate width.
+description: The aligned terms are added exactly, and a fixed-width register model is proved to agree at adequate width.
 ---
 
-After alignment every term is an integer on the grid `2^(η−F)`. The hardware
-adds these integers in a fixed-point adder. The model adds them exactly:
+After alignment every term is a run of bits whose lowest bit is at `2^(η−F)`.
+The hardware adds these bit strings in a fixed-point adder. The model adds them exactly:
 
 ```lean
 def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
@@ -20,7 +20,7 @@ the library also models a finite register and proves the two agree.
 
 [`TensorCore/TC/Accumulator.lean`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Accumulator.lean)
 describes accumulation as a hardware register would perform it: `w`-bit
-two's-complement additions that wrap on overflow, applied one coefficient at
+two's-complement additions that wrap on overflow, applied one aligned term at
 a time.
 
 ```lean

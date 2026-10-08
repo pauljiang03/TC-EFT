@@ -65,7 +65,7 @@ Besides the hardware rows, Python oracles written from scratch in exact
 rational arithmetic generate and check further cases:
 
 - `scripts/validate.py`: 715 blocks and 2,918 rounding cases, with an
-  independent IEEE decoder, integer-grid alignment, and binary search over
+  independent IEEE decoder, bit-level alignment, and binary search over
   encodings for the output. 0 mismatches.
 - `scripts/check_features.py`: 132 configurations of `K` and `p`, 2,033
   cases, including padding and subnormal edge cases. 0 mismatches.

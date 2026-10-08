@@ -25,7 +25,7 @@ def unnormalizedMul (a b : Decoded) : UnnormalizedProduct :=
 ```
 
 [`unnormalizedMul`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/UnnormalizedProduct.lean#L18)
-multiplies integer significands, adds unnormalized exponents, and adds mantissa widths
+multiplies the significands exactly (no bits dropped), adds unnormalized exponents, and adds mantissa widths
 (an FP16 × FP16 product has 20 mantissa bits). Nothing is rounded. The value is exact:
 
 ```lean

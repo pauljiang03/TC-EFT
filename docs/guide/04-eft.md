@@ -12,7 +12,7 @@ S = D - εₒ + Σ εᵢ = H + Σ εᵢ
 
 [Extraction.lean](../../TensorCore/EFT/Extraction.lean) proves this identity and the guarded scalar procedure. [ExtractionGrid.lean](../../TensorCore/EFT/ExtractionGrid.lean) gives the chosen-grid and input-budget results.
 
-The scalar procedure sequentially adds the low parts in FP32, computes D - εₒ in FP32, and performs one final nearest-even addition. Its sufficient predicate checks that the support-grid exponent lies between -149 and 104, residual coefficients are exact integers with total absolute sum below `2^24`, D/εₒ/H are representable in FP32, and the final sum is within finite FP32 range. These premises justify exact intermediate operations. A failed predicate makes the scalar helper return `none`.
+The scalar procedure sequentially adds the low parts in FP32, computes D - εₒ in FP32, and performs one final nearest-even addition. Its sufficient predicate checks that the low bits of all terms fit together within 24 bits (counted from the lowest low bit present), that this lowest bit is between `2^-149` and `2^104`, that D, εₒ and H each fit in FP32's 24 significant bits, and that the final sum is within finite FP32 range. These premises justify exact intermediate operations. A failed predicate makes the scalar helper return `none`.
 
 The deterministic support-grid choice is conservative. The chosen-grid theorems permit other valid common grids; identifiers beginning `inputBudget_` concern the TC-EFT paper's input-budget inequality (17).
 

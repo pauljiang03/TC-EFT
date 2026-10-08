@@ -12,7 +12,7 @@ mode `frmode = 'rz'`.
 
 The step has two parts:
 
-1. **Normalization** shifts the aligned integer sum so that its leading 1
+1. **Normalization** shifts the aligned sum so that its leading 1
    becomes the top bit of the significand, and adjusts the exponent to match.
    This loses nothing.
 2. **Final rounding** keeps FP32's 24 significant bits and drops the rest.
@@ -81,7 +81,7 @@ theorem evalBlock_success_iff (p : Profile) (x : BlockInput p) :
 - An accumulator that is exactly zero produces `+0`. Input zeros were already
   unsigned on decoding.
 - A negative nonzero accumulator that truncates to zero produces `−0`
-  (`encode32` keeps the sign with coefficient 0).
+  (`encode32` keeps the sign bit with all significand bits zero).
 
 The independent specification states the sign bit explicitly, and the
 equality proof covers it bit for bit.

@@ -61,7 +61,9 @@ def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
 [`truncCoeff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Exact.lean#L70)
 takes the floor of the **magnitude** and restores the sign. This is the
 sign-magnitude shifter of the hardware, i.e. truncation **toward zero**, not
-toward −∞. Each term becomes an integer coefficient on the grid.
+toward −∞. Each term keeps only its bits at or above the grid's lowest bit
+`2^(η − F)`. `truncCoeff` returns those kept bits, with the sign, counted in
+units of that lowest bit; the code calls this the term's *coefficient*.
 
 ## What is lost
 
@@ -89,7 +91,8 @@ V100, `F = 23`, `C = 1.0`, one product `2^-24`:
 
 - η = max(unnormalized exponent of `C` = 0, unnormalized exponent of the product = −24) = 0.
 - Grid = `2^(0 − 23) = 2^-23`.
-- Product coefficient = `⌊2^-24 / 2^-23⌋ = ⌊0.5⌋ = 0`, so the product is lost.
+- The product's only bit is at `2^-24`, below the grid's lowest bit `2^-23`,
+  so all its bits are dropped and the product is lost.
 
 Four such products are lost the same way, although together they are
 `2^-22`, which an FP32 result near 1 could represent. Lowering `C` slightly

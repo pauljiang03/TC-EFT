@@ -27,7 +27,7 @@ once, the way a fused dot product would. It does the following:
    optionally raised to a hardware **floor**.
 3. **Aligns** every term to a fixed-point grid `F` bits below that exponent,
    and **truncates** (toward zero) any bits below the grid.
-4. **Adds** the aligned integers exactly.
+4. **Adds** the aligned bits exactly, in a fixed-point adder.
 5. **Converts** the sum to FP32 by **truncating** it: bits beyond FP32's 24
    significant bits are dropped (IEEE calls this round toward zero).
 
@@ -92,7 +92,7 @@ def evalBlock {p : Profile} (x : BlockInput p) : Except ModelError BlockTrace :=
 
 | Lean name | Meaning | In *Accurate Models* / its MATLAB code |
 | --- | --- | --- |
-| `significand` | Signed integer significand, hidden bit included | significand (`a_sig`, `prod_sig`) |
+| `significand` | The significand bits, hidden bit included, with the sign | significand (`a_sig`, `prod_sig`) |
 | `unnormalizedExp` | Exponent as the hardware sees it. For an input, its unbiased exponent (minimum normal exponent for subnormals). For a product, the sum of the input exponents, with no renormalization. | "sum of exponents"; products "remain denormalised" (`prod_exp`) |
 | `mantissaBits` | Mantissa width: how many low bits of the significand lie after the binary point. For a format or an input value, the stored mantissa width (10 for FP16). For a product, the sum of both inputs' widths (20 for FP16 × FP16). value = `significand · 2^(unnormalizedExp − mantissaBits)` | mantissa bits (`manBits`) |
 | `UnnormalizedProduct`, `unnormalizedMul` | An exact product kept in that unnormalized form | `prod_sig`, `prod_exp` with `denorm_prd` |
@@ -123,12 +123,12 @@ Here is the V100 profile (`K = 4`, `F = 23`, no floor) with four FP16 products
 
 | Stage | `C = 1.0` (`0x3f800000`) | `C = 1 − 2^-24` (`0x3f7fffff`) |
 | --- | --- | --- |
-| Decode `C` | significand `2^23`, unnormalized exponent `0` | significand `2^24 − 1`, unnormalized exponent `−1` |
+| Decode `C` | `1.000…0` (24 bits) × `2^0` | `1.111…1` (24 ones) × `2^-1` |
 | Each product | value `2^-24`, unnormalized exponent `−24` | same |
 | `η` = largest unnormalized exponent | `0` | `−1` |
 | Grid `2^(η − F)` | `2^-23` | `2^-24` |
-| Coefficient of `C` | `2^23` | `2^24 − 1` |
-| Coefficient of each product | `⌊2^-24 / 2^-23⌋ = 0` (lost) | `1` (kept) |
+| Bits of `C` kept | all 24 | all 24 |
+| Each product's single bit at `2^-24` | below the grid: dropped | on the grid: kept |
 | Accumulator | `1` | `1 + 3·2^-24` |
 | Truncate to FP32 | `1.0` | `1 + 2^-23` |
 

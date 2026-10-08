@@ -32,7 +32,7 @@ type `BitVec f.width`.
 
 ```lean
 structure Decoded where
-  significand : ℤ      -- signed integer significand, hidden bit included
+  significand : ℤ      -- significand bits, hidden bit included, with the sign
   unnormalizedExp : ℤ  -- unbiased exponent as stored in the word
   mantissaBits : ℤ     -- how many low bits of `significand` lie after the binary point
 
