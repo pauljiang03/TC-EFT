@@ -1,4 +1,4 @@
-# What is proved
+# What is proven
 
 This page lists the main results that Lean has checked, in plain language. Each row says what the
 result means. The linked file has the exact statement and every assumption. All results depend
@@ -35,7 +35,7 @@ for the Tensor Core model, and *the TC-EFT paper* for non-monotonicity and the T
 | Any result TC-EFT returns is the exact sum rounded to nearest-even FP32, for any finite D. | `tcEftEncoded_correct` | [EFT/Encoded.lean](EFT/Encoded.lean) |
 | TC-EFT returns a result exactly when that rounded sum is finite. | `tcEftEncoded_bits_isSome_iff` | [EFT/Encoded.lean](EFT/Encoded.lean) |
 | When the scalar safety check passes, the fast FP32 path gives the correctly rounded sum. | `scalarCorrected_correct` | [EFT/Extraction.lean](EFT/Extraction.lean) |
-| Exact sum = D − overlap + low parts. True by construction, since the overlap is defined as D minus the retained part. | `overlap_recovery` | [EFT/Extraction.lean](EFT/Extraction.lean) |
+| Exact sum = D − overlap + low parts. A definitional identity: the overlap is defined as D minus the retained part. | `overlap_recovery` | [EFT/Extraction.lean](EFT/Extraction.lean) |
 | The input-budget inequality establishes two of the safety check's conditions; the other seven are assumed. | `ExtractionGrid.inputBudget_scalarPredicate` | [EFT/ExtractionGrid.lean](EFT/ExtractionGrid.lean) |
 | The 576-bit implementation succeeds exactly when the rounded sum is finite, and never overflows. | `EFMachine.tcEft_success`, `EFMachine.tcEft_range_iff` | [Kernels/EFT/Correctness.lean](Kernels/EFT/Correctness.lean) |
 | The 576-bit implementation returns the same bits as the reference algorithm. | `EFMachine.tcEft_agrees` | [Kernels/EFT/Refinement.lean](Kernels/EFT/Refinement.lean) |

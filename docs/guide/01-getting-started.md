@@ -82,6 +82,6 @@ Definitions and proofs are grouped by their mathematical role:
 | [tests/TensorCoreTests/](../../tests/TensorCoreTests/) | Model, EFT, and specification regression witnesses |
 | [tests/TensorCoreTests.lean](../../tests/TensorCoreTests.lean) | Complete regression and proof-audit import root |
 
-Start with [`evalBlock`](../../TensorCore/TC/Block.lean) for the model, [`tcEftEncoded`](../../TensorCore/EFT/Encoded.lean) for reference correction, and [`EFMachine.tcEft`](../../TensorCore/Kernels/EFT/Defs.lean) for bounded execution. The [what is proved](../../TensorCore/THEOREMS.md) links their correctness contracts.
+Start with [`evalBlock`](../../TensorCore/TC/Block.lean) for the model, [`tcEftEncoded`](../../TensorCore/EFT/Encoded.lean) for reference correction, and [`EFMachine.tcEft`](../../TensorCore/Kernels/EFT/Defs.lean) for bounded execution. [What is proven](../../TensorCore/THEOREMS.md) links their correctness contracts.
 
 Next: [follow the TC stages](02-tensor-core-model.md).

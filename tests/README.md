@@ -68,7 +68,7 @@ A successful module may print nothing. Lean elaborates and checks its definition
 | [Specification/NegativeControls.lean](TensorCoreTests/Specification/NegativeControls.lean) | Wrong normalization, alignment, floors, order, and zero-sign alternatives |
 | [Specification/Audit.lean](TensorCoreTests/Specification/Audit.lean) | Compiled dependency independence of the mathematical specification |
 
-The test root also includes binary rounding, canonical-format, public-domain, directed-rounding, and flowback modules. The [what is proved](../TensorCore/THEOREMS.md) links the general production results that these witnesses exercise.
+The test root also includes binary rounding, canonical-format, public-domain, directed-rounding, and flowback modules. [What is proven](../TensorCore/THEOREMS.md) links the general production results that these witnesses exercise.
 
 ## 4. Understand a Lean IO adapter
 
@@ -167,7 +167,7 @@ python3 scripts/check_device.py
 
 The JSON reports `bits` as an integer whose hexadecimal representation is `3f9b7dec`, matching the first recorded D. Its alignment exponent `eta` is `-1` and grid exponent `qExponent` is `-24`. The final command compares all 5,000 V100 rows.
 
-The semantic proof is a separate guarantee: [`IndependentSpec.supported_eq_spec`](../TensorCore/TC/Specification/Supported.lean) equates the executable evaluator with the independent mathematical specification for every input of each supported profile, including rejection. `python3 scripts/check_paper_spec.py` checks this development and its dependency-independence controls. The [what is proved](../TensorCore/THEOREMS.md) identifies the non-monotonicity and EFT results and their premises.
+The semantic proof is a separate guarantee: [`IndependentSpec.supported_eq_spec`](../TensorCore/TC/Specification/Supported.lean) equates the executable evaluator with the independent mathematical specification for every input of each supported profile, including rejection. `python3 scripts/check_paper_spec.py` checks this development and its dependency-independence controls. [What is proven](../TensorCore/THEOREMS.md) identifies the non-monotonicity and EFT results and their premises.
 
 The universal proofs concern the defined finite-domain model under their stated hypotheses. Agreement with recorded GPU outputs covers those recorded inputs; correspondence between the specification, the paper, and physical hardware remains a separate specification question.
 

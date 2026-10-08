@@ -1,13 +1,17 @@
 ---
-title: Trust boundary
-description: What is proved, what is tested, and what is trusted.
+title: What is tested
+description: What is tested rather than proven, what is trusted, and what is assumed.
 ---
 
-## Proved in Lean
+This page separates what Lean proves from what is only tested, trusted, or
+assumed. The proven results themselves are listed on
+[What is proven](/TC-EFT/proofs/theorems/).
+
+## Proven in Lean
 
 All model properties, EFT correctness, and refinement results, under the
-hypotheses stated in each theorem (see the [theorem
-index](/TC-EFT/proofs/theorems/)). The development uses no `sorry` and no
+hypotheses stated in each theorem (see [What is
+proven](/TC-EFT/proofs/theorems/)). The development uses no `sorry` and no
 custom axioms. `scripts/check_axioms.py` audits every public theorem under
 the `TensorCore` namespace and allows only `propext`, `Classical.choice`, and
 `Quot.sound`. The recorded run audited 1,375 theorem roots.

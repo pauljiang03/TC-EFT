@@ -8,6 +8,6 @@ The guide connects executable calculations to the definitions and proofs that ju
 4. [TC-EFT](guide/04-eft.md): follow the overlap identity, scalar preconditions, and the two execution backends.
 5. [Executable Lean tests](guide/05-executable-tests.md): run kernel witnesses, IO programs, native adapters, and independent comparisons.
 
-Use the [what is proved](../TensorCore/THEOREMS.md) to locate results and their Lean source. The [reference](reference.md) lists command formats and precise contracts.
+Use [What is proven](../TensorCore/THEOREMS.md) to locate results and their Lean source. The [reference](reference.md) lists command formats and precise contracts.
 
 The independent FloatLib implementation has a [folder guide](../floatlib-port/FOLDER_GUIDE.md) and a [theorem correspondence](../floatlib-port/COMPARISON.md). Its toolchain and runtime implementation are separate from the first-principles project.

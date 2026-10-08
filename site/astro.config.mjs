@@ -11,6 +11,7 @@ export default defineConfig({
   redirects: {
     '/overview': '/TC-EFT/',
     '/model/conversion': '/TC-EFT/model/normalization/',
+    '/proofs/trust': '/TC-EFT/proofs/tested/',
   },
   integrations: [
     starlight({
@@ -59,8 +60,8 @@ export default defineConfig({
         {
           label: 'Proofs & trust',
           items: [
-            { label: 'What is proved', slug: 'proofs/theorems' },
-            { label: 'Trust boundary', slug: 'proofs/trust' },
+            { label: 'What is proven', slug: 'proofs/theorems' },
+            { label: 'What is tested', slug: 'proofs/tested' },
             { label: 'FloatLib cross-check', slug: 'proofs/floatlib' },
           ],
         },

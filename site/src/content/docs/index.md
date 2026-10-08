@@ -97,11 +97,11 @@ hypotheses. The link from the model to real GPUs comes from replaying
 recorded measurements and from *Accurate Models*, which the definitions follow.
 It is evidence, not a proof. The supported paths have FP16, BF16, or TF32
 operands and FP32 `C` and output. See [Modeling scope and
-limits](/TC-EFT/model/scope/) and the [trust boundary](/TC-EFT/proofs/trust/).
+limits](/TC-EFT/model/scope/) and [What is tested](/TC-EFT/proofs/tested/).
 
 ## Start exploring
 
 - [The model at a glance](/TC-EFT/model/): the whole pipeline on one page.
 - [Quick start](/TC-EFT/quick-start/): build the project and run the examples.
-- [What is proved](/TC-EFT/proofs/theorems/): the headline results and where they live.
+- [What is proven](/TC-EFT/proofs/theorems/): the headline results and where they live.
 - [Source on GitHub](https://github.com/pauljiang03/TC-EFT).
