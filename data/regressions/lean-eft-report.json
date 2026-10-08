@@ -61,5 +61,5 @@
     "TensorCore/Kernels/EFT/Word.lean": "b5eec2d75afc318e1fe698383d7aa2c1e682a396558bebcdf70628d13b8d9bfa",
     "TensorCore/Kernels/EFT/WordDefs.lean": "256c7d64e6ca5ebf755d952ab00ae6208eeb4cf9265d601bf65b197277817fdd"
   },
-  "elapsed_seconds": 3.421
+  "elapsed_seconds": 3.449
 }
