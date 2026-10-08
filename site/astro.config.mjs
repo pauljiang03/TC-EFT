@@ -7,8 +7,11 @@ export default defineConfig({
   base: '/TC-EFT',
   trailingSlash: 'always',
   devToolbar: { enabled: false },
-  // Old links to /overview/ land on the root Overview page.
-  redirects: { '/overview': '/TC-EFT/' },
+  // Old URLs (renamed pages) forward to their current pages.
+  redirects: {
+    '/overview': '/TC-EFT/',
+    '/model/conversion': '/TC-EFT/model/normalization/',
+  },
   integrations: [
     starlight({
       title: 'TC-EFT',
