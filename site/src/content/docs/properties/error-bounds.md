@@ -29,8 +29,8 @@ input words directly (`exactDot`), not from the model's intermediate values.
 theorem evalBlock_error_bound {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) :
     absQ (t.block.exactDot - t.output.value) <
-      (t.block.terms.length : ℚ) * pow2 t.block.quantumExponent +
-        pow2 (outputQuantumExponent t.output.bits)
+      (t.block.terms.length : ℚ) * pow2 t.block.alignGridExponent +
+        pow2 (outputUlpExponent t.output.bits)
 ```
 
 So the error is less than

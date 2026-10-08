@@ -17,7 +17,7 @@ the `TensorCore` namespace and allows only `propext`, `Classical.choice`, and
 - **Agreement with GPUs**: on the 35,000 recorded measurements only, with the
   [coverage gaps](/TC-EFT/model/validation/#what-the-rows-dont-cover) noted
   there.
-- **Agreement with Python oracles**: exact-`Fraction` reimplementations of
+- **Agreement with Python oracles**: exact-rational reimplementations of
   the same *Accurate Models* semantics.
 - **Native Float32**: `tcEftWithLean_eq` is proved against Lean's float
   *model*. That the compiled `Float32` addition matches the model is checked

@@ -26,7 +26,7 @@ theorem decodeProduct_value (path : Path) (pair : path.profile.Word × path.prof
     | some b =>
       simp only [decodeProduct, ha, hb, Option.map_some, pure]
       exact congrArg some ((product_value (decodeFactor_bounds ha)
-        (decodeFactor_bounds hb)).trans (rawProduct_value _ _))
+        (decodeFactor_bounds hb)).trans (unnormalizedProduct_value _ _))
 
 theorem decodeProduct_magnitude {path : Path} {pair : path.profile.Word × path.profile.Word}
     {t : Term} (h : decodeProduct path pair = some t) : t.word.magnitude.toNat < 2 ^ 550 := by

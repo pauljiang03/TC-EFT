@@ -8,19 +8,19 @@ import Init.GrindInstances.Ring.Rat
 namespace TensorCore.IndependentSpec
 
 structure Layout where
-  fraction : ℕ
+  mantissaBits : ℕ
   exponent : ℕ
   bias : ℤ
   deriving Repr, DecidableEq
 
-@[implicit_reducible] def Layout.width (f : Layout) : ℕ := 1 + f.exponent + f.fraction
+@[implicit_reducible] def Layout.width (f : Layout) : ℕ := 1 + f.exponent + f.mantissaBits
 
 def binary32 : Layout := ⟨23, 8, 127⟩
 
 structure Parameters where
   input : Layout
   products : ℕ
-  fraction : ℤ
+  alignSigBits : ℤ
   floor : Option ℤ
   deriving Repr, DecidableEq
 
@@ -34,19 +34,19 @@ structure Term where
   exponent : ℤ
   deriving Repr, DecidableEq
 
-/-- IEEE fields, including the minimum-normal raw exponent of subnormal inputs. -/
+/-- IEEE fields, including the minimum-normal unnormalized exponent of subnormal inputs. -/
 def decode (f : Layout) (word : ℕ) : Option Term :=
-  let E := word / 2 ^ f.fraction % 2 ^ f.exponent
-  let M := word % 2 ^ f.fraction
+  let E := word / 2 ^ f.mantissaBits % 2 ^ f.exponent
+  let M := word % 2 ^ f.mantissaBits
   if E = 2 ^ f.exponent - 1 then none
   else if E = 0 ∧ M = 0 then some ⟨0, 0⟩
   else
     let e := (if E = 0 then 1 else (E : ℤ)) - f.bias
-    let m := if E = 0 then M else 2 ^ f.fraction + M
-    let s : ℤ := if word / 2 ^ (f.fraction + f.exponent) = 0 then 1 else -1
-    some ⟨(s : ℚ) * (m : ℚ) * (2 : ℚ) ^ (e - f.fraction), e⟩
+    let m := if E = 0 then M else 2 ^ f.mantissaBits + M
+    let s : ℤ := if word / 2 ^ (f.mantissaBits + f.exponent) = 0 then 1 else -1
+    some ⟨(s : ℚ) * (m : ℚ) * (2 : ℚ) ^ (e - f.mantissaBits), e⟩
 
-/-- Raw exponents are added, even when the resulting significand is at least two. -/
+/-- Unnormalized exponents are added, even when the resulting significand is at least two. -/
 def product (a b : Term) : Term := ⟨a.value * b.value, a.exponent + b.exponent⟩
 
 def terms (p : Parameters) (x : Input p) : Option (List Term) := do
@@ -77,7 +77,7 @@ def coefficient (v q : ℚ) : ℤ :=
   (if v < 0 then -1 else 1) * (magnitude v / q).floor
 
 def accumulated (p : Parameters) (ts : List Term) : ℚ :=
-  let q := (2 : ℚ) ^ ((exponent p ts).getD 0 - p.fraction)
+  let q := (2 : ℚ) ^ ((exponent p ts).getD 0 - p.alignSigBits)
   ((ts.foldr (fun t z => coefficient t.value q + z) 0 : ℤ) : ℚ) * q
 
 def maxFinite : ℚ := (16777215 : ℚ) * (2 : ℚ) ^ (104 : ℤ)

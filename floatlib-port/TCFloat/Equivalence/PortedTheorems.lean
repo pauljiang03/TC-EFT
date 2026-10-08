@@ -50,11 +50,11 @@ theorem trace_evaluated {s : TensorCore.BlockTrace} {t : Trace} (h : TraceRel s 
 theorem floatlib_error_bound (t : Trace) (hb : ValidBlock t.block) (hw : t.bits<2^32)
     (hv : TCFloat.value32 t.bits=some t.output) (ht : t.block.evaluate=some t.bits) :
     |t.block.ideal-t.output| < (t.block.terms.length:Rat)*TCFloat.pow2 t.block.q +
-      TCFloat.pow2 (outputQuantum t.bits) := by
+      TCFloat.pow2 (outputUlpExponent t.bits) := by
   obtain ⟨s,hs⟩ := trace_related t hb hw hv
   have h := TensorCore.evalPrepared_error_bound (trace_evaluated hs ht)
   simp only [abs_eq,hs.block_eq,ideal_eq _ hb,hs.output_eq,terms_eq,List.length_map,
-    q_eq,pow2_eq,TensorCore.outputQuantumExponent,hs.bits_eq] at h
+    q_eq,pow2_eq,TensorCore.outputUlpExponent,hs.bits_eq] at h
   exact h
 
 /-- Every extracted low part is strictly smaller in magnitude than the extraction quantum (TC-EFT paper, Lemma IV.1). -/
@@ -66,7 +66,7 @@ theorem floatlib_lowPart_bound (t : Trace) (e : Rat) (he : e ∈ t.lowParts) :
 /-- The extraction grid is never finer than the alignment grid, and the gap is `max 0 (output quantum − alignment quantum)` (TC-EFT paper, Lemma IV.2). -/
 theorem floatlib_overlap_window_width (t : Trace) :
     0 ≤ t.extractionExponent-t.block.q ∧
-      t.extractionExponent-t.block.q = max 0 (outputQuantum t.bits-t.block.q) := by
+      t.extractionExponent-t.block.q = max 0 (outputUlpExponent t.bits-t.block.q) := by
   unfold Trace.extractionExponent
   omega
 
@@ -177,7 +177,7 @@ theorem floatlib_nonmonotone_range (prof : Profile) (p K j : Nat) (a b : Term)
     (hp : prof.extra=p) (ha : ValidTerm a) (hb : ValidTerm b)
     (hf : ∀ f ∈ prof.floor, f≤ -1)
     (hv : (a.mul b).value=TCFloat.pow2 (-(24+(p:Int))))
-    (hs : (a.mul b).rawScale≤ -1) (hK : K<2^(24+p)) (hj : 1≤j) (hj' : j≤2^23) :
+    (hs : (a.mul b).unnormalizedExp≤ -1) (hK : K<2^(24+p)) (hj : 1≤j) (hj' : j≤2^23) :
     ∃ bits y,
       (Block.mk prof (belowTerm j) (List.replicate K (a,b))).evaluate=some bits ∧
       TCFloat.value32 bits=some y ∧
@@ -186,8 +186,8 @@ theorem floatlib_nonmonotone_range (prof : Profile) (p K j : Nat) (a b : Term)
       y≤1+((K-2^p)/2^(p+1):Nat)*TCFloat.pow2 (-23) := by
   have hva : a.value=(project a).value := ha
   have hvb : b.value=(project b).value := hb
-  have hvs : (TensorCore.rawMul (project a) (project b)).value = TensorCore.pow2 (-(24+(p:Int))) := by
-    rw [TensorCore.rawProduct_value,← hva,← hvb,← TCFloat.mul_value,pow2_eq]
+  have hvs : (TensorCore.unnormalizedMul (project a) (project b)).value = TensorCore.pow2 (-(24+(p:Int))) := by
+    rw [TensorCore.unnormalizedProduct_value,← hva,← hvb,← TCFloat.mul_value,pow2_eq]
     exact hv
   obtain ⟨s,he,hi,hy,hu⟩ := TensorCore.nonmonotone_range (profile prof) p K j
     (project a) (project b) (by simp [profile,hp]) hf hvs hs hK hj hj'

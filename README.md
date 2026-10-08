@@ -4,7 +4,7 @@ This Lean library formalizes Tensor Core (TC) block arithmetic, its non-monotoni
 
 Start with the [guide](docs/README.md). It follows a calculation from encoded input words through alignment and correction, then explains how to run the Lean tests and add cases.
 
-[Website](https://pauljiang03.github.io/TC-EFT/) · [Reviewer guide](ARTIFACT.md) · [Test walkthrough](tests/README.md) · [Theorem index](TensorCore/THEOREMS.md) · [FloatLib implementation](floatlib-port/README.md)
+[Website](https://pauljiang03.github.io/TC-EFT/) · [Reviewer guide](ARTIFACT.md) · [Test walkthrough](tests/README.md) · [What is proved](TensorCore/THEOREMS.md) · [FloatLib implementation](floatlib-port/README.md)
 
 ## Build and run
 
@@ -80,7 +80,7 @@ This builds a fresh snapshot, audits theorem dependencies, checks every worked L
 
 The supported paths use FP16, BF16, or TF32 operands and FP32 outputs. Scalar EFT correctness requires explicit grid, coefficient-budget, representability, and range assumptions. The non-monotonicity theorems cover specified families of encoded inputs. Hardware comparisons replay recorded GPU measurements; the proofs concern the formal model under their stated hypotheses. Software checks require neither MATLAB nor CUDA.
 
-[Theorem index](TensorCore/THEOREMS.md) · [Executable reference](docs/reference.md) · [Trust and style](docs/style.md)
+[What is proved](TensorCore/THEOREMS.md) · [Executable reference](docs/reference.md) · [Trust and style](docs/style.md)
 
 ## License
 

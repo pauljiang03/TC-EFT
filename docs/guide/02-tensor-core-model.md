@@ -6,9 +6,9 @@ The model evaluates K exact products plus an FP32 accumulator input C. Each name
 
 | Stage | Executable definitions | Mathematical role |
 | --- | --- | --- |
-| Decode | `prepare`, `prepareProducts`, `Profile.decode` | Decode finite words and preserve raw exponent/fraction metadata |
-| Multiply | `rawMul`, `PreparedBlock.terms` | Form exact products without normalizing their raw exponent sums |
-| Select grid | `PreparedBlock.eta`, `quantumExponent` | Take the nonzero raw-scale maximum, apply the profile floor, and subtract alignment precision |
+| Decode | `prepare`, `prepareProducts`, `Profile.decode` | Decode finite words and preserve unnormalized exponent/mantissa metadata |
+| Multiply | `unnormalizedMul`, `PreparedBlock.terms` | Form exact products without normalizing their unnormalized exponent sums |
+| Select grid | `PreparedBlock.alignExp`, `alignGridExponent` | Take the nonzero unnormalized-exponent maximum, apply the profile floor, and subtract alignment precision |
 | Align | `truncCoeff`, `PreparedBlock.coefficients` | Truncate signed terms toward zero onto the common grid |
 | Accumulate | `PreparedBlock.accumulator` | Sum retained integer coefficients exactly |
 | Convert | `evalPrepared`, `round32 .towardZero` | Convert the exact accumulator to finite FP32 |
@@ -16,7 +16,7 @@ The model evaluates K exact products plus an FP32 accumulator input C. Each name
 
 Start with [Block.lean](../../TensorCore/TC/Block.lean), then follow [StageResiduals.lean](../../TensorCore/TC/StageResiduals.lean) and [ErrorBounds.lean](../../TensorCore/TC/ErrorBounds.lean). The [independent specification](../../TensorCore/TC/Specification/Defs.lean) uses separate mathematical definitions; its bridge proves equality of encoded results.
 
-The raw scale matters even when two factorizations have the same product value. Replacing exact raw products with normalized products can change the alignment grid and the answer. Zero terms do not choose the raw maximum; nonzero subnormal inputs retain their format's raw subnormal scale.
+The unnormalized exponent matters even when two factorizations have the same product value. Replacing exact unnormalized products with normalized products can change the alignment grid and the answer. Zero terms do not choose the maximum unnormalized exponent; nonzero subnormal inputs retain their format's raw subnormal scale.
 
 For FP32 output, alignment precision is `F = 23 + p`. The selected profiles are:
 

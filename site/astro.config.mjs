@@ -34,7 +34,7 @@ export default defineConfig({
           items: [
             { label: 'The model at a glance', slug: 'model' },
             { label: '1. Formats and decoding', slug: 'model/formats' },
-            { label: '2. Exact raw products', slug: 'model/products' },
+            { label: '2. Exact unnormalized products', slug: 'model/products' },
             { label: '3. Alignment', slug: 'model/alignment' },
             { label: '4. Accumulation', slug: 'model/accumulation' },
             { label: '5. Output conversion', slug: 'model/conversion' },
@@ -56,7 +56,7 @@ export default defineConfig({
         {
           label: 'Proofs & trust',
           items: [
-            { label: 'Theorem index', slug: 'proofs/theorems' },
+            { label: 'What is proved', slug: 'proofs/theorems' },
             { label: 'Trust boundary', slug: 'proofs/trust' },
             { label: 'FloatLib cross-check', slug: 'proofs/floatlib' },
           ],

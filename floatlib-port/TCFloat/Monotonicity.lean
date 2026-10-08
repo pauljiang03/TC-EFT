@@ -21,25 +21,25 @@ theorem truncGrid_integer (z : Int) (e : Int) :
   · simp only [mul_div_cancel_right₀ _ hp, Int.floor_intCast]
 
 private theorem alignment_replicate (t : Term) (k : Nat) :
-    alignmentScale (List.replicate k t) =
-      if k = 0 ∨ t.dyadic.significand = 0 then none else some t.rawScale := by
+    maxTermExp (List.replicate k t) =
+      if k = 0 ∨ t.dyadic.significand = 0 then none else some t.unnormalizedExp := by
   induction k with
-  | zero => simp [alignmentScale]
+  | zero => simp [maxTermExp]
   | succ k ih =>
-    simp only [List.replicate_succ, alignmentScale, ih]
+    simp only [List.replicate_succ, maxTermExp, ih]
     by_cases hz : t.dyadic.significand = 0
     · simp [hz]
     · by_cases hk : k = 0 <;> simp [hz,hk]
 
-/-- A leading nonzero C selects eta if each repeated product's raw scale is no larger. -/
-theorem construction_eta (prof : Profile) (K : Nat) (a b c : Term)
-    (hc : c.dyadic.significand ≠ 0) (hs : (a.mul b).rawScale ≤ c.rawScale)
-    (hf : ∀ f ∈ prof.floor, f ≤ c.rawScale) :
-    Block.eta ⟨prof,c,List.replicate K (a,b)⟩ = some c.rawScale := by
-  have ha : alignmentScale (c :: List.replicate K (a.mul b)) = some c.rawScale := by
-    simp only [alignmentScale, alignment_replicate, ite_eq_right hc]
+/-- A leading nonzero C selects eta if each repeated product's unnormalized exponent is no larger. -/
+theorem construction_alignExp (prof : Profile) (K : Nat) (a b c : Term)
+    (hc : c.dyadic.significand ≠ 0) (hs : (a.mul b).unnormalizedExp ≤ c.unnormalizedExp)
+    (hf : ∀ f ∈ prof.floor, f ≤ c.unnormalizedExp) :
+    Block.alignExp ⟨prof,c,List.replicate K (a,b)⟩ = some c.unnormalizedExp := by
+  have ha : maxTermExp (c :: List.replicate K (a.mul b)) = some c.unnormalizedExp := by
+    simp only [maxTermExp, alignment_replicate, ite_eq_right hc]
     split_ifs <;> simp [max_eq_left hs]
-  simp only [Block.eta, Block.terms, List.map_replicate, ha, Option.map_some]
+  simp only [Block.alignExp, Block.terms, List.map_replicate, ha, Option.map_some]
   cases hp : prof.floor with
   | none => simp
   | some f =>
@@ -55,9 +55,9 @@ theorem belowOneTerm_value : belowOneTerm.value = 1-pow2 (-24) := by decide +ker
 /-- With C=1 all products of the family fall below the alignment quantum. -/
 theorem construction_accumulator_one (prof : Profile) (p K : Nat) (a b : Term)
     (hp : prof.extra = p) (hf : ∀ f ∈ prof.floor, f ≤ -1)
-    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).rawScale ≤ -1) :
+    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).unnormalizedExp ≤ -1) :
     Block.accumulator ⟨prof,oneTerm,List.replicate K (a,b)⟩ = 1 := by
-  have he := construction_eta prof K a b oneTerm (by decide) (by exact le_trans hs (by decide))
+  have he := construction_alignExp prof K a b oneTerm (by decide) (by exact le_trans hs (by decide))
     (by intro f h; exact le_trans (hf f h) (by decide))
   have hq : Block.q ⟨prof,oneTerm,List.replicate K (a,b)⟩ = -(23+(p:Int)) := by
     unfold Block.q
@@ -82,10 +82,10 @@ theorem construction_accumulator_one (prof : Profile) (p K : Nat) (a b : Term)
 /-- Lowering C by one FP32 step exposes all K product contributions. -/
 theorem construction_accumulator_below (prof : Profile) (p K : Nat) (a b : Term)
     (hp : prof.extra = p) (hf : ∀ f ∈ prof.floor, f ≤ -1)
-    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).rawScale ≤ -1) :
+    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).unnormalizedExp ≤ -1) :
     Block.accumulator ⟨prof,belowOneTerm,List.replicate K (a,b)⟩ =
       1-pow2 (-24)+(K:ℚ)*pow2 (-(24+(p:Int))) := by
-  have he := construction_eta prof K a b belowOneTerm (by decide) hs hf
+  have he := construction_alignExp prof K a b belowOneTerm (by decide) hs hf
   have hq : Block.q ⟨prof,belowOneTerm,List.replicate K (a,b)⟩ = -(24+(p:Int)) := by
     unfold Block.q
     rw [he]
@@ -154,7 +154,7 @@ theorem round32_rtz_above_one (x : ℚ) (hx : (1:ℚ)/2 ≤ x) (hx2 : x < 2) :
 /-- General TC-EFT nonmonotonicity threshold (Theorem III.4), for all natural p and K. -/
 theorem nonmonotone_perturbation (prof : Profile) (p K : Nat) (a b : Term)
     (hp : prof.extra = p) (hf : ∀ f ∈ prof.floor, f ≤ -1)
-    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).rawScale ≤ -1)
+    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).unnormalizedExp ≤ -1)
     (hK : K < 2^(24+p)) :
     ∃ bits y,
       Block.evaluate ⟨prof,oneTerm,List.replicate K (a,b)⟩ = some 0x3f800000 ∧
@@ -215,7 +215,7 @@ def MonotoneInAccumulator (prof : Profile) (products : List (Term × Term)) : Pr
 /-- An explicit failure of monotonicity whenever the general family's threshold is met. -/
 theorem construction_not_monotone (prof : Profile) (p K : Nat) (a b : Term)
     (hp : prof.extra = p) (hf : ∀ f ∈ prof.floor, f ≤ -1)
-    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).rawScale ≤ -1)
+    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).unnormalizedExp ≤ -1)
     (hK : K < 2^(24+p)) (hthreshold : 3*2^p ≤ K) :
     ¬ MonotoneInAccumulator prof (List.replicate K (a,b)) := by
   obtain ⟨bits,y,h1,h2,hy,hiff⟩ := nonmonotone_perturbation prof p K a b hp hf hv hs hK
@@ -244,7 +244,7 @@ private theorem prepare_replicate (prof : Profile) (K aw bw c : Nat) (a b d : Te
 theorem nonmonotone_encoded (K p : Nat) (floor : Option Int)
     (hf : ∀ f ∈ floor, f ≤ -1) (aw bw : Nat) (a b : Term)
     (ha : decode .binary16 aw = some a) (hb : decode .binary16 bw = some b)
-    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).rawScale ≤ -1)
+    (hv : (a.mul b).value = pow2 (-(24+(p:Int)))) (hs : (a.mul b).unnormalizedExp ≤ -1)
     (hK : K < 2^(24+p)) :
     ∃ bits y,
       evalWords (fp16 K p floor) (List.replicate K (aw,bw)) 0x3f800000 = some 0x3f800000 ∧

@@ -85,7 +85,7 @@ def main():
                   profiles={profile: sum(v['profile'] == profile for v in inputs)
                             for profile in PROFILES},
                   scope='16-position FP16/FP32 instruction paths, ordered group accumulation, zeros, subnormals, and cancellation',
-                  oracle='Lean instruction outputs compared with independent Fraction arithmetic per ordered normalization group',
+                  oracle='Lean instruction outputs compared with independent exact rational arithmetic per ordered normalization group',
                   source_sha256={name: hashlib.sha256((ROOT/name).read_bytes()).hexdigest()
                                  for name in ['scripts/check_instruction_groups.py',
                                               'scripts/check_features.py',

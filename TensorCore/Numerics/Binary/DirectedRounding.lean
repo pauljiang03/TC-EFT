@@ -20,22 +20,22 @@ theorem binary_ceil_magnitude_spec (f : Format) (hf : f.WellFormed) (m : ℚ)
     m ≤ binaryMagnitudeRounded f .towardPositive false m ∧
     ∀ y : ℚ, f.FiniteValue y → m ≤ y →
       binaryMagnitudeRounded f .towardPositive false m ≤ y := by
-  have hq := pow2_pos (binaryConvExp f m - f.fractionBits)
+  have hq := pow2_pos (binaryConvExp f m - f.mantissaBits)
   constructor
   · have h := Rat.mul_le_mul_of_nonneg_right
-      (Rat.le_ceil (x := m / pow2 (binaryConvExp f m - f.fractionBits))) (Rat.le_of_lt hq)
+      (Rat.le_ceil (x := m / pow2 (binaryConvExp f m - f.mantissaBits))) (Rat.le_of_lt hq)
     rwa [Rat.div_mul_cancel (Rat.ne_of_gt hq)] at h
   · intro y hy hmy
     obtain ⟨j, fe, hfe, _, hj, rfl⟩ := hy
     by_cases he : binaryConvExp f m ≤ fe
     · obtain ⟨z, hz⟩ := f.finite_on_grid j fe (binaryConvExp f m) he
       rw [hz] at hmy ⊢
-      change (((m / pow2 (binaryConvExp f m - f.fractionBits)).ceil : ℤ) : ℚ) *
-        pow2 (binaryConvExp f m - f.fractionBits) ≤ _
+      change (((m / pow2 (binaryConvExp f m - f.mantissaBits)).ceil : ℤ) : ℚ) *
+        pow2 (binaryConvExp f m - f.mantissaBits) ≤ _
       apply Rat.mul_le_mul_of_nonneg_right _ (Rat.le_of_lt hq)
       apply Rat.intCast_le_intCast.mpr
       apply Rat.ceil_le_iff.mpr
-      apply Rat.le_of_mul_le_mul_right (c := pow2 (binaryConvExp f m - f.fractionBits)) _ hq
+      apply Rat.le_of_mul_le_mul_right (c := pow2 (binaryConvExp f m - f.mantissaBits)) _ hq
       rwa [Rat.div_mul_cancel (Rat.ne_of_gt hq)]
     · obtain ⟨_, _, _, hl⟩ := binaryConvExp_bounds f hf m hm hr
       have hl' : pow2 (binaryConvExp f m) ≤ m := by
@@ -44,7 +44,7 @@ theorem binary_ceil_magnitude_spec (f : Format) (hf : f.WellFormed) (m : ℚ)
         · exfalso; omega
       have hsmall := f.finite_below_binade j fe (binaryConvExp f m) hj (by omega)
       have hsmall' := (absQ_le_iff _ _).mp hsmall
-      have := pow2_pos (binaryConvExp f m - f.fractionBits - 1)
+      have := pow2_pos (binaryConvExp f m - f.mantissaBits - 1)
       grind
 
 theorem binarySignedRounded_towardNegative (f : Format) (hf : f.WellFormed) (x : ℚ)

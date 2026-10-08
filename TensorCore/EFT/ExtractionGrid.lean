@@ -7,17 +7,17 @@ namespace TensorCore
 
 structure ExtractionGrid (t : BlockTrace) where
   exponent : ℤ
-  coarser : t.block.quantumExponent ≤ exponent
+  coarser : t.block.alignGridExponent ≤ exponent
 
 def BlockTrace.defaultExtraction (t : BlockTrace) : ExtractionGrid t :=
   ⟨t.extractionExponent, Int.le_max_left _ _⟩
 
 /-- Accept an extraction grid exactly when it is no finer than the alignment grid. -/
 def BlockTrace.extractAt (t : BlockTrace) (b : ℤ) : Option (ExtractionGrid t) :=
-  if h : t.block.quantumExponent ≤ b then some ⟨b, h⟩ else none
+  if h : t.block.alignGridExponent ≤ b then some ⟨b, h⟩ else none
 
 theorem extractAt_isSome_iff (t : BlockTrace) (b : ℤ) :
-    (t.extractAt b).isSome = true ↔ t.block.quantumExponent ≤ b := by
+    (t.extractAt b).isSome = true ↔ t.block.alignGridExponent ≤ b := by
   simp [BlockTrace.extractAt]
 
 namespace ExtractionGrid
@@ -29,7 +29,7 @@ def lowParts (g : ExtractionGrid t) : List ℚ :=
 def retainedSum (g : ExtractionGrid t) : ℚ := sumQ g.coarse
 def overlap (g : ExtractionGrid t) : ℚ := t.output.value - g.retainedSum
 def retainedLowParts (g : ExtractionGrid t) : List ℚ :=
-  g.lowParts.map fun e => truncGrid e t.block.quantumExponent
+  g.lowParts.map fun e => truncGrid e t.block.alignGridExponent
 
 theorem lowPart_bound (g : ExtractionGrid t) :
     ∀ e ∈ g.lowParts, absQ e < pow2 g.exponent := by
@@ -39,7 +39,7 @@ theorem lowPart_bound (g : ExtractionGrid t) :
 
 theorem retained_add_low (g : ExtractionGrid t) :
     g.retainedSum + sumQ g.lowParts = t.block.exactDot := by
-  have h := sum_stage_residuals (t.block.terms.map RawProduct.value)
+  have h := sum_stage_residuals (t.block.terms.map UnnormalizedProduct.value)
     (fun x => truncGrid x g.exponent)
   rw [terms_value] at h
   simpa [retainedSum, coarse, lowParts, List.map_map, Function.comp_def] using h.symm
@@ -52,15 +52,15 @@ theorem recovery (g : ExtractionGrid t) :
 
 theorem accumulator_eq_retained (g : ExtractionGrid t) :
     t.block.accumulator = g.retainedSum + sumQ g.retainedLowParts := by
-  have hτ : g.exponent = t.block.quantumExponent + (g.exponent - t.block.quantumExponent).toNat := by
+  have hτ : g.exponent = t.block.alignGridExponent + (g.exponent - t.block.alignGridExponent).toNat := by
     have := g.coarser
     omega
   rw [accumulator_value]
   unfold retainedSum retainedLowParts lowParts coarse
   rw [List.map_map]
-  have hsplit : (fun x : RawProduct => truncGrid x.value t.block.quantumExponent) =
+  have hsplit : (fun x : UnnormalizedProduct => truncGrid x.value t.block.alignGridExponent) =
       fun x => truncGrid x.value g.exponent +
-        truncGrid (x.value - truncGrid x.value g.exponent) t.block.quantumExponent := by
+        truncGrid (x.value - truncGrid x.value g.exponent) t.block.alignGridExponent := by
     funext x
     rw [hτ]
     exact truncGrid_split _ _ _
@@ -110,9 +110,9 @@ theorem inputBudget_coefficient_bound (g : ExtractionGrid t) (ℓ : ℤ) (P : �
   · simpa [coefficients, lowParts] using hbudget
 
 theorem inputBudget_lowParts_sum_exact (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
-    (ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
+    (ℓ : ℤ) (hmin : f.emin - f.mantissaBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
-    (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.fractionBits + 1))
+    (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.mantissaBits + 1))
     (hrange : (magnitudeSum (g.coefficients ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite) :
     naiveSumBinary f g.lowParts = some (sumQ g.lowParts) := by
   rw [g.lowParts_on_grid ℓ hℓ hinput,
@@ -120,9 +120,9 @@ theorem inputBudget_lowParts_sum_exact (g : ExtractionGrid t) (f : Format) (hf :
     sum_coefficients]
 
 def scalarPredicate (g : ExtractionGrid t) (f : Format) (ℓ : ℤ) : Bool :=
-  decide f.WellFormed && decide (f.emin - f.fractionBits ≤ ℓ) &&
+  decide f.WellFormed && decide (f.emin - f.mantissaBits ≤ ℓ) &&
   (g.lowParts == (g.coefficients ℓ).map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) &&
-  decide (magnitudeSum (g.coefficients ℓ) < 2 ^ (f.fractionBits + 1)) &&
+  decide (magnitudeSum (g.coefficients ℓ) < 2 ^ (f.mantissaBits + 1)) &&
   decide ((magnitudeSum (g.coefficients ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite) &&
   representableBinary f t.output.value && representableBinary f g.overlap &&
   representableBinary f g.retainedSum &&
@@ -172,9 +172,9 @@ theorem scalarCorrected_isSome_iff (g : ExtractionGrid t) (f : Format) (ℓ : �
 
 /-- The input-grid budget and range/representability conditions imply the scalar predicate. -/
 theorem inputBudget_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
-    (ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
+    (ℓ : ℤ) (hmin : f.emin - f.mantissaBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
-    (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.fractionBits + 1))
+    (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.mantissaBits + 1))
     (hrange : (magnitudeSum (g.coefficients ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite)
     (hD : representableBinary f t.output.value = true)
     (hO : representableBinary f g.overlap = true)

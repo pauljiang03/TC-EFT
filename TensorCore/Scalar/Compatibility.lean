@@ -32,7 +32,7 @@ theorem convertPayload_bounded (source target : BinaryFormat) (p : ℕ)
     simp [convertPayload, quietBit, BinaryFormat.layout, fp16, fp32, fp64] at hp ⊢ <;> omega
 
 theorem convertPayload_roundtrip (source target : BinaryFormat) (p : ℕ)
-    (hw : source.layout.fractionBits ≤ target.layout.fractionBits) :
+    (hw : source.layout.mantissaBits ≤ target.layout.mantissaBits) :
     convertPayload target source (convertPayload source target p) = p := by
   cases source <;> cases target <;>
     simp [convertPayload, BinaryFormat.layout, fp16, fp32, fp64] at hw ⊢ <;> omega
@@ -40,7 +40,7 @@ theorem convertPayload_roundtrip (source target : BinaryFormat) (p : ℕ)
 /-- Widening then narrowing a quiet NaN preserves sign and payload. -/
 theorem convert_quietNaN_roundtrip (source target : BinaryFormat) (cfg : Context)
     (s : Bool) (p : ℕ) (hp : p < quietBit source)
-    (hw : source.layout.fractionBits ≤ target.layout.fractionBits) :
+    (hw : source.layout.mantissaBits ≤ target.layout.mantissaBits) :
     convert target source cfg (convert source target cfg (nan source s p)).bits =
       ⟨nan source s p, {}⟩ := by
   have hpt := convertPayload_bounded source target p hp

@@ -30,11 +30,11 @@ def mode : TensorCore.RoundingMode → Mode
   | .nearestEven => .nearestEven
 
 def term (d : TensorCore.Decoded) : Term :=
-  ⟨FloatLib.Numerics.Dyadic.ofScaledInt d.significand (d.rawScale-d.fractionalBits),
-    d.rawScale,d.fractionalBits⟩
+  ⟨FloatLib.Numerics.Dyadic.ofScaledInt d.significand (d.unnormalizedExp-d.binaryPoint),
+    d.unnormalizedExp,d.binaryPoint⟩
 
 def project (t : Term) : TensorCore.Decoded :=
-  ⟨t.dyadic.signedSignificand,t.rawScale,t.fractionBits⟩
+  ⟨t.dyadic.signedSignificand,t.unnormalizedExp,t.mantissaBits⟩
 
 @[simp] theorem term_value (d : TensorCore.Decoded) : (term d).value = d.value := by
   simp [term, Term.value, TensorCore.Decoded.value, pow2,

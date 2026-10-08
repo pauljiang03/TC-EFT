@@ -1,5 +1,5 @@
 import TensorCore.TC.Invocation
-import TensorCore.TC.AlignmentScale
+import TensorCore.TC.AlignmentExponent
 
 namespace TensorCore
 

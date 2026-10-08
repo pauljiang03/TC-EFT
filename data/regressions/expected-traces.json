@@ -5,7 +5,7 @@
       "bits": 1074790401,
       "eta": 0,
       "qExponent": -23,
-      "rawScales": [
+      "unnormalizedExps": [
         0,
         -23,
         -23,
@@ -38,7 +38,7 @@
       "bits": 1074790400,
       "eta": 1,
       "qExponent": -22,
-      "rawScales": [
+      "unnormalizedExps": [
         1,
         -23,
         -23,
@@ -71,7 +71,7 @@
       "bits": 1076889601,
       "eta": 0,
       "qExponent": -23,
-      "rawScales": [
+      "unnormalizedExps": [
         0,
         -3,
         -3,
@@ -104,7 +104,7 @@
       "bits": 1091043327,
       "eta": 0,
       "qExponent": -23,
-      "rawScales": [
+      "unnormalizedExps": [
         0,
         0,
         0,
@@ -137,7 +137,7 @@
       "bits": 0,
       "eta": null,
       "qExponent": -23,
-      "rawScales": [
+      "unnormalizedExps": [
         0,
         0,
         0,
@@ -170,7 +170,7 @@
       "bits": 662700032,
       "eta": -28,
       "qExponent": -51,
-      "rawScales": [
+      "unnormalizedExps": [
         -28,
         0,
         0,
@@ -203,7 +203,7 @@
       "bits": 1,
       "eta": -126,
       "qExponent": -149,
-      "rawScales": [
+      "unnormalizedExps": [
         0,
         0,
         0,
@@ -236,7 +236,7 @@
       "bits": 1151319632,
       "eta": 14,
       "qExponent": -9,
-      "rawScales": [
+      "unnormalizedExps": [
         14,
         11,
         5,

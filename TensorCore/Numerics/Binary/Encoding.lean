@@ -21,14 +21,14 @@ theorem Format.emin_le_emax (f : Format) (hf : f.WellFormed) : f.emin ≤ f.emax
 theorem classifyNat_finiteValue (f : Format) (hf : f.WellFormed) (n : ℕ) (d : Decoded)
     (h : (classifyNat f n).finite = some d) : f.FiniteValue d.value := by
   have hemin := f.emin_le_emax hf
-  have hfrac := Nat.mod_lt n (Nat.two_pow_pos f.fractionBits)
-  have hexp := Nat.mod_lt (n / 2 ^ f.fractionBits) (Nat.two_pow_pos f.exponentBits)
-  have hpow : 2 ^ (f.fractionBits + 1) = 2 ^ f.fractionBits * 2 := Nat.pow_succ 2 _
+  have hfrac := Nat.mod_lt n (Nat.two_pow_pos f.mantissaBits)
+  have hexp := Nat.mod_lt (n / 2 ^ f.mantissaBits) (Nat.two_pow_pos f.exponentBits)
+  have hpow : 2 ^ (f.mantissaBits + 1) = 2 ^ f.mantissaBits * 2 := Nat.pow_succ 2 _
   unfold classifyNat at h
   dsimp only at h
   unfold Format.FiniteValue
-  generalize hP : 2 ^ f.fractionBits = P at *
-  generalize hP1 : 2 ^ (f.fractionBits + 1) = P1 at *
+  generalize hP : 2 ^ f.mantissaBits = P at *
+  generalize hP1 : 2 ^ (f.mantissaBits + 1) = P1 at *
   generalize hW : 2 ^ f.exponentBits = W at *
   split at h
   · split at h <;> simp [Classification.finite] at h
@@ -40,7 +40,7 @@ theorem classifyNat_finiteValue (f : Format) (hf : f.WellFormed) (n : ℕ) (d : 
         simp [Decoded.value]
       · simp only [Classification.finite, Option.some.injEq] at h
         subst d
-        refine ⟨if (n / 2 ^ (f.fractionBits + f.exponentBits) != 0) then
+        refine ⟨if (n / 2 ^ (f.mantissaBits + f.exponentBits) != 0) then
           -((n % P : ℕ) : ℤ) else ((n % P : ℕ) : ℤ),
           1 - f.bias, Int.le_refl _, hemin, ?_, ?_⟩
         · split
@@ -50,7 +50,7 @@ theorem classifyNat_finiteValue (f : Format) (hf : f.WellFormed) (n : ℕ) (d : 
     · simp only [Classification.finite, Option.some.injEq] at h
       subst d
       rename_i htop hzero
-      refine ⟨if (n / 2 ^ (f.fractionBits + f.exponentBits) != 0) then
+      refine ⟨if (n / 2 ^ (f.mantissaBits + f.exponentBits) != 0) then
         -((P + n % P : ℕ) : ℤ) else ((P + n % P : ℕ) : ℤ),
         ((n / P % W : ℕ) : ℤ) - f.bias, ?_, ?_, ?_, ?_⟩
       · unfold Format.emin
@@ -65,25 +65,25 @@ theorem classifyNat_finiteValue (f : Format) (hf : f.WellFormed) (n : ℕ) (d : 
 
 /-- The constructed encoding fits the word and has the stated fields. -/
 theorem encodeBinary_toNat (f : Format) (hf : f.WellFormed) (negative : Bool) (e k : ℤ)
-    (hk0 : 0 ≤ k) (hk1 : k < ((2 ^ (f.fractionBits + 1) : ℕ) : ℤ)) (_he1 : f.emin ≤ e)
+    (hk0 : 0 ≤ k) (hk1 : k < ((2 ^ (f.mantissaBits + 1) : ℕ) : ℤ)) (_he1 : f.emin ≤ e)
     (he2 : e ≤ f.emax) :
     (encodeBinary f negative e k).toNat =
-      (if negative then 2 ^ (f.fractionBits + f.exponentBits) else 0) +
-        (if k < (2 ^ f.fractionBits : ℕ) then k.toNat
-         else (e + f.bias).toNat * 2 ^ f.fractionBits + (k - (2 ^ f.fractionBits : ℕ)).toNat) := by
+      (if negative then 2 ^ (f.mantissaBits + f.exponentBits) else 0) +
+        (if k < (2 ^ f.mantissaBits : ℕ) then k.toNat
+         else (e + f.bias).toNat * 2 ^ f.mantissaBits + (k - (2 ^ f.mantissaBits : ℕ)).toNat) := by
   obtain ⟨hp, hE⟩ := hf
   unfold encodeBinary
   rw [BitVec.toNat_ofNat]
   apply Nat.mod_eq_of_lt
-  have hwidth : 2 ^ f.width = 2 * 2 ^ (f.fractionBits + f.exponentBits) := by
+  have hwidth : 2 ^ f.width = 2 * 2 ^ (f.mantissaBits + f.exponentBits) := by
     unfold Format.width
-    rw [show 1 + f.exponentBits + f.fractionBits = (f.fractionBits + f.exponentBits) + 1 by omega,
+    rw [show 1 + f.exponentBits + f.mantissaBits = (f.mantissaBits + f.exponentBits) + 1 by omega,
       Nat.pow_succ]
     omega
-  have hPW : 2 ^ (f.fractionBits + f.exponentBits) = 2 ^ f.fractionBits * 2 ^ f.exponentBits :=
+  have hPW : 2 ^ (f.mantissaBits + f.exponentBits) = 2 ^ f.mantissaBits * 2 ^ f.exponentBits :=
     Nat.pow_add 2 _ _
-  have hpow : 2 ^ (f.fractionBits + 1) = 2 ^ f.fractionBits * 2 := Nat.pow_succ 2 _
-  have hP := Nat.two_pow_pos f.fractionBits
+  have hpow : 2 ^ (f.mantissaBits + 1) = 2 ^ f.mantissaBits * 2 := Nat.pow_succ 2 _
+  have hP := Nat.two_pow_pos f.mantissaBits
   have hW : 4 ≤ 2 ^ f.exponentBits := by
     have := Nat.pow_le_pow_right (show 0 < 2 by decide) hE
     simpa using this
@@ -91,9 +91,9 @@ theorem encodeBinary_toNat (f : Format) (hf : f.WellFormed) (negative : Bool) (e
     unfold Format.emax at he2
     omega
   rw [hwidth, hPW]
-  generalize hPv : 2 ^ f.fractionBits = P at *
+  generalize hPv : 2 ^ f.mantissaBits = P at *
   generalize hWv : 2 ^ f.exponentBits = W at *
-  generalize hP1 : 2 ^ (f.fractionBits + 1) = P1 at *
+  generalize hP1 : 2 ^ (f.mantissaBits + 1) = P1 at *
   have hpay : (if k < (P : ℕ) then k.toNat
       else (e + f.bias).toNat * P + (k - (P : ℕ)).toNat) < P * W := by
     split
@@ -114,46 +114,46 @@ theorem encodeBinary_toNat (f : Format) (hf : f.WellFormed) (negative : Bool) (e
   cases negative <;> simp only [Bool.false_eq_true, ↓reduceIte] <;> omega
 
 theorem encodeBinary_parity (f : Format) (hf : f.WellFormed) (negative : Bool) (e k : ℤ)
-    (hk0 : 0 ≤ k) (hk1 : k < ((2 ^ (f.fractionBits + 1) : ℕ) : ℤ)) (he1 : f.emin ≤ e)
+    (hk0 : 0 ≤ k) (hk1 : k < ((2 ^ (f.mantissaBits + 1) : ℕ) : ℤ)) (he1 : f.emin ≤ e)
     (he2 : e ≤ f.emax) :
     (encodeBinary f negative e k).toNat % 2 = k.toNat % 2 := by
   rw [encodeBinary_toNat f hf negative e k hk0 hk1 he1 he2]
   obtain ⟨hp, _⟩ := hf
-  have hPeven : 2 ^ f.fractionBits % 2 = 0 := by
-    obtain ⟨m, hm⟩ : ∃ m, f.fractionBits = m + 1 := ⟨f.fractionBits - 1, by omega⟩
+  have hPeven : 2 ^ f.mantissaBits % 2 = 0 := by
+    obtain ⟨m, hm⟩ : ∃ m, f.mantissaBits = m + 1 := ⟨f.mantissaBits - 1, by omega⟩
     rw [hm, Nat.pow_succ]
     simp
-  have hPW : 2 ^ (f.fractionBits + f.exponentBits) % 2 = 0 := by
+  have hPW : 2 ^ (f.mantissaBits + f.exponentBits) % 2 = 0 := by
     rw [Nat.pow_add, Nat.mul_mod, hPeven]
     simp
-  have hmul : (e + f.bias).toNat * 2 ^ f.fractionBits % 2 = 0 := by
+  have hmul : (e + f.bias).toNat * 2 ^ f.mantissaBits % 2 = 0 := by
     rw [Nat.mul_mod, hPeven]
     simp
-  generalize hPv : 2 ^ f.fractionBits = P at *
-  generalize hPWv : 2 ^ (f.fractionBits + f.exponentBits) = PW at *
-  generalize hP1 : 2 ^ (f.fractionBits + 1) = P1 at *
+  generalize hPv : 2 ^ f.mantissaBits = P at *
+  generalize hPWv : 2 ^ (f.mantissaBits + f.exponentBits) = PW at *
+  generalize hP1 : 2 ^ (f.mantissaBits + 1) = P1 at *
   generalize hmv : (e + f.bias).toNat * P = M at *
   cases negative <;> simp only [Bool.false_eq_true, ↓reduceIte] <;> split <;> omega
 
 /-- The payload of a constructed encoding is below `2^(p+E)`. -/
 theorem encodeBinary_payload_lt (f : Format) (hf : f.WellFormed) (e k : ℤ)
-    (_hk0 : 0 ≤ k) (hk1 : k < ((2 ^ (f.fractionBits + 1) : ℕ) : ℤ)) (_he1 : f.emin ≤ e)
+    (_hk0 : 0 ≤ k) (hk1 : k < ((2 ^ (f.mantissaBits + 1) : ℕ) : ℤ)) (_he1 : f.emin ≤ e)
     (he2 : e ≤ f.emax) :
-    (if k < (2 ^ f.fractionBits : ℕ) then k.toNat
-      else (e + f.bias).toNat * 2 ^ f.fractionBits + (k - (2 ^ f.fractionBits : ℕ)).toNat) <
-      2 ^ f.fractionBits * 2 ^ f.exponentBits := by
+    (if k < (2 ^ f.mantissaBits : ℕ) then k.toNat
+      else (e + f.bias).toNat * 2 ^ f.mantissaBits + (k - (2 ^ f.mantissaBits : ℕ)).toNat) <
+      2 ^ f.mantissaBits * 2 ^ f.exponentBits := by
   obtain ⟨hp, hE⟩ := hf
-  have hpow : 2 ^ (f.fractionBits + 1) = 2 ^ f.fractionBits * 2 := Nat.pow_succ 2 _
-  have hP := Nat.two_pow_pos f.fractionBits
+  have hpow : 2 ^ (f.mantissaBits + 1) = 2 ^ f.mantissaBits * 2 := Nat.pow_succ 2 _
+  have hP := Nat.two_pow_pos f.mantissaBits
   have hW : 4 ≤ 2 ^ f.exponentBits := by
     have := Nat.pow_le_pow_right (show 0 < 2 by decide) hE
     simpa using this
   have hemax : e + f.bias ≤ ((2 ^ f.exponentBits - 2 : ℕ) : ℤ) := by
     unfold Format.emax at he2
     omega
-  generalize hPv : 2 ^ f.fractionBits = P at *
+  generalize hPv : 2 ^ f.mantissaBits = P at *
   generalize hWv : 2 ^ f.exponentBits = W at *
-  generalize hP1 : 2 ^ (f.fractionBits + 1) = P1 at *
+  generalize hP1 : 2 ^ (f.mantissaBits + 1) = P1 at *
   split
   · rename_i hk
     have h1 : P ≤ P * W := Nat.le_mul_of_pos_right _ (by omega)
@@ -170,16 +170,16 @@ theorem encodeBinary_payload_lt (f : Format) (hf : f.WellFormed) (e k : ℤ)
 /-- The constructed encoding decodes to the value it was built from. -/
 theorem encodeBinary_value (f : Format) (hf : f.WellFormed) (negative : Bool) (e k : ℤ)
     (he1 : f.emin ≤ e) (he2 : e ≤ f.emax) (hk0 : 0 ≤ k)
-    (hk1 : k < ((2 ^ (f.fractionBits + 1) : ℕ) : ℤ))
-    (hsub : ((2 ^ f.fractionBits : ℕ) : ℤ) ≤ k ∨ e = f.emin) :
+    (hk1 : k < ((2 ^ (f.mantissaBits + 1) : ℕ) : ℤ))
+    (hsub : ((2 ^ f.mantissaBits : ℕ) : ℤ) ≤ k ∨ e = f.emin) :
     binaryValue f (encodeBinary f negative e k) =
-      some ((if negative then -(k : ℚ) else (k : ℚ)) * pow2 (e - f.fractionBits)) := by
+      some ((if negative then -(k : ℚ) else (k : ℚ)) * pow2 (e - f.mantissaBits)) := by
   have hpaylt := encodeBinary_payload_lt f hf e k hk0 hk1 he1 he2
   obtain ⟨hp, hE⟩ := hf
-  have hPW : 2 ^ (f.fractionBits + f.exponentBits) = 2 ^ f.fractionBits * 2 ^ f.exponentBits :=
+  have hPW : 2 ^ (f.mantissaBits + f.exponentBits) = 2 ^ f.mantissaBits * 2 ^ f.exponentBits :=
     Nat.pow_add 2 _ _
-  have hpow : 2 ^ (f.fractionBits + 1) = 2 ^ f.fractionBits * 2 := Nat.pow_succ 2 _
-  have hP := Nat.two_pow_pos f.fractionBits
+  have hpow : 2 ^ (f.mantissaBits + 1) = 2 ^ f.mantissaBits * 2 := Nat.pow_succ 2 _
+  have hP := Nat.two_pow_pos f.mantissaBits
   have hW : 4 ≤ 2 ^ f.exponentBits := by
     have := Nat.pow_le_pow_right (show 0 < 2 by decide) hE
     simpa using this
@@ -192,9 +192,9 @@ theorem encodeBinary_value (f : Format) (hf : f.WellFormed) (negative : Bool) (e
   unfold classifyNat
   dsimp only
   rw [hPW]
-  generalize hPv : 2 ^ f.fractionBits = P at *
+  generalize hPv : 2 ^ f.mantissaBits = P at *
   generalize hWv : 2 ^ f.exponentBits = W at *
-  generalize hP1 : 2 ^ (f.fractionBits + 1) = P1 at *
+  generalize hP1 : 2 ^ (f.mantissaBits + 1) = P1 at *
   have hPWpos : 0 < P * W := Nat.mul_pos hP (by omega)
   -- The three fields of the word, for either sign.
   have hsgn : ∀ pay, pay < P * W →
@@ -248,9 +248,9 @@ theorem encodeBinary_value (f : Format) (hf : f.WellFormed) (negative : Bool) (e
     cases negative <;> simp [Decoded.value]
 
 def binarySign (f : Format) (bits : BitVec f.width) : Bool :=
-  bits.toNat / 2 ^ (f.fractionBits + f.exponentBits) != 0
+  bits.toNat / 2 ^ (f.mantissaBits + f.exponentBits) != 0
 
 def binaryExponentField (f : Format) (bits : BitVec f.width) : ℕ :=
-  bits.toNat / 2 ^ f.fractionBits % 2 ^ f.exponentBits
+  bits.toNat / 2 ^ f.mantissaBits % 2 ^ f.exponentBits
 
 end TensorCore

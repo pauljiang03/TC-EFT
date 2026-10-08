@@ -9,7 +9,7 @@ theorem prepare_fp16_term_metadata (K extra : ℕ) (floor : Option ℤ)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)
     (h : prepare x = some b) :
     ∀ t ∈ b.terms, t.significand ≠ 0 →
-      -149 ≤ t.rawScale - t.fractionalBits ∧ t.rawScale ≤ 127 := by
+      -149 ≤ t.unnormalizedExp - t.binaryPoint ∧ t.unnormalizedExp ≤ 127 := by
   unfold prepare at h
   cases hc : decode32 x.c with
   | none => simp [hc] at h
@@ -24,30 +24,30 @@ theorem prepare_fp16_term_metadata (K extra : ℕ) (floor : Option ℤ)
       rcases ht with ht | ⟨pair, hpair, ht⟩
       · subst t
         have hm := classifyNat_metadata fp32 (by decide) x.c.toNat c hc hnz
-        change c.fractionalBits = 23 ∧ -126 ≤ c.rawScale ∧ c.rawScale ≤ 127 at hm
-        change -149 ≤ c.rawScale - c.fractionalBits ∧ c.rawScale ≤ 127
+        change c.binaryPoint = 23 ∧ -126 ≤ c.unnormalizedExp ∧ c.unnormalizedExp ≤ 127 at hm
+        change -149 ≤ c.unnormalizedExp - c.binaryPoint ∧ c.unnormalizedExp ≤ 127
         omega
       · subst t
         obtain ⟨w, _, ha, hb⟩ := prepareProducts_origin _ _ _ hp pair hpair
         have hnza : pair.1.significand ≠ 0 := by
-          intro hz; apply hnz; simp [rawMul, hz]
+          intro hz; apply hnz; simp [unnormalizedMul, hz]
         have hnzb : pair.2.significand ≠ 0 := by
-          intro hz; apply hnz; simp [rawMul, hz]
+          intro hz; apply hnz; simp [unnormalizedMul, hz]
         have hma := classifyNat_metadata fp16 (by decide) w.1.toNat pair.1 ha hnza
         have hmb := classifyNat_metadata fp16 (by decide) w.2.toNat pair.2 hb hnzb
-        change pair.1.fractionalBits = 10 ∧ -14 ≤ pair.1.rawScale ∧ pair.1.rawScale ≤ 15 at hma
-        change pair.2.fractionalBits = 10 ∧ -14 ≤ pair.2.rawScale ∧ pair.2.rawScale ≤ 15 at hmb
-        change -149 ≤ (pair.1.rawScale + pair.2.rawScale) -
-          (pair.1.fractionalBits + pair.2.fractionalBits) ∧
-          pair.1.rawScale + pair.2.rawScale ≤ 127
+        change pair.1.binaryPoint = 10 ∧ -14 ≤ pair.1.unnormalizedExp ∧ pair.1.unnormalizedExp ≤ 15 at hma
+        change pair.2.binaryPoint = 10 ∧ -14 ≤ pair.2.unnormalizedExp ∧ pair.2.unnormalizedExp ≤ 15 at hmb
+        change -149 ≤ (pair.1.unnormalizedExp + pair.2.unnormalizedExp) -
+          (pair.1.binaryPoint + pair.2.binaryPoint) ∧
+          pair.1.unnormalizedExp + pair.2.unnormalizedExp ≤ 127
         omega
 
 /-- FP16 products have much narrower scale/grid support than FP32 c. -/
 theorem prepare_fp16_products_metadata (K extra : ℕ) (floor : Option ℤ)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)
     (h : prepare x = some b) :
-    ∀ t ∈ b.products.map (fun (a, b) => rawMul a b), t.significand ≠ 0 →
-      -48 ≤ t.rawScale - t.fractionalBits ∧ t.rawScale ≤ 30 := by
+    ∀ t ∈ b.products.map (fun (a, b) => unnormalizedMul a b), t.significand ≠ 0 →
+      -48 ≤ t.unnormalizedExp - t.binaryPoint ∧ t.unnormalizedExp ≤ 30 := by
   unfold prepare at h
   cases hc : decode32 x.c with
   | none => simp [hc] at h
@@ -61,16 +61,16 @@ theorem prepare_fp16_products_metadata (K extra : ℕ) (floor : Option ℤ)
       obtain ⟨pair, hpair, rfl⟩ := List.mem_map.mp ht
       obtain ⟨w, _, ha, hb⟩ := prepareProducts_origin _ _ _ hp pair hpair
       have hnza : pair.1.significand ≠ 0 := by
-        intro hz; apply hnz; simp [rawMul, hz]
+        intro hz; apply hnz; simp [unnormalizedMul, hz]
       have hnzb : pair.2.significand ≠ 0 := by
-        intro hz; apply hnz; simp [rawMul, hz]
+        intro hz; apply hnz; simp [unnormalizedMul, hz]
       have hma := classifyNat_metadata fp16 (by decide) w.1.toNat pair.1 ha hnza
       have hmb := classifyNat_metadata fp16 (by decide) w.2.toNat pair.2 hb hnzb
-      change pair.1.fractionalBits = 10 ∧ -14 ≤ pair.1.rawScale ∧ pair.1.rawScale ≤ 15 at hma
-      change pair.2.fractionalBits = 10 ∧ -14 ≤ pair.2.rawScale ∧ pair.2.rawScale ≤ 15 at hmb
-      change -48 ≤ (pair.1.rawScale + pair.2.rawScale) -
-        (pair.1.fractionalBits + pair.2.fractionalBits) ∧
-        pair.1.rawScale + pair.2.rawScale ≤ 30
+      change pair.1.binaryPoint = 10 ∧ -14 ≤ pair.1.unnormalizedExp ∧ pair.1.unnormalizedExp ≤ 15 at hma
+      change pair.2.binaryPoint = 10 ∧ -14 ≤ pair.2.unnormalizedExp ∧ pair.2.unnormalizedExp ≤ 15 at hmb
+      change -48 ≤ (pair.1.unnormalizedExp + pair.2.unnormalizedExp) -
+        (pair.1.binaryPoint + pair.2.binaryPoint) ∧
+        pair.1.unnormalizedExp + pair.2.unnormalizedExp ≤ 30
       omega
 
 /-- A sharper sufficient threshold for floors at most 30, including all source canonical profiles. -/
@@ -81,11 +81,11 @@ theorem canonical_source_padding_exact (K extra : ℕ) (floor : Option ℤ)
   have hprof := prepare_profile hp
   have hm := prepare_fp16_term_metadata K extra floor x b hp
   have hpm := prepare_fp16_products_metadata K extra floor x b hp
-  have hu := eta_upper b 127 (by
+  have hu := alignExp_upper b 127 (by
     intro f hmem
     have hf' := hf f (by simpa [hprof, fp16Fp32Profile] using hmem)
     omega) (by intro t ht hnz; exact (hm t ht hnz).2)
-  have huc := eta_upper b (max b.c.rawScale 30) (by
+  have huc := alignExp_upper b (max b.c.unnormalizedExp 30) (by
     intro f hmem
     have hf' := hf f (by simpa [hprof, fp16Fp32Profile] using hmem)
     omega) (by
@@ -93,23 +93,23 @@ theorem canonical_source_padding_exact (K extra : ℕ) (floor : Option ℤ)
       simp only [PreparedBlock.terms, List.mem_cons] at ht
       rcases ht with ht | ht
       · subst t
-        change b.c.rawScale ≤ max b.c.rawScale 30
+        change b.c.unnormalizedExp ≤ max b.c.unnormalizedExp 30
         omega
       · have hpt := (hpm t ht hnz).2
         omega)
   intro t ht hnz
-  obtain ⟨eta, he, _⟩ := eta_term b t ht hnz
-  have hemax := hu eta (by simp [he])
-  have hec := huc eta (by simp [he])
-  have hq : b.quantumExponent = eta - (23 + extra : ℕ) := by
-    simp [PreparedBlock.quantumExponent, he, hprof, fp16Fp32Profile]
+  obtain ⟨alignExp, he, _⟩ := alignExp_term b t ht hnz
+  have hemax := hu alignExp (by simp [he])
+  have hec := huc alignExp (by simp [he])
+  have hq : b.alignGridExponent = alignExp - (23 + extra : ℕ) := by
+    simp [PreparedBlock.alignGridExponent, he, hprof, fp16Fp32Profile]
   rw [hq]
   simp only [PreparedBlock.terms, List.mem_cons] at ht
   rcases ht with ht | ht
   · subst t
     have hc := classifyNat_metadata fp32 (by decide) x.c.toNat b.c (prepare_c hp) hnz
-    change b.c.fractionalBits = 23 ∧ -126 ≤ b.c.rawScale ∧ b.c.rawScale ≤ 127 at hc
-    change eta - (23 + extra : ℕ) ≤ b.c.rawScale - b.c.fractionalBits
+    change b.c.binaryPoint = 23 ∧ -126 ≤ b.c.unnormalizedExp ∧ b.c.unnormalizedExp ≤ 127 at hc
+    change alignExp - (23 + extra : ℕ) ≤ b.c.unnormalizedExp - b.c.binaryPoint
     omega
   · have hpt := (hpm t ht hnz).1
     omega
@@ -148,14 +148,14 @@ theorem canonical_padding_exact (K extra : ℕ) (floor : Option ℤ)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)
     (hp : prepare x = some b) : b.AlignmentExact := by
   have hm := prepare_fp16_term_metadata K extra floor x b hp
-  have hu := alignmentScale_upper b.terms 127 (by intro t ht hnz; exact (hm t ht hnz).2)
+  have hu := maxTermExp_upper b.terms 127 (by intro t ht hnz; exact (hm t ht hnz).2)
   have hprof := prepare_profile hp
   intro t ht hnz
-  obtain ⟨eta, he, _⟩ := eta_term b t ht hnz
-  have heta : eta ≤ 127 := by
+  obtain ⟨alignExp, he, _⟩ := alignExp_term b t ht hnz
+  have heta : alignExp ≤ 127 := by
     have he' := he
-    simp only [PreparedBlock.eta, hprof, fp16Fp32Profile] at he'
-    cases hs : alignmentScale b.terms with
+    simp only [PreparedBlock.alignExp, hprof, fp16Fp32Profile] at he'
+    cases hs : maxTermExp b.terms with
     | none => simp [Profile.applyFloor, hs] at he'
     | some e =>
       have hemax := hu e (by simp [hs])
@@ -166,7 +166,7 @@ theorem canonical_padding_exact (K extra : ℕ) (floor : Option ℤ)
         simp [Profile.applyFloor, hs] at he'
         omega
   have htmin := (hm t ht hnz).1
-  simp only [PreparedBlock.quantumExponent, he, Option.getD_some,
+  simp only [PreparedBlock.alignGridExponent, he, Option.getD_some,
     hprof, fp16Fp32Profile]
   omega
 

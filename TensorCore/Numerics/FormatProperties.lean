@@ -27,8 +27,8 @@ theorem decoded_zero_bounded : (Decoded.mk 0 0 0).Bounded := by
 
 theorem classifyNat_bounded (f : Format) (n : ℕ) (d : Decoded)
     (h : (classifyNat f n).finite = some d) : d.Bounded := by
-  have hfrac := Nat.mod_lt n (Nat.two_pow_pos f.fractionBits)
-  have hpow : 2 ^ (f.fractionBits + 1) = 2 ^ f.fractionBits * 2 := by rw [Nat.pow_succ]
+  have hfrac := Nat.mod_lt n (Nat.two_pow_pos f.mantissaBits)
+  have hpow : 2 ^ (f.mantissaBits + 1) = 2 ^ f.mantissaBits * 2 := by rw [Nat.pow_succ]
   unfold classifyNat at h
   dsimp only at h
   split at h
@@ -54,7 +54,7 @@ theorem valueFormat_decode_bounded (f : ValueFormat) (n : ℕ) (d : Decoded)
       · simp only [Classification.finite, Option.some.injEq] at h
         subst d
         apply decoded_signed_bounded
-        have := Nat.mod_lt n (Nat.two_pow_pos f.layout.fractionBits)
+        have := Nat.mod_lt n (Nat.two_pow_pos f.layout.mantissaBits)
         rw [Nat.pow_succ]
         omega
     · exact classifyNat_bounded f.layout n d h
@@ -63,10 +63,10 @@ theorem operand_decode_bounded {s : OperandEncoding} {bits : s.Word} {d : Decode
     (h : s.decode bits = some d) : d.Bounded :=
   valueFormat_decode_bounded _ _ _ (padded_decode_value h)
 
-/-- A nonzero finite IEEE-style encoding uses at least its minimum normal raw scale; subnormal values retain that scale instead of normalizing their significand. -/
+/-- A nonzero finite IEEE-style encoding uses at least its minimum normal unnormalized exponent; subnormal values retain that scale instead of normalizing their significand. -/
 theorem classifyNat_scale_lower (f : Format) (n : ℕ) (d : Decoded)
     (h : (classifyNat f n).finite = some d) (hnz : d.significand ≠ 0) :
-    1 - f.bias ≤ d.rawScale := by
+    1 - f.bias ≤ d.unnormalizedExp := by
   unfold classifyNat at h
   dsimp only at h
   split at h
@@ -81,16 +81,16 @@ theorem classifyNat_scale_lower (f : Format) (n : ℕ) (d : Decoded)
         exact Int.le_refl _
     · simp only [Classification.finite, Option.some.injEq] at h
       subst d
-      change 1 - f.bias ≤ ((n / 2 ^ f.fractionBits % 2 ^ f.exponentBits : ℕ) : ℤ) - f.bias
+      change 1 - f.bias ≤ ((n / 2 ^ f.mantissaBits % 2 ^ f.exponentBits : ℕ) : ℤ) - f.bias
       omega
 
-/-- Nonzero finite decoded values retain the format's fraction width and bounded raw scale. -/
+/-- Nonzero finite decoded values retain the format's mantissa width and bounded unnormalized exponent. -/
 theorem classifyNat_metadata (f : Format) (he : 2 ≤ f.exponentBits) (n : ℕ) (d : Decoded)
     (h : (classifyNat f n).finite = some d) (hnz : d.significand ≠ 0) :
-    d.fractionalBits = f.fractionBits ∧ 1 - f.bias ≤ d.rawScale ∧
-      d.rawScale ≤ ((2 ^ f.exponentBits - 2 : ℕ) : ℤ) - f.bias := by
+    d.binaryPoint = f.mantissaBits ∧ 1 - f.bias ≤ d.unnormalizedExp ∧
+      d.unnormalizedExp ≤ ((2 ^ f.exponentBits - 2 : ℕ) : ℤ) - f.bias := by
   have hp : (2 : ℕ) ^ 2 ≤ 2 ^ f.exponentBits := Nat.pow_le_pow_right (by decide) he
-  have hm := Nat.mod_lt (n / 2 ^ f.fractionBits) (Nat.two_pow_pos f.exponentBits)
+  have hm := Nat.mod_lt (n / 2 ^ f.mantissaBits) (Nat.two_pow_pos f.exponentBits)
   unfold classifyNat at h
   dsimp only at h
   split at h
@@ -108,9 +108,9 @@ theorem classifyNat_metadata (f : Format) (he : 2 ≤ f.exponentBits) (n : ℕ) 
     · simp only [Classification.finite, Option.some.injEq] at h
       subst d
       refine ⟨rfl, ?_, ?_⟩
-      · change 1 - f.bias ≤ ((n / 2 ^ f.fractionBits % 2 ^ f.exponentBits : ℕ) : ℤ) - f.bias
+      · change 1 - f.bias ≤ ((n / 2 ^ f.mantissaBits % 2 ^ f.exponentBits : ℕ) : ℤ) - f.bias
         omega
-      · change ((n / 2 ^ f.fractionBits % 2 ^ f.exponentBits : ℕ) : ℤ) - f.bias ≤
+      · change ((n / 2 ^ f.mantissaBits % 2 ^ f.exponentBits : ℕ) : ℤ) - f.bias ≤
           ((2 ^ f.exponentBits - 2 : ℕ) : ℤ) - f.bias
         omega
 

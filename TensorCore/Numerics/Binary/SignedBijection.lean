@@ -8,7 +8,7 @@ theorem BinaryRep.sign_of_nonzero {f : Format} (r : BinaryRep f) (hn : r.value �
     r.negative = decide (r.value < 0) := by
   have hk : r.significand ≠ 0 := by intro h; exact hn (r.value_eq_zero_iff.mpr h)
   have hp := Rat.mul_pos (Rat.natCast_pos.mpr (show 0 < r.significand by omega))
-    (pow2_pos (r.exponent - f.fractionBits))
+    (pow2_pos (r.exponent - f.mantissaBits))
   symm
   unfold BinaryRep.value
   cases r.negative <;> simp only [Bool.false_eq_true, ↓reduceIte,
@@ -39,7 +39,7 @@ theorem binaryValue_sign_injective (f : Format) (hf : f.WellFormed)
     have heq : decodeBinaryRep f hf b₁ = decodeBinaryRep f hf b₂ := by
       have he₁ := (decodeBinaryRep f hf b₁).normalized
       have he₂ := (decodeBinaryRep f hf b₂).normalized
-      have hp := Nat.two_pow_pos f.fractionBits
+      have hp := Nat.two_pow_pos f.mantissaBits
       have he : (decodeBinaryRep f hf b₁).exponent = (decodeBinaryRep f hf b₂).exponent := by omega
       have hs' : (decodeBinaryRep f hf b₁).negative = (decodeBinaryRep f hf b₂).negative := hs
       exact BinaryRep.ext hs' he (hk₁.trans hk₂.symm)

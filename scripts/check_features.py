@@ -112,7 +112,7 @@ def main():
             samples.append(words + [RNG.choice(boundary32)])
         for words in samples:
             cases.append((k, extra, floor, words))
-    # Distinguish extra alignment bits and preserve raw factorization.
+    # Distinguish extra alignment bits and preserve unnormalized factorization.
     for extra in [0, 1, 2, 9]:
         cases.append((4, extra, None, [0x3c00,0x3c00,0xc00,0xc00,0xc00,0xc00,0,0,0]))
     for extra in [104, 156, 253, 257]:
@@ -178,7 +178,7 @@ def main():
         device_reports.append(dict(gpu=gpu, products=k, extra_bits=extra, vectors=len(device),
                                    mismatches=mismatch, coverage=coverage))
     report = dict(scope='Canonical FP16 products, FP32 c/output, unnormalized products, RTZ',
-                  oracle='Exact Fraction arithmetic; FP32 output found by binary search over encodings',
+                  oracle='Exact rational arithmetic; FP32 output found by binary search over encodings',
                   configurations=len({c[:3] for c in cases}), cases=len(cases), rejected=rejected, mismatches=0,
                   K=sorted({c[0] for c in cases}), extra_bits=sorted({c[1] for c in cases}),
                   exercised_losses=losses, published_device_comparisons=device_reports,

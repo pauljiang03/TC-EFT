@@ -6,14 +6,14 @@ import TensorCore.TC.Canonical
 namespace TensorCore
 
 /-- Uncorrected output, error, and machine-width contract for any profile. -/
-theorem profile_contract (p : Profile) (F carryBits : ℕ) (hF : p.alignFraction = F)
+theorem profile_contract (p : Profile) (F carryBits : ℕ) (hF : p.alignSigBits = F)
     (hc : p.products + 1 ≤ 2 ^ carryBits) (x : BlockInput p) (t : BlockTrace)
     (h : evalBlock x = .ok t) :
     exactDot x = some t.block.exactDot ∧
     round32 .towardZero t.block.accumulator = some t.output.bits ∧
     absQ (t.block.exactDot - t.output.value) <
-      ((p.products + 1 : ℕ) : ℚ) * pow2 t.block.quantumExponent +
-        pow2 (outputQuantumExponent t.output.bits) ∧
+      ((p.products + 1 : ℕ) : ℚ) * pow2 t.block.alignGridExponent +
+        pow2 (outputUlpExponent t.output.bits) ∧
     t.block.machineAccumulator (F + 3 + carryBits) = t.block.accumulator := by
   have hp := evalBlock_prepared h
   have hlen := (prepare_terms_bounded hp).1
@@ -33,8 +33,8 @@ theorem bf16Fp32_contract (K extra carryBits : ℕ) (floor : Option ℤ)
     exactDot x = some t.block.exactDot ∧
     round32 .towardZero t.block.accumulator = some t.output.bits ∧
     absQ (t.block.exactDot - t.output.value) <
-      ((K + 1 : ℕ) : ℚ) * pow2 t.block.quantumExponent +
-        pow2 (outputQuantumExponent t.output.bits) ∧
+      ((K + 1 : ℕ) : ℚ) * pow2 t.block.alignGridExponent +
+        pow2 (outputUlpExponent t.output.bits) ∧
     t.block.machineAccumulator (26 + extra + carryBits) = t.block.accumulator := by
   have := profile_contract (bf16Fp32Profile K extra floor) (23 + extra) carryBits rfl hc x t h
   have he : 23 + extra + 3 + carryBits = 26 + extra + carryBits := by omega
@@ -46,8 +46,8 @@ theorem tf19Fp32_contract (K extra carryBits : ℕ) (floor : Option ℤ)
     exactDot x = some t.block.exactDot ∧
     round32 .towardZero t.block.accumulator = some t.output.bits ∧
     absQ (t.block.exactDot - t.output.value) <
-      ((K + 1 : ℕ) : ℚ) * pow2 t.block.quantumExponent +
-        pow2 (outputQuantumExponent t.output.bits) ∧
+      ((K + 1 : ℕ) : ℚ) * pow2 t.block.alignGridExponent +
+        pow2 (outputUlpExponent t.output.bits) ∧
     t.block.machineAccumulator (26 + extra + carryBits) = t.block.accumulator := by
   have := profile_contract (tf19Fp32Profile K extra floor) (23 + extra) carryBits rfl hc x t h
   have he : 23 + extra + 3 + carryBits = 26 + extra + carryBits := by omega

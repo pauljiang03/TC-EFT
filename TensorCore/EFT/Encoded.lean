@@ -4,7 +4,7 @@ import TensorCore.EFT.TcEft
 
 namespace TensorCore
 
-/-- Lines 3–6: decode operands and supplied D, preserving raw-product metadata. -/
+/-- Lines 3–6: decode operands and supplied D, preserving unnormalized-product metadata. -/
 def prepareEncodedEFT {p : Profile} (x : BlockInput p) (D : F32) : Except ModelError BlockTrace :=
   if x.products.length != p.products then .error .wrongProductCount
   else match prepare x with
@@ -66,7 +66,7 @@ theorem allZeroTerms_exactDot {b : PreparedBlock} (h : b.allZeroTerms = true) : 
     intro t ht
     have hs := (List.all_eq_true.mp h) t ht
     have hs' : t.significand = 0 := by simpa using hs
-    simp [RawProduct.value, hs']
+    simp [UnnormalizedProduct.value, hs']
   generalize b.terms = ts at *
   induction ts with
   | nil => rfl

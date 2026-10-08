@@ -14,12 +14,12 @@ structure Prepared where
   grid : Grid
   deriving Repr, DecidableEq
 
-/-- Select the common extraction grid from unnormalized raw exponents. -/
+/-- Select the common extraction grid from unnormalized unnormalized exponents. -/
 def selectedGrid (path : Path) (ts : List Term) (D : F32) : Grid :=
-  let eta := ts.foldl (fun e t => if t.word.magnitude == 0 then e
-    else if e ≤ t.raw then t.raw else e) path.floor
+  let alignExp := ts.foldl (fun e t => if t.word.magnitude == 0 then e
+    else if e ≤ t.biasedExp then t.biasedExp else e) path.floor
   let offset := path.alignmentBits + 240
-  let qa := if eta < offset then 0 else eta - offset
+  let qa := if alignExp < offset then 0 else alignExp - offset
   if qa ≤ outputGrid D then outputGrid D else qa
 
 def prepare (path : Path) (x : BlockInput path.profile) (D : F32) : Except Error Prepared := do

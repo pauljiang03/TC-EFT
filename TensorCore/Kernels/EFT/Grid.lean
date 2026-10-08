@@ -4,31 +4,31 @@ namespace TensorCore.EFMachine
 
 set_option exponentiation.threshold 1024
 
-/-- Specification of the raw maximum: zero terms are ignored, before any shift or normalization. -/
-def rawMaximum (ts : List Term) (initial : ℕ) : ℕ :=
-  ts.foldl (fun e t => if t.word.magnitude = 0 then e else max e t.raw.toNat) initial
+/-- Specification of the maximum unnormalized exponent: zero terms are ignored, before any shift or normalization. -/
+def maxBiasedExp (ts : List Term) (initial : ℕ) : ℕ :=
+  ts.foldl (fun e t => if t.word.magnitude = 0 then e else max e t.biasedExp.toNat) initial
 
-theorem rawMaximum_eq (ts : List Term) (e : Grid) :
+theorem maxBiasedExp_eq (ts : List Term) (e : Grid) :
     (ts.foldl (fun e t => if t.word.magnitude == 0 then e
-      else if e ≤ t.raw then t.raw else e) e).toNat = rawMaximum ts e.toNat := by
+      else if e ≤ t.biasedExp then t.biasedExp else e) e).toNat = maxBiasedExp ts e.toNat := by
   induction ts generalizing e with
   | nil => rfl
   | cons t ts ih =>
-    simp only [List.foldl_cons, rawMaximum]
+    simp only [List.foldl_cons, maxBiasedExp]
     rw [ih]
     by_cases hz : t.word.magnitude = 0
-    · simp [hz, rawMaximum]
+    · simp [hz, maxBiasedExp]
     · simp only [beq_iff_eq, hz, if_false]
       split
       · rename_i h; rw [Nat.max_eq_right h]; rfl
       · rename_i h
-        have h' : t.raw.toNat ≤ e.toNat := by change ¬ e.toNat ≤ t.raw.toNat at h; omega
+        have h' : t.biasedExp.toNat ≤ e.toNat := by change ¬ e.toNat ≤ t.biasedExp.toNat at h; omega
         rw [Nat.max_eq_left h']; rfl
 
 theorem outputGrid_spec (D : F32) :
     (outputGrid D).toNat = (D.toNat / 8388608 % 256) +
       (if D.toNat / 8388608 % 256 = 0 then 123 else 122) ∧
-    ((outputGrid D).toNat : ℤ) - 272 = outputQuantumExponent D ∧
+    ((outputGrid D).toNat : ℤ) - 272 = outputUlpExponent D ∧
     123 ≤ (outputGrid D).toNat := by
   have he := fp32_exponent_toNat D
   have hb : D.toNat / 8388608 % 256 < 256 := Nat.mod_lt _ (by decide)
@@ -36,31 +36,31 @@ theorem outputGrid_spec (D : F32) :
   by_cases hz : D.toNat / 8388608 % 256 = 0
   · have hz' : (((D >>> 23).setWidth 8).zeroExtend 10 : Grid) = 0 := by
       apply BitVec.eq_of_toNat_eq; simpa [hz] using he
-    simp [hz', outputQuantumExponent, hz, emin32, Int.max_def]
+    simp [hz', outputUlpExponent, hz, emin32, Int.max_def]
   · have hz' : (((D >>> 23).setWidth 8).zeroExtend 10 : Grid) ≠ 0 := by
       intro h; have hh := congrArg BitVec.toNat h; rw [he] at hh; exact hz hh
     simp only [beq_iff_eq, hz', if_false, BitVec.toNat_add, he]
     have hm : (D.toNat / 8388608 % 256 + 122) % 1024 = D.toNat / 8388608 % 256 + 122 :=
       Nat.mod_eq_of_lt (by omega)
     simp only [show (122 : Grid).toNat = 122 from rfl, Nat.reducePow, hm, hz, if_false]
-    unfold outputQuantumExponent
+    unfold outputUlpExponent
     simp only [Nat.reducePow, emin32]
     rw [Int.max_eq_left (by omega)]
     exact ⟨trivial, by omega, by omega⟩
 
-/-- Exact qE=max(qA,qD), with qA obtained from raw exponents, not product magnitude. -/
+/-- Exact qE=max(qA,qD), with qA obtained from unnormalized exponents, not product magnitude. -/
 theorem selectedGrid_spec (path : Path) (ts : List Term) (D : F32) :
     ((selectedGrid path ts D).toNat : ℤ) - 272 =
-      max ((rawMaximum ts path.floor.toNat : ℤ) - 512 - path.profile.alignFraction)
-        (outputQuantumExponent D) := by
-  have ho : (path.alignmentBits + 240).toNat = path.profile.alignFraction.toNat + 240 := by
+      max ((maxBiasedExp ts path.floor.toNat : ℤ) - 512 - path.profile.alignSigBits)
+        (outputUlpExponent D) := by
+  have ho : (path.alignmentBits + 240).toNat = path.profile.alignSigBits.toNat + 240 := by
     cases path <;> decide
-  have hal : (path.profile.alignFraction.toNat : ℤ) = path.profile.alignFraction := by
+  have hal : (path.profile.alignSigBits.toNat : ℤ) = path.profile.alignSigBits := by
     cases path <;> decide
   have hd := outputGrid_spec D
   unfold selectedGrid
   generalize he : ts.foldl _ path.floor = e
-  have hem := rawMaximum_eq ts path.floor
+  have hem := maxBiasedExp_eq ts path.floor
   rw [he] at hem
   dsimp only
   by_cases hsmall : e < path.alignmentBits + 240
@@ -72,7 +72,7 @@ theorem selectedGrid_spec (path : Path) (ts : List Term) (D : F32) :
   · have hle : path.alignmentBits + 240 ≤ e := by
       change ¬ e.toNat < _ at hsmall; change _ ≤ e.toNat; omega
     have hsub : (e - (path.alignmentBits + 240)).toNat =
-        rawMaximum ts path.floor.toNat - (path.profile.alignFraction.toNat + 240) := by
+        maxBiasedExp ts path.floor.toNat - (path.profile.alignSigBits.toNat + 240) := by
       rw [BitVec.toNat_sub_of_le hle, hem, ho]
     rw [if_neg hsmall]
     split

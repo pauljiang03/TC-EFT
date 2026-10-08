@@ -4,15 +4,15 @@ description: The alignment exponent η, the profile floor, the grid 2^(η−F), 
 ---
 
 Alignment is where a Tensor Core loses information, and it is the core of the
-model. All terms (`C` and the `K` raw products) are put on one fixed-point
+model. All terms (`C` and the `K` unnormalized products) are put on one fixed-point
 grid. Anything below the grid is discarded.
 
 ## Step 1: the alignment exponent η
 
 ```lean
 /-- A nonempty maximum ignores zero terms; none explicitly represents an all-zero block. -/
-def alignmentScale (ts : List RawProduct) : Option ℤ :=
-  (ts.filterMap fun t => if t.significand = 0 then none else some t.rawScale).foldl
+def maxTermExp (ts : List UnnormalizedProduct) : Option ℤ :=
+  (ts.filterMap fun t => if t.significand = 0 then none else some t.unnormalizedExp).foldl
     (fun acc e => some (match acc with | none => e | some v => max v e)) none
 
 /-- The floor only raises a nonempty maximum; an all-zero block stays `none`. -/
@@ -20,11 +20,11 @@ def Profile.applyFloor (p : Profile) : Option ℤ → Option ℤ
   | none => none
   | some e => some (match p.alignFloor with | none => e | some f => max e f)
 
-def PreparedBlock.eta (b : PreparedBlock) : Option ℤ :=
-  b.profile.applyFloor (alignmentScale b.terms)
+def PreparedBlock.alignExp (b : PreparedBlock) : Option ℤ :=
+  b.profile.applyFloor (maxTermExp b.terms)
 ```
 
-- η is the **largest raw scale among the nonzero terms**. Zero terms are
+- η is the **largest unnormalized exponent among the nonzero terms**. Zero terms are
   skipped, so a zero product never coarsens the grid.
 - If every term is zero, η is `none`. The accumulator is then exactly zero
   and the output is `+0`.
@@ -36,13 +36,13 @@ def PreparedBlock.eta (b : PreparedBlock) : Option ℤ :=
 ## Step 2: the grid
 
 ```lean
-def PreparedBlock.quantumExponent (b : PreparedBlock) : ℤ :=
-  b.eta.getD 0 - b.profile.alignFraction
+def PreparedBlock.alignGridExponent (b : PreparedBlock) : ℤ :=
+  b.alignExp.getD 0 - b.profile.alignSigBits
 ```
 
-The grid spacing is `2^(η − F)`, where `F = alignFraction = 23 + p`. Here `p`
+The grid spacing is `2^(η − F)`, where `F = alignSigBits = 23 + p`. Here `p`
 is the number of **extra alignment bits** the architecture keeps beyond
-FP32's 23 fraction bits: 0 on V100, 1 on A100, 2 on H100. A larger `p` gives
+FP32's 23 mantissa bits: 0 on V100, 1 on A100, 2 on H100. A larger `p` gives
 a finer grid, so less is lost.
 
 ## Step 3: truncation toward zero
@@ -55,7 +55,7 @@ def truncCoeff (x : ℚ) (e : ℤ) : ℤ :=
 def truncGrid (x : ℚ) (e : ℤ) : ℚ := (truncCoeff x e : ℚ) * pow2 e
 
 def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
-  b.terms.map fun t => truncCoeff t.value b.quantumExponent
+  b.terms.map fun t => truncCoeff t.value b.alignGridExponent
 ```
 
 [`truncCoeff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Exact.lean#L70)
@@ -69,7 +69,7 @@ The discarded parts are named and tracked:
 
 ```lean
 def PreparedBlock.alignmentResiduals (b : PreparedBlock) : List ℚ :=
-  b.terms.map fun t => t.value - truncGrid t.value b.quantumExponent
+  b.terms.map fun t => t.value - truncGrid t.value b.alignGridExponent
 ```
 
 Each residual is strictly smaller in magnitude than one grid step, and has the
@@ -87,7 +87,7 @@ first half of the [error bound](/TC-EFT/properties/error-bounds/).
 
 V100, `F = 23`, `C = 1.0`, one product `2^-24`:
 
-- η = max(raw scale of `C` = 0, raw scale of the product = −24) = 0.
+- η = max(unnormalized exponent of `C` = 0, unnormalized exponent of the product = −24) = 0.
 - Grid = `2^(0 − 23) = 2^-23`.
 - Product coefficient = `⌊2^-24 / 2^-23⌋ = ⌊0.5⌋ = 0`, so the product is lost.
 

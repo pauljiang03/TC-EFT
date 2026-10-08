@@ -9,8 +9,8 @@ def snapshotJson (x : BlockInput v100F16F32) : Json :=
   match snapshot x with
   | .error e => Json.mkObj [("error", toJson (reprStr e))]
   | .ok s => Json.mkObj [
-      ("bits", toJson s.bits), ("eta", toJson s.eta),
-      ("qExponent", toJson s.qExponent), ("rawScales", toJson s.rawScales),
+      ("bits", toJson s.bits), ("eta", toJson s.alignExp),
+      ("qExponent", toJson s.qExponent), ("unnormalizedExps", toJson s.unnormalizedExps),
       ("coefficients", toJson s.coefficients), ("ideal", toJson (ratText s.ideal)),
       ("accumulator", toJson (ratText s.accumulator)),
       ("alignmentResiduals", toJson (s.alignmentResiduals.map ratText)),

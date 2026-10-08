@@ -24,16 +24,16 @@ def zero (f : BinaryFormat) (negative : Bool) : Word f :=
   (BinaryRep.zero f.layout f.valid negative).encode
 
 def infinity (f : BinaryFormat) (negative : Bool) : Word f :=
-  BitVec.ofNat _ ((if negative then 2 ^ (f.layout.fractionBits + f.layout.exponentBits) else 0) +
-    (2 ^ f.layout.exponentBits - 1) * 2 ^ f.layout.fractionBits)
+  BitVec.ofNat _ ((if negative then 2 ^ (f.layout.mantissaBits + f.layout.exponentBits) else 0) +
+    (2 ^ f.layout.exponentBits - 1) * 2 ^ f.layout.mantissaBits)
 
-def quietBit (f : BinaryFormat) : ℕ := 2 ^ (f.layout.fractionBits - 1)
+def quietBit (f : BinaryFormat) : ℕ := 2 ^ (f.layout.mantissaBits - 1)
 
 def nan (f : BinaryFormat) (negative : Bool) (payload : ℕ) : Word f :=
   BitVec.ofNat _ ((infinity f negative).toNat + quietBit f + payload % quietBit f)
 
 def maxFiniteWord (f : BinaryFormat) (negative : Bool) : Word f :=
-  encodeBinary f.layout negative f.layout.emax ((2 ^ (f.layout.fractionBits + 1) - 1 : ℕ) : ℤ)
+  encodeBinary f.layout negative f.layout.emax ((2 ^ (f.layout.mantissaBits + 1) - 1 : ℕ) : ℤ)
 
 inductive Datum where
   | finite (negative : Bool) (value : ℚ)
@@ -47,7 +47,7 @@ def decode (f : BinaryFormat) (b : Word f) : Datum :=
   | .subnormal d | .normal d => .finite (sign f b) d.value
   | .infinity s => .infinity s
   | .nan => .nan (sign f b)
-      (decide (b.toNat % 2 ^ f.layout.fractionBits < quietBit f)) (b.toNat % quietBit f)
+      (decide (b.toNat % 2 ^ f.layout.mantissaBits < quietBit f)) (b.toNat % quietBit f)
 
 def Datum.isNaN : Datum → Bool
   | .nan .. => true
@@ -137,7 +137,7 @@ theorem maxFiniteWord_value (f : BinaryFormat) (s : Bool) :
     binaryValue f.layout (maxFiniteWord f s) =
       some (if s then -f.layout.maxFinite else f.layout.maxFinite) := by
   have h := encodeBinary_value f.layout f.valid s f.layout.emax
-    ((2 ^ (f.layout.fractionBits + 1) - 1 : ℕ) : ℤ) (f.layout.emin_le_emax f.valid)
+    ((2 ^ (f.layout.mantissaBits + 1) - 1 : ℕ) : ℤ) (f.layout.emin_le_emax f.valid)
     (Int.le_refl _) (by cases f <;> decide +kernel) (by cases f <;> decide +kernel)
     (Or.inl (by cases f <;> decide +kernel))
   cases s <;> simpa [maxFiniteWord, Format.maxFinite, Rat.neg_mul, Rat.intCast_natCast] using h

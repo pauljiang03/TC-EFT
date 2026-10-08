@@ -10,7 +10,7 @@ theorem Format.finiteValue_abs_le (f : Format) {z : ℚ} (h : f.FiniteValue z) :
     absQ z ≤ f.maxFinite := by
   obtain ⟨k, e, _, he, hk, rfl⟩ := h
   rw [absQ_mul_pos _ _ (pow2_pos _), absQ_intCast]
-  have hk' : ((k.natAbs : ℤ) : ℚ) ≤ ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) := by
+  have hk' : ((k.natAbs : ℤ) : ℚ) ≤ ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) := by
     rw [Rat.intCast_natCast]
     exact Rat.natCast_le_natCast.mpr (by omega)
   exact Rat.le_trans
@@ -44,18 +44,18 @@ theorem binaryAdd_exact (f : Format) (hf : f.WellFormed) (x y : ℚ)
   exact hv
 
 theorem grid_finiteValue (f : Format) (k ℓ : ℤ)
-    (h1 : f.emin - f.fractionBits ≤ ℓ) (h2 : ℓ ≤ f.emax - f.fractionBits)
-    (hk : k.natAbs < 2 ^ (f.fractionBits + 1)) : f.FiniteValue ((k : ℚ) * pow2 ℓ) := by
-  refine ⟨k, ℓ + f.fractionBits, by omega, by omega, hk, ?_⟩
-  rw [show ℓ + f.fractionBits - f.fractionBits = ℓ by omega]
+    (h1 : f.emin - f.mantissaBits ≤ ℓ) (h2 : ℓ ≤ f.emax - f.mantissaBits)
+    (hk : k.natAbs < 2 ^ (f.mantissaBits + 1)) : f.FiniteValue ((k : ℚ) * pow2 ℓ) := by
+  refine ⟨k, ℓ + f.mantissaBits, by omega, by omega, hk, ?_⟩
+  rw [show ℓ + f.mantissaBits - f.mantissaBits = ℓ by omega]
 
 /-- The full grid/range condition of Theorem IV.8; no artificial upper bound on ℓ. -/
 theorem grid_finiteValue_of_range (f : Format) (hf : f.WellFormed) (k ℓ : ℤ)
-    (h1 : f.emin - f.fractionBits ≤ ℓ) (hk : k.natAbs < 2 ^ (f.fractionBits + 1))
+    (h1 : f.emin - f.mantissaBits ≤ ℓ) (hk : k.natAbs < 2 ^ (f.mantissaBits + 1))
     (hr : absQ ((k : ℚ) * pow2 ℓ) ≤ f.maxFinite) : f.FiniteValue ((k : ℚ) * pow2 ℓ) := by
-  by_cases h2 : ℓ ≤ f.emax - f.fractionBits
+  by_cases h2 : ℓ ≤ f.emax - f.mantissaBits
   · exact grid_finiteValue f k ℓ h1 h2 hk
-  · let g := f.emax - f.fractionBits
+  · let g := f.emax - f.mantissaBits
     let n := (ℓ - g).toNat
     have hn : ℓ = g + (n : ℤ) := by dsimp [n, g]; omega
     have hv : (k : ℚ) * pow2 ℓ = ((k * (2 ^ n : ℕ) : ℤ) : ℚ) * pow2 g := by
@@ -63,7 +63,7 @@ theorem grid_finiteValue_of_range (f : Format) (hf : f.WellFormed) (k ℓ : ℤ)
       grind
     rw [hv, absQ_mul_pos _ _ (pow2_pos _), absQ_intCast] at hr
     change (((k * (2 ^ n : ℕ)).natAbs : ℤ) : ℚ) * pow2 g ≤
-      ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) * pow2 g at hr
+      ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) * pow2 g at hr
     have hcoeff := Rat.le_of_mul_le_mul_right hr (pow2_pos g)
     rw [Rat.intCast_natCast] at hcoeff
     have hcoeff' := Rat.natCast_le_natCast.mp hcoeff
@@ -79,8 +79,8 @@ def naiveSumBinary (f : Format) (ts : List ℚ) : Option ℚ := naiveSumBinaryFr
 
 /-- Every prefix remains representable, including under cancellation and gradual underflow. -/
 theorem naiveSumBinaryFrom_exact (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
-    (h1 : f.emin - f.fractionBits ≤ ℓ) (a : ℤ) (zs : List ℤ)
-    (hbound : a.natAbs + magnitudeSum zs < 2 ^ (f.fractionBits + 1))
+    (h1 : f.emin - f.mantissaBits ≤ ℓ) (a : ℤ) (zs : List ℤ)
+    (hbound : a.natAbs + magnitudeSum zs < 2 ^ (f.mantissaBits + 1))
     (hrange : ((a.natAbs + magnitudeSum zs : ℕ) : ℚ) * pow2 ℓ ≤ f.maxFinite) :
     naiveSumBinaryFrom f ((a : ℚ) * pow2 ℓ) (zs.map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) =
       some (((a + sumZ zs : ℤ) : ℚ) * pow2 ℓ) := by
@@ -111,8 +111,8 @@ theorem naiveSumBinaryFrom_exact (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
 
 /-- TC-EFT paper Theorem IV.8 with exactly its minimum-grid, coefficient, and absolute-range conditions. -/
 theorem naiveSumBinary_exact (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
-    (h1 : f.emin - f.fractionBits ≤ ℓ) (zs : List ℤ)
-    (hbound : magnitudeSum zs < 2 ^ (f.fractionBits + 1))
+    (h1 : f.emin - f.mantissaBits ≤ ℓ) (zs : List ℤ)
+    (hbound : magnitudeSum zs < 2 ^ (f.mantissaBits + 1))
     (hrange : (magnitudeSum zs : ℚ) * pow2 ℓ ≤ f.maxFinite) :
     naiveSumBinary f (zs.map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) = some ((sumZ zs : ℚ) * pow2 ℓ) := by
   simpa [naiveSumBinary] using naiveSumBinaryFrom_exact f hf ℓ h1 0 zs
@@ -120,9 +120,9 @@ theorem naiveSumBinary_exact (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
 
 /-- A convenient grid upper bound discharges the separate absolute-range obligation. -/
 theorem coefficient_range_of_grid (f : Format) (ℓ : ℤ) (L : ℕ)
-    (h2 : ℓ ≤ f.emax - f.fractionBits) (hL : L < 2 ^ (f.fractionBits + 1)) :
+    (h2 : ℓ ≤ f.emax - f.mantissaBits) (hL : L < 2 ^ (f.mantissaBits + 1)) :
     (L : ℚ) * pow2 ℓ ≤ f.maxFinite := by
-  have hL' : (L : ℚ) ≤ ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) :=
+  have hL' : (L : ℚ) ≤ ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) :=
     Rat.natCast_le_natCast.mpr (by omega)
   exact Rat.le_trans (Rat.mul_le_mul_of_nonneg_left (pow2_le_of_le h2) Rat.natCast_nonneg)
     (Rat.mul_le_mul_of_nonneg_right hL' (Rat.le_of_lt (pow2_pos _)))
@@ -154,8 +154,8 @@ theorem naiveSumBinary_fp32 (ts : List ℚ) : naiveSumBinary fp32 ts = naiveSum3
 
 /-- Explicit any-order form of Theorem IV.8, relative to the original coefficient sum. -/
 theorem naiveSumBinary_exact_perm (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
-    (h1 : f.emin - f.fractionBits ≤ ℓ) (xs ys : List ℤ) (hperm : xs.Perm ys)
-    (hbound : magnitudeSum xs < 2 ^ (f.fractionBits + 1))
+    (h1 : f.emin - f.mantissaBits ≤ ℓ) (xs ys : List ℤ) (hperm : xs.Perm ys)
+    (hbound : magnitudeSum xs < 2 ^ (f.mantissaBits + 1))
     (hrange : (magnitudeSum xs : ℚ) * pow2 ℓ ≤ f.maxFinite) :
     naiveSumBinary f (ys.map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) =
       some ((sumZ xs : ℚ) * pow2 ℓ) := by
@@ -163,9 +163,9 @@ theorem naiveSumBinary_exact_perm (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
   rw [naiveSumBinary_exact f hf ℓ h1 ys hbound hrange, sumZ_perm hperm]
 
 theorem naiveSumBinary_exact_of_bitSpan (f : Format) (hf : f.WellFormed) (b ℓ : ℤ)
-    (h1 : f.emin - f.fractionBits ≤ ℓ) (zs : List ℤ)
+    (h1 : f.emin - f.mantissaBits ≤ ℓ) (zs : List ℤ)
     (hterm : ∀ z ∈ zs, absQ ((z : ℚ) * pow2 ℓ) < pow2 (b + 1))
-    (hspan : b - ℓ + 1 + (ceilLog2 zs.length : ℤ) ≤ f.fractionBits + 1)
+    (hspan : b - ℓ + 1 + (ceilLog2 zs.length : ℤ) ≤ f.mantissaBits + 1)
     (hrange : (magnitudeSum zs : ℚ) * pow2 ℓ ≤ f.maxFinite) :
     naiveSumBinary f (zs.map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) =
       some ((sumZ zs : ℚ) * pow2 ℓ) :=

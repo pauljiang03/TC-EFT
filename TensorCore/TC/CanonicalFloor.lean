@@ -42,7 +42,7 @@ theorem prepareProducts_origin (p : Profile) (xs : List (p.Word × p.Word))
 theorem prepare_fp16_terms_lower (K extra : ℕ) (floor : Option ℤ)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)
     (h : prepare x = some b) :
-    ∀ t ∈ b.terms, t.significand ≠ 0 → -126 ≤ t.rawScale := by
+    ∀ t ∈ b.terms, t.significand ≠ 0 → -126 ≤ t.unnormalizedExp := by
   unfold prepare at h
   cases hc : decode32 x.c with
   | none => simp [hc] at h
@@ -60,37 +60,37 @@ theorem prepare_fp16_terms_lower (K extra : ℕ) (floor : Option ℤ)
       · subst t
         obtain ⟨w, _, ha, hb⟩ := prepareProducts_origin _ _ _ hp pair hpair
         have hnza : pair.1.significand ≠ 0 := by
-          intro hz; apply hnz; simp [rawMul, hz]
+          intro hz; apply hnz; simp [unnormalizedMul, hz]
         have hnzb : pair.2.significand ≠ 0 := by
-          intro hz; apply hnz; simp [rawMul, hz]
+          intro hz; apply hnz; simp [unnormalizedMul, hz]
         have hla := classifyNat_scale_lower fp16 w.1.toNat pair.1 ha hnza
         have hlb := classifyNat_scale_lower fp16 w.2.toNat pair.2 hb hnzb
-        change -14 ≤ pair.1.rawScale at hla
-        change -14 ≤ pair.2.rawScale at hlb
-        change -126 ≤ pair.1.rawScale + pair.2.rawScale
+        change -14 ≤ pair.1.unnormalizedExp at hla
+        change -14 ≤ pair.2.unnormalizedExp at hlb
+        change -126 ≤ pair.1.unnormalizedExp + pair.2.unnormalizedExp
         omega
 
-theorem alignmentScale_lower (ts : List RawProduct) (lower e : ℤ)
-    (h : ∀ t ∈ ts, t.significand ≠ 0 → lower ≤ t.rawScale)
-    (he : alignmentScale ts = some e) : lower ≤ e := by
+theorem maxTermExp_lower (ts : List UnnormalizedProduct) (lower e : ℤ)
+    (h : ∀ t ∈ ts, t.significand ≠ 0 → lower ≤ t.unnormalizedExp)
+    (he : maxTermExp ts = some e) : lower ≤ e := by
   have hex : ∃ t ∈ ts, t.significand ≠ 0 := by
     by_cases hz : ∀ t ∈ ts, t.significand = 0
-    · have hn := (alignmentScale_none ts).mpr hz
+    · have hn := (maxTermExp_none ts).mpr hz
       rw [he] at hn
       contradiction
     · grind
   obtain ⟨t, ht, hnz⟩ := hex
-  obtain ⟨eta, he', hle⟩ := alignmentScale_term ts t ht hnz
+  obtain ⟨alignExp, he', hle⟩ := maxTermExp_term ts t ht hnz
   rw [he] at he'
   have heq := Option.some.inj he'
   have hl := h t ht hnz
   omega
 
 /-- Any floor at most -126 is inactive on a prepared canonical invocation. -/
-theorem canonical_eta_floor_inactive (K extra : ℕ) (floor : Option ℤ)
+theorem canonical_alignExp_floor_inactive (K extra : ℕ) (floor : Option ℤ)
     (hf : ∀ f ∈ floor, f ≤ -126)
     (x : BlockInput (fp16Fp32Profile K extra floor)) (b : PreparedBlock)
-    (h : prepare x = some b) : b.eta = alignmentScale b.terms := by
+    (h : prepare x = some b) : b.alignExp = maxTermExp b.terms := by
   have hprof : b.profile = fp16Fp32Profile K extra floor := by
     unfold prepare at h
     cases hc : decode32 x.c with
@@ -100,12 +100,12 @@ theorem canonical_eta_floor_inactive (K extra : ℕ) (floor : Option ℤ)
       | none => simp [hc, hp] at h
       | some ps => simp [hc, hp] at h; subst b; rfl
   have hl := prepare_fp16_terms_lower K extra floor x b h
-  unfold PreparedBlock.eta
+  unfold PreparedBlock.alignExp
   rw [hprof]
-  cases he : alignmentScale b.terms with
+  cases he : maxTermExp b.terms with
   | none => rfl
   | some e =>
-    have hemin := alignmentScale_lower b.terms (-126) e hl he
+    have hemin := maxTermExp_lower b.terms (-126) e hl he
     cases floor with
     | none => rfl
     | some f =>

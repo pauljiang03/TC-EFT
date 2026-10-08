@@ -35,7 +35,7 @@ theorem rtz_signed_residual (x : ℚ) :
 theorem output_residual_bound (x : ℚ) (b : F32) (d : ℚ)
     (hr : absQ x ≤ maxFinite32) (hb : round32 .towardZero x = some b)
     (hd : value32 b = some d) :
-    absQ (x - d) < pow2 (outputQuantumExponent b) := by
+    absQ (x - d) < pow2 (outputUlpExponent b) := by
   by_cases hx : x = 0
   · subst x
     have hz : round32 .towardZero 0 = some 0 := by decide +kernel

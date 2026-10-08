@@ -40,7 +40,7 @@ private def parsePairs (p : InvocationSpec) : List ℕ → Option (List (p.input
 private def eventJson (e : ConversionEvent) : Json := Json.mkObj [
   ("input", toJson (qText e.input)), ("bits", toJson e.output.bits.toNat),
   ("value", toJson (qText e.output.value)), ("loss", toJson (qText e.loss)),
-  ("fractionBits", toJson e.stage.format.fractionBits), ("mode", toJson (reprStr e.stage.mode))]
+  ("mantissaBits", toJson e.stage.format.mantissaBits), ("mode", toJson (reprStr e.stage.mode))]
 
 private def invocationJson (p : InvocationSpec) (ns : List ℕ) : Option Json := do
   let c ← ns.getLast?

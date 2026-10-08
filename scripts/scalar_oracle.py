@@ -11,8 +11,8 @@ def power(e):
 @lru_cache(maxsize=300000)
 def positive_value(fmt, word):
     p, e, bias = fmt
-    exponent, fraction = divmod(word, 1 << p)
-    return Q(fraction if exponent == 0 else (1 << p) + fraction) * power((1 if exponent == 0 else exponent) - bias - p)
+    exponent, mantissa = divmod(word, 1 << p)
+    return Q(mantissa if exponent == 0 else (1 << p) + mantissa) * power((1 if exponent == 0 else exponent) - bias - p)
 
 
 def decode(width, word):

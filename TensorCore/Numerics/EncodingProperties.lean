@@ -127,11 +127,11 @@ theorem encode32_value (negative : Bool) (e k : ℤ)
     · rcases hsgn' with h | h <;> subst h <;> omega
 
 /-- The output quantum agrees with the encoding exponent, including subnormal/zero. -/
-theorem encode32_quantum (negative : Bool) (e k : ℤ)
+theorem encode32_ulpExponent (negative : Bool) (e k : ℤ)
     (he1 : -126 ≤ e) (he2 : e ≤ 127) (hk0 : 0 ≤ k) (hk1 : k < 2 ^ 24)
     (hsub : 2 ^ 23 ≤ k ∨ e = -126) :
-    outputQuantumExponent (encode32 negative e k) = e - 23 := by
-  unfold outputQuantumExponent
+    outputUlpExponent (encode32 negative e k) = e - 23 := by
+  unfold outputUlpExponent
   rw [encode32_toNat negative e k hk0 hk1 he1 he2]
   simp only [Nat.reducePow, Int.reducePow, emin32] at *
   cases negative <;> by_cases hk : k < 8388608 <;>

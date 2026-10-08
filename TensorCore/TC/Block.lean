@@ -1,4 +1,4 @@
-import TensorCore.Numerics.RawProduct
+import TensorCore.Numerics.UnnormalizedProduct
 import TensorCore.TC.Defs
 import TensorCore.Numerics.RoundOp
 
@@ -27,7 +27,7 @@ def prepare {p : Profile} (x : BlockInput p) : Option PreparedBlock :=
   | some c, some ps => some ⟨p, ps, c⟩
   | _, _ => none
 
-/-- Ideal sum from decoded operands, without raw multiplication, alignment, or correction. -/
+/-- Ideal sum from decoded operands, without unnormalized multiplication, alignment, or correction. -/
 def PreparedBlock.exactProducts (b : PreparedBlock) : ℚ :=
   sumQ (b.products.map fun (a, b) => a.value * b.value)
 
@@ -36,31 +36,31 @@ def PreparedBlock.exactDot (b : PreparedBlock) : ℚ := b.c.value + b.exactProdu
 def exactDot {p : Profile} (x : BlockInput p) : Option ℚ :=
   (prepare x).map PreparedBlock.exactDot
 
-def PreparedBlock.terms (b : PreparedBlock) : List RawProduct :=
-  ⟨b.c.significand, b.c.rawScale, b.c.fractionalBits⟩ ::
-    b.products.map fun (a, b) => rawMul a b
+def PreparedBlock.terms (b : PreparedBlock) : List UnnormalizedProduct :=
+  ⟨b.c.significand, b.c.unnormalizedExp, b.c.binaryPoint⟩ ::
+    b.products.map fun (a, b) => unnormalizedMul a b
 
 /-- A nonempty maximum ignores zero terms; none explicitly represents an all-zero block. -/
-def alignmentScale (ts : List RawProduct) : Option ℤ :=
-  (ts.filterMap fun t => if t.significand = 0 then none else some t.rawScale).foldl
+def maxTermExp (ts : List UnnormalizedProduct) : Option ℤ :=
+  (ts.filterMap fun t => if t.significand = 0 then none else some t.unnormalizedExp).foldl
     (fun acc e => some (match acc with | none => e | some v => max v e)) none
 
-/-- Alignment exponent `eta`: nonzero raw-scale maximum, then the profile floor. -/
-def PreparedBlock.eta (b : PreparedBlock) : Option ℤ :=
-  b.profile.applyFloor (alignmentScale b.terms)
+/-- Alignment exponent `eta`: nonzero unnormalized-exponent maximum, then the profile floor. -/
+def PreparedBlock.alignExp (b : PreparedBlock) : Option ℤ :=
+  b.profile.applyFloor (maxTermExp b.terms)
 
 /-- Grid exponent `eta - F`. -/
-def PreparedBlock.quantumExponent (b : PreparedBlock) : ℤ :=
-  b.eta.getD 0 - b.profile.alignFraction
+def PreparedBlock.alignGridExponent (b : PreparedBlock) : ℤ :=
+  b.alignExp.getD 0 - b.profile.alignSigBits
 
 def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
-  b.terms.map fun t => truncCoeff t.value b.quantumExponent
+  b.terms.map fun t => truncCoeff t.value b.alignGridExponent
 
 def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
-  (sumZ b.coefficients : ℚ) * pow2 b.quantumExponent
+  (sumZ b.coefficients : ℚ) * pow2 b.alignGridExponent
 
 def PreparedBlock.alignmentResiduals (b : PreparedBlock) : List ℚ :=
-  b.terms.map fun t => t.value - truncGrid t.value b.quantumExponent
+  b.terms.map fun t => t.value - truncGrid t.value b.alignGridExponent
 
 /-- Exact stage extractor for any supplied numerical output. -/
 def PreparedBlock.extractReference (b : PreparedBlock) (d : ℚ) : ℚ :=
@@ -113,10 +113,10 @@ theorem prepareProducts_replicate (p : Profile) (a b : p.Word) (da db : Decoded)
 /-- Coefficients of a block with one repeated operand pair. -/
 theorem construction_coefficients (prof : Profile) (K : ℕ) (da db c : Decoded) :
     (PreparedBlock.mk prof (List.replicate K (da, db)) c).coefficients =
-      truncCoeff c.value (PreparedBlock.mk prof (List.replicate K (da, db)) c).quantumExponent ::
-      List.replicate K (truncCoeff (rawMul da db).value
-        (PreparedBlock.mk prof (List.replicate K (da, db)) c).quantumExponent) := by
-  simp [PreparedBlock.coefficients, PreparedBlock.terms, List.map_replicate, RawProduct.value,
+      truncCoeff c.value (PreparedBlock.mk prof (List.replicate K (da, db)) c).alignGridExponent ::
+      List.replicate K (truncCoeff (unnormalizedMul da db).value
+        (PreparedBlock.mk prof (List.replicate K (da, db)) c).alignGridExponent) := by
+  simp [PreparedBlock.coefficients, PreparedBlock.terms, List.map_replicate, UnnormalizedProduct.value,
     Decoded.value]
 
 end TensorCore

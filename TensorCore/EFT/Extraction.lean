@@ -19,7 +19,7 @@ theorem lowPart_bound (t : BlockTrace) :
 /-- Theorem IV.5, overlap form: `S = D − ε_o + Σ εᵢ`. -/
 theorem overlap_recovery (t : BlockTrace) :
     t.block.exactDot = t.output.value - t.overlap + sumQ t.lowParts := by
-  have h := sum_stage_residuals (t.block.terms.map RawProduct.value)
+  have h := sum_stage_residuals (t.block.terms.map UnnormalizedProduct.value)
     (fun x => truncGrid x t.extractionExponent)
   rw [terms_value] at h
   simp only [List.map_map, Function.comp_def] at h
@@ -32,20 +32,20 @@ theorem overlap_recovery (t : BlockTrace) :
 /-- Lemma IV.3, summed: the aligned accumulator is `H + Σ φ(εᵢ)`. -/
 theorem accumulator_eq_retained (t : BlockTrace) :
     t.block.accumulator = t.retainedSum + sumQ t.retainedLowParts := by
-  have hτ : ∃ τ : ℕ, t.extractionExponent = t.block.quantumExponent + τ := by
-    refine ⟨(t.extractionExponent - t.block.quantumExponent).toNat, ?_⟩
+  have hτ : ∃ τ : ℕ, t.extractionExponent = t.block.alignGridExponent + τ := by
+    refine ⟨(t.extractionExponent - t.block.alignGridExponent).toNat, ?_⟩
     unfold BlockTrace.extractionExponent
     omega
   obtain ⟨τ, hτ⟩ := hτ
   rw [accumulator_value]
   unfold BlockTrace.retainedSum BlockTrace.retainedLowParts BlockTrace.lowParts BlockTrace.coarse
   rw [List.map_map]
-  have hsplit : (fun x : RawProduct => truncGrid x.value t.block.quantumExponent) =
+  have hsplit : (fun x : UnnormalizedProduct => truncGrid x.value t.block.alignGridExponent) =
       fun x => truncGrid x.value t.extractionExponent +
-        truncGrid (x.value - truncGrid x.value t.extractionExponent) t.block.quantumExponent := by
+        truncGrid (x.value - truncGrid x.value t.extractionExponent) t.block.alignGridExponent := by
     funext x
     rw [hτ]
-    exact truncGrid_split x.value t.block.quantumExponent τ
+    exact truncGrid_split x.value t.block.alignGridExponent τ
   rw [hsplit, sumQ_map_add]
   rfl
 
@@ -58,7 +58,7 @@ theorem overlap_eq_retained_sub_outputResidual (t : BlockTrace) :
 
 /-- Common grid exponent for the low components: the finest term grid, or the extraction grid if finer. -/
 def BlockTrace.supportExponent (t : BlockTrace) : ℤ :=
-  (t.block.terms.map fun x => x.rawScale - x.fractionalBits).foldl min t.extractionExponent
+  (t.block.terms.map fun x => x.unnormalizedExp - x.binaryPoint).foldl min t.extractionExponent
 
 /-- Integer coefficients `zᵢ = εᵢ / 2^ℓ`. -/
 def BlockTrace.lowCoefficients (t : BlockTrace) : List ℤ :=

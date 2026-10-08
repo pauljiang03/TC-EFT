@@ -10,7 +10,7 @@ set_option exponentiation.threshold 1024
 
 def Factor.decoded (x : Factor) : Decoded :=
   ⟨if x.negative then -(x.magnitude.toNat : ℤ) else x.magnitude.toNat,
-    (x.raw.toNat : ℤ) - 256, x.fraction.toNat⟩
+    (x.biasedExp.toNat : ℤ) - 256, x.mantissaBits.toNat⟩
 
 theorem field_toNat (bits : F32) (shift width outWidth : ℕ)
     (hw : width ≤ outWidth) (hw' : width < 32) :
@@ -33,7 +33,7 @@ theorem field_toNat (bits : F32) (shift width outWidth : ℕ)
   exact Nat.mod_eq_of_lt (Nat.lt_of_lt_of_le (Nat.mod_lt _ (Nat.two_pow_pos _))
     (Nat.pow_le_pow_right (by decide) hw))
 
-theorem fraction_toNat (bits : F32) (width : ℕ) (hw : width ≤ 10) :
+theorem mantissaBits_toNat (bits : F32) (width : ℕ) (hw : width ≤ 10) :
     ((bits &&& (((1 : F32) <<< width) - 1)).setWidth 11).toNat = bits.toNat % 2 ^ width := by
   simpa only [BitVec.ushiftRight_zero, Nat.pow_zero, Nat.div_one] using
     field_toNat bits 0 width 11 (by omega) (by omega)
@@ -43,13 +43,13 @@ theorem decodeFactor_asDecoded (kind : InputKind) (bits : F32) :
   have he5 := field_toNat bits 10 5 10 (by decide) (by decide)
   have he8 := field_toNat bits 7 8 10 (by decide) (by decide)
   have he8' := field_toNat bits 10 8 10 (by decide) (by decide)
-  have hm10 := fraction_toNat bits 10 (by decide)
-  have hm7 := fraction_toNat bits 7 (by decide)
-  by_cases ht : bits.toNat / 2 ^ kind.format.fractionBits % 2 ^ kind.format.exponentBits =
+  have hm10 := mantissaBits_toNat bits 10 (by decide)
+  have hm7 := mantissaBits_toNat bits 7 (by decide)
+  by_cases ht : bits.toNat / 2 ^ kind.format.mantissaBits % 2 ^ kind.format.exponentBits =
       2 ^ kind.format.exponentBits - 1 <;>
-    by_cases he : bits.toNat / 2 ^ kind.format.fractionBits % 2 ^ kind.format.exponentBits = 0 <;>
-    by_cases hm : bits.toNat % 2 ^ kind.format.fractionBits = 0 <;>
-    by_cases hs : bits.toNat / 2 ^ (kind.format.fractionBits + kind.format.exponentBits) = 0 <;>
+    by_cases he : bits.toNat / 2 ^ kind.format.mantissaBits % 2 ^ kind.format.exponentBits = 0 <;>
+    by_cases hm : bits.toNat % 2 ^ kind.format.mantissaBits = 0 <;>
+    by_cases hs : bits.toNat / 2 ^ (kind.format.mantissaBits + kind.format.exponentBits) = 0 <;>
     cases kind <;>
     dsimp +instances only [decodeFactor, InputKind.format, fp16, bf16, tf19,
       Option.map, Factor.decoded, classifyNat] at * <;>
@@ -60,7 +60,7 @@ theorem decodeFactor_asDecoded (kind : InputKind) (bits : F32) :
 
 theorem decodeFactor_bounds {kind : InputKind} {bits : F32} {a : Factor}
     (h : decodeFactor kind bits = some a) :
-    130 ≤ a.raw.toNat ∧ a.raw.toNat ≤ 383 ∧ a.fraction.toNat ≤ 10 := by
+    130 ≤ a.biasedExp.toNat ∧ a.biasedExp.toNat ≤ 383 ∧ a.mantissaBits.toNat ≤ 10 := by
   have hd : (classifyNat kind.format bits.toNat).finite = some a.decoded := by
     rw [← decodeFactor_asDecoded, h]; rfl
   cases kind <;>
@@ -92,32 +92,32 @@ theorem shiftedWord_value (negative : Bool) (m : Magnitude) (g : Grid)
       Rat.intCast_neg, Rat.intCast_natCast, Rat.natCast_mul, pow2_common] <;> grind
 
 theorem product_grid {a b : Factor}
-    (ha : 130 ≤ a.raw.toNat ∧ a.raw.toNat ≤ 383 ∧ a.fraction.toNat ≤ 10)
-    (hb : 130 ≤ b.raw.toNat ∧ b.raw.toNat ≤ 383 ∧ b.fraction.toNat ≤ 10) :
-    (product a b).raw.toNat = a.raw.toNat + b.raw.toNat ∧
+    (ha : 130 ≤ a.biasedExp.toNat ∧ a.biasedExp.toNat ≤ 383 ∧ a.mantissaBits.toNat ≤ 10)
+    (hb : 130 ≤ b.biasedExp.toNat ∧ b.biasedExp.toNat ≤ 383 ∧ b.mantissaBits.toNat ≤ 10) :
+    (product a b).biasedExp.toNat = a.biasedExp.toNat + b.biasedExp.toNat ∧
     ((product a b).support.toNat : ℤ) =
-      (a.raw.toNat : ℤ) + b.raw.toNat - a.fraction.toNat - b.fraction.toNat - 240 ∧
+      (a.biasedExp.toNat : ℤ) + b.biasedExp.toNat - a.mantissaBits.toNat - b.mantissaBits.toNat - 240 ∧
     (product a b).support.toNat ≤ 526 := by
-  have hr : (a.raw + b.raw).toNat = a.raw.toNat + b.raw.toNat := by
+  have hr : (a.biasedExp + b.biasedExp).toNat = a.biasedExp.toNat + b.biasedExp.toNat := by
     rw [BitVec.toNat_add, Nat.mod_eq_of_lt (by omega)]
-  have hf : (a.fraction + b.fraction).toNat = a.fraction.toNat + b.fraction.toNat := by
+  have hf : (a.mantissaBits + b.mantissaBits).toNat = a.mantissaBits.toNat + b.mantissaBits.toNat := by
     rw [BitVec.toNat_add, Nat.mod_eq_of_lt (by omega)]
-  have hsub : (a.raw + b.raw - (a.fraction + b.fraction)).toNat =
-      a.raw.toNat + b.raw.toNat - (a.fraction.toNat + b.fraction.toNat) := by
-    rw [BitVec.toNat_sub_of_le (by change (a.fraction + b.fraction).toNat ≤ _; rw [hf, hr]; omega), hr, hf]
-  have hsub' : (a.raw + b.raw - (a.fraction + b.fraction) - 240).toNat =
-      a.raw.toNat + b.raw.toNat - (a.fraction.toNat + b.fraction.toNat) - 240 := by
+  have hsub : (a.biasedExp + b.biasedExp - (a.mantissaBits + b.mantissaBits)).toNat =
+      a.biasedExp.toNat + b.biasedExp.toNat - (a.mantissaBits.toNat + b.mantissaBits.toNat) := by
+    rw [BitVec.toNat_sub_of_le (by change (a.mantissaBits + b.mantissaBits).toNat ≤ _; rw [hf, hr]; omega), hr, hf]
+  have hsub' : (a.biasedExp + b.biasedExp - (a.mantissaBits + b.mantissaBits) - 240).toNat =
+      a.biasedExp.toNat + b.biasedExp.toNat - (a.mantissaBits.toNat + b.mantissaBits.toNat) - 240 := by
     rw [BitVec.toNat_sub_of_le (by
-      change 240 ≤ (a.raw + b.raw - (a.fraction + b.fraction)).toNat
+      change 240 ≤ (a.biasedExp + b.biasedExp - (a.mantissaBits + b.mantissaBits)).toNat
       rw [hsub]; omega), hsub]
     rfl
   simp only [product]
   exact ⟨hr, by rw [hsub']; omega, by rw [hsub']; omega⟩
 
 theorem product_value {a b : Factor}
-    (ha : 130 ≤ a.raw.toNat ∧ a.raw.toNat ≤ 383 ∧ a.fraction.toNat ≤ 10)
-    (hb : 130 ≤ b.raw.toNat ∧ b.raw.toNat ≤ 383 ∧ b.fraction.toNat ≤ 10) :
-    (product a b).word.value = (rawMul a.decoded b.decoded).value := by
+    (ha : 130 ≤ a.biasedExp.toNat ∧ a.biasedExp.toNat ≤ 383 ∧ a.mantissaBits.toNat ≤ 10)
+    (hb : 130 ≤ b.biasedExp.toNat ∧ b.biasedExp.toNat ≤ 383 ∧ b.mantissaBits.toNat ≤ 10) :
+    (product a b).word.value = (unnormalizedMul a.decoded b.decoded).value := by
   have hg := product_grid ha hb
   have hm : ((multiplySignificands a.magnitude b.magnitude).zeroExtend 576).toNat =
       a.magnitude.toNat * b.magnitude.toNat := by
@@ -129,17 +129,17 @@ theorem product_value {a b : Factor}
       (((multiplySignificands a.magnitude b.magnitude).zeroExtend 576) <<< (product a b).support)).value = _
   rw [shiftedWord_value _ _ _ hmb (by omega), hm]
   have he : ((product a b).support.toNat : ℤ) - 272 =
-      ((a.raw.toNat : ℤ) - 256 + ((b.raw.toNat : ℤ) - 256)) -
-        ((a.fraction.toNat : ℤ) + b.fraction.toNat) := by omega
+      ((a.biasedExp.toNat : ℤ) - 256 + ((b.biasedExp.toNat : ℤ) - 256)) -
+        ((a.mantissaBits.toNat : ℤ) + b.mantissaBits.toNat) := by omega
   rw [he]
   cases ha' : a.negative <;> cases hb' : b.negative <;>
-    simp only [RawProduct.value, rawMul, Factor.decoded, ha', hb', Bool.false_eq_true,
+    simp only [UnnormalizedProduct.value, unnormalizedMul, Factor.decoded, ha', hb', Bool.false_eq_true,
       if_false, if_true, bne_self_eq_false, bne_iff_ne, Bool.false_eq_true,
       Rat.intCast_mul, Rat.intCast_neg, Rat.intCast_natCast, Rat.natCast_mul] <;> grind
 
 theorem product_magnitude {a b : Factor}
-    (ha : 130 ≤ a.raw.toNat ∧ a.raw.toNat ≤ 383 ∧ a.fraction.toNat ≤ 10)
-    (hb : 130 ≤ b.raw.toNat ∧ b.raw.toNat ≤ 383 ∧ b.fraction.toNat ≤ 10) :
+    (ha : 130 ≤ a.biasedExp.toNat ∧ a.biasedExp.toNat ≤ 383 ∧ a.mantissaBits.toNat ≤ 10)
+    (hb : 130 ≤ b.biasedExp.toNat ∧ b.biasedExp.toNat ≤ 383 ∧ b.mantissaBits.toNat ≤ 10) :
     (product a b).word.magnitude.toNat < 2 ^ 550 := by
   have hg := (product_grid ha hb).2.2
   have hm : ((multiplySignificands a.magnitude b.magnitude).zeroExtend 576).toNat < 2 ^ 24 := by
@@ -160,7 +160,7 @@ theorem fp32_exponent_toNat (bits : F32) :
   rw [BitVec.toNat_setWidth_of_le (by decide), BitVec.toNat_setWidth,
     BitVec.toNat_ushiftRight, Nat.shiftRight_eq_div_pow]
 
-theorem fp32_fraction_toNat (bits : F32) :
+theorem fp32_mantissaBits_toNat (bits : F32) :
     ((bits &&& 0x007fffff).zeroExtend 576).toNat = bits.toNat % 8388608 := by
   rw [BitVec.toNat_setWidth_of_le (by decide), BitVec.toNat_and]
   change bits.toNat &&& (2 ^ 23 - 1) = _
@@ -177,9 +177,9 @@ theorem zeroWord_value (negative : Bool) : (Word.mk negative 0).value = 0 := by
 
 def Accumulator.decoded (x : Accumulator) : Decoded :=
   ⟨if x.negative then -(x.magnitude.toNat : ℤ) else x.magnitude.toNat,
-    (x.raw.toNat : ℤ) - 256, x.fraction.toNat⟩
+    (x.biasedExp.toNat : ℤ) - 256, x.mantissaBits.toNat⟩
 
-theorem fp32_fraction24_toNat (bits : F32) :
+theorem fp32_mantissaBits24_toNat (bits : F32) :
     ((bits &&& 0x007fffff).setWidth 24).toNat = bits.toNat % 8388608 := by
   have h := field_toNat bits 0 23 24 (by decide) (by decide)
   simpa using h
@@ -187,7 +187,7 @@ theorem fp32_fraction24_toNat (bits : F32) :
 theorem decode32Fields_asDecoded (bits : F32) :
     (decode32Fields bits).map Accumulator.decoded = decode32 bits := by
   have he := fp32_exponent_toNat bits
-  have hm := fp32_fraction24_toNat bits
+  have hm := fp32_mantissaBits24_toNat bits
   by_cases ht : bits.toNat / 8388608 % 256 = 255 <;>
     by_cases hz : bits.toNat / 8388608 % 256 = 0 <;>
     by_cases hzm : bits.toNat % 8388608 = 0 <;>
@@ -200,7 +200,7 @@ theorem decode32Fields_asDecoded (bits : F32) :
 
 theorem decode32Fields_bounds {bits : F32} {a : Accumulator}
     (h : decode32Fields bits = some a) :
-    130 ≤ a.raw.toNat ∧ a.raw.toNat ≤ 383 ∧ a.fraction.toNat ≤ 23 := by
+    130 ≤ a.biasedExp.toNat ∧ a.biasedExp.toNat ≤ 383 ∧ a.mantissaBits.toNat ≤ 23 := by
   have hd : decode32 bits = some a.decoded := by
     rw [← decode32Fields_asDecoded, h]; rfl
   dsimp +instances only [decode32, classify, fp32, classifyNat] at hd
@@ -210,25 +210,25 @@ theorem decode32Fields_bounds {bits : F32} {a : Accumulator}
     first | contradiction | omega
 
 theorem Accumulator.term_grid {a : Accumulator}
-    (ha : 130 ≤ a.raw.toNat ∧ a.raw.toNat ≤ 383 ∧ a.fraction.toNat ≤ 23) :
-    a.term.raw.toNat = a.raw.toNat + 256 ∧
-    (a.term.support.toNat : ℤ) = (a.raw.toNat : ℤ) + 16 - a.fraction.toNat ∧
+    (ha : 130 ≤ a.biasedExp.toNat ∧ a.biasedExp.toNat ≤ 383 ∧ a.mantissaBits.toNat ≤ 23) :
+    a.term.biasedExp.toNat = a.biasedExp.toNat + 256 ∧
+    (a.term.support.toNat : ℤ) = (a.biasedExp.toNat : ℤ) + 16 - a.mantissaBits.toNat ∧
     123 ≤ a.term.support.toNat ∧ a.term.support.toNat ≤ 399 := by
-  have hr : (a.raw + 256).toNat = a.raw.toNat + 256 := by
+  have hr : (a.biasedExp + 256).toNat = a.biasedExp.toNat + 256 := by
     rw [BitVec.toNat_add]
-    change (a.raw.toNat + 256) % 1024 = _
+    change (a.biasedExp.toNat + 256) % 1024 = _
     exact Nat.mod_eq_of_lt (by omega)
-  have hg : (a.raw + 16).toNat = a.raw.toNat + 16 := by
+  have hg : (a.biasedExp + 16).toNat = a.biasedExp.toNat + 16 := by
     rw [BitVec.toNat_add]
-    change (a.raw.toNat + 16) % 1024 = _
+    change (a.biasedExp.toNat + 16) % 1024 = _
     exact Nat.mod_eq_of_lt (by omega)
-  have hs : (a.raw + 16 - a.fraction).toNat = a.raw.toNat + 16 - a.fraction.toNat := by
-    rw [BitVec.toNat_sub_of_le (by change a.fraction.toNat ≤ _; rw [hg]; omega), hg]
+  have hs : (a.biasedExp + 16 - a.mantissaBits).toNat = a.biasedExp.toNat + 16 - a.mantissaBits.toNat := by
+    rw [BitVec.toNat_sub_of_le (by change a.mantissaBits.toNat ≤ _; rw [hg]; omega), hg]
   simp only [Accumulator.term]
   exact ⟨hr, by rw [hs]; omega, by rw [hs]; omega, by rw [hs]; omega⟩
 
 theorem Accumulator.term_value {a : Accumulator}
-    (ha : 130 ≤ a.raw.toNat ∧ a.raw.toNat ≤ 383 ∧ a.fraction.toNat ≤ 23) :
+    (ha : 130 ≤ a.biasedExp.toNat ∧ a.biasedExp.toNat ≤ 383 ∧ a.mantissaBits.toNat ≤ 23) :
     a.term.word.value = a.decoded.value := by
   have hg := a.term_grid ha
   have hm : (a.magnitude.zeroExtend 576).toNat = a.magnitude.toNat :=
@@ -236,13 +236,13 @@ theorem Accumulator.term_value {a : Accumulator}
   have hb : (a.magnitude.zeroExtend 576).toNat < 2 ^ 24 := by rw [hm]; exact a.magnitude.isLt
   change (Word.mk a.negative (a.magnitude.zeroExtend 576 <<< a.term.support)).value = _
   rw [shiftedWord_value _ _ _ hb (by omega), hm]
-  have he : (a.term.support.toNat : ℤ) - 272 = (a.raw.toNat : ℤ) - 256 - a.fraction.toNat := by omega
+  have he : (a.term.support.toNat : ℤ) - 272 = (a.biasedExp.toNat : ℤ) - 256 - a.mantissaBits.toNat := by omega
   rw [he]
   cases hs : a.negative <;>
     simp [Accumulator.decoded, Decoded.value, hs, Rat.intCast_natCast]
 
 theorem Accumulator.term_magnitude {a : Accumulator}
-    (ha : 130 ≤ a.raw.toNat ∧ a.raw.toNat ≤ 383 ∧ a.fraction.toNat ≤ 23) :
+    (ha : 130 ≤ a.biasedExp.toNat ∧ a.biasedExp.toNat ≤ 383 ∧ a.mantissaBits.toNat ≤ 23) :
     a.term.word.magnitude.toNat < 2 ^ 424 := by
   have hg := a.term_grid ha
   have hm : (a.magnitude.zeroExtend 576).toNat < 2 ^ 24 := by

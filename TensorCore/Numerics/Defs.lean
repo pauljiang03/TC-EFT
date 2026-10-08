@@ -5,26 +5,26 @@ import TensorCore.Numerics.Exact
 namespace TensorCore
 
 structure Format where
-  fractionBits : ℕ
+  mantissaBits : ℕ
   exponentBits : ℕ
   bias : ℤ
   deriving Repr, DecidableEq
 
 @[implicit_reducible] def fp16 : Format := ⟨10, 5, 15⟩
 @[implicit_reducible] def fp32 : Format := ⟨23, 8, 127⟩
-@[implicit_reducible] def Format.width (f : Format) : ℕ := 1 + f.exponentBits + f.fractionBits
+@[implicit_reducible] def Format.width (f : Format) : ℕ := 1 + f.exponentBits + f.mantissaBits
 abbrev F16 := BitVec 16
 abbrev F32 := BitVec 32
 
 /-- The integer significand is signed; scale remains the unnormalized input scale. -/
 structure Decoded where
   significand : ℤ
-  rawScale : ℤ
-  fractionalBits : ℤ
+  unnormalizedExp : ℤ
+  binaryPoint : ℤ
   deriving Repr, DecidableEq
 
 def Decoded.value (x : Decoded) : ℚ :=
-  (x.significand : ℚ) * pow2 (x.rawScale - x.fractionalBits)
+  (x.significand : ℚ) * pow2 (x.unnormalizedExp - x.binaryPoint)
 
 inductive Classification where
   | zero (negative : Bool)
@@ -34,8 +34,8 @@ inductive Classification where
   | nan
   deriving Repr, DecidableEq
 
-/-- A nonempty normal range and at least one stored fraction bit. -/
-def Format.WellFormed (f : Format) : Prop := 0 < f.fractionBits ∧ 1 < f.exponentBits
+/-- A nonempty normal range and at least one stored mantissa bit. -/
+def Format.WellFormed (f : Format) : Prop := 0 < f.mantissaBits ∧ 1 < f.exponentBits
 
 instance (f : Format) : Decidable f.WellFormed := inferInstanceAs (Decidable (_ ∧ _))
 
@@ -47,10 +47,10 @@ instance (f : Format) : Decidable f.WellFormed := inferInstanceAs (Decidable (_ 
 def Format.emin (f : Format) : ℤ := 1 - f.bias
 def Format.emax (f : Format) : ℤ := ((2 ^ f.exponentBits - 2 : ℕ) : ℤ) - f.bias
 def Format.maxFinite (f : Format) : ℚ :=
-  ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) * pow2 (f.emax - f.fractionBits)
+  ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) * pow2 (f.emax - f.mantissaBits)
 
 /-- A decoded significand, including a subnormal, has magnitude below two. -/
-def Decoded.Bounded (d : Decoded) : Prop := absQ d.value < 2 * pow2 d.rawScale
+def Decoded.Bounded (d : Decoded) : Prop := absQ d.value < 2 * pow2 d.unnormalizedExp
 
 /-- Arithmetic form of every finite FP32 value: an integer coefficient of magnitude below `2^24` on the quantum `2^(e-23)` with `-126 ≤ e ≤ 127`. -/
 def FiniteValue32 (z : ℚ) : Prop :=
@@ -58,8 +58,8 @@ def FiniteValue32 (z : ℚ) : Prop :=
 
 /-- Finite values of a format in arithmetic form. -/
 def Format.FiniteValue (f : Format) (z : ℚ) : Prop :=
-  ∃ k e : ℤ, f.emin ≤ e ∧ e ≤ f.emax ∧ k.natAbs < 2 ^ (f.fractionBits + 1) ∧
-    z = (k : ℚ) * pow2 (e - f.fractionBits)
+  ∃ k e : ℤ, f.emin ≤ e ∧ e ≤ f.emax ∧ k.natAbs < 2 ^ (f.mantissaBits + 1) ∧
+    z = (k : ℚ) * pow2 (e - f.mantissaBits)
 
 /-- An explicit bijection package, with executable functions and both inverse laws. -/
 structure BinaryBijection (α β : Type) where

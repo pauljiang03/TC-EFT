@@ -62,7 +62,7 @@ measurements.
 ## Independent software oracles
 
 Besides the hardware rows, Python oracles written from scratch in exact
-`Fraction` arithmetic generate and check further cases:
+rational arithmetic generate and check further cases:
 
 - `scripts/validate.py`: 715 blocks and 2,918 rounding cases, with an
   independent IEEE decoder, integer-grid alignment, and binary search over

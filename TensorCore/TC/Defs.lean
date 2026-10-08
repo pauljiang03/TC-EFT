@@ -6,7 +6,7 @@ namespace TensorCore
 structure Profile where
   input : Format
   products : ℕ
-  alignFraction : ℤ
+  alignSigBits : ℤ
   alignFloor : Option ℤ
   deriving Repr, DecidableEq
 

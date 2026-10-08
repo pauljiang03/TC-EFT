@@ -276,7 +276,7 @@ theorem finiteBits32_encode (x : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ fp32.maxFi
   unfold roundBinary at h
   rw [if_neg (by decide : ¬ ¬ fp32.WellFormed), if_neg (Rat.not_lt.mpr hr), if_neg hx] at h
   dsimp only at h ⊢
-  simp only [binaryCoefficient, show fp32.fractionBits = 23 from rfl] at h
+  simp only [binaryCoefficient, show fp32.mantissaBits = 23 from rfl] at h
   generalize hc : binaryCarry fp32 (binaryConvExp fp32 (absQ x))
     (rneInt (absQ x / pow2 (binaryConvExp fp32 (absQ x) - 23))) = c at h ⊢
   rcases c with ⟨E, K⟩

@@ -1,7 +1,7 @@
 # Tensor-core theory reference
 
 The main [README](../README.md) explains the two implementations and validation commands.
-The [guide](README.md), [theorem index](../TensorCore/THEOREMS.md), and [test walkthrough](../tests/README.md) provide the reading path.
+The [guide](README.md), [what is proved](../TensorCore/THEOREMS.md), and [test walkthrough](../tests/README.md) provide the reading path.
 
 ## Executable interfaces
 
@@ -32,7 +32,7 @@ Both returned results decode to FP32 `1.0`. A block request has `profile`, opera
 
 ## Proof contracts
 
-The [theorem index](../TensorCore/THEOREMS.md) lists the public results and their premises.
+The [what is proved](../TensorCore/THEOREMS.md) lists the public results and their premises.
 
 Identifiers beginning `inputBudget_` concern the TC-EFT paper's input-budget inequality (17), a sufficient condition for the scalar predicate. The scalar predicate is a conservative executable sufficient condition. Chosen-grid theorems also permit other valid common grids.
 
@@ -53,4 +53,4 @@ The model rejects nonfinite operands, wrong product counts, and exact accumulato
 | `vendor`, `data` | Pinned paper oracles, recorded hardware inputs/outputs, and regression cases |
 | `floatlib-port` | Independent FloatLib model, proofs, and associated tests |
 
-[Theorem index](../TensorCore/THEOREMS.md) · [Trust and style](style.md)
+[What is proved](../TensorCore/THEOREMS.md) · [Trust and style](style.md)

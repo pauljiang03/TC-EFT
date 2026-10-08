@@ -10,7 +10,7 @@ parameters, and a `Profile` collects them:
 structure Profile where
   input : Format          -- fp16, bf16, or tf19
   products : ℕ            -- K
-  alignFraction : ℤ       -- F = 23 + p
+  alignSigBits : ℤ       -- F = 23 + p
   alignFloor : Option ℤ   -- minimum alignment exponent
 ```
 
@@ -61,7 +61,7 @@ inductive CPlacement where
   | afterProducts (stages : List ConversionStage)  -- products converted first, then C added exactly
 
 inductive AccumulationKind where
-  | aligned (fraction : ℕ) (floor : Option ℤ) (cPlacement : CPlacement)
+  | aligned (alignSigBits : ℕ) (floor : Option ℤ) (cPlacement : CPlacement)
   | fused                                          -- exact single-product FMA (e.g. FP64 DMMA)
 
 structure InvocationSpec where

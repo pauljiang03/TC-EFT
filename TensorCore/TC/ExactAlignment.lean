@@ -2,10 +2,10 @@ import TensorCore.TC.Canonical
 
 namespace TensorCore
 
-/-- Sufficient alignment precision for this actual input, retaining raw metadata. -/
+/-- Sufficient alignment precision for this actual input, retaining unnormalized-exponent metadata. -/
 def PreparedBlock.AlignmentExact (b : PreparedBlock) : Prop :=
   ∀ t ∈ b.terms, t.significand ≠ 0 →
-    b.quantumExponent ≤ t.rawScale - t.fractionalBits
+    b.alignGridExponent ≤ t.unnormalizedExp - t.binaryPoint
 
 theorem exact_alignment_accumulator (b : PreparedBlock) (h : b.AlignmentExact) :
     b.accumulator = b.exactDot := by
@@ -14,12 +14,12 @@ theorem exact_alignment_accumulator (b : PreparedBlock) (h : b.AlignmentExact) :
   apply List.map_congr_left
   intro t ht
   by_cases hz : t.significand = 0
-  · simp [RawProduct.value, hz, truncGrid, truncCoeff, Rat.div_def]
+  · simp [UnnormalizedProduct.value, hz, truncGrid, truncCoeff, Rat.div_def]
     have hf : (0 : ℚ).floor = 0 := rfl
     rw [hf]
     simp
-  · exact truncGrid_exact_of_grid t.significand (t.rawScale - t.fractionalBits)
-      b.quantumExponent (h t ht hz)
+  · exact truncGrid_exact_of_grid t.significand (t.unnormalizedExp - t.binaryPoint)
+      b.alignGridExponent (h t ht hz)
 
 /-- If padding makes every member exactly alignable, the canonical output is a single FP32 RTZ conversion of the independently decoded ideal sum. -/
 theorem evalBlock_exact_alignment {p : Profile} {x : BlockInput p} {t : BlockTrace}

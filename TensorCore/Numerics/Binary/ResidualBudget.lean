@@ -23,9 +23,9 @@ theorem extraction_coefficient_bound (zs : List ℤ) (b ℓ : ℤ) (P : ℕ)
 
 /-- Exact scalar consolidation under coefficient-budget, minimum-grid, and finite-range conditions. -/
 theorem naiveSumBinary_exact_of_extraction_bound (f : Format) (hf : f.WellFormed)
-    (b ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hgrid : ℓ ≤ b)
+    (b ℓ : ℤ) (hmin : f.emin - f.mantissaBits ≤ ℓ) (hgrid : ℓ ≤ b)
     (zs : List ℤ) (hterm : ∀ z ∈ zs, absQ ((z : ℚ) * pow2 ℓ) < pow2 b)
-    (hbudget : zs.length * (2 ^ (b - ℓ).toNat - 1) < 2 ^ (f.fractionBits + 1))
+    (hbudget : zs.length * (2 ^ (b - ℓ).toNat - 1) < 2 ^ (f.mantissaBits + 1))
     (hrange : (magnitudeSum zs : ℚ) * pow2 ℓ ≤ f.maxFinite) :
     naiveSumBinary f (zs.map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) =
       some ((sumZ zs : ℚ) * pow2 ℓ) :=

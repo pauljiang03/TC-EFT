@@ -6,7 +6,7 @@ open FloatLib.Floats.Formats.BinaryInterchange
 private def qText (q : ℚ) : String := s!"{q.num}/{q.den}"
 private def failure (s : String) : Json := Json.mkObj [("error", toJson ("TensorCore.ModelError." ++ s))]
 private def traceJson (t : Trace) : Json := Json.mkObj [
-  ("bits", toJson t.bits), ("eta", toJson t.block.eta),
+  ("bits", toJson t.bits), ("eta", toJson t.block.alignExp),
   ("quantum", toJson (qText (pow2 t.block.q))),
   ("accumulator", toJson (qText t.block.accumulator)),
   ("terms", toJson (t.block.terms.map (qText ∘ Term.value))),

@@ -11,8 +11,8 @@ structure BinaryRep (f : Format) where
   significand : ℕ
   exponent_min : f.emin ≤ exponent
   exponent_max : exponent ≤ f.emax
-  significand_lt : significand < 2 ^ (f.fractionBits + 1)
-  normalized : 2 ^ f.fractionBits ≤ significand ∨ exponent = f.emin
+  significand_lt : significand < 2 ^ (f.mantissaBits + 1)
+  normalized : 2 ^ f.mantissaBits ≤ significand ∨ exponent = f.emin
   deriving DecidableEq
 
 theorem BinaryRep.ext {f : Format} {a b : BinaryRep f}
@@ -24,7 +24,7 @@ theorem BinaryRep.ext {f : Format} {a b : BinaryRep f}
 
 def BinaryRep.value {f : Format} (r : BinaryRep f) : ℚ :=
   (if r.negative then -(r.significand : ℚ) else r.significand) *
-    pow2 (r.exponent - f.fractionBits)
+    pow2 (r.exponent - f.mantissaBits)
 
 /-- Domain: exactly words whose IEEE classification is finite, with both zero words. -/
 abbrev FiniteBinaryWord (f : Format) := { bits : BitVec f.width // ∃ d, (classify f bits).finite = some d }

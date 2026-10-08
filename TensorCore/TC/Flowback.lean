@@ -16,14 +16,14 @@ def MonotoneInAccumulator (prof : Profile) (products : List (Decoded × Decoded)
 /-- Definition III.3: the flowback `ω = Σᵢ (trunc_{q'A}(Tᵢ) − trunc_{qA}(Tᵢ))` of the products between the alignment grids selected by `c` and by `c'`. -/
 def flowback (prof : Profile) (products : List (Decoded × Decoded)) (c c' : Decoded) : ℚ :=
   sumQ (products.map fun (a, b) =>
-    truncGrid (rawMul a b).value (PreparedBlock.mk prof products c').quantumExponent -
-      truncGrid (rawMul a b).value (PreparedBlock.mk prof products c).quantumExponent)
+    truncGrid (unnormalizedMul a b).value (PreparedBlock.mk prof products c').alignGridExponent -
+      truncGrid (unnormalizedMul a b).value (PreparedBlock.mk prof products c).alignGridExponent)
 
 /-- Definition III.3: `ΔA = trunc_{qA}(c) − trunc_{q'A}(c')`. -/
 def accumulatorShift (prof : Profile) (products : List (Decoded × Decoded)) (c c' : Decoded) :
     ℚ :=
-  truncGrid c.value (PreparedBlock.mk prof products c).quantumExponent -
-    truncGrid c'.value (PreparedBlock.mk prof products c').quantumExponent
+  truncGrid c.value (PreparedBlock.mk prof products c).alignGridExponent -
+    truncGrid c'.value (PreparedBlock.mk prof products c').alignGridExponent
 
 /-- `A'acc = Aacc + ω − ΔA`. -/
 theorem perturbed_accumulator (prof : Profile) (products : List (Decoded × Decoded))
@@ -35,8 +35,8 @@ theorem perturbed_accumulator (prof : Profile) (products : List (Decoded × Deco
   simp only [PreparedBlock.terms, List.map_cons, List.map_map, sumQ, Function.comp_def]
   unfold flowback accumulatorShift
   rw [sumQ_map_sub]
-  have hc : RawProduct.value ⟨c.significand, c.rawScale, c.fractionalBits⟩ = c.value := rfl
-  have hc' : RawProduct.value ⟨c'.significand, c'.rawScale, c'.fractionalBits⟩ = c'.value := rfl
+  have hc : UnnormalizedProduct.value ⟨c.significand, c.unnormalizedExp, c.binaryPoint⟩ = c.value := rfl
+  have hc' : UnnormalizedProduct.value ⟨c'.significand, c'.unnormalizedExp, c'.binaryPoint⟩ = c'.value := rfl
   rw [hc, hc']
   grind
 
@@ -232,16 +232,16 @@ theorem flowback_sufficient (prof : Profile) (products : List (Decoded × Decode
 /-- When both accumulator inputs are retained exactly on their grids, `ΔA = c − c'`. -/
 theorem accumulatorShift_of_exact (prof : Profile) (products : List (Decoded × Decoded))
     (c c' : Decoded)
-    (hc : truncGrid c.value (PreparedBlock.mk prof products c).quantumExponent = c.value)
-    (hc' : truncGrid c'.value (PreparedBlock.mk prof products c').quantumExponent = c'.value) :
+    (hc : truncGrid c.value (PreparedBlock.mk prof products c).alignGridExponent = c.value)
+    (hc' : truncGrid c'.value (PreparedBlock.mk prof products c').alignGridExponent = c'.value) :
     accumulatorShift prof products c c' = c.value - c'.value := by
   unfold accumulatorShift
   rw [hc, hc']
 
 /-- Theorem III.4 as a failure of Definition III.2: the construction's products are not monotone in the accumulator input once `K ≥ 3·2^p`. -/
 theorem construction_not_monotone (prof : Profile) (p K : ℕ) (da db : Decoded)
-    (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
-    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
+    (hF : prof.alignSigBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) (hscale : (unnormalizedMul da db).unnormalizedExp ≤ -1)
     (hK : K < 2 ^ (24 + p)) (hthr : 3 * 2 ^ p ≤ K) :
     ¬ MonotoneInAccumulator prof (List.replicate K (da, db)) := by
   intro hmono

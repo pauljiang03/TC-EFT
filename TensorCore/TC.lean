@@ -1,7 +1,7 @@
 import TensorCore.TC.AcceptedDomain
 import TensorCore.TC.Accumulator
 import TensorCore.TC.AccumulatorWidth
-import TensorCore.TC.AlignmentScale
+import TensorCore.TC.AlignmentExponent
 import TensorCore.TC.Block
 import TensorCore.TC.Canonical
 import TensorCore.TC.CanonicalDefs

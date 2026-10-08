@@ -69,15 +69,15 @@ theorem integerRound_unique (mode : BinaryRoundingMode) (negative : Bool) (t : �
 /-- Positive magnitude rounded to the destination precision with no exponent limits. -/
 def precisionMagnitude (f : Format) (mode : BinaryRoundingMode) (negative : Bool) (m : ℚ) : ℚ :=
   if m = 0 then 0 else
-    let q := pow2 (magnitudeExponent m - f.fractionBits)
+    let q := pow2 (magnitudeExponent m - f.mantissaBits)
     (binaryCoefficient mode negative (m / q) : ℚ) * q
 
 def PrecisionRound (f : Format) (mode : BinaryRoundingMode) (negative : Bool)
     (m u : ℚ) : Prop :=
   (m = 0 ∧ u = 0) ∨
   ∃ e : ℤ, ∃ k : ℤ, pow2 e ≤ m ∧ m < pow2 (e + 1) ∧
-    IntegerRound mode negative (m / pow2 (e - f.fractionBits)) k ∧
-    u = (k : ℚ) * pow2 (e - f.fractionBits)
+    IntegerRound mode negative (m / pow2 (e - f.mantissaBits)) k ∧
+    u = (k : ℚ) * pow2 (e - f.mantissaBits)
 
 theorem precisionMagnitude_correct (f : Format) (mode : BinaryRoundingMode)
     (negative : Bool) (m : ℚ) (hm : 0 ≤ m) :
@@ -103,21 +103,21 @@ theorem precisionMagnitude_lower (f : Format) (mode : BinaryRoundingMode)
     (negative : Bool) (m : ℚ) (hm : 0 < m) :
     pow2 (magnitudeExponent m) ≤ precisionMagnitude f mode negative m := by
   let e := magnitudeExponent m
-  let q := pow2 (e - f.fractionBits)
+  let q := pow2 (e - f.mantissaBits)
   have hq : 0 < q := pow2_pos _
   have hs := magnitudeExponent_spec m hm
-  have hl : ((2 ^ f.fractionBits : ℕ) : ℚ) ≤ m / q := by
+  have hl : ((2 ^ f.mantissaBits : ℕ) : ℚ) ≤ m / q := by
     apply le_div_of_mul_le _ _ _ hq
-    change ((2 ^ f.fractionBits : ℕ) : ℚ) * pow2 (e - f.fractionBits) ≤ m
+    change ((2 ^ f.mantissaBits : ℕ) : ℚ) * pow2 (e - f.mantissaBits) ≤ m
     rw [← f.binade_grid]; exact hs.1
-  have hu : m / q < ((2 ^ (f.fractionBits + 1) : ℕ) : ℚ) := by
+  have hu : m / q < ((2 ^ (f.mantissaBits + 1) : ℕ) : ℚ) := by
     apply (Rat.div_lt_iff hq).mpr
-    change m < ((2 ^ (f.fractionBits + 1) : ℕ) : ℚ) * pow2 (e - f.fractionBits)
+    change m < ((2 ^ (f.mantissaBits + 1) : ℕ) : ℚ) * pow2 (e - f.mantissaBits)
     rw [← f.next_binade_grid]; exact hs.2
-  have hb := binaryCoefficient_bounds mode negative (m / q) (2 ^ (f.fractionBits + 1))
+  have hb := binaryCoefficient_bounds mode negative (m / q) (2 ^ (f.mantissaBits + 1))
     (Rat.le_trans Rat.natCast_nonneg hl) hu
-  have hfl : (2 ^ f.fractionBits : ℕ) ≤ (m / q).floor := Rat.le_floor_iff.mpr hl
-  have hk : ((2 ^ f.fractionBits : ℕ) : ℤ) ≤ binaryCoefficient mode negative (m / q) := by omega
+  have hfl : (2 ^ f.mantissaBits : ℕ) ≤ (m / q).floor := Rat.le_floor_iff.mpr hl
+  have hk : ((2 ^ f.mantissaBits : ℕ) : ℤ) ≤ binaryCoefficient mode negative (m / q) := by omega
   rw [precisionMagnitude, if_neg (Rat.ne_of_gt hm), f.binade_grid]
   exact Rat.mul_le_mul_of_nonneg_right (Rat.intCast_le_intCast.mpr hk) (Rat.le_of_lt hq)
 
@@ -143,22 +143,22 @@ theorem precisionMagnitude_le_max (f : Format) (hf : f.WellFormed)
     unfold binaryConvExp at hb
     dsimp [e]; omega
   obtain ⟨j, hj⟩ := f.finite_on_grid
-    ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℤ) f.emax e he
-  have hmj : f.maxFinite = (j : ℚ) * pow2 (e - f.fractionBits) := hj
-  have hq := pow2_pos (e - f.fractionBits)
-  have ht : m / pow2 (e - f.fractionBits) ≤ (j : ℚ) := by
-    apply Rat.le_of_mul_le_mul_right (c := pow2 (e - f.fractionBits)) _ hq
+    ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℤ) f.emax e he
+  have hmj : f.maxFinite = (j : ℚ) * pow2 (e - f.mantissaBits) := hj
+  have hq := pow2_pos (e - f.mantissaBits)
+  have ht : m / pow2 (e - f.mantissaBits) ≤ (j : ℚ) := by
+    apply Rat.le_of_mul_le_mul_right (c := pow2 (e - f.mantissaBits)) _ hq
     rw [Rat.div_mul_cancel (Rat.ne_of_gt hq), ← hmj]
     exact hr
-  have hc := binaryCoefficient_le_integer mode negative (m / pow2 (e - f.fractionBits)) j ht
+  have hc := binaryCoefficient_le_integer mode negative (m / pow2 (e - f.mantissaBits)) j ht
   rw [precisionMagnitude, if_neg hz, hmj]
   exact Rat.mul_le_mul_of_nonneg_right (Rat.intCast_le_intCast.mpr hc) (Rat.le_of_lt hq)
 
 /-- The normal-precision result is nearest among all bounded-significand dyadics, even when a competitor uses a different exponent. -/
 theorem precision_nearest_all (f : Format) (m : ℚ) (hm : 0 < m)
-    (j e : ℤ) (hj : j.natAbs < 2 ^ (f.fractionBits + 1)) :
+    (j e : ℤ) (hj : j.natAbs < 2 ^ (f.mantissaBits + 1)) :
     absQ (m - precisionMagnitude f .nearestEven false m) ≤
-      absQ (m - (j : ℚ) * pow2 (e - f.fractionBits)) := by
+      absQ (m - (j : ℚ) * pow2 (e - f.mantissaBits)) := by
   let b := magnitudeExponent m
   have hs := magnitudeExponent_spec m hm
   by_cases he : b ≤ e
@@ -167,17 +167,17 @@ theorem precision_nearest_all (f : Format) (m : ℚ) (hm : 0 < m)
     exact rne_grid_nearest_q m _ (pow2_pos _) z
   · have hsmall := f.finite_below_binade j e b hj (by omega)
     have hsmall' := (absQ_le_iff _ _).mp hsmall
-    have hq := pow2_pos (b - f.fractionBits - 1)
-    have hn := rne_grid_nearest_q m (pow2 (b - f.fractionBits)) (pow2_pos _)
-      ((2 ^ f.fractionBits : ℕ) : ℤ)
+    have hq := pow2_pos (b - f.mantissaBits - 1)
+    have hn := rne_grid_nearest_q m (pow2 (b - f.mantissaBits)) (pow2_pos _)
+      ((2 ^ f.mantissaBits : ℕ) : ℤ)
     rw [Rat.intCast_natCast, ← f.binade_grid] at hn
-    change absQ (m - (rneInt (m / pow2 (b - f.fractionBits)) : ℚ) *
-      pow2 (b - f.fractionBits)) ≤ absQ (m - pow2 b) at hn
+    change absQ (m - (rneInt (m / pow2 (b - f.mantissaBits)) : ℚ) *
+      pow2 (b - f.mantissaBits)) ≤ absQ (m - pow2 b) at hn
     rw [precisionMagnitude, if_neg (Rat.ne_of_gt hm)]
-    change absQ (m - (rneInt (m / pow2 (b - f.fractionBits)) : ℚ) *
-      pow2 (b - f.fractionBits)) ≤ _
+    change absQ (m - (rneInt (m / pow2 (b - f.mantissaBits)) : ℚ) *
+      pow2 (b - f.mantissaBits)) ≤ _
     have h1 : 0 ≤ m - pow2 b := by grind
-    have h2 : 0 ≤ m - (j : ℚ) * pow2 (e - f.fractionBits) := by grind
+    have h2 : 0 ≤ m - (j : ℚ) * pow2 (e - f.mantissaBits) := by grind
     rw [absQ_of_nonneg h1] at hn
     rw [absQ_of_nonneg h2]
     grind
@@ -185,11 +185,11 @@ theorem precision_nearest_all (f : Format) (m : ℚ) (hm : 0 < m)
 /-- Directed precision rounding is a greatest lower bound over every bounded- significand dyadic, rather than only competitors on the selected grid. -/
 theorem precision_floor_all (f : Format) (m : ℚ) (hm : 0 < m) :
     precisionMagnitude f .towardZero false m ≤ m ∧
-    ∀ j e : ℤ, j.natAbs < 2 ^ (f.fractionBits + 1) →
-      (j : ℚ) * pow2 (e - f.fractionBits) ≤ m →
-      (j : ℚ) * pow2 (e - f.fractionBits) ≤ precisionMagnitude f .towardZero false m := by
+    ∀ j e : ℤ, j.natAbs < 2 ^ (f.mantissaBits + 1) →
+      (j : ℚ) * pow2 (e - f.mantissaBits) ≤ m →
+      (j : ℚ) * pow2 (e - f.mantissaBits) ≤ precisionMagnitude f .towardZero false m := by
   let b := magnitudeExponent m
-  let q := pow2 (b - f.fractionBits)
+  let q := pow2 (b - f.mantissaBits)
   have hq : 0 < q := pow2_pos _
   constructor
   · have h := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (m / q)) (Rat.le_of_lt hq)
@@ -206,17 +206,17 @@ theorem precision_floor_all (f : Format) (m : ℚ) (hm : 0 < m) :
     · have hsmall := f.finite_below_binade j e b hj (by omega)
       have hsmall' := (absQ_le_iff _ _).mp hsmall
       have hl := precisionMagnitude_lower f .towardZero false m hm
-      have hp := pow2_pos (b - f.fractionBits - 1)
+      have hp := pow2_pos (b - f.mantissaBits - 1)
       grind
 
 /-- The corresponding least-upper-bound characterization, with unrestricted exponents. -/
 theorem precision_ceil_all (f : Format) (m : ℚ) (hm : 0 < m) :
     m ≤ precisionMagnitude f .towardPositive false m ∧
-    ∀ j e : ℤ, j.natAbs < 2 ^ (f.fractionBits + 1) →
-      m ≤ (j : ℚ) * pow2 (e - f.fractionBits) →
-      precisionMagnitude f .towardPositive false m ≤ (j : ℚ) * pow2 (e - f.fractionBits) := by
+    ∀ j e : ℤ, j.natAbs < 2 ^ (f.mantissaBits + 1) →
+      m ≤ (j : ℚ) * pow2 (e - f.mantissaBits) →
+      precisionMagnitude f .towardPositive false m ≤ (j : ℚ) * pow2 (e - f.mantissaBits) := by
   let b := magnitudeExponent m
-  let q := pow2 (b - f.fractionBits)
+  let q := pow2 (b - f.mantissaBits)
   have hq : 0 < q := pow2_pos _
   constructor
   · have h := Rat.mul_le_mul_of_nonneg_right (Rat.le_ceil (x := m / q)) (Rat.le_of_lt hq)
@@ -236,7 +236,7 @@ theorem precision_ceil_all (f : Format) (m : ℚ) (hm : 0 < m) :
     · have hsmall := f.finite_below_binade j e b hj (by omega)
       have hsmall' := (absQ_le_iff _ _).mp hsmall
       have hl := (magnitudeExponent_spec m hm).1
-      have hp := pow2_pos (b - f.fractionBits - 1)
+      have hp := pow2_pos (b - f.mantissaBits - 1)
       grind
 
 end TensorCore.IEEE

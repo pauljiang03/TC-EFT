@@ -30,7 +30,7 @@ theorem nonmonotone_encoded (K p : ℕ) (floor : Option ℤ) (hfl : ∀ f ∈ fl
     (a b : (fp16Fp32Profile K p floor).Word) (da db : Decoded)
     (ha : (fp16Fp32Profile K p floor).decode a = some da)
     (hb : (fp16Fp32Profile K p floor).decode b = some db)
-    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
+    (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) (hscale : (unnormalizedMul da db).unnormalizedExp ≤ -1)
     (hK : K < 2 ^ (24 + p)) :
     ∃ t t' : BlockTrace,
       evalBlock ⟨List.replicate K (a, b), 0x3f800000⟩ = .ok t ∧
@@ -40,7 +40,7 @@ theorem nonmonotone_encoded (K p : ℕ) (floor : Option ℤ) (hfl : ∀ f ∈ fl
 
 In words: take any FP16 profile with `K` products and `p` extra bits, and any
 floor at most −1. Use `K` copies of a product whose exact value is
-`2^-(24+p)` and whose raw scale is at most −1. With `C = 1` the output is
+`2^-(24+p)` and whose unnormalized exponent is at most −1. With `C = 1` the output is
 exactly 1. Lowering `C` to its FP32 predecessor `1 − 2^-24` makes the output
 **exceed 1 exactly when `K ≥ 3 · 2^p`**.
 

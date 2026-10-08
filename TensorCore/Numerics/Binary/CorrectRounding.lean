@@ -7,14 +7,14 @@ namespace TensorCore
 
 def binaryMagnitudeRounded (f : Format) (mode : BinaryRoundingMode) (negative : Bool)
     (m : ℚ) : ℚ :=
-  (binaryCoefficient mode negative (m / pow2 (binaryConvExp f m - f.fractionBits)) : ℚ) *
-    pow2 (binaryConvExp f m - f.fractionBits)
+  (binaryCoefficient mode negative (m / pow2 (binaryConvExp f m - f.mantissaBits)) : ℚ) *
+    pow2 (binaryConvExp f m - f.mantissaBits)
 
 def binarySignedRounded (f : Format) (mode : BinaryRoundingMode) (x : ℚ) : ℚ :=
   if x < 0 then -binaryMagnitudeRounded f mode true (absQ x)
   else binaryMagnitudeRounded f mode false (absQ x)
 
-/-! Grid geometry parametric in the fraction width. -/
+/-! Grid geometry parametric in the mantissa width. -/
 
 theorem rne_grid_nearest_q (m q : ℚ) (hq : 0 < q) (j : ℤ) :
     absQ (m - (rneInt (m / q) : ℚ) * q) ≤ absQ (m - (j : ℚ) * q) := by
@@ -22,9 +22,9 @@ theorem rne_grid_nearest_q (m q : ℚ) (hq : 0 < q) (j : ℤ) :
   exact Rat.mul_le_mul_of_nonneg_right (rneInt_nearest _ j) (Rat.le_of_lt hq)
 
 theorem Format.finite_on_grid (f : Format) (k e2 e : ℤ) (h : e ≤ e2) :
-    ∃ j : ℤ, (k : ℚ) * pow2 (e2 - f.fractionBits) = j * pow2 (e - f.fractionBits) := by
+    ∃ j : ℤ, (k : ℚ) * pow2 (e2 - f.mantissaBits) = j * pow2 (e - f.mantissaBits) := by
   refine ⟨k * 2 ^ (e2 - e).toNat, ?_⟩
-  have : pow2 (e2 - f.fractionBits) = pow2 (e - f.fractionBits) * pow2 ((e2 - e).toNat : ℤ) := by
+  have : pow2 (e2 - f.mantissaBits) = pow2 (e - f.mantissaBits) * pow2 ((e2 - e).toNat : ℤ) := by
     rw [← pow2_add]; congr 1; omega
   rw [this, pow2_natCast, Rat.intCast_mul, Rat.intCast_pow]
   simp only [Rat.intCast_ofNat, Rat.natCast_pow, Rat.natCast_ofNat]
@@ -32,30 +32,30 @@ theorem Format.finite_on_grid (f : Format) (k e2 e : ℤ) (h : e ≤ e2) :
 
 /-- A finite value with exponent below `e` is at most `2^e − 2^(e−p−1)` in magnitude. -/
 theorem Format.finite_below_binade (f : Format) (k e2 e : ℤ)
-    (hk : k.natAbs < 2 ^ (f.fractionBits + 1)) (h : e2 < e) :
-    absQ ((k : ℚ) * pow2 (e2 - f.fractionBits)) ≤ pow2 e - pow2 (e - f.fractionBits - 1) := by
-  have hq := pow2_pos (e2 - f.fractionBits)
+    (hk : k.natAbs < 2 ^ (f.mantissaBits + 1)) (h : e2 < e) :
+    absQ ((k : ℚ) * pow2 (e2 - f.mantissaBits)) ≤ pow2 e - pow2 (e - f.mantissaBits - 1) := by
+  have hq := pow2_pos (e2 - f.mantissaBits)
   rw [absQ_mul_pos _ _ hq, absQ_intCast]
-  have hk' : ((k.natAbs : ℤ) : ℚ) ≤ ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) := by
-    have h1 : (k.natAbs : ℤ) ≤ ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℤ) := by omega
+  have hk' : ((k.natAbs : ℤ) : ℚ) ≤ ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) := by
+    have h1 : (k.natAbs : ℤ) ≤ ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℤ) := by omega
     have h2 := Rat.intCast_le_intCast.mpr h1
     simpa [Rat.intCast_natCast] using h2
-  have hgrid : pow2 (e2 - f.fractionBits) ≤ pow2 (e - f.fractionBits - 1) :=
+  have hgrid : pow2 (e2 - f.mantissaBits) ≤ pow2 (e - f.mantissaBits - 1) :=
     pow2_le_of_le (by omega)
   have hnn : (0 : ℚ) ≤ ((k.natAbs : ℤ) : ℚ) := Rat.intCast_nonneg.mpr (by omega)
-  have step1 : ((k.natAbs : ℤ) : ℚ) * pow2 (e2 - f.fractionBits) ≤
-      ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) * pow2 (e - f.fractionBits - 1) :=
-    calc ((k.natAbs : ℤ) : ℚ) * pow2 (e2 - f.fractionBits)
-        ≤ ((k.natAbs : ℤ) : ℚ) * pow2 (e - f.fractionBits - 1) :=
+  have step1 : ((k.natAbs : ℤ) : ℚ) * pow2 (e2 - f.mantissaBits) ≤
+      ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) * pow2 (e - f.mantissaBits - 1) :=
+    calc ((k.natAbs : ℤ) : ℚ) * pow2 (e2 - f.mantissaBits)
+        ≤ ((k.natAbs : ℤ) : ℚ) * pow2 (e - f.mantissaBits - 1) :=
           Rat.mul_le_mul_of_nonneg_left hgrid hnn
-      _ ≤ ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) * pow2 (e - f.fractionBits - 1) :=
+      _ ≤ ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) * pow2 (e - f.mantissaBits - 1) :=
           Rat.mul_le_mul_of_nonneg_right hk' (Rat.le_of_lt (pow2_pos _))
-  have step2 : ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) * pow2 (e - f.fractionBits - 1) =
-      pow2 e - pow2 (e - f.fractionBits - 1) := by
-    have hp1 : pow2 e = ((2 ^ (f.fractionBits + 1) : ℕ) : ℚ) * pow2 (e - f.fractionBits - 1) := by
+  have step2 : ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) * pow2 (e - f.mantissaBits - 1) =
+      pow2 e - pow2 (e - f.mantissaBits - 1) := by
+    have hp1 : pow2 e = ((2 ^ (f.mantissaBits + 1) : ℕ) : ℚ) * pow2 (e - f.mantissaBits - 1) := by
       rw [← pow2_natCast, ← pow2_add]; congr 1; omega
-    have hsub : ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) + 1 =
-        ((2 ^ (f.fractionBits + 1) : ℕ) : ℚ) := by
+    have hsub : ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) + 1 =
+        ((2 ^ (f.mantissaBits + 1) : ℕ) : ℚ) := by
       rw [show (1 : ℚ) = ((1 : ℕ) : ℚ) from rfl, ← Rat.natCast_add,
         Nat.sub_add_cancel (Nat.two_pow_pos _)]
     rw [hp1]
@@ -76,22 +76,22 @@ theorem binaryMagnitudeRounded_lower (f : Format) (hf : f.WellFormed) (mode : Bi
     rcases hl with h | h
     · exact h
     · exfalso; omega
-  have hq := pow2_pos (binaryConvExp f m - f.fractionBits)
-  have hs : (((2 ^ f.fractionBits : ℕ) : ℤ) : ℚ) ≤
-      m / pow2 (binaryConvExp f m - f.fractionBits) := by
+  have hq := pow2_pos (binaryConvExp f m - f.mantissaBits)
+  have hs : (((2 ^ f.mantissaBits : ℕ) : ℤ) : ℚ) ≤
+      m / pow2 (binaryConvExp f m - f.mantissaBits) := by
     apply le_div_of_mul_le _ _ _ hq
     rw [Rat.intCast_natCast, ← f.binade_grid]
     exact hl'
-  have hfl : ((2 ^ f.fractionBits : ℕ) : ℤ) ≤
-      (m / pow2 (binaryConvExp f m - f.fractionBits)).floor := Rat.le_floor_iff.mpr hs
-  have hb := binaryCoefficient_bounds mode negative (m / pow2 (binaryConvExp f m - f.fractionBits))
-    (2 ^ (f.fractionBits + 1)) (Rat.le_of_lt ((Rat.lt_div_iff hq).mpr (by simpa using hm)))
+  have hfl : ((2 ^ f.mantissaBits : ℕ) : ℤ) ≤
+      (m / pow2 (binaryConvExp f m - f.mantissaBits)).floor := Rat.le_floor_iff.mpr hs
+  have hb := binaryCoefficient_bounds mode negative (m / pow2 (binaryConvExp f m - f.mantissaBits))
+    (2 ^ (f.mantissaBits + 1)) (Rat.le_of_lt ((Rat.lt_div_iff hq).mpr (by simpa using hm)))
     (by
       apply (Rat.div_lt_iff hq).mpr
       obtain ⟨_, _, hupper, _⟩ := binaryConvExp_bounds f hf m hm hr
       rwa [f.next_binade_grid] at hupper)
-  have hk : ((2 ^ f.fractionBits : ℕ) : ℤ) ≤
-      binaryCoefficient mode negative (m / pow2 (binaryConvExp f m - f.fractionBits)) := by
+  have hk : ((2 ^ f.mantissaBits : ℕ) : ℤ) ≤
+      binaryCoefficient mode negative (m / pow2 (binaryConvExp f m - f.mantissaBits)) := by
     have := hb.2.2.1
     omega
   unfold binaryMagnitudeRounded
@@ -101,24 +101,24 @@ theorem binaryMagnitudeRounded_lower (f : Format) (hf : f.WellFormed) (mode : Bi
 /-- A finer grid below the input's binade cannot supply an equally near competitor. -/
 theorem binary_rne_lower_binade_strict (f : Format) (hf : f.WellFormed) (negative : Bool) (m : ℚ)
     (hm : 0 < m) (hr : m ≤ f.maxFinite) (j fe : ℤ) (hfe : f.emin ≤ fe)
-    (hj : j.natAbs < 2 ^ (f.fractionBits + 1)) (he : fe < binaryConvExp f m) :
+    (hj : j.natAbs < 2 ^ (f.mantissaBits + 1)) (he : fe < binaryConvExp f m) :
     absQ (m - binaryMagnitudeRounded f .nearestEven negative m) <
-      absQ (m - (j : ℚ) * pow2 (fe - f.fractionBits)) := by
+      absQ (m - (j : ℚ) * pow2 (fe - f.mantissaBits)) := by
   obtain ⟨_, _, _, hl⟩ := binaryConvExp_bounds f hf m hm hr
   have hl' : pow2 (binaryConvExp f m) ≤ m := by
     rcases hl with h | h
     · exact h
     · exfalso; omega
-  have hq := pow2_pos (binaryConvExp f m - f.fractionBits)
-  have hb := rne_grid_nearest_q m _ hq ((2 ^ f.fractionBits : ℕ) : ℤ)
+  have hq := pow2_pos (binaryConvExp f m - f.mantissaBits)
+  have hb := rne_grid_nearest_q m _ hq ((2 ^ f.mantissaBits : ℕ) : ℤ)
   change absQ (m - binaryMagnitudeRounded f .nearestEven negative m) ≤
-    absQ (m - (((2 ^ f.fractionBits : ℕ) : ℤ) : ℚ) * pow2 (binaryConvExp f m - f.fractionBits)) at hb
+    absQ (m - (((2 ^ f.mantissaBits : ℕ) : ℤ) : ℚ) * pow2 (binaryConvExp f m - f.mantissaBits)) at hb
   rw [Rat.intCast_natCast, ← f.binade_grid] at hb
   have hsmall := f.finite_below_binade j fe (binaryConvExp f m) hj he
   have hsmall' := (absQ_le_iff _ _).mp hsmall
-  have hq' := pow2_pos (binaryConvExp f m - f.fractionBits - 1)
+  have hq' := pow2_pos (binaryConvExp f m - f.mantissaBits - 1)
   have h1 : 0 ≤ m - pow2 (binaryConvExp f m) := by grind
-  have h2 : 0 ≤ m - (j : ℚ) * pow2 (fe - f.fractionBits) := by grind
+  have h2 : 0 ≤ m - (j : ℚ) * pow2 (fe - f.mantissaBits) := by grind
   rw [absQ_of_nonneg h1] at hb
   rw [absQ_of_nonneg h2]
   grind
@@ -137,19 +137,19 @@ theorem binary_rne_magnitude_tie_even (f : Format) (hf : f.WellFormed) (negative
     (hm : 0 < m) (hr : m ≤ f.maxFinite) (hy : f.FiniteValue y)
     (hne : y ≠ binaryMagnitudeRounded f .nearestEven negative m)
     (ht : absQ (m - y) = absQ (m - binaryMagnitudeRounded f .nearestEven negative m)) :
-    binaryCoefficient .nearestEven negative (m / pow2 (binaryConvExp f m - f.fractionBits)) % 2 = 0 := by
+    binaryCoefficient .nearestEven negative (m / pow2 (binaryConvExp f m - f.mantissaBits)) % 2 = 0 := by
   obtain ⟨j, fe, hfe, _, hj, rfl⟩ := hy
   by_cases he : binaryConvExp f m ≤ fe
   · obtain ⟨z, hz⟩ := f.finite_on_grid j fe (binaryConvExp f m) he
     rw [hz] at hne ht
-    have hz' : z ≠ rneInt (m / pow2 (binaryConvExp f m - f.fractionBits)) := by
+    have hz' : z ≠ rneInt (m / pow2 (binaryConvExp f m - f.mantissaBits)) := by
       intro h
       apply hne
       rw [h]; rfl
     unfold binaryMagnitudeRounded at ht
     rw [binaryCoefficient_nearestEven] at ht ⊢
     rw [dist_scale _ _ (pow2_pos _) _, dist_scale _ _ (pow2_pos _) _] at ht
-    have hcancel := congrArg (fun a : ℚ => a / pow2 (binaryConvExp f m - f.fractionBits)) ht
+    have hcancel := congrArg (fun a : ℚ => a / pow2 (binaryConvExp f m - f.mantissaBits)) ht
     simp only [Rat.mul_div_cancel (Rat.ne_of_gt (pow2_pos _))] at hcancel
     exact rneInt_tie_even _ z hcancel hz'
   · have h := binary_rne_lower_binade_strict f hf negative m hm hr j fe hfe hj (by omega)
@@ -186,7 +186,7 @@ theorem binarySignedRounded_tie_even (f : Format) (hf : f.WellFormed) (x y : ℚ
     (hne : y ≠ binarySignedRounded f .nearestEven x)
     (ht : absQ (x - y) = absQ (x - binarySignedRounded f .nearestEven x)) :
     binaryCoefficient .nearestEven (decide (x < 0))
-      (absQ x / pow2 (binaryConvExp f (absQ x) - f.fractionBits)) % 2 = 0 := by
+      (absQ x / pow2 (binaryConvExp f (absQ x) - f.mantissaBits)) % 2 = 0 := by
   have hm := absQ_pos_of_ne_zero x hx
   unfold binarySignedRounded at hne ht
   split at hne
@@ -211,16 +211,16 @@ theorem roundBinary_nonzero_spec (f : Format) (hf : f.WellFormed) (mode : Binary
     ∃ bits : BitVec f.width, roundBinary f mode x = some bits ∧
       binaryValue f bits = some (binarySignedRounded f mode x) ∧
       (binaryCoefficient mode (decide (x < 0))
-        (absQ x / pow2 (binaryConvExp f (absQ x) - f.fractionBits)) % 2 = 0 →
+        (absQ x / pow2 (binaryConvExp f (absQ x) - f.mantissaBits)) % 2 = 0 →
         bits.toNat % 2 = 0) := by
   have hm := absQ_pos_of_ne_zero x hx
   obtain ⟨he1, he2, _, _⟩ := binaryConvExp_bounds f hf (absQ x) hm hr
   obtain ⟨hk0, hk1, hsub, htop⟩ := binaryConvCoeff_bounds f hf mode (decide (x < 0)) (absQ x) hm hr
   have hs := binaryCarry_spec f hf _ _ he1 he2 hk0 hk1 hsub htop
   let e := (binaryCarry f (binaryConvExp f (absQ x)) (binaryCoefficient mode (decide (x < 0))
-    (absQ x / pow2 (binaryConvExp f (absQ x) - f.fractionBits)))).1
+    (absQ x / pow2 (binaryConvExp f (absQ x) - f.mantissaBits)))).1
   let k := (binaryCarry f (binaryConvExp f (absQ x)) (binaryCoefficient mode (decide (x < 0))
-    (absQ x / pow2 (binaryConvExp f (absQ x) - f.fractionBits)))).2
+    (absQ x / pow2 (binaryConvExp f (absQ x) - f.mantissaBits)))).2
   let bits := encodeBinary f (decide (x < 0)) e k
   refine ⟨bits, ?_, ?_, ?_⟩
   · unfold roundBinary
@@ -235,7 +235,7 @@ theorem roundBinary_nonzero_spec (f : Format) (hf : f.WellFormed) (mode : Binary
     rw [he]
     unfold binarySignedRounded binaryMagnitudeRounded
     have hv := hs.2.2.2.2.2.1
-    change (k : ℚ) * pow2 (e - f.fractionBits) = _ at hv
+    change (k : ℚ) * pow2 (e - f.mantissaBits) = _ at hv
     by_cases hn : x < 0 <;> simp [hn] <;> grind
   · intro h
     have he := encodeBinary_parity f hf (decide (x < 0)) e k hs.2.2.1 hs.2.2.2.1 hs.1 hs.2.1
@@ -297,21 +297,21 @@ theorem binary_rtz_magnitude_spec (f : Format) (hf : f.WellFormed) (negative : B
     0 ≤ binaryMagnitudeRounded f .towardZero negative m ∧
     binaryMagnitudeRounded f .towardZero negative m ≤ m ∧
     (∀ y : ℚ, f.FiniteValue y → y ≤ m → y ≤ binaryMagnitudeRounded f .towardZero negative m) := by
-  have hq := pow2_pos (binaryConvExp f m - f.fractionBits)
-  have hfl : (0 : ℤ) ≤ (m / pow2 (binaryConvExp f m - f.fractionBits)).floor := by
+  have hq := pow2_pos (binaryConvExp f m - f.mantissaBits)
+  have hfl : (0 : ℤ) ≤ (m / pow2 (binaryConvExp f m - f.mantissaBits)).floor := by
     apply Rat.le_floor_iff.mpr
     have := div_nonneg_of_pos _ _ (Rat.le_of_lt hm) hq
     simpa using this
   refine ⟨?_, ?_, ?_⟩
   · unfold binaryMagnitudeRounded
-    have : (0 : ℚ) ≤ (((m / pow2 (binaryConvExp f m - f.fractionBits)).floor : ℤ) : ℚ) := by
+    have : (0 : ℚ) ≤ (((m / pow2 (binaryConvExp f m - f.mantissaBits)).floor : ℤ) : ℚ) := by
       have := Rat.intCast_le_intCast.mpr hfl
       simpa using this
     exact Rat.mul_nonneg this (Rat.le_of_lt hq)
   · unfold binaryMagnitudeRounded
-    change (((m / pow2 (binaryConvExp f m - f.fractionBits)).floor : ℤ) : ℚ) *
-      pow2 (binaryConvExp f m - f.fractionBits) ≤ m
-    have := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (m / pow2 (binaryConvExp f m - f.fractionBits)))
+    change (((m / pow2 (binaryConvExp f m - f.mantissaBits)).floor : ℤ) : ℚ) *
+      pow2 (binaryConvExp f m - f.mantissaBits) ≤ m
+    have := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (m / pow2 (binaryConvExp f m - f.mantissaBits)))
       (Rat.le_of_lt hq)
     rwa [Rat.div_mul_cancel (Rat.ne_of_gt hq)] at this
   · intro y hy hym
@@ -320,9 +320,9 @@ theorem binary_rtz_magnitude_spec (f : Format) (hf : f.WellFormed) (negative : B
     · obtain ⟨z, hz⟩ := f.finite_on_grid j fe (binaryConvExp f m) he
       rw [hz] at hym ⊢
       unfold binaryMagnitudeRounded
-      change (z : ℚ) * pow2 (binaryConvExp f m - f.fractionBits) ≤
-        (((m / pow2 (binaryConvExp f m - f.fractionBits)).floor : ℤ) : ℚ) *
-          pow2 (binaryConvExp f m - f.fractionBits)
+      change (z : ℚ) * pow2 (binaryConvExp f m - f.mantissaBits) ≤
+        (((m / pow2 (binaryConvExp f m - f.mantissaBits)).floor : ℤ) : ℚ) *
+          pow2 (binaryConvExp f m - f.mantissaBits)
       apply Rat.mul_le_mul_of_nonneg_right _ (Rat.le_of_lt hq)
       apply Rat.intCast_le_intCast.mpr
       apply Rat.le_floor_iff.mpr
@@ -330,7 +330,7 @@ theorem binary_rtz_magnitude_spec (f : Format) (hf : f.WellFormed) (negative : B
     · have hlow := binaryMagnitudeRounded_lower f hf .towardZero negative m hm hr (by omega)
       have hsmall := f.finite_below_binade j fe (binaryConvExp f m) hj (by omega)
       have hsmall' := (absQ_le_iff _ _).mp hsmall
-      have := pow2_pos (binaryConvExp f m - f.fractionBits - 1)
+      have := pow2_pos (binaryConvExp f m - f.mantissaBits - 1)
       grind
 
 /-- Toward-zero result: between zero and the input, of largest magnitude among the format's finite values there. -/

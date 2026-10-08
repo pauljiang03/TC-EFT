@@ -80,9 +80,9 @@ def fma (f : BinaryFormat) (cfg : Context) (a b c : Word f) : Result f :=
 
 /-- Payloads are left aligned, matching their positions following the quiet bit. -/
 def convertPayload (source target : BinaryFormat) (p : ℕ) : ℕ :=
-  if source.layout.fractionBits ≤ target.layout.fractionBits then
-    p * 2 ^ (target.layout.fractionBits - source.layout.fractionBits)
-  else p / 2 ^ (source.layout.fractionBits - target.layout.fractionBits)
+  if source.layout.mantissaBits ≤ target.layout.mantissaBits then
+    p * 2 ^ (target.layout.mantissaBits - source.layout.mantissaBits)
+  else p / 2 ^ (source.layout.mantissaBits - target.layout.mantissaBits)
 
 def convertDatum (source target : BinaryFormat) (cfg : Context) (a : Datum) : Result target :=
   match a with

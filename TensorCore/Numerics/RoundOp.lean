@@ -52,7 +52,7 @@ def round32 (mode : RoundingMode) (x : ℚ) : Option F32 :=
   if absQ x > maxFinite32 then none else round32Core mode x
 
 /-- Exponent of the quantum of an encoded output: `E - 150` for a normal encoding with exponent field `E`, and `-149` for a subnormal or zero encoding. -/
-def outputQuantumExponent (b : F32) : ℤ :=
+def outputUlpExponent (b : F32) : ℤ :=
   max (((b.toNat / 2 ^ 23 % 2 ^ 8 : ℕ) : ℤ) - 127) emin32 - 23
 
 /-- Success in the public conversion implies the *accumulator* range condition. -/

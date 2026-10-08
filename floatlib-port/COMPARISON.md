@@ -24,7 +24,7 @@ The correspondence includes explicit representation proofs:
 | Validation errors | `errorEquiv`: all four constructors correspond |
 | Tagged EFT outcomes | `eftResultEquiv`: a bijection onto legitimate `(optional bits, branch)` outcomes; `encodedResult_injective` proves no two source outcomes are merged |
 
-This does not identify unrestricted raw implementation types. A raw FloatLib-side `Term` can contain inconsistent metadata, and a raw `Trace` can contain inconsistent bits/value fields. The encoded constructors establish the required invariants. The term equivalence canonicalizes zero sign, matching the source's numerical representation; the word equivalence retains signed-zero bits. [RepresentationFacts.lean](tests/RepresentationFacts.lean) checks these distinctions.
+This does not identify unrestricted unchecked implementation types. An unchecked FloatLib-side `Term` can contain inconsistent metadata, and an unchecked `Trace` can contain inconsistent bits/value fields. The encoded constructors establish the required invariants. The term equivalence canonicalizes zero sign, matching the source's numerical representation; the word equivalence retains signed-zero bits. [RepresentationFacts.lean](tests/RepresentationFacts.lean) checks these distinctions.
 
 ## Every arithmetic stage is connected
 
@@ -33,7 +33,7 @@ The following equalities are proved under the stated representation invariants. 
 | Stage | Bridge theorem(s) |
 |---|---|
 | Format fields, finite decoding and metadata | `decode_project`, `decode_value`, `value32_eq` |
-| Exact multiplication and original-input sum | `rawTerm_mul`, `mul_valid`, `terms_eq`, `ideal_eq` |
+| Exact multiplication and original-input sum | `unnormalizedTerm_mul`, `mul_valid`, `terms_eq`, `ideal_eq` |
 | Zero-aware maximum, floor and alignment grid | `alignment_eq`, `eta_eq`, `q_eq` |
 | Signed truncation, retained accumulator and alignment residuals | `truncCoeff_eq`, `truncGrid_eq`, `accumulator_eq`, `residuals_eq` |
 | Actual RTZ/RNE conversion, including ties, subnormals, signed underflow and finite-range rejection | `round32_eq` for **every rational input** and both modes |

@@ -4,7 +4,7 @@ namespace TensorCore
 
 inductive SpecialEncoding where
   | ieee
-  /-- The top exponent is finite except for its all-one fraction, which is NaN. -/
+  /-- The top exponent is finite except for its all-ones mantissa, which is NaN. -/
   | finiteTopNaN
   deriving Repr, DecidableEq
 
@@ -17,14 +17,14 @@ def ValueFormat.classifyNat (f : ValueFormat) (n : ℕ) : Classification :=
   match f.special with
   | .ieee => TensorCore.classifyNat f.layout n
   | .finiteTopNaN =>
-    let fraction := n % 2 ^ f.layout.fractionBits
-    let exponent := n / 2 ^ f.layout.fractionBits % 2 ^ f.layout.exponentBits
-    let negative := n / 2 ^ (f.layout.fractionBits + f.layout.exponentBits) != 0
+    let mantissa := n % 2 ^ f.layout.mantissaBits
+    let exponent := n / 2 ^ f.layout.mantissaBits % 2 ^ f.layout.exponentBits
+    let negative := n / 2 ^ (f.layout.mantissaBits + f.layout.exponentBits) != 0
     if exponent = 2 ^ f.layout.exponentBits - 1 then
-      if fraction = 2 ^ f.layout.fractionBits - 1 then .nan
-      else .normal ⟨if negative then -((2 ^ f.layout.fractionBits + fraction : ℕ) : ℤ)
-        else ((2 ^ f.layout.fractionBits + fraction : ℕ) : ℤ),
-        (exponent : ℤ) - f.layout.bias, f.layout.fractionBits⟩
+      if mantissa = 2 ^ f.layout.mantissaBits - 1 then .nan
+      else .normal ⟨if negative then -((2 ^ f.layout.mantissaBits + mantissa : ℕ) : ℤ)
+        else ((2 ^ f.layout.mantissaBits + mantissa : ℕ) : ℤ),
+        (exponent : ℤ) - f.layout.bias, f.layout.mantissaBits⟩
     else TensorCore.classifyNat f.layout n
 
 def ValueFormat.decode (f : ValueFormat) (bits : BitVec f.layout.width) : Option Decoded :=

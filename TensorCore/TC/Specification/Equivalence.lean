@@ -14,7 +14,7 @@ theorem result_of_eval {p : Profile} {x : BlockInput p} {t : BlockTrace}
   have hr := evalPrepared_output (evalBlock_evalPrepared h)
   have ha := accumulated_eq t.block
   rw [prepare_profile hp] at ha
-  refine ⟨hv.1, t.block.terms.map rawTermOf, ?_, ?_, ?_⟩
+  refine ⟨hv.1, t.block.terms.map unnormalizedTermOf, ?_, ?_, ?_⟩
   · rw [terms_eq, hp]; rfl
   · rw [ha]; exact round32_range hr
   · rw [ha]; exact round32_rounds _ _ hr
@@ -71,7 +71,7 @@ theorem valid_success {p : Profile} (x : BlockInput p)
 
 /-- Adequate modular accumulator widths inherit the independent-specification theorem. -/
 theorem machine_eq_spec {p : Profile} (x : BlockInput p) (w F carryBits : ℕ)
-    (hF : p.alignFraction = F) (hc : p.products + 1 ≤ 2 ^ carryBits)
+    (hF : p.alignSigBits = F) (hc : p.products + 1 ≤ 2 ^ carryBits)
     (hw : F + 3 + carryBits ≤ w) :
     (evalBlockMachine w x).toOption.map (fun t => t.output.bits) =
       bits (parametersOf p) (inputOf x) := by

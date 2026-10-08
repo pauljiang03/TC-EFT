@@ -16,17 +16,17 @@ def InputKind.format : InputKind → Format
 structure Factor where
   negative : Bool
   magnitude : BitVec 11
-  /-- Raw exponent biased by 256, with zero's conventional raw exponent 0. -/
-  raw : Grid
-  fraction : Grid
+  /-- Unnormalized exponent biased by 256, with zero's conventional unnormalized exponent 0. -/
+  biasedExp : Grid
+  mantissaBits : Grid
   deriving Repr, DecidableEq
 
-/-- Finite IEEE-style input decoding, including subnormal fractions and zero. -/
+/-- Finite IEEE-style input decoding, including subnormal mantissas and zero. -/
 def decodeFactor (kind : InputKind) (bits : F32) : Option Factor :=
   let f := kind.format
-  let e := ((bits >>> f.fractionBits) &&& (((1 : F32) <<< f.exponentBits) - 1)).setWidth 10
-  let m := (bits &&& (((1 : F32) <<< f.fractionBits) - 1)).setWidth 11
-  let negative := (bits >>> (f.fractionBits + f.exponentBits)) != 0
+  let e := ((bits >>> f.mantissaBits) &&& (((1 : F32) <<< f.exponentBits) - 1)).setWidth 10
+  let m := (bits &&& (((1 : F32) <<< f.mantissaBits) - 1)).setWidth 11
+  let negative := (bits >>> (f.mantissaBits + f.exponentBits)) != 0
   let bias : Grid := match kind with | .fp16 => 241 | _ => 129
   let top : Grid := match kind with | .fp16 => 31 | _ => 255
   let frac : Grid := match kind with | .bf16 => 7 | _ => 10
@@ -34,28 +34,28 @@ def decodeFactor (kind : InputKind) (bits : F32) : Option Factor :=
   else if e == 0 then
     if m == 0 then some ⟨negative, 0, 256, 0⟩
     else some ⟨negative, m, bias + 1, frac⟩
-  else some ⟨negative, ((1 : BitVec 11) <<< f.fractionBits) + m, e + bias, frac⟩
+  else some ⟨negative, ((1 : BitVec 11) <<< f.mantissaBits) + m, e + bias, frac⟩
 
 structure Term where
   word : Word
-  /-- Raw exponent biased by 512. -/
-  raw : Grid
+  /-- Unnormalized exponent biased by 512. -/
+  biasedExp : Grid
   /-- Coefficient grid, biased by 272; this may differ for equal real products. -/
   support : Grid
   deriving Repr, DecidableEq
 
 /-- Exact 11-by-11-bit multiplication; conversion to the common dyadic grid uses a ten-bit shift, which includes the full BF16/TF32 exponent span. -/
 def product (a b : Factor) : Term :=
-  let raw := a.raw + b.raw
-  let grid := raw - (a.fraction + b.fraction) - 240
+  let biasedExp := a.biasedExp + b.biasedExp
+  let grid := biasedExp - (a.mantissaBits + b.mantissaBits) - 240
   let m := (multiplySignificands a.magnitude b.magnitude).zeroExtend 576 <<< grid
-  ⟨⟨a.negative != b.negative, m⟩, raw, grid⟩
+  ⟨⟨a.negative != b.negative, m⟩, biasedExp, grid⟩
 
 structure Accumulator where
   negative : Bool
   magnitude : BitVec 24
-  raw : Grid
-  fraction : Grid
+  biasedExp : Grid
+  mantissaBits : Grid
   deriving Repr, DecidableEq
 
 def decode32Fields (bits : F32) : Option Accumulator :=
@@ -69,8 +69,8 @@ def decode32Fields (bits : F32) : Option Accumulator :=
   else some ⟨negative, 8388608 + m, e + 129, 23⟩
 
 def Accumulator.term (a : Accumulator) : Term :=
-  let grid := a.raw + 16 - a.fraction
-  ⟨⟨a.negative, a.magnitude.zeroExtend 576 <<< grid⟩, a.raw + 256, grid⟩
+  let grid := a.biasedExp + 16 - a.mantissaBits
+  ⟨⟨a.negative, a.magnitude.zeroExtend 576 <<< grid⟩, a.biasedExp + 256, grid⟩
 
 /-- FP32 decoding directly into the common grid, without a rational conversion. -/
 def decode32Term (bits : F32) : Option Term := (decode32Fields bits).map Accumulator.term

@@ -8,7 +8,7 @@ adds these integers in a fixed-point adder. The model adds them exactly:
 
 ```lean
 def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
-  (sumZ b.coefficients : ℚ) * pow2 b.quantumExponent
+  (sumZ b.coefficients : ℚ) * pow2 b.alignGridExponent
 ```
 
 Accumulation is exact and does not depend on order. All the loss happens in
@@ -35,7 +35,7 @@ def evalBlockMachine (w : ℕ) {p : Profile} (x : BlockInput p) : Except ModelEr
 
 ## The width theorem
 
-Each aligned term has at most `F + 2` magnitude bits (raw products are less
+Each aligned term has at most `F + 2` magnitude bits (unnormalized products are less
 than 4 in significand). There are `K + 1` terms, counting `C`. So `F + 2`
 magnitude bits, plus `⌈log₂(K+1)⌉` carry bits, plus one sign bit, are always
 enough:
@@ -43,7 +43,7 @@ enough:
 ```lean
 /-- All encoded inputs have identical reference and machine results at any adequate width. -/
 theorem evalBlockMachine_eq {p : Profile} (x : BlockInput p) (w F carryBits : ℕ)
-    (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits)
+    (hF : p.alignSigBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits)
     (hw : F + 2 + carryBits + 1 ≤ w) : evalBlockMachine w x = evalBlock x
 ```
 
@@ -56,7 +56,7 @@ encoded input:
 | `ampere_machine_eq` | A100 FP16, K = 8, F = 24 | 31 bits |
 | `hopper_machine_eq` | H100 FP16, K = 16, F = 25 | 33 bits |
 
-[`evalBlock_machinePrefix`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AlignmentScale.lean#L184)
+[`evalBlock_machinePrefix`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AlignmentExponent.lean#L184)
 goes further. Every **prefix** of the accumulation is exact at that width,
 so the result does not depend on the order of additions, even with
 cancellation.

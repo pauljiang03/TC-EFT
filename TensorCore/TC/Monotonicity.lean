@@ -1,6 +1,6 @@
 import TensorCore.Numerics.CorrectRounding
 import TensorCore.TC.StageResiduals
-import TensorCore.TC.AlignmentScale
+import TensorCore.TC.AlignmentExponent
 import TensorCore.TC.Padding
 
 
@@ -14,32 +14,32 @@ theorem oneDecoded_value : oneDecoded.value = 1 := by decide +kernel
 theorem belowOneDecoded_value : belowOneDecoded.value = 16777215 * pow2 (-24) := by
   decide +kernel
 
-/-- The alignment exponent of the construction is the accumulator input's raw scale when every product's raw scale is at most that value. -/
-theorem construction_eta (prof : Profile) (K : ℕ) (da db c : Decoded)
-    (hc : c.significand ≠ 0) (_hu : (rawMul da db).significand ≠ 0)
-    (hs : (rawMul da db).rawScale ≤ c.rawScale) (hfl : ∀ f ∈ prof.alignFloor, f ≤ c.rawScale) :
-    (PreparedBlock.mk prof (List.replicate K (da, db)) c).eta = some c.rawScale := by
+/-- The alignment exponent of the construction is the accumulator input's unnormalized exponent when every product's unnormalized exponent is at most that value. -/
+theorem construction_alignExp (prof : Profile) (K : ℕ) (da db c : Decoded)
+    (hc : c.significand ≠ 0) (_hu : (unnormalizedMul da db).significand ≠ 0)
+    (hs : (unnormalizedMul da db).unnormalizedExp ≤ c.unnormalizedExp) (hfl : ∀ f ∈ prof.alignFloor, f ≤ c.unnormalizedExp) :
+    (PreparedBlock.mk prof (List.replicate K (da, db)) c).alignExp = some c.unnormalizedExp := by
   have hterms : (PreparedBlock.mk prof (List.replicate K (da, db)) c).terms =
-      ⟨c.significand, c.rawScale, c.fractionalBits⟩ :: List.replicate K (rawMul da db) := by
+      ⟨c.significand, c.unnormalizedExp, c.binaryPoint⟩ :: List.replicate K (unnormalizedMul da db) := by
     simp [PreparedBlock.terms, List.map_replicate]
-  have hmem : (⟨c.significand, c.rawScale, c.fractionalBits⟩ : RawProduct) ∈
+  have hmem : (⟨c.significand, c.unnormalizedExp, c.binaryPoint⟩ : UnnormalizedProduct) ∈
       (PreparedBlock.mk prof (List.replicate K (da, db)) c).terms := by
     rw [hterms]; simp
-  obtain ⟨e, he, hle⟩ := alignmentScale_term _ _ hmem hc
-  have hle' : c.rawScale ≤ e := hle
-  have hup := alignmentScale_upper (PreparedBlock.mk prof (List.replicate K (da, db)) c).terms
-    c.rawScale (by
+  obtain ⟨e, he, hle⟩ := maxTermExp_term _ _ hmem hc
+  have hle' : c.unnormalizedExp ≤ e := hle
+  have hup := maxTermExp_upper (PreparedBlock.mk prof (List.replicate K (da, db)) c).terms
+    c.unnormalizedExp (by
       intro t ht _
       rw [hterms] at ht
       simp only [List.mem_cons, List.mem_replicate] at ht
       rcases ht with rfl | ⟨_, rfl⟩
       · exact Int.le_refl _
       · exact hs) e (by rw [he]; simp)
-  have heq : e = c.rawScale := by omega
+  have heq : e = c.unnormalizedExp := by omega
   subst heq
-  unfold PreparedBlock.eta
+  unfold PreparedBlock.alignExp
   rw [he]
-  show prof.applyFloor (some c.rawScale) = some c.rawScale
+  show prof.applyFloor (some c.unnormalizedExp) = some c.unnormalizedExp
   unfold Profile.applyFloor
   cases hf : prof.alignFloor with
   | none => rfl
@@ -47,10 +47,10 @@ theorem construction_eta (prof : Profile) (K : ℕ) (da db c : Decoded)
     have := hfl f (by rw [hf]; simp)
     simp [Int.max_eq_left this]
 
-theorem rawMul_significand_ne_zero (da db : Decoded) (p : ℕ)
-    (hval : (rawMul da db).value = pow2 (-(24 + p))) : (rawMul da db).significand ≠ 0 := by
+theorem unnormalizedMul_significand_ne_zero (da db : Decoded) (p : ℕ)
+    (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) : (unnormalizedMul da db).significand ≠ 0 := by
   intro h
-  unfold RawProduct.value at hval
+  unfold UnnormalizedProduct.value at hval
   rw [h] at hval
   have := pow2_pos (-(24 + p))
   simp at hval
@@ -58,18 +58,18 @@ theorem rawMul_significand_ne_zero (da db : Decoded) (p : ℕ)
 
 /-- Accumulator with `c = 1`: every product truncates to zero. -/
 theorem construction_accumulator_one (prof : Profile) (p K : ℕ) (da db : Decoded)
-    (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
-    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1) :
+    (hF : prof.alignSigBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) (hscale : (unnormalizedMul da db).unnormalizedExp ≤ -1) :
     (PreparedBlock.mk prof (List.replicate K (da, db)) oneDecoded).accumulator = 1 := by
-  have hu := rawMul_significand_ne_zero da db p hval
-  have heta := construction_eta prof K da db oneDecoded (by decide) hu
-    (by change (rawMul da db).rawScale ≤ 0; omega)
+  have hu := unnormalizedMul_significand_ne_zero da db p hval
+  have heta := construction_alignExp prof K da db oneDecoded (by decide) hu
+    (by change (unnormalizedMul da db).unnormalizedExp ≤ 0; omega)
     (by intro f hf; have := hfl f hf; change f ≤ 0; omega)
-  have hq : (PreparedBlock.mk prof (List.replicate K (da, db)) oneDecoded).quantumExponent =
+  have hq : (PreparedBlock.mk prof (List.replicate K (da, db)) oneDecoded).alignGridExponent =
       -(23 + p) := by
-    unfold PreparedBlock.quantumExponent
+    unfold PreparedBlock.alignGridExponent
     rw [heta]
-    change oneDecoded.rawScale - prof.alignFraction = _
+    change oneDecoded.unnormalizedExp - prof.alignSigBits = _
     rw [hF]
     simp only [oneDecoded]
     omega
@@ -82,7 +82,7 @@ theorem construction_accumulator_one (prof : Profile) (p K : ℕ) (da db : Decod
       have : ((23 + p : ℕ) : ℤ) + -(23 + p) = 0 := by omega
       rw [this, pow2_zero]
     rw [h1, truncCoeff_of_grid]
-  have hp : truncCoeff (rawMul da db).value (-(23 + p)) = 0 := by
+  have hp : truncCoeff (unnormalizedMul da db).value (-(23 + p)) = 0 := by
     rw [hval]
     unfold truncCoeff
     have hpos := pow2_pos (-(24 + p))
@@ -99,17 +99,17 @@ theorem construction_accumulator_one (prof : Profile) (p K : ℕ) (da db : Decod
 
 /-- Accumulator with `c' = 1 − 2^-24`: every product is retained. -/
 theorem construction_accumulator_below (prof : Profile) (p K : ℕ) (da db : Decoded)
-    (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
-    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1) :
+    (hF : prof.alignSigBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) (hscale : (unnormalizedMul da db).unnormalizedExp ≤ -1) :
     (PreparedBlock.mk prof (List.replicate K (da, db)) belowOneDecoded).accumulator =
       ((16777215 * 2 ^ p + K : ℕ) : ℚ) * pow2 (-(24 + p)) := by
-  have hu := rawMul_significand_ne_zero da db p hval
-  have heta := construction_eta prof K da db belowOneDecoded (by decide) hu hscale hfl
-  have hq : (PreparedBlock.mk prof (List.replicate K (da, db)) belowOneDecoded).quantumExponent =
+  have hu := unnormalizedMul_significand_ne_zero da db p hval
+  have heta := construction_alignExp prof K da db belowOneDecoded (by decide) hu hscale hfl
+  have hq : (PreparedBlock.mk prof (List.replicate K (da, db)) belowOneDecoded).alignGridExponent =
       -(24 + p) := by
-    unfold PreparedBlock.quantumExponent
+    unfold PreparedBlock.alignGridExponent
     rw [heta]
-    change belowOneDecoded.rawScale - prof.alignFraction = _
+    change belowOneDecoded.unnormalizedExp - prof.alignSigBits = _
     rw [hF]
     simp only [belowOneDecoded]
     omega
@@ -124,7 +124,7 @@ theorem construction_accumulator_below (prof : Profile) (p K : ℕ) (da db : Dec
       rw [this]
       all_goals simp
     rw [h1, truncCoeff_of_grid]
-  have hp : truncCoeff (rawMul da db).value (-(24 + p)) = 1 := by
+  have hp : truncCoeff (unnormalizedMul da db).value (-(24 + p)) = 1 := by
     rw [hval]
     have h1 : pow2 (-(24 + p)) = ((1 : ℤ) : ℚ) * pow2 (-(24 + p)) := by simp
     rw [h1, truncCoeff_of_grid]
@@ -136,8 +136,8 @@ theorem construction_accumulator_below (prof : Profile) (p K : ℕ) (da db : Dec
 
 /-- TC-EFT Theorem III.4. -/
 theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
-    (hF : prof.alignFraction = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
-    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
+    (hF : prof.alignSigBits = 23 + p) (hfl : ∀ f ∈ prof.alignFloor, f ≤ -1)
+    (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) (hscale : (unnormalizedMul da db).unnormalizedExp ≤ -1)
     (hK : K < 2 ^ (24 + p)) :
     ∃ t t' : BlockTrace,
       evalPrepared ⟨prof, List.replicate K (da, db), oneDecoded⟩ = .ok t ∧
@@ -273,7 +273,7 @@ theorem nonmonotone_encoded (K p : ℕ) (floor : Option ℤ) (hfl : ∀ f ∈ fl
     (a b : (fp16Fp32Profile K p floor).Word) (da db : Decoded)
     (ha : (fp16Fp32Profile K p floor).decode a = some da)
     (hb : (fp16Fp32Profile K p floor).decode b = some db)
-    (hval : (rawMul da db).value = pow2 (-(24 + p))) (hscale : (rawMul da db).rawScale ≤ -1)
+    (hval : (unnormalizedMul da db).value = pow2 (-(24 + p))) (hscale : (unnormalizedMul da db).unnormalizedExp ≤ -1)
     (hK : K < 2 ^ (24 + p)) :
     ∃ t t' : BlockTrace,
       evalBlock (⟨List.replicate K (a, b), 0x3f800000⟩ : BlockInput (fp16Fp32Profile K p floor)) =
@@ -281,7 +281,7 @@ theorem nonmonotone_encoded (K p : ℕ) (floor : Option ℤ) (hfl : ∀ f ∈ fl
       evalBlock (⟨List.replicate K (a, b), 0x3f7fffff⟩ : BlockInput (fp16Fp32Profile K p floor)) =
         .ok t' ∧
       t.output.value = 1 ∧ (1 < t'.output.value ↔ 3 * 2 ^ p ≤ K) := by
-  have hF : (fp16Fp32Profile K p floor).alignFraction = 23 + p := by
+  have hF : (fp16Fp32Profile K p floor).alignSigBits = 23 + p := by
     show ((23 + p : ℕ) : ℤ) = 23 + (p : ℤ)
     omega
   obtain ⟨t, t', h1, h2, hv, hiff⟩ :=

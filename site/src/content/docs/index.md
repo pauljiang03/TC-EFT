@@ -103,5 +103,5 @@ limits](/TC-EFT/model/scope/) and the [trust boundary](/TC-EFT/proofs/trust/).
 
 - [The model at a glance](/TC-EFT/model/): the whole pipeline on one page.
 - [Quick start](/TC-EFT/quick-start/): build the project and run the examples.
-- [Theorem index](/TC-EFT/proofs/theorems/): the headline results and where they live.
+- [What is proved](/TC-EFT/proofs/theorems/): the headline results and where they live.
 - [Source on GitHub](https://github.com/pauljiang03/TC-EFT).

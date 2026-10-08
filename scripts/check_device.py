@@ -108,7 +108,7 @@ def main():
             sig(words[k]) * sig(words[k + 1]) >= 2 ** 21 for k in range(0, 8, 2))
         c_scale = ((words[8] >> 23) & 255) - 127
         exercised['eta_from_c_only'] += (t['eta'] is not None and t['eta'] == c_scale
-                                         and all(s < c_scale for s in t['rawScales']))
+                                         and all(s < c_scale for s in t['unnormalizedExps']))
         exercised['corrected_differs_from_device'] += (
             t['correctedBits'] is not None and t['correctedBits'] != d)
     report = dict(source='MATLAB Tensor Core v0.5 model_validation/V100/fp16', profile='V100 FP16->FP32',

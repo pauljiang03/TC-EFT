@@ -8,7 +8,7 @@ namespace TensorCore.EFMachine
 structure OperationBudget where
   inputDecodes : ℕ
   products : ℕ
-  rawScan : ℕ
+  exponentScan : ℕ
   splits : ℕ
   extractionAdds : ℕ
   scalarAdds : ℕ
@@ -27,7 +27,7 @@ def operationBudget (K : ℕ) : OperationBudget :=
 /-- Concrete maxima for every supported normalization group, including failed scalar attempts. -/
 theorem operationBudget_bounds (path : Path) :
     let b := operationBudget path.profile.products
-    b.inputDecodes ≤ 34 ∧ b.products ≤ 16 ∧ b.rawScan ≤ 17 ∧ b.splits ≤ 17 ∧
+    b.inputDecodes ≤ 34 ∧ b.products ≤ 16 ∧ b.exponentScan ≤ 17 ∧ b.splits ≤ 17 ∧
     b.extractionAdds ≤ 37 ∧ b.scalarAdds ≤ 19 ∧ b.exactChecks ≤ 21 ∧
     b.conversions ≤ 41 ∧ b.guardCoefficientAdds ≤ 17 ∧ b.residualBitScans ≤ 17 ∧
     b.scalarDecodes ≤ 61 := by cases path <;> decide

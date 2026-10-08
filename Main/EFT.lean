@@ -20,11 +20,11 @@ private def correctionJson : Except ModelError EncodedEFTResult → Json
         | .consolidated .outOfRange => "outOfRange"))]
 
 private def traceJson (t : BlockTrace) : Json := Json.mkObj [
-  ("bits", toJson t.output.bits.toNat), ("eta", toJson t.block.eta),
-  ("quantum", toJson (qText (pow2 t.block.quantumExponent))),
+  ("bits", toJson t.output.bits.toNat), ("eta", toJson t.block.alignExp),
+  ("quantum", toJson (qText (pow2 t.block.alignGridExponent))),
   ("accumulator", toJson (qText t.block.accumulator)),
-  ("terms", toJson (t.block.terms.map (qText ∘ RawProduct.value))),
-  ("aligned", toJson (t.block.terms.map fun x => qText (truncGrid x.value t.block.quantumExponent))),
+  ("terms", toJson (t.block.terms.map (qText ∘ UnnormalizedProduct.value))),
+  ("aligned", toJson (t.block.terms.map fun x => qText (truncGrid x.value t.block.alignGridExponent))),
   ("alignment_residuals", toJson (t.block.alignmentResiduals.map qText)),
   ("output_residual", toJson (qText t.outputResidual)),
   ("overlap", toJson (qText t.overlap)), ("low_parts", toJson (t.lowParts.map qText)),

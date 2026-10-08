@@ -113,7 +113,7 @@ theorem round32_nonzero_spec (mode : RoundingMode) (x : ℚ)
     (hx : x ≠ 0) (hr : absQ x ≤ maxFinite32) :
     ∃ b : F32, round32 mode x = some b ∧ value32 b = some (signedRounded mode x) ∧
       (convCoeff mode (absQ x) % 2 = 0 → b.toNat % 2 = 0) ∧
-      convExp (absQ x) - 23 ≤ outputQuantumExponent b := by
+      convExp (absQ x) - 23 ≤ outputUlpExponent b := by
   have hm := absQ_pos_of_ne_zero x hx
   obtain ⟨he1, he2, _, _⟩ := convExp_bounds (absQ x) hm hr
   obtain ⟨hk0, hk1, hsub, htop⟩ := convCoeff_bounds mode (absQ x) hm hr
@@ -143,9 +143,9 @@ theorem round32_nonzero_spec (mode : RoundingMode) (x : ℚ)
     have hk : k % 2 = 0 := hs.2.2.2.2.2.2.2 h
     have hk0 : 0 ≤ k := hs.2.2.1
     omega
-  · have he := encode32_quantum (decide (x < 0)) e k hs.1 hs.2.1 hs.2.2.1
+  · have he := encode32_ulpExponent (decide (x < 0)) e k hs.1 hs.2.1 hs.2.2.1
       hs.2.2.2.1 hs.2.2.2.2.1
-    change outputQuantumExponent b = e - 23 at he
+    change outputUlpExponent b = e - 23 at he
     have hh : convExp (absQ x) ≤ e := hs.2.2.2.2.2.2.1
     omega
 

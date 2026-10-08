@@ -1,0 +1,97 @@
+{
+  "identifiers": {
+    "UnnormalizedProduct": "RawProduct",
+    "alignExp": "eta",
+    "alignExp_term": "eta_term",
+    "alignExp_upper": "eta_upper",
+    "alignFractionBits": "alignFraction",
+    "alignGridExponent": "quantumExponent",
+    "biasedExp": "raw",
+    "binaryPoint": "fractionalBits",
+    "canonical_alignExp_floor_inactive": "canonical_eta_floor_inactive",
+    "construction_alignExp": "construction_eta",
+    "encode32_ulpExponent": "encode32_quantum",
+    "exponentScan": "rawScan",
+    "maxBiasedExp": "rawMaximum",
+    "maxBiasedExp_eq": "rawMaximum_eq",
+    "maxTermExp": "alignmentScale",
+    "maxTermExp_lower": "alignmentScale_lower",
+    "maxTermExp_none": "alignmentScale_none",
+    "maxTermExp_term": "alignmentScale_term",
+    "maxTermExp_upper": "alignmentScale_upper",
+    "outputUlpExponent": "outputQuantumExponent",
+    "unnormalizedExp": "rawScale",
+    "unnormalizedExps": "rawScales",
+    "unnormalizedMul": "rawMul",
+    "unnormalizedMul_bounded": "rawMul_bounded",
+    "unnormalizedMul_significand_ne_zero": "rawMul_significand_ne_zero",
+    "unnormalizedProduct_value": "rawProduct_value",
+    "unnormalizedProduct_value_zero": "raw_value_zero",
+    "unnormalizedTermOf": "rawTermOf",
+    "zero_products_alignExp": "zero_products_eta"
+  },
+  "by_file": {
+    "TensorCore/EFT/TcEft.lean": {
+      "alignSigBits": "alignFractionBits"
+    },
+    "TensorCore/Numerics/Binary/ConversionBounds.lean": {
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/Binary/CorrectRounding.lean": {
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/Binary/Defs.lean": {
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/Binary/Encoding.lean": {
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/Binary/ResidualBudget.lean": {
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/Binary/RoundOp.lean": {
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/Binary/ScalarSum.lean": {
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/Defs.lean": {
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/Encoding.lean": {
+      "mantissa": "fraction",
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/Format.lean": {
+      "mantissa": "fraction",
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/Numerics/FormatProperties.lean": {
+      "mantissaBits": "fractionBits"
+    },
+    "TensorCore/TC/AlignmentExponent.lean": {
+      "alignSigBits": "alignFractionBits"
+    },
+    "TensorCore/TC/Block.lean": {
+      "alignSigBits": "alignFractionBits"
+    },
+    "TensorCore/TC/Compatibility.lean": {
+      "alignSigBits": "alignFractionBits"
+    },
+    "TensorCore/TC/Defs.lean": {
+      "alignSigBits": "alignFractionBits"
+    },
+    "TensorCore/TC/Flowback.lean": {
+      "alignSigBits": "alignFractionBits"
+    },
+    "TensorCore/TC/Invocation.lean": {
+      "alignSigBits": "fraction"
+    },
+    "TensorCore/TC/Monotonicity.lean": {
+      "alignSigBits": "alignFractionBits"
+    },
+    "TensorCore/TC/MonotonicityRange.lean": {
+      "alignSigBits": "alignFractionBits"
+    }
+  }
+}

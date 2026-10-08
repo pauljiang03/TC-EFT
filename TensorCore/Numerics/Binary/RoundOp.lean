@@ -23,14 +23,14 @@ def binaryCoefficient (mode : BinaryRoundingMode) (negative : Bool) (m : ℚ) : 
   | .towardPositive => if negative then m.floor else m.ceil
 
 def encodeBinary (f : Format) (negative : Bool) (e k : ℤ) : BitVec f.width :=
-  BitVec.ofNat f.width ((if negative then 2 ^ (f.fractionBits + f.exponentBits) else 0) +
-    (if k < (2 ^ f.fractionBits : ℕ) then k.toNat
-     else (e + f.bias).toNat * 2 ^ f.fractionBits + (k - (2 ^ f.fractionBits : ℕ)).toNat))
+  BitVec.ofNat f.width ((if negative then 2 ^ (f.mantissaBits + f.exponentBits) else 0) +
+    (if k < (2 ^ f.mantissaBits : ℕ) then k.toNat
+     else (e + f.bias).toNat * 2 ^ f.mantissaBits + (k - (2 ^ f.mantissaBits : ℕ)).toNat))
 
 def binaryConvExp (f : Format) (m : ℚ) : ℤ := max (magnitudeExponent m) f.emin
 
 def binaryCarry (f : Format) (e k : ℤ) : ℤ × ℤ :=
-  if k = (2 ^ (f.fractionBits + 1) : ℕ) then (e + 1, k / 2) else (e, k)
+  if k = (2 ^ (f.mantissaBits + 1) : ℕ) then (e + 1, k / 2) else (e, k)
 
 /-- All formats use the finite reference domain, including every directed mode. -/
 def roundBinary (f : Format) (mode : BinaryRoundingMode) (x : ℚ) : Option (BitVec f.width) :=
@@ -40,7 +40,7 @@ def roundBinary (f : Format) (mode : BinaryRoundingMode) (x : ℚ) : Option (Bit
   else
     let negative := decide (x < 0)
     let e := binaryConvExp f (absQ x)
-    let k := binaryCoefficient mode negative (absQ x / pow2 (e - f.fractionBits))
+    let k := binaryCoefficient mode negative (absQ x / pow2 (e - f.mantissaBits))
     let (e', k') := binaryCarry f e k
     if e' > f.emax then none else some (encodeBinary f negative e' k')
 

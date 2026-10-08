@@ -35,7 +35,7 @@ audit checks this boundary, including dependencies inside propositions and proof
 
 ## Documentation
 
-Keep the guide, executable-test walkthrough, and theorem index current. Link directly
+Keep the guide, executable-test walkthrough, and results summary (`TensorCore/THEOREMS.md`) current. Link directly
 to Lean declarations instead of copying complete proof bodies into Markdown.
 Write maintained documentation and source comments as a self-contained description of
 this repository. State definitions, hypotheses, interfaces, and verification scope directly.
@@ -45,5 +45,5 @@ matters. Encoded literals in runnable commands and bitwise proof assertions shou
 their decoded values explained nearby.
 
 Run `python3 scripts/check_docs.py` to check maintained local links and elaborate every
-Lean code block in the README, guide, test walkthrough, and theorem index. Keep those
+Lean code block in the README, guide, test walkthrough, and results summary. Keep those
 blocks standalone so a reader can copy one into a file and check it directly.

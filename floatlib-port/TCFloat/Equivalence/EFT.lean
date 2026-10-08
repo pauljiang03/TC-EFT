@@ -38,7 +38,7 @@ theorem extraction_eq {s : TensorCore.BlockTrace} {t : Trace} (h : TraceRel s t)
     s.extractionExponent = t.extractionExponent := by
   unfold TensorCore.BlockTrace.extractionExponent Trace.extractionExponent
   rw [h.block_eq,q_eq]
-  unfold TensorCore.outputQuantumExponent
+  unfold TensorCore.outputUlpExponent
   rw [h.bits_eq]
   rfl
 
@@ -137,7 +137,7 @@ theorem allZero_eq (b : Block) : (block b).allZeroTerms = b.terms.all (fun t => 
   congr 1
   funext t
   apply Bool.eq_iff_iff.mpr
-  simpa only [Function.comp_apply,beq_iff_eq] using raw_zero t
+  simpa only [Function.comp_apply,beq_iff_eq] using unnormalizedTerm_zero t
 
 def encodedResult : TensorCore.EncodedEFTResult → Option Nat × String
   | .allZero => (some 0,"allZero")

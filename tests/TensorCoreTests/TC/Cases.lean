@@ -15,9 +15,9 @@ def r3 : V100Input := ⟨List.replicate 4 (0x3e00, 0x3d00), 0x3f7fffff⟩
 /-- Proof-free projection: traces come exclusively from the evaluator. c is term zero. -/
 structure Snapshot where
   bits : ℕ
-  eta : Option ℤ
+  alignExp : Option ℤ
   qExponent : ℤ
-  rawScales : List ℤ
+  unnormalizedExps : List ℤ
   coefficients : List ℤ
   ideal : ℚ
   accumulator : ℚ
@@ -29,8 +29,8 @@ structure Snapshot where
 
 def snapshot {p : Profile} (x : BlockInput p) : Except ModelError Snapshot := do
   let t ← evalBlock x
-  return ⟨t.output.bits.toNat, t.block.eta, t.block.quantumExponent,
-    t.block.products.map (fun (a, b) => (rawMul a b).rawScale),
+  return ⟨t.output.bits.toNat, t.block.alignExp, t.block.alignGridExponent,
+    t.block.products.map (fun (a, b) => (unnormalizedMul a b).unnormalizedExp),
     t.block.coefficients, t.block.exactDot, t.block.accumulator,
     t.block.alignmentResiduals, t.outputResidual, t.residual,
     t.corrected.map BitVec.toNat⟩

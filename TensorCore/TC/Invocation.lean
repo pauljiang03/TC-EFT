@@ -10,7 +10,7 @@ inductive CPlacement where
   deriving Repr, DecidableEq
 
 inductive AccumulationKind where
-  | aligned (fraction : ℕ) (floor : Option ℤ) (cPlacement : CPlacement)
+  | aligned (alignSigBits : ℕ) (floor : Option ℤ) (cPlacement : CPlacement)
   /-- An exact single-product FMA, with no lossy alignment stage. -/
   | fused
   deriving Repr, DecidableEq
@@ -65,7 +65,7 @@ def PreparedInvocation.exactDot {p : InvocationSpec} (b : PreparedInvocation p) 
 def invocationIdeal {p : InvocationSpec} (x : InvocationInput p) : Option ℚ :=
   (prepareInvocation x).map PreparedInvocation.exactDot
 
-/-- Reuse the proved raw-product/grid primitive. -/
+/-- Reuse the proved unnormalized-product/grid primitive. -/
 def PreparedInvocation.alignedBlock {p : InvocationSpec} (b : PreparedInvocation p)
     (F : ℕ) (floor : Option ℤ) (includeC : Bool) : PreparedBlock :=
   ⟨⟨p.input.valueFormat.layout, p.products, F, floor⟩, b.products,

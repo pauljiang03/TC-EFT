@@ -1,6 +1,6 @@
 # Reviewer guide
 
-This artifact contains the Lean formalization, executable TC model and TC-EFT algorithm, and validation data supporting the paper. Use this guide to check the main claims; the [theorem index](TensorCore/THEOREMS.md) and [FloatLib correspondence](floatlib-port/COMPARISON.md) give the detailed proof map and hypotheses.
+This artifact contains the Lean formalization, executable TC model and TC-EFT algorithm, and validation data supporting the paper. Use this guide to check the main claims; the [what is proved](TensorCore/THEOREMS.md) and [FloatLib correspondence](floatlib-port/COMPARISON.md) give the detailed proof map and hypotheses.
 
 Install elan, Python 3, and Git as described in the [build instructions](README.md#build-and-run). Each Lean project uses its own pinned toolchain. Run the commands below from the repository root, with Python assertions enabled (no `-O` or `PYTHONOPTIMIZE`). The checks require no MATLAB, CUDA, or GPU.
 
@@ -38,7 +38,7 @@ Run the individual commands after the smoke build. Lean files check their proof 
 | Bitwise agreement with all 35,000 published validation cases | [Pinned source hashes](vendor/SOURCES.json) and [recorded inputs/outputs](vendor/matlab-tensor-core-v0.5/model_validation/) | `python3 scripts/check_features.py` followed by `python3 scripts/check_device_formats.py` |
 | Correspondence between the first-principles and FloatLib implementations | [`floatlib_eq_reference`](floatlib-port/TCFloat/Equivalence/Representations.lean) and `floatlib_eq_reference_inverse` | Run the FloatLib commands in section 3 |
 
-The reviewed TC paths use FP16, BF16, or TF32 operands and FP32 outputs. The scalar correctness results require the stated grid, coefficient-budget, representability, and range premises. The reference algorithm also provides exact accumulation when its scalar guard fails. Hardware evidence consists of replaying recorded GPU outputs; the universal proofs concern the defined model under their hypotheses. The [theorem index](TensorCore/THEOREMS.md) also identifies the bounded backend and native FP32 refinement proofs.
+The reviewed TC paths use FP16, BF16, or TF32 operands and FP32 outputs. The scalar correctness results require the stated grid, coefficient-budget, representability, and range premises. The reference algorithm also provides exact accumulation when its scalar guard fails. Hardware evidence consists of replaying recorded GPU outputs; the universal proofs concern the defined model under their hypotheses. The [what is proved](TensorCore/THEOREMS.md) also identifies the bounded backend and native FP32 refinement proofs.
 
 ## 3. Full validation
 

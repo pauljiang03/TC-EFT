@@ -6,13 +6,13 @@ import TensorCore.Numerics.ConversionBounds
 namespace TensorCore
 
 theorem Format.binade_grid (f : Format) (e : ℤ) :
-    pow2 e = ((2 ^ f.fractionBits : ℕ) : ℚ) * pow2 (e - f.fractionBits) := by
+    pow2 e = ((2 ^ f.mantissaBits : ℕ) : ℚ) * pow2 (e - f.mantissaBits) := by
   rw [← pow2_natCast, ← pow2_add]
   congr 1
   omega
 
 theorem Format.next_binade_grid (f : Format) (e : ℤ) :
-    pow2 (e + 1) = ((2 ^ (f.fractionBits + 1) : ℕ) : ℚ) * pow2 (e - f.fractionBits) := by
+    pow2 (e + 1) = ((2 ^ (f.mantissaBits + 1) : ℕ) : ℚ) * pow2 (e - f.mantissaBits) := by
   rw [← pow2_natCast, ← pow2_add]
   congr 1
   omega
@@ -20,9 +20,9 @@ theorem Format.next_binade_grid (f : Format) (e : ℤ) :
 theorem Format.maxFinite_lt (f : Format) : f.maxFinite < pow2 (f.emax + 1) := by
   unfold Format.maxFinite
   rw [f.next_binade_grid f.emax]
-  have hq := pow2_pos (f.emax - f.fractionBits)
-  have h : ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) < ((2 ^ (f.fractionBits + 1) : ℕ) : ℚ) :=
-    Rat.natCast_lt_natCast.mpr (by have := Nat.two_pow_pos (f.fractionBits + 1); omega)
+  have hq := pow2_pos (f.emax - f.mantissaBits)
+  have h : ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) < ((2 ^ (f.mantissaBits + 1) : ℕ) : ℚ) :=
+    Rat.natCast_lt_natCast.mpr (by have := Nat.two_pow_pos (f.mantissaBits + 1); omega)
   exact Rat.mul_lt_mul_of_pos_right h hq
 
 theorem binaryConvExp_bounds (f : Format) (hf : f.WellFormed) (m : ℚ) (hm : 0 < m)
@@ -128,63 +128,63 @@ theorem binaryCoefficient_le_integer (mode : BinaryRoundingMode) (negative : Boo
 theorem binaryConvCoeff_bounds (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
     (negative : Bool) (m : ℚ) (hm : 0 < m) (hr : m ≤ f.maxFinite) :
     let e := binaryConvExp f m
-    let k := binaryCoefficient mode negative (m / pow2 (e - f.fractionBits))
-    0 ≤ k ∧ k ≤ ((2 ^ (f.fractionBits + 1) : ℕ) : ℤ) ∧
-    (((2 ^ f.fractionBits : ℕ) : ℤ) ≤ k ∨ e = f.emin) ∧
-    (e = f.emax → k ≤ ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℤ)) := by
+    let k := binaryCoefficient mode negative (m / pow2 (e - f.mantissaBits))
+    0 ≤ k ∧ k ≤ ((2 ^ (f.mantissaBits + 1) : ℕ) : ℤ) ∧
+    (((2 ^ f.mantissaBits : ℕ) : ℤ) ≤ k ∨ e = f.emin) ∧
+    (e = f.emax → k ≤ ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℤ)) := by
   intro e k
   obtain ⟨he1, he2, hupper, hlower⟩ := binaryConvExp_bounds f hf m hm hr
-  have hq := pow2_pos (e - f.fractionBits)
-  have ht : 0 < m / pow2 (e - f.fractionBits) := by
+  have hq := pow2_pos (e - f.mantissaBits)
+  have ht : 0 < m / pow2 (e - f.mantissaBits) := by
     apply (Rat.lt_div_iff hq).mpr
     simpa using hm
-  have htop : m / pow2 (e - f.fractionBits) < ((2 ^ (f.fractionBits + 1) : ℕ) : ℚ) := by
+  have htop : m / pow2 (e - f.mantissaBits) < ((2 ^ (f.mantissaBits + 1) : ℕ) : ℚ) := by
     apply (Rat.div_lt_iff hq).mpr
     rwa [f.next_binade_grid] at hupper
   have hb := binaryCoefficient_bounds mode negative _ _ (Rat.le_of_lt ht) htop
   refine ⟨hb.1, hb.2.1, ?_, ?_⟩
   · rcases hlower with hl | he
     · left
-      have hs : (((2 ^ f.fractionBits : ℕ) : ℤ) : ℚ) ≤ m / pow2 (e - f.fractionBits) := by
+      have hs : (((2 ^ f.mantissaBits : ℕ) : ℤ) : ℚ) ≤ m / pow2 (e - f.mantissaBits) := by
         apply Classical.byContradiction
         intro h
-        have h' : m / pow2 (e - f.fractionBits) < ((2 ^ f.fractionBits : ℕ) : ℚ) := by
+        have h' : m / pow2 (e - f.mantissaBits) < ((2 ^ f.mantissaBits : ℕ) : ℚ) := by
           rw [Rat.intCast_natCast] at h
           grind
         have h'' := (Rat.div_lt_iff hq).mp h'
         rw [f.binade_grid] at hl
         grind
-      have hfl : ((2 ^ f.fractionBits : ℕ) : ℤ) ≤ (m / pow2 (e - f.fractionBits)).floor :=
+      have hfl : ((2 ^ f.mantissaBits : ℕ) : ℤ) ≤ (m / pow2 (e - f.mantissaBits)).floor :=
         Rat.le_floor_iff.mpr hs
       have := hb.2.2.1
       omega
     · exact Or.inr he
   · intro he
     apply binaryCoefficient_le_integer
-    have hscale : m / pow2 (e - f.fractionBits) ≤ (((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℤ) : ℚ) := by
+    have hscale : m / pow2 (e - f.mantissaBits) ≤ (((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℤ) : ℚ) := by
       rw [he, Rat.intCast_natCast]
       apply Classical.byContradiction
       intro h
-      have h' : ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℚ) < m / pow2 (f.emax - f.fractionBits) := by
+      have h' : ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℚ) < m / pow2 (f.emax - f.mantissaBits) := by
         grind
-      have h'' := (Rat.lt_div_iff (pow2_pos (f.emax - f.fractionBits))).mp h'
+      have h'' := (Rat.lt_div_iff (pow2_pos (f.emax - f.mantissaBits))).mp h'
       unfold Format.maxFinite at hr
       grind
     exact hscale
 
 /-- Carry preserves the value and produces a coefficient that fits the encoding. -/
 theorem binaryCarry_spec (f : Format) (hf : f.WellFormed) (e k : ℤ) (he1 : f.emin ≤ e)
-    (he2 : e ≤ f.emax) (hk0 : 0 ≤ k) (hk1 : k ≤ ((2 ^ (f.fractionBits + 1) : ℕ) : ℤ))
-    (hsub : ((2 ^ f.fractionBits : ℕ) : ℤ) ≤ k ∨ e = f.emin)
-    (htop : e = f.emax → k ≤ ((2 ^ (f.fractionBits + 1) - 1 : ℕ) : ℤ)) :
+    (he2 : e ≤ f.emax) (hk0 : 0 ≤ k) (hk1 : k ≤ ((2 ^ (f.mantissaBits + 1) : ℕ) : ℤ))
+    (hsub : ((2 ^ f.mantissaBits : ℕ) : ℤ) ≤ k ∨ e = f.emin)
+    (htop : e = f.emax → k ≤ ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℤ)) :
     f.emin ≤ (binaryCarry f e k).1 ∧ (binaryCarry f e k).1 ≤ f.emax ∧
-    0 ≤ (binaryCarry f e k).2 ∧ (binaryCarry f e k).2 < ((2 ^ (f.fractionBits + 1) : ℕ) : ℤ) ∧
-    (((2 ^ f.fractionBits : ℕ) : ℤ) ≤ (binaryCarry f e k).2 ∨ (binaryCarry f e k).1 = f.emin) ∧
-    ((binaryCarry f e k).2 : ℚ) * pow2 ((binaryCarry f e k).1 - f.fractionBits) =
-      (k : ℚ) * pow2 (e - f.fractionBits) ∧
+    0 ≤ (binaryCarry f e k).2 ∧ (binaryCarry f e k).2 < ((2 ^ (f.mantissaBits + 1) : ℕ) : ℤ) ∧
+    (((2 ^ f.mantissaBits : ℕ) : ℤ) ≤ (binaryCarry f e k).2 ∨ (binaryCarry f e k).1 = f.emin) ∧
+    ((binaryCarry f e k).2 : ℚ) * pow2 ((binaryCarry f e k).1 - f.mantissaBits) =
+      (k : ℚ) * pow2 (e - f.mantissaBits) ∧
     e ≤ (binaryCarry f e k).1 ∧ (k % 2 = 0 → (binaryCarry f e k).2 % 2 = 0) := by
-  have hpow : 2 ^ (f.fractionBits + 1) = 2 ^ f.fractionBits * 2 := Nat.pow_succ 2 _
-  have hP := Nat.two_pow_pos f.fractionBits
+  have hpow : 2 ^ (f.mantissaBits + 1) = 2 ^ f.mantissaBits * 2 := Nat.pow_succ 2 _
+  have hP := Nat.two_pow_pos f.mantissaBits
   unfold binaryCarry
   split
   · rename_i hk
@@ -194,22 +194,22 @@ theorem binaryCarry_spec (f : Format) (hf : f.WellFormed) (e k : ℤ) (he1 : f.e
       have he : e = f.emax := by omega
       have := htop he
       rw [hk] at this
-      have h2 := Nat.two_pow_pos (f.fractionBits + 1)
+      have h2 := Nat.two_pow_pos (f.mantissaBits + 1)
       omega
-    have hhalf : k / 2 = ((2 ^ f.fractionBits : ℕ) : ℤ) := by
+    have hhalf : k / 2 = ((2 ^ f.mantissaBits : ℕ) : ℤ) := by
       rw [hk, hpow]
       omega
-    have hval : ((k / 2 : ℤ) : ℚ) * pow2 (e + 1 - f.fractionBits) = (k : ℚ) * pow2 (e - f.fractionBits) := by
+    have hval : ((k / 2 : ℤ) : ℚ) * pow2 (e + 1 - f.mantissaBits) = (k : ℚ) * pow2 (e - f.mantissaBits) := by
       rw [hhalf, hk]
-      have : e + 1 - f.fractionBits = (e - f.fractionBits) + 1 := by omega
+      have : e + 1 - f.mantissaBits = (e - f.mantissaBits) + 1 := by omega
       rw [this, pow2_succ, hpow]
       simp only [Rat.intCast_natCast, Rat.natCast_mul]
       grind
     refine ⟨by omega, by omega, by omega, by omega, Or.inl (by omega), hval, by omega, ?_⟩
     intro _
     rw [hhalf]
-    have : (2 ^ f.fractionBits) % 2 = 0 := by
-      obtain ⟨m, hm⟩ : ∃ m, f.fractionBits = m + 1 := ⟨f.fractionBits - 1, by have := hf.1; omega⟩
+    have : (2 ^ f.mantissaBits) % 2 = 0 := by
+      obtain ⟨m, hm⟩ : ∃ m, f.mantissaBits = m + 1 := ⟨f.mantissaBits - 1, by have := hf.1; omega⟩
       rw [hm, Nat.pow_succ]
       simp
     omega

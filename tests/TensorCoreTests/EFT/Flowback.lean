@@ -42,7 +42,7 @@ theorem v100_products_not_monotone :
 
 /-- Algorithm 1 on the EFT cases: R3 takes the scalar branch, the coefficient-budget and subnormal-accumulator cases take the exact reference branch. -/
 theorem tcEft_cases :
-    (evalBlock r3).map (fun t => (t.tcEft, t.extractionExponent - t.block.quantumExponent)) =
+    (evalBlock r3).map (fun t => (t.tcEft, t.extractionExponent - t.block.alignGridExponent)) =
       .ok (.scalar 0x41080000, 3) ∧
     (evalBlock supportOverflow).map (fun t => t.tcEft) = .ok (.exactReference 0x4e800003) ∧
     (evalBlock subnormalAccumulator).map (fun t => t.tcEft) =

@@ -4,17 +4,17 @@ namespace TensorCore
 
 /-- Classification of a bit pattern given as a natural number below `2 ^ f.width`. -/
 def classifyNat (f : Format) (n : ℕ) : Classification :=
-  let fraction := n % 2 ^ f.fractionBits
-  let exponent := n / 2 ^ f.fractionBits % 2 ^ f.exponentBits
-  let negative := n / 2 ^ (f.fractionBits + f.exponentBits) != 0
+  let mantissa := n % 2 ^ f.mantissaBits
+  let exponent := n / 2 ^ f.mantissaBits % 2 ^ f.exponentBits
+  let negative := n / 2 ^ (f.mantissaBits + f.exponentBits) != 0
   let signed (m : ℕ) : ℤ := if negative then -(m : ℤ) else m
   if exponent = 2 ^ f.exponentBits - 1 then
-    if fraction = 0 then .infinity negative else .nan
+    if mantissa = 0 then .infinity negative else .nan
   else if exponent = 0 then
-    if fraction = 0 then .zero negative
-    else .subnormal ⟨signed fraction, 1 - f.bias, f.fractionBits⟩
-  else .normal ⟨signed (2 ^ f.fractionBits + fraction),
-    (exponent : ℤ) - f.bias, f.fractionBits⟩
+    if mantissa = 0 then .zero negative
+    else .subnormal ⟨signed mantissa, 1 - f.bias, f.mantissaBits⟩
+  else .normal ⟨signed (2 ^ f.mantissaBits + mantissa),
+    (exponent : ℤ) - f.bias, f.mantissaBits⟩
 
 def classify (f : Format) (bits : BitVec f.width) : Classification := classifyNat f bits.toNat
 

@@ -36,8 +36,8 @@ The Lean model implements these five steps directly.
 
 <div class="pipeline">
   <a href="/TC-EFT/model/formats/"><span class="n">01 · prepare</span><span class="t">Decode</span><span class="d"><code>BlockInput p</code> → <code>PreparedBlock</code></span></a>
-  <a href="/TC-EFT/model/products/"><span class="n">02 · rawMul</span><span class="t">Multiply</span><span class="d"><code>Decoded × Decoded</code> → <code>RawProduct</code></span></a>
-  <a href="/TC-EFT/model/alignment/"><span class="n">03 · eta, truncCoeff</span><span class="t">Align</span><span class="d">grid <code>2^(η − F)</code>, truncate</span></a>
+  <a href="/TC-EFT/model/products/"><span class="n">02 · unnormalizedMul</span><span class="t">Multiply</span><span class="d"><code>Decoded × Decoded</code> → <code>UnnormalizedProduct</code></span></a>
+  <a href="/TC-EFT/model/alignment/"><span class="n">03 · alignExp, truncCoeff</span><span class="t">Align</span><span class="d">grid <code>2^(η − F)</code>, truncate</span></a>
   <a href="/TC-EFT/model/accumulation/"><span class="n">04 · accumulator</span><span class="t">Accumulate</span><span class="d">exact <code>Σ coeff · 2^(η−F)</code></span></a>
   <a href="/TC-EFT/model/conversion/"><span class="n">05 · round32</span><span class="t">Convert</span><span class="d">toward zero → <code>F32</code></span></a>
 </div>
@@ -50,28 +50,28 @@ These are its definitions, unchanged apart from omitted comments:
 structure Profile where
   input : Format          -- operand format: fp16, bf16, or tf19 (packed TF32)
   products : ℕ            -- K, the number of products per group
-  alignFraction : ℤ       -- F = 23 + p, fraction bits kept after alignment
+  alignSigBits : ℤ       -- F = 23 + p, significand bits kept below the alignment exponent
   alignFloor : Option ℤ   -- lower bound on the alignment exponent, if any
 
 structure BlockInput (p : Profile) where
   products : List (p.Word × p.Word)   -- encoded (aᵢ, bᵢ) pairs
   c : F32                             -- encoded FP32 accumulator input
 
-def PreparedBlock.terms (b : PreparedBlock) : List RawProduct :=
-  ⟨b.c.significand, b.c.rawScale, b.c.fractionalBits⟩ ::
-    b.products.map fun (a, b) => rawMul a b
+def PreparedBlock.terms (b : PreparedBlock) : List UnnormalizedProduct :=
+  ⟨b.c.significand, b.c.unnormalizedExp, b.c.binaryPoint⟩ ::
+    b.products.map fun (a, b) => unnormalizedMul a b
 
-def PreparedBlock.eta (b : PreparedBlock) : Option ℤ :=
-  b.profile.applyFloor (alignmentScale b.terms)
+def PreparedBlock.alignExp (b : PreparedBlock) : Option ℤ :=
+  b.profile.applyFloor (maxTermExp b.terms)
 
-def PreparedBlock.quantumExponent (b : PreparedBlock) : ℤ :=
-  b.eta.getD 0 - b.profile.alignFraction
+def PreparedBlock.alignGridExponent (b : PreparedBlock) : ℤ :=
+  b.alignExp.getD 0 - b.profile.alignSigBits
 
 def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
-  b.terms.map fun t => truncCoeff t.value b.quantumExponent
+  b.terms.map fun t => truncCoeff t.value b.alignGridExponent
 
 def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
-  (sumZ b.coefficients : ℚ) * pow2 b.quantumExponent
+  (sumZ b.coefficients : ℚ) * pow2 b.alignGridExponent
 
 def evalPrepared (b : PreparedBlock) : Except ModelError BlockTrace :=
   match round32 .towardZero b.accumulator with
@@ -86,6 +86,19 @@ def evalBlock {p : Profile} (x : BlockInput p) : Except ModelError BlockTrace :=
     | none => .error .nonfiniteInput
     | some b => evalPrepared b
 ```
+
+### Names used in the code
+
+| Lean name | Meaning | In *Accurate Models* / its MATLAB code |
+| --- | --- | --- |
+| `significand` | Signed integer significand, hidden bit included | significand (`a_sig`, `prod_sig`) |
+| `unnormalizedExp` | Exponent as the hardware sees it. For an input, its unbiased exponent (minimum normal exponent for subnormals). For a product, the sum of the input exponents, with no renormalization. | "sum of exponents"; products "remain denormalised" (`prod_exp`) |
+| `binaryPoint` | Number of significand bits after the binary point, so value = `significand · 2^(unnormalizedExp − binaryPoint)` | (bookkeeping only) |
+| `UnnormalizedProduct`, `unnormalizedMul` | An exact product kept in that unnormalized form | `prod_sig`, `prod_exp` with `denorm_prd` |
+| `alignExp` (η) | Alignment exponent: largest `unnormalizedExp` of a nonzero term, raised to the floor | maximum exponent, "capped from below" |
+| `alignSigBits` (F) | Significand bits kept below the alignment exponent after alignment, `23 + p` | 23 + `neab` |
+| `alignGridExponent` | Exponent of the alignment grid step, `η − F` | |
+| `outputUlpExponent` | Exponent of one unit in the last place of the FP32 output | |
 
 Three design choices run through the model:
 
@@ -109,9 +122,9 @@ Here is the V100 profile (`K = 4`, `F = 23`, no floor) with four FP16 products
 
 | Stage | `C = 1.0` (`0x3f800000`) | `C = 1 − 2^-24` (`0x3f7fffff`) |
 | --- | --- | --- |
-| Decode `C` | significand `2^23`, raw scale `0` | significand `2^24 − 1`, raw scale `−1` |
-| Each product | value `2^-24`, raw scale `−24` | same |
-| `η` = largest raw scale | `0` | `−1` |
+| Decode `C` | significand `2^23`, unnormalized exponent `0` | significand `2^24 − 1`, unnormalized exponent `−1` |
+| Each product | value `2^-24`, unnormalized exponent `−24` | same |
+| `η` = largest unnormalized exponent | `0` | `−1` |
 | Grid `2^(η − F)` | `2^-23` | `2^-24` |
 | Coefficient of `C` | `2^23` | `2^24 − 1` |
 | Coefficient of each product | `⌊2^-24 / 2^-23⌋ = 0` (lost) | `1` (kept) |
@@ -140,8 +153,8 @@ example : ((evalBlock before).toOption.map fun t => t.output.bits) = some 0x3f80
 
 Each stage has its own page:
 
-1. [Formats and decoding](/TC-EFT/model/formats/): IEEE classification, raw scales, subnormals, TF32 packing.
-2. [Exact raw products](/TC-EFT/model/products/): why products are not normalized.
+1. [Formats and decoding](/TC-EFT/model/formats/): IEEE classification, unnormalized exponents, subnormals, TF32 packing.
+2. [Exact unnormalized products](/TC-EFT/model/products/): why products are not normalized.
 3. [Alignment](/TC-EFT/model/alignment/): `η`, the floor, the grid, and truncation.
 4. [Accumulation](/TC-EFT/model/accumulation/): the exact sum and fixed-width registers.
 5. [Output conversion](/TC-EFT/model/conversion/): `round32`, range, signed zero.

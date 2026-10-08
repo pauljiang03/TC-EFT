@@ -54,7 +54,7 @@ A successful module may print nothing. Lean elaborates and checks its definition
 
 | Test area | Main contents |
 | --- | --- |
-| [TC/Cases.lean](TensorCoreTests/TC/Cases.lean) | Named raw-product/alignment traces and snapshot observations |
+| [TC/Cases.lean](TensorCoreTests/TC/Cases.lean) | Named unnormalized-product/alignment traces and snapshot observations |
 | [TC/Monotonicity.lean](TensorCoreTests/TC/Monotonicity.lean) | V100/Ampere/Hopper family theorems, thresholds, and witness-range boundaries |
 | [TC/Features.lean](TensorCoreTests/TC/Features.lean) | Canonical alignment, floors, padding and machine-refinement witnesses |
 | [TC/Instruction.lean](TensorCoreTests/TC/Instruction.lean) | Ordered instruction groups, input width, and group-order examples |
@@ -68,7 +68,7 @@ A successful module may print nothing. Lean elaborates and checks its definition
 | [Specification/NegativeControls.lean](TensorCoreTests/Specification/NegativeControls.lean) | Wrong normalization, alignment, floors, order, and zero-sign alternatives |
 | [Specification/Audit.lean](TensorCoreTests/Specification/Audit.lean) | Compiled dependency independence of the mathematical specification |
 
-The test root also includes binary rounding, canonical-format, public-domain, directed-rounding, and flowback modules. The [theorem index](../TensorCore/THEOREMS.md) links the general production results that these witnesses exercise.
+The test root also includes binary rounding, canonical-format, public-domain, directed-rounding, and flowback modules. The [what is proved](../TensorCore/THEOREMS.md) links the general production results that these witnesses exercise.
 
 ## 4. Understand a Lean IO adapter
 
@@ -154,7 +154,7 @@ Follow one recorded V100 row through the implementation:
 
 1. [check_device.py](../scripts/check_device.py) reads A/B/C and converts the FP32-stored operand values exactly to FP16 words. D is reserved as the expected output.
 2. [Main/Trace.lean](../Main/Trace.lean) parses the words into `BlockInput` and calls the [snapshot adapter](TensorCoreTests/TC/Cases.lean).
-3. The adapter calls `evalBlock` in [TC/Block.lean](../TensorCore/TC/Block.lean), which performs decoding, exact raw multiplication, grid selection, signed truncation, accumulation, and FP32 conversion.
+3. The adapter calls `evalBlock` in [TC/Block.lean](../TensorCore/TC/Block.lean), which performs decoding, exact unnormalized multiplication, grid selection, signed truncation, accumulation, and FP32 conversion.
 4. Python compares the returned `bits` with the recorded D word and fails on any mismatch. D is never supplied to this model calculation.
 
 The first published V100 row can be run directly:
@@ -167,7 +167,7 @@ python3 scripts/check_device.py
 
 The JSON reports `bits` as an integer whose hexadecimal representation is `3f9b7dec`, matching the first recorded D. Its alignment exponent `eta` is `-1` and grid exponent `qExponent` is `-24`. The final command compares all 5,000 V100 rows.
 
-The semantic proof is a separate guarantee: [`IndependentSpec.supported_eq_spec`](../TensorCore/TC/Specification/Supported.lean) equates the executable evaluator with the independent mathematical specification for every input of each supported profile, including rejection. `python3 scripts/check_paper_spec.py` checks this development and its dependency-independence controls. The [theorem index](../TensorCore/THEOREMS.md) identifies the non-monotonicity and EFT results and their premises.
+The semantic proof is a separate guarantee: [`IndependentSpec.supported_eq_spec`](../TensorCore/TC/Specification/Supported.lean) equates the executable evaluator with the independent mathematical specification for every input of each supported profile, including rejection. `python3 scripts/check_paper_spec.py` checks this development and its dependency-independence controls. The [what is proved](../TensorCore/THEOREMS.md) identifies the non-monotonicity and EFT results and their premises.
 
 The universal proofs concern the defined finite-domain model under their stated hypotheses. Agreement with recorded GPU outputs covers those recorded inputs; correspondence between the specification, the paper, and physical hardware remains a separate specification question.
 
@@ -216,6 +216,6 @@ theorem walkthrough_case_bits :
 end TensorCore.Regression
 ```
 
-Add the module to `tests/TensorCoreTests.lean` so the full audit imports it. Run `lake build TensorCoreTests` and check the individual file. Update the theorem index when adding a public result. The layout check rejects a module omitted from the full audit.
+Add the module to `tests/TensorCoreTests.lean` so the full audit imports it. Run `lake build TensorCoreTests` and check the individual file. Update the results summary (`TensorCore/THEOREMS.md`) when adding a public result. The layout check rejects a module omitted from the full audit.
 
 For an exploratory calculation, use a scratch Lean file and `lake env lean /path/to/scratch.lean`. For a larger family, prefer applying a symbolic production theorem or extending an independent executable comparison; finite examples alone do not prove a universal arithmetic claim.

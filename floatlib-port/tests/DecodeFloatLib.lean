@@ -14,6 +14,6 @@ def main (args : List String) : IO Unit := do
       match decode f n with
       | none => IO.println "null"
       | some d => IO.println (Json.mkObj [
-          ("significand", toJson d.dyadic.signedSignificand), ("scale", toJson d.rawScale),
-          ("fractionBits", toJson d.fractionBits),
+          ("significand", toJson d.dyadic.signedSignificand), ("scale", toJson d.unnormalizedExp),
+          ("mantissaBits", toJson d.mantissaBits),
           ("value", toJson s!"{d.value.num}/{d.value.den}")]).compress

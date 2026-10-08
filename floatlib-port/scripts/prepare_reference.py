@@ -80,9 +80,18 @@ RENAMED_TOKENS = {
 RENAMED_SUBSTRINGS = [('scalarTcEft', 'tceft'), ('TcEft', 'Algorithm1'), ('tcEft', 'algorithm1')]
 
 
-def legacy_token(token):
+# Exact current -> previous spellings of renamed parent identifiers: per-file maps
+# (applied first, for names whose meaning depends on the file) and a global map.
+_RENAMED = json.loads((PORT / 'renamed-identifiers.json').read_text())
+RENAMED_BY_FILE = _RENAMED['by_file']
+RENAMED_IDENTIFIERS = _RENAMED['identifiers']
+
+
+def legacy_token(token, name=''):
     if token.startswith('"'):
         return token
+    token = RENAMED_BY_FILE.get(name, {}).get(token, token)
+    token = RENAMED_IDENTIFIERS.get(token, token)
     if token in RENAMED_TOKENS:
         return RENAMED_TOKENS[token]
     for current, original in RENAMED_SUBSTRINGS:
@@ -94,6 +103,8 @@ def legacy_module(module):
     """Resolve a parent module to its pinned reference-manifest key."""
     exact = {
         'TensorCore.EFT.TcEft': 'TensorCore.EFT.Algorithm1',
+        'TensorCore.Numerics.UnnormalizedProduct': 'TensorCore.Core.RawProduct',
+        'TensorCore.TC.AlignmentExponent': 'TensorCore.TC.AlignmentScale',
         'TensorCore.Kernels.EFT.Defs': 'TensorCore.EFT.Bounded',
         'TensorCore.Kernels.EFT.Native': 'TensorCore.EFT.Native',
     }
@@ -116,9 +127,9 @@ def legacy_import(line):
     return ('import ' + ' '.join(legacy_module(word) for word in words[1:]) + '\n').encode()
 
 
-def body_hash(lines):
+def body_hash(lines, name=''):
     body = b''.join(line for line in lines if not line.startswith(b'import ')).decode()
-    tokens = json.dumps([legacy_token(t) for t in lean_tokens(body)], ensure_ascii=False, separators=(',', ':')).encode()
+    tokens = json.dumps([legacy_token(t, name) for t in lean_tokens(body)], ensure_ascii=False, separators=(',', ':')).encode()
     return hashlib.sha256(tokens).hexdigest()
 
 
@@ -149,7 +160,7 @@ def main():
         digest = hashlib.sha256(data).hexdigest()
         if digest != pinned['source_sha256']:
             current_lines = [legacy_import(line) for line in data.splitlines(keepends=True)]
-            if body_hash(current_lines) != pinned['body_tokens_sha256']:
+            if body_hash(current_lines, name) != pinned['body_tokens_sha256']:
                 raise RuntimeError(f"Original arithmetic/proof source differs from pinned revision: {name}")
             old = pinned['imports']
             new = [line.decode() for line in current_lines if line.startswith(b'import ')]

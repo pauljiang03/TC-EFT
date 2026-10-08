@@ -19,6 +19,7 @@ def check_reference_preparation():
         (port/'scripts').mkdir(parents=True)
         shutil.copy2(PORT/'scripts/prepare_reference.py',port/'scripts/prepare_reference.py')
         shutil.copy2(PORT/'reference-manifest.json',port/'reference-manifest.json')
+        shutil.copy2(PORT/'renamed-identifiers.json',port/'renamed-identifiers.json')
         shutil.copytree(PORT/'TCFloat/Equivalence',port/'TCFloat/Equivalence')
         for name in reference['source_sha256']:
             target=root/name
@@ -42,7 +43,7 @@ def check_reference_preparation():
             assert (port/'reference-compat'/name).read_bytes()==(PORT/'reference-compat'/name).read_bytes(),name
         block=root/'TensorCore/TC/Block.lean'
         original=block.read_text()
-        expression='b.eta.getD 0 - b.profile.alignFraction'
+        expression='b.alignExp.getD 0 - b.profile.alignSigBits'
         assert original.count(expression)==1
         block.write_text('-- Archive regression\n'+original.replace(expression,expression.replace(' - ','   -   ')))
         prepare('comments_and_whitespace')

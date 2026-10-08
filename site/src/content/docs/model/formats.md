@@ -1,20 +1,20 @@
 ---
 title: 1. Formats and decoding
-description: How encoded FP16, BF16, TF32, and FP32 words become exact values with raw exponent metadata.
+description: How encoded FP16, BF16, TF32, and FP32 words become exact values with unnormalized exponent metadata.
 ---
 
 The model starts from bit patterns, not real numbers. Decoding has two jobs:
 classify the word as zero, subnormal, normal, infinity, or NaN, and keep the
-**raw scale** (exponent) that the hardware uses for alignment.
+**unnormalized exponent** (exponent) that the hardware uses for alignment.
 
 ## Formats
 
 A [`Format`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Defs.lean#L7)
-is a triple of stored fraction bits, exponent bits, and bias:
+is a triple of stored mantissa bits, exponent bits, and bias:
 
 ```lean
 structure Format where
-  fractionBits : ℕ
+  mantissaBits : ℕ
   exponentBits : ℕ
   bias : ℤ
 
@@ -25,46 +25,46 @@ def fp32 : Format := ⟨23, 8, 127⟩
 def fp64 : Format := ⟨52, 11, 1023⟩
 ```
 
-The width is `1 + exponentBits + fractionBits`, so a word of format `f` has
+The width is `1 + exponentBits + mantissaBits`, so a word of format `f` has
 type `BitVec f.width`.
 
-## Decoded values keep their raw scale
+## Decoded values keep their unnormalized exponent
 
 ```lean
 structure Decoded where
   significand : ℤ       -- signed integer significand, hidden bit included
-  rawScale : ℤ          -- unbiased exponent as stored in the word
-  fractionalBits : ℤ    -- position of the binary point in `significand`
+  unnormalizedExp : ℤ          -- unbiased exponent as stored in the word
+  binaryPoint : ℤ    -- position of the binary point in `significand`
 
 def Decoded.value (x : Decoded) : ℚ :=
-  (x.significand : ℚ) * pow2 (x.rawScale - x.fractionalBits)
+  (x.significand : ℚ) * pow2 (x.unnormalizedExp - x.binaryPoint)
 ```
 
 A `Decoded` stores the value as **significand, exponent, binary-point
 position**, not as a single rational. `value` recovers the rational exactly,
-and alignment reads `rawScale`.
+and alignment reads `unnormalizedExp`.
 
 [`classifyNat`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Encoding.lean#L6)
 implements standard IEEE field extraction:
 
 ```lean
 def classifyNat (f : Format) (n : ℕ) : Classification :=
-  let fraction := n % 2 ^ f.fractionBits
-  let exponent := n / 2 ^ f.fractionBits % 2 ^ f.exponentBits
-  let negative := n / 2 ^ (f.fractionBits + f.exponentBits) != 0
+  let mantissa := n % 2 ^ f.mantissaBits
+  let exponent := n / 2 ^ f.mantissaBits % 2 ^ f.exponentBits
+  let negative := n / 2 ^ (f.mantissaBits + f.exponentBits) != 0
   let signed (m : ℕ) : ℤ := if negative then -(m : ℤ) else m
   if exponent = 2 ^ f.exponentBits - 1 then
-    if fraction = 0 then .infinity negative else .nan
+    if mantissa = 0 then .infinity negative else .nan
   else if exponent = 0 then
-    if fraction = 0 then .zero negative
-    else .subnormal ⟨signed fraction, 1 - f.bias, f.fractionBits⟩
-  else .normal ⟨signed (2 ^ f.fractionBits + fraction),
-    (exponent : ℤ) - f.bias, f.fractionBits⟩
+    if mantissa = 0 then .zero negative
+    else .subnormal ⟨signed mantissa, 1 - f.bias, f.mantissaBits⟩
+  else .normal ⟨signed (2 ^ f.mantissaBits + mantissa),
+    (exponent : ℤ) - f.bias, f.mantissaBits⟩
 ```
 
 Points to note:
 
-- **Subnormals** get raw scale `1 − bias`, the minimum normal exponent, and no
+- **Subnormals** get unnormalized exponent `1 − bias`, the minimum normal exponent, and no
   hidden bit. A subnormal therefore aligns as the hardware treats it: at the
   format's minimum exponent, with a small significand.
 - **Zero** decodes to `⟨0, 0, 0⟩`. Its sign is discarded on input. Because the
@@ -100,7 +100,7 @@ decoded `C`. Every later stage is a function of a `PreparedBlock`.
 On the GPU, a TF32 operand sits in a 32-bit register whose low 13 bits are
 ignored. The model separates the two concerns:
 
-- `tf19 : Format` is the 19-bit value format (1 sign, 8 exponent, 10 fraction
+- `tf19 : Format` is the 19-bit value format (1 sign, 8 exponent, 10 mantissa
   bits) that the block model uses.
 - [`tf32Register`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Format.lean#L49)
   is an `OperandEncoding` whose 32-bit words must have 13 zero low bits.
@@ -119,5 +119,5 @@ bits are not zero are rejected rather than silently masked.
   with a zero sign. Subnormals and both zeros are included, and both inverse
   laws are proved.
 - `Decoded.Bounded`: every decoded significand, subnormal or not, is less
-  than 2 in magnitude relative to its raw scale. The accumulator-width proofs
+  than 2 in magnitude relative to its unnormalized exponent. The accumulator-width proofs
   use this bound.

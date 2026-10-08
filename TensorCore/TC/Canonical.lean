@@ -17,8 +17,8 @@ theorem fp16Fp32_contract (K extra carryBits : ℕ) (floor : Option ℤ)
     exactDot x = some t.block.exactDot ∧
     round32 .towardZero t.block.accumulator = some t.output.bits ∧
     absQ (t.block.exactDot - t.output.value) <
-      ((K + 1 : ℕ) : ℚ) * pow2 t.block.quantumExponent +
-        pow2 (outputQuantumExponent t.output.bits) ∧
+      ((K + 1 : ℕ) : ℚ) * pow2 t.block.alignGridExponent +
+        pow2 (outputUlpExponent t.output.bits) ∧
     t.block.machineAccumulator (26 + extra + carryBits) = t.block.accumulator := by
   have hp := evalBlock_prepared h
   have hlen := (prepare_terms_bounded hp).1

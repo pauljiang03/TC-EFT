@@ -14,7 +14,7 @@ theorem floatlib_naiveSum_exact (zs : List Int) (e : Int) (hmin : -149 ≤ e)
     naiveSumFrom 0 (zs.map fun (z : Int) => (z:Rat)*pow2 e)=some ((zs.sum:Rat)*pow2 e) := by
   rw [naiveSum_eq]
   have h := TensorCore.naiveSumBinary_exact TensorCore.fp32 (by decide) e hmin zs
-    (by simpa only [magnitudeSum_eq,show TensorCore.fp32.fractionBits=23 from rfl] using hbudget)
+    (by simpa only [magnitudeSum_eq,show TensorCore.fp32.mantissaBits=23 from rfl] using hbudget)
     (by simpa only [magnitudeSum_eq,pow2_eq,fp32_max] using hrange)
   simpa only [TensorCore.naiveSumBinary_fp32,TensorCore.naiveSum32,pow2_eq,sumZ_eq] using h
 

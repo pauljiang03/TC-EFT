@@ -11,19 +11,19 @@ theorem sum_stage_residuals (ts : List ℚ) (align : ℚ → ℚ) :
     grind
 
 theorem terms_value (b : PreparedBlock) :
-    sumQ (b.terms.map RawProduct.value) = b.exactDot := by
+    sumQ (b.terms.map UnnormalizedProduct.value) = b.exactDot := by
   simp only [PreparedBlock.terms, PreparedBlock.exactDot,
     PreparedBlock.exactProducts, List.map_cons, List.map_map, sumQ]
-  have h : (fun (p : Decoded × Decoded) => (rawMul p.1 p.2).value) =
+  have h : (fun (p : Decoded × Decoded) => (unnormalizedMul p.1 p.2).value) =
       (fun p => p.1.value * p.2.value) := by
     funext p
-    exact rawProduct_value p.1 p.2
+    exact unnormalizedProduct_value p.1 p.2
   simp only [Function.comp_def] at *
   rw [h]
   rfl
 
 theorem accumulator_value (b : PreparedBlock) :
-    b.accumulator = sumQ (b.terms.map fun t => truncGrid t.value b.quantumExponent) := by
+    b.accumulator = sumQ (b.terms.map fun t => truncGrid t.value b.alignGridExponent) := by
   unfold PreparedBlock.accumulator PreparedBlock.coefficients
   rw [← sum_coefficients]
   simp [List.map_map, Function.comp_def, truncGrid]
@@ -31,8 +31,8 @@ theorem accumulator_value (b : PreparedBlock) :
 /-- Exact recovery applies to any supplied finite value, independently of model conformance. -/
 theorem block_residual_identity (b : PreparedBlock) (d : ℚ) :
     b.exactDot = d + b.extractReference d := by
-  have h := sum_stage_residuals (b.terms.map RawProduct.value)
-    (fun t => truncGrid t b.quantumExponent)
+  have h := sum_stage_residuals (b.terms.map UnnormalizedProduct.value)
+    (fun t => truncGrid t b.alignGridExponent)
   rw [terms_value] at h
   simp only [List.map_map, Function.comp_def] at h
   rw [← accumulator_value] at h

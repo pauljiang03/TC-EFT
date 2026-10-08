@@ -9,7 +9,7 @@ private def maxStep (acc : Option ℤ) (e : ℤ) : Option ℤ :=
   some (match acc with | none => e | some v => max v e)
 
 private theorem fold_max_preserves (es : List ℤ) (e lower : ℤ) (h : lower ≤ e) :
-    ∃ eta, es.foldl maxStep (some e) = some eta ∧ lower ≤ eta := by
+    ∃ alignExp, es.foldl maxStep (some e) = some alignExp ∧ lower ≤ alignExp := by
   induction es generalizing e with
   | nil => exact ⟨e, rfl, h⟩
   | cons x xs ih =>
@@ -17,7 +17,7 @@ private theorem fold_max_preserves (es : List ℤ) (e lower : ℤ) (h : lower �
     omega
 
 private theorem fold_max_member (es : List ℤ) (acc : Option ℤ) (e : ℤ)
-    (h : e ∈ es) : ∃ eta, es.foldl maxStep acc = some eta ∧ e ≤ eta := by
+    (h : e ∈ es) : ∃ alignExp, es.foldl maxStep acc = some alignExp ∧ e ≤ alignExp := by
   induction es generalizing acc with
   | nil => simp at h
   | cons x xs ih =>
@@ -29,51 +29,51 @@ private theorem fold_max_member (es : List ℤ) (acc : Option ℤ) (e : ℤ)
       | some v => exact fold_max_preserves xs (max v e) e (by omega)
     · exact ih (maxStep acc x) h
 
-theorem alignmentScale_term (ts : List RawProduct) (t : RawProduct)
+theorem maxTermExp_term (ts : List UnnormalizedProduct) (t : UnnormalizedProduct)
     (hmem : t ∈ ts) (hnz : t.significand ≠ 0) :
-    ∃ eta, alignmentScale ts = some eta ∧ t.rawScale ≤ eta := by
+    ∃ alignExp, maxTermExp ts = some alignExp ∧ t.unnormalizedExp ≤ alignExp := by
   apply fold_max_member
   apply List.mem_filterMap.mpr
   exact ⟨t, hmem, by simp [hnz]⟩
 
-theorem alignmentScale_none (ts : List RawProduct) :
-    alignmentScale ts = none ↔ ∀ t ∈ ts, t.significand = 0 := by
+theorem maxTermExp_none (ts : List UnnormalizedProduct) :
+    maxTermExp ts = none ↔ ∀ t ∈ ts, t.significand = 0 := by
   constructor
   · intro h t ht
     by_cases hnz : t.significand = 0
     · exact hnz
-    · obtain ⟨eta, he, _⟩ := alignmentScale_term ts t ht hnz
+    · obtain ⟨alignExp, he, _⟩ := maxTermExp_term ts t ht hnz
       rw [h] at he
       contradiction
   · intro h
-    have hf : (ts.filterMap fun t => if t.significand = 0 then none else some t.rawScale) = [] := by
+    have hf : (ts.filterMap fun t => if t.significand = 0 then none else some t.unnormalizedExp) = [] := by
       apply List.filterMap_eq_nil_iff.mpr
       intro t ht
       simp [h t ht]
-    simp [alignmentScale, hf]
+    simp [maxTermExp, hf]
 
-theorem eta_term (b : PreparedBlock) (t : RawProduct) (ht : t ∈ b.terms)
+theorem alignExp_term (b : PreparedBlock) (t : UnnormalizedProduct) (ht : t ∈ b.terms)
     (hnz : t.significand ≠ 0) :
-    ∃ eta, b.eta = some eta ∧ t.rawScale ≤ eta := by
-  obtain ⟨e, he, hle⟩ := alignmentScale_term b.terms t ht hnz
+    ∃ alignExp, b.alignExp = some alignExp ∧ t.unnormalizedExp ≤ alignExp := by
+  obtain ⟨e, he, hle⟩ := maxTermExp_term b.terms t ht hnz
   cases hf : b.profile.alignFloor with
-  | none => exact ⟨e, by simp [PreparedBlock.eta, Profile.applyFloor, he, hf], hle⟩
-  | some f => exact ⟨max e f, by simp [PreparedBlock.eta, Profile.applyFloor, he, hf], by omega⟩
+  | none => exact ⟨e, by simp [PreparedBlock.alignExp, Profile.applyFloor, he, hf], hle⟩
+  | some f => exact ⟨max e f, by simp [PreparedBlock.alignExp, Profile.applyFloor, he, hf], by omega⟩
 
-theorem aligned_term_coefficient_bound (t : RawProduct) (eta : ℤ) (F : ℕ)
-    (ht : t.Bounded) (he : t.rawScale ≤ eta) :
-    (truncCoeff t.value (eta - F)).natAbs < 2 ^ (F + 2) := by
-  have hq := pow2_pos (eta - F)
+theorem aligned_term_coefficient_bound (t : UnnormalizedProduct) (alignExp : ℤ) (F : ℕ)
+    (ht : t.Bounded) (he : t.unnormalizedExp ≤ alignExp) :
+    (truncCoeff t.value (alignExp - F)).natAbs < 2 ^ (F + 2) := by
+  have hq := pow2_pos (alignExp - F)
   have hp := pow2_le_of_le he
-  have hs := truncCoeff_abs_le t.value (eta - F)
-  have hb : absQ t.value < 4 * pow2 eta := by unfold RawProduct.Bounded at ht; grind
-  have heq : ((2 ^ (F + 2) : ℕ) : ℚ) * pow2 (eta - F) = 4 * pow2 eta := by
+  have hs := truncCoeff_abs_le t.value (alignExp - F)
+  have hb : absQ t.value < 4 * pow2 alignExp := by unfold UnnormalizedProduct.Bounded at ht; grind
+  have heq : ((2 ^ (F + 2) : ℕ) : ℚ) * pow2 (alignExp - F) = 4 * pow2 alignExp := by
     rw [← pow2_natCast, ← pow2_add]
-    have he' : ((F + 2 : ℕ) : ℤ) + (eta - F) = eta + 2 := by omega
+    have he' : ((F + 2 : ℕ) : ℤ) + (alignExp - F) = alignExp + 2 := by omega
     rw [he', pow2_add]
     have htwo : pow2 2 = 4 := by decide
     rw [htwo, Rat.mul_comm]
-  have hb' : absQ t.value / pow2 (eta - F) < ((2 ^ (F + 2) : ℕ) : ℚ) := by
+  have hb' : absQ t.value / pow2 (alignExp - F) < ((2 ^ (F + 2) : ℕ) : ℚ) := by
     apply (Rat.div_lt_iff hq).mpr
     rwa [heq]
   apply Rat.natCast_lt_natCast.mp
@@ -137,26 +137,26 @@ theorem prepare_terms_bounded {p : Profile} {x : BlockInput p} {b : PreparedBloc
         · subst t
           exact c_term_bounded c (classifyNat_bounded fp32 x.c.toNat c hc)
         · subst t
-          exact rawMul_bounded q.1 q.2 (hps.2 q hq).1 (hps.2 q hq).2
+          exact unnormalizedMul_bounded q.1 q.2 (hps.2 q hq).1 (hps.2 q hq).2
 
 theorem prepared_coefficient_bound (b : PreparedBlock) (F : ℕ)
-    (hF : b.profile.alignFraction = F) (ht : ∀ t ∈ b.terms, t.Bounded) :
+    (hF : b.profile.alignSigBits = F) (ht : ∀ t ∈ b.terms, t.Bounded) :
     ∀ z ∈ b.coefficients, z.natAbs < 2 ^ (F + 2) := by
   intro z hz
   obtain ⟨t, hmem, rfl⟩ := List.mem_map.mp hz
   by_cases hzero : t.significand = 0
-  · simp [RawProduct.value, hzero, truncCoeff, Rat.div_def]
+  · simp [UnnormalizedProduct.value, hzero, truncCoeff, Rat.div_def]
     exact Nat.two_pow_pos _
-  · obtain ⟨eta, he, hle⟩ := eta_term b t hmem hzero
-    have hq : b.quantumExponent = eta - F := by
-      simp [PreparedBlock.quantumExponent, he, hF]
+  · obtain ⟨alignExp, he, hle⟩ := alignExp_term b t hmem hzero
+    have hq : b.alignGridExponent = alignExp - F := by
+      simp [PreparedBlock.alignGridExponent, he, hF]
     rw [hq]
-    exact aligned_term_coefficient_bound t eta F (ht t hmem) hle
+    exact aligned_term_coefficient_bound t alignExp F (ht t hmem) hle
 
 /-- Capacity follows from finite decoded inputs and shape, before any output-range check. -/
 theorem prepare_coefficient_capacity {p : Profile} {x : BlockInput p} {b : PreparedBlock}
     (hp : prepare x = some b) (hshape : x.products.length = p.products) (F carryBits : ℕ)
-    (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
+    (hF : p.alignSigBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
     magnitudeSum b.coefficients < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
   have hb := prepare_terms_bounded hp
   have hprof := prepare_profile hp
@@ -167,7 +167,7 @@ theorem prepare_coefficient_capacity {p : Profile} {x : BlockInput p} {b : Prepa
 /-- Width derived from decoded inputs, with c included in the member count. -/
 theorem evalBlock_coefficient_capacity {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) (F carryBits : ℕ)
-    (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
+    (hF : p.alignSigBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
     magnitudeSum t.block.coefficients < 2 ^ ((F + 2 + carryBits + 1) - 1) := by
   have hshape : x.products.length = p.products := by
     unfold evalBlock at h
@@ -176,14 +176,14 @@ theorem evalBlock_coefficient_capacity {p : Profile} {x : BlockInput p} {t : Blo
 
 theorem evalBlock_machineAccumulator {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) (F carryBits : ℕ)
-    (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
+    (hF : p.alignSigBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits) :
     t.block.machineAccumulator (F + 2 + carryBits + 1) = t.block.accumulator :=
   machineAccumulator_eq _ _ (by omega) (evalBlock_coefficient_capacity h F carryBits hF hcount)
 
 /-- Every prefix of a successful encoded invocation is safe at the derived width. -/
 theorem evalBlock_machinePrefix {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) (F carryBits : ℕ)
-    (hF : p.alignFraction = F) (hcount : p.products + 1 ≤ 2 ^ carryBits)
+    (hF : p.alignSigBits = F) (hcount : p.products + 1 ≤ 2 ^ carryBits)
     (xs ys : List ℤ) (hsplit : t.block.coefficients = xs ++ ys) :
     (machineAccumulate (F + 2 + carryBits + 1) 0 xs).toInt = sumZ xs := by
   apply machineAccumulate_prefix_exact _ xs ys (by omega)
@@ -214,9 +214,9 @@ private theorem fold_max_upper (es : List ℤ) (acc : Option ℤ) (upper : ℤ)
     · intro e he
       exact hs e (by simp [he])
 
-theorem alignmentScale_upper (ts : List RawProduct) (upper : ℤ)
-    (h : ∀ t ∈ ts, t.significand ≠ 0 → t.rawScale ≤ upper) :
-    ∀ e ∈ alignmentScale ts, e ≤ upper := by
+theorem maxTermExp_upper (ts : List UnnormalizedProduct) (upper : ℤ)
+    (h : ∀ t ∈ ts, t.significand ≠ 0 → t.unnormalizedExp ≤ upper) :
+    ∀ e ∈ maxTermExp ts, e ≤ upper := by
   apply fold_max_upper
   · simp
   · intro e he
@@ -227,14 +227,14 @@ theorem alignmentScale_upper (ts : List RawProduct) (upper : ℤ)
       subst e
       exact h t ht hz
 
-theorem eta_upper (b : PreparedBlock) (upper : ℤ)
+theorem alignExp_upper (b : PreparedBlock) (upper : ℤ)
     (hf : ∀ f ∈ b.profile.alignFloor, f ≤ upper)
-    (ht : ∀ t ∈ b.terms, t.significand ≠ 0 → t.rawScale ≤ upper) :
-    ∀ e ∈ b.eta, e ≤ upper := by
-  have hu := alignmentScale_upper b.terms upper ht
-  intro eta he
-  unfold PreparedBlock.eta Profile.applyFloor at he
-  cases hs : alignmentScale b.terms with
+    (ht : ∀ t ∈ b.terms, t.significand ≠ 0 → t.unnormalizedExp ≤ upper) :
+    ∀ e ∈ b.alignExp, e ≤ upper := by
+  have hu := maxTermExp_upper b.terms upper ht
+  intro alignExp he
+  unfold PreparedBlock.alignExp Profile.applyFloor at he
+  cases hs : maxTermExp b.terms with
   | none => simp [hs] at he
   | some e =>
     have hemax := hu e (by simp [hs])

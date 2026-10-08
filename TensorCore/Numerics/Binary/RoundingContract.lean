@@ -65,9 +65,9 @@ theorem roundBinary_sign (f : Format) (mode : BinaryRoundingMode) (x : ℚ)
     obtain ⟨hk0, hk1, hsub, htop⟩ := binaryConvCoeff_bounds f hf mode (decide (x < 0)) (absQ x) hm hr
     have hs := binaryCarry_spec f hf _ _ he1 he2 hk0 hk1 hsub htop
     let e := (binaryCarry f (binaryConvExp f (absQ x)) (binaryCoefficient mode (decide (x < 0))
-      (absQ x / pow2 (binaryConvExp f (absQ x) - f.fractionBits)))).1
+      (absQ x / pow2 (binaryConvExp f (absQ x) - f.mantissaBits)))).1
     let k := (binaryCarry f (binaryConvExp f (absQ x)) (binaryCoefficient mode (decide (x < 0))
-      (absQ x / pow2 (binaryConvExp f (absQ x) - f.fractionBits)))).2
+      (absQ x / pow2 (binaryConvExp f (absQ x) - f.mantissaBits)))).2
     have hk : 0 ≤ k := hs.2.2.1
     let r : BinaryRep f := ⟨decide (x < 0), e, k.toNat, hs.1, hs.2.1,
       by have := hs.2.2.2.1; change k < _ at this; omega,

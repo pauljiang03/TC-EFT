@@ -45,8 +45,8 @@ theorem sum_residual_bounds (ts : List ℚ) (e : ℤ) :
     exact ⟨Rat.le_of_lt hn, fun _ => hn⟩
 
 theorem block_alignment_bound (b : PreparedBlock) :
-    absQ (sumQ b.alignmentResiduals) < (b.terms.length : ℚ) * pow2 b.quantumExponent := by
-  have h := (sum_residual_bounds (b.terms.map RawProduct.value) b.quantumExponent).2
+    absQ (sumQ b.alignmentResiduals) < (b.terms.length : ℚ) * pow2 b.alignGridExponent := by
+  have h := (sum_residual_bounds (b.terms.map UnnormalizedProduct.value) b.alignGridExponent).2
     (by simp [PreparedBlock.terms])
   simpa [PreparedBlock.alignmentResiduals, List.map_map, Function.comp_def] using h
 
@@ -55,7 +55,7 @@ theorem block_error_bound (b : PreparedBlock) (d : Finite32)
     (hr : absQ b.accumulator ≤ maxFinite32)
     (hout : round32 .towardZero b.accumulator = some d.bits) :
     absQ (b.exactDot - d.value) <
-      (b.terms.length : ℚ) * pow2 b.quantumExponent + pow2 (outputQuantumExponent d.bits) := by
+      (b.terms.length : ℚ) * pow2 b.alignGridExponent + pow2 (outputUlpExponent d.bits) := by
   have hd : value32 d.bits = some d.value := by simp [value32, d.valid, Finite32.value]
   have halign := block_alignment_bound b
   have houtput := output_residual_bound b.accumulator d.bits d.value hr hout hd
@@ -68,8 +68,8 @@ theorem block_error_bound (b : PreparedBlock) (d : Finite32)
 theorem evalPrepared_error_bound {b : PreparedBlock} {t : BlockTrace}
     (h : evalPrepared b = .ok t) :
     absQ (t.block.exactDot - t.output.value) <
-      (t.block.terms.length : ℚ) * pow2 t.block.quantumExponent +
-        pow2 (outputQuantumExponent t.output.bits) := by
+      (t.block.terms.length : ℚ) * pow2 t.block.alignGridExponent +
+        pow2 (outputUlpExponent t.output.bits) := by
   have hb := evalPrepared_block h
   rw [hb]
   have hout := evalPrepared_output h
@@ -78,8 +78,8 @@ theorem evalPrepared_error_bound {b : PreparedBlock} {t : BlockTrace}
 theorem evalBlock_error_bound {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) :
     absQ (t.block.exactDot - t.output.value) <
-      (t.block.terms.length : ℚ) * pow2 t.block.quantumExponent +
-        pow2 (outputQuantumExponent t.output.bits) :=
+      (t.block.terms.length : ℚ) * pow2 t.block.alignGridExponent +
+        pow2 (outputUlpExponent t.output.bits) :=
   evalPrepared_error_bound (evalBlock_evalPrepared h)
 
 end TensorCore

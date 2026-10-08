@@ -1,71 +1,94 @@
-# Public theorem index
+# What is proved
 
-Choose the theorem by the contract you need, then read its hypotheses in the linked Lean source. Each entry lists the module to import and the result's scope.
+This page lists the main results that Lean has checked, in plain language. Each row says what the
+result means. The linked file has the exact statement and every assumption. All results depend
+only on Lean's standard axioms (`propext`, `Classical.choice`, `Quot.sound`).
 
-## Numerical foundation
+Two papers are cited in docstrings: *Accurate Models* (Khattak and Mikaitis, arXiv 2512.07004v4)
+for the Tensor Core model, and *the TC-EFT paper* for non-monotonicity and the TC-EFT algorithm.
 
-| Declaration | Import | Contract |
+## The Tensor Core model
+
+| What it says | Lean name | File |
 | --- | --- | --- |
-| `roundBinary_correct` | [Numerics.Binary.RoundingContract](Numerics/Binary/RoundingContract.lean) | Correct rounding for a well-formed finite binary format, mode, and in-range rational input |
-| `roundBinary_isSome_iff` | [Numerics.Binary.RoundingContract](Numerics/Binary/RoundingContract.lean) | Exact finite-domain success criterion |
-| `signedFiniteBinaryBijection` | [Numerics.Binary.SignedBijection](Numerics/Binary/SignedBijection.lean) | Finite words correspond to representable values with a zero sign |
-| `naiveSumBinary_exact_of_bitSpan` | [Numerics.Binary.ScalarSum](Numerics/Binary/ScalarSum.lean) | Bit-span and range assumptions suffice for exact scalar summation |
+| The model and an independently written transcription of *Accurate Models* give the same output bits, or both reject, for every input on all 8 supported GPU paths. | `IndependentSpec.supported_eq_spec` | [TC/Specification/Supported.lean](TC/Specification/Supported.lean) |
+| The model accepts an input exactly when it has the right number of products, no NaN or infinity, and a sum that fits in FP32. | `evalBlock_success_iff` | [TC/AcceptedDomain.lean](TC/AcceptedDomain.lean) |
+| The exact sum of the inputs equals the output plus everything lost to alignment and rounding. | `evalBlock_residual_identity` | [TC/StageResiduals.lean](TC/StageResiduals.lean) |
+| The error is less than (number of terms) × (alignment grid step) + (one output ulp). | `evalBlock_error_bound` | [TC/ErrorBounds.lean](TC/ErrorBounds.lean) |
+| A fixed-width wrapping accumulator gives the same output for every input when it is wide enough (29/31/33 bits for V100/A100/H100 FP16). | `evalBlockMachine_eq` | [TC/MachineRefinement.lean](TC/MachineRefinement.lean) |
+| Every partial sum in that accumulator is exact, in any order. | `evalBlock_machinePrefix` | [TC/AlignmentExponent.lean](TC/AlignmentExponent.lean) |
+| The guarantees above, bundled for any profile. | `profile_contract` | [TC/CanonicalFormats.lean](TC/CanonicalFormats.lean) |
+| For chained groups, the loss accounting holds across the whole chain. | `runBlocks_residual_ledger` | [TC/Composition.lean](TC/Composition.lean) |
 
-## Tensor-core model and non-monotonicity
+## Non-monotonicity
 
-| Declaration | Import | Contract |
+| What it says | Lean name | File |
 | --- | --- | --- |
-| `profile_contract` | [TC.CanonicalFormats](TC/CanonicalFormats.lean) | Arithmetic and adequate-width refinement under the profile's explicit premises |
-| `evalBlock_success_iff` | [TC.AcceptedDomain](TC/AcceptedDomain.lean) | Shape, finite decoding, and accumulator range characterize acceptance |
-| `evalBlock_residual_identity` | [TC.StageResiduals](TC/StageResiduals.lean) | Successful evaluation connects the original ideal to output plus residual |
-| `evalBlock_error_bound` | [TC.ErrorBounds](TC/ErrorBounds.lean) | Alignment loss plus final conversion loss bounds model error |
-| `evalBlock_machinePrefix` | [TC.AlignmentScale](TC/AlignmentScale.lean) | Fixed-width prefixes agree with exact accumulation under capacity premises |
-| `IndependentSpec.supported_eq_spec` | [TC.Specification.Supported](TC/Specification/Supported.lean) | Encoded output/rejection equality with the independent paper specification |
-| `flowback_necessary`, `flowback_sufficient` | [TC.Flowback](TC/Flowback.lean) | C-perturbation criteria including output conversion and representability premises |
-| `nonmonotone_encoded` | [TC.Monotonicity](TC/Monotonicity.lean) | Realizable K/p construction has the `3·2^p` output-increase threshold |
-| `nonmonotone_range_encoded` | [TC.MonotonicityRange](TC/MonotonicityRange.lean) | General j perturbations, witness range, and maximal output within that family |
+| Lowering C from 1 to the next FP32 value below raises the output exactly when the group has at least 3·2^p products (K equal products of `2^-(24+p)`; floor at most −1). | `nonmonotone_encoded` | [TC/Monotonicity.lean](TC/Monotonicity.lean) |
+| For `C = 1 − j·2^-24`: exactly which j raise the output, the output formula, and its maximum. | `nonmonotone_range_encoded` | [TC/MonotonicityRange.lean](TC/MonotonicityRange.lean) |
+| For any inputs, an output increase needs the recovered products to outweigh the change in C; this suffices when both sums are FP32-representable. | `flowback_necessary`, `flowback_sufficient` | [TC/Flowback.lean](TC/Flowback.lean) |
 
-## TC-EFT and execution kernels
+## TC-EFT correction
 
-| Declaration | Import | Contract |
+| What it says | Lean name | File |
 | --- | --- | --- |
-| `overlap_recovery` | [EFT.Extraction](EFT/Extraction.lean) | Exact original sum equals D minus overlap plus low parts |
-| `scalarCorrected_correct` | [EFT.Extraction](EFT/Extraction.lean) | Scalar predicate entails nearest-even correction |
-| `ExtractionGrid.inputBudget_scalarPredicate` | [EFT.ExtractionGrid](EFT/ExtractionGrid.lean) | Chosen-grid input-budget condition establishes sufficient scalar premises |
-| `tcEftEncoded_correct` | [EFT.Encoded](EFT/Encoded.lean) | Any returned encoded reference EFT result correctly rounds the original ideal |
-| `EFMachine.tcEft_success` | [Kernels.EFT.Correctness](Kernels/EFT/Correctness.lean) | Supported, finite, shape-correct inputs and in-range ideal give a bounded result |
-| `EFMachine.tcEft_range_iff` | [Kernels.EFT.Correctness](Kernels/EFT/Correctness.lean) | Bounded result exists exactly when the finite ideal is in range |
-| `EFMachine.tcEft_agrees` | [Kernels.EFT.Refinement](Kernels/EFT/Refinement.lean) | Bounded and reference result bits agree under the theorem's premises |
-| `EFMachine.tcEftWithLean_eq` | [Kernels.EFT.Native](Kernels/EFT/Native.lean) | Native scalar additions preserve the entire bounded result |
+| Any result TC-EFT returns is the exact sum rounded to nearest-even FP32, for any finite D. | `tcEftEncoded_correct` | [EFT/Encoded.lean](EFT/Encoded.lean) |
+| TC-EFT returns a result exactly when that rounded sum is finite. | `tcEftEncoded_bits_isSome_iff` | [EFT/Encoded.lean](EFT/Encoded.lean) |
+| When the scalar safety check passes, the fast FP32 path gives the correctly rounded sum. | `scalarCorrected_correct` | [EFT/Extraction.lean](EFT/Extraction.lean) |
+| Exact sum = D − overlap + low parts. True by construction, since the overlap is defined as D minus the retained part. | `overlap_recovery` | [EFT/Extraction.lean](EFT/Extraction.lean) |
+| The input-budget inequality establishes two of the safety check's conditions; the other seven are assumed. | `ExtractionGrid.inputBudget_scalarPredicate` | [EFT/ExtractionGrid.lean](EFT/ExtractionGrid.lean) |
+| The 576-bit implementation succeeds exactly when the rounded sum is finite, and never overflows. | `EFMachine.tcEft_success`, `EFMachine.tcEft_range_iff` | [Kernels/EFT/Correctness.lean](Kernels/EFT/Correctness.lean) |
+| The 576-bit implementation returns the same bits as the reference algorithm. | `EFMachine.tcEft_agrees` | [Kernels/EFT/Refinement.lean](Kernels/EFT/Refinement.lean) |
+| Using Lean's native `Float32` additions changes nothing (relative to Lean's `Float32` specification). | `EFMachine.tcEftWithLean_eq` | [Kernels/EFT/Native.lean](Kernels/EFT/Native.lean) |
 
-The following checked block keeps the main index entries connected to the actual API:
+## Number formats and rounding
+
+| What it says | Lean name | File |
+| --- | --- | --- |
+| FP32 conversion returns the nearest value, ties to even, for every in-range input. | `round32_nearestEven_correct` | [Numerics/CorrectRounding.lean](Numerics/CorrectRounding.lean) |
+| The same holds for any binary format and rounding direction. | `roundBinary_correct` | [Numerics/Binary/RoundingContract.lean](Numerics/Binary/RoundingContract.lean) |
+| Conversion succeeds exactly when the input is within the format's finite range. | `roundBinary_isSome_iff` | [Numerics/Binary/RoundingContract.lean](Numerics/Binary/RoundingContract.lean) |
+| Finite bit patterns and representable values correspond one to one, including subnormals and both zeros. | `signedFiniteBinaryBijection` | [Numerics/Binary/SignedBijection.lean](Numerics/Binary/SignedBijection.lean) |
+| Naive floating-point summation is exact when the summands fit within a bounded bit span. | `naiveSumBinary_exact_of_bitSpan` | [Numerics/Binary/ScalarSum.lean](Numerics/Binary/ScalarSum.lean) |
+
+## Not proved
+
+- That real GPUs behave like the model. That is tested by replaying recorded GPU outputs.
+- That the fast path is taken whenever the safety check passes. The 576-bit implementation checks
+  this at run time.
+
+The [FloatLib correspondence](../floatlib-port/COMPARISON.md) covers the independent second
+implementation. This block keeps every name above connected to the actual API:
 
 ```lean
 import TensorCore
 
 open TensorCore
 
-#check roundBinary_correct
-#check signedFiniteBinaryBijection
-#check naiveSumBinary_exact_of_bitSpan
-#check profile_contract
+#check IndependentSpec.supported_eq_spec
 #check evalBlock_success_iff
 #check evalBlock_residual_identity
 #check evalBlock_error_bound
+#check evalBlockMachine_eq
 #check evalBlock_machinePrefix
-#check IndependentSpec.supported_eq_spec
-#check flowback_necessary
-#check flowback_sufficient
+#check profile_contract
+#check runBlocks_residual_ledger
 #check nonmonotone_encoded
 #check nonmonotone_range_encoded
-#check overlap_recovery
-#check scalarCorrected_correct
-#check ExtractionGrid.inputBudget_scalarPredicate
+#check flowback_necessary
+#check flowback_sufficient
 #check tcEftEncoded_correct
+#check tcEftEncoded_bits_isSome_iff
+#check scalarCorrected_correct
+#check overlap_recovery
+#check ExtractionGrid.inputBudget_scalarPredicate
 #check EFMachine.tcEft_success
 #check EFMachine.tcEft_range_iff
 #check EFMachine.tcEft_agrees
 #check EFMachine.tcEftWithLean_eq
+#check round32_nearestEven_correct
+#check roundBinary_correct
+#check roundBinary_isSome_iff
+#check signedFiniteBinaryBijection
+#check naiveSumBinary_exact_of_bitSpan
 ```
-
-The [FloatLib correspondence](../floatlib-port/COMPARISON.md) maps the independent implementation and paper statements to its universal equivalence theorems. See the linked Lean files for complete statements and proofs.

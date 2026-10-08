@@ -5,7 +5,7 @@ namespace TCFloat.Comparison
 open FloatLib.Floats.Formats.BinaryInterchange
 
 def project (t : Term) : Int × Int × Int :=
-  (t.dyadic.signedSignificand,t.rawScale,t.fractionBits)
+  (t.dyadic.signedSignificand,t.unnormalizedExp,t.mantissaBits)
 
 def zeroPositive : Term := ⟨⟨false,0,0⟩,0,0⟩
 def zeroNegative : Term := ⟨⟨true,0,0⟩,0,0⟩
@@ -23,16 +23,16 @@ theorem both_zero_forms_reachable :
     decode .binary16 0 = some zeroPositive ∧ decode .binary16 32768 = some zeroNegative := by
   constructor <;> rfl
 
-/-- The extra dyadic exponent is unconstrained in the public raw Term structure. -/
+/-- The extra dyadic exponent is unconstrained in the public unchecked Term structure. -/
 def inconsistentTerm : Term := ⟨⟨false,1,0⟩,0,23⟩
 
 theorem unrestricted_projection_changes_value :
     inconsistentTerm.value = 1 ∧
     (inconsistentTerm.dyadic.signedSignificand : ℚ) *
-      pow2 (inconsistentTerm.rawScale-inconsistentTerm.fractionBits) ≠ inconsistentTerm.value := by
+      pow2 (inconsistentTerm.unnormalizedExp-inconsistentTerm.mantissaBits) ≠ inconsistentTerm.value := by
   decide +kernel
 
-/-- `TensorCore.Finite32` requires bits/value consistency by a proof field; raw `Trace` permits inconsistent fields. -/
+/-- `TensorCore.Finite32` requires bits/value consistency by a proof field; unchecked `Trace` permits inconsistent fields. -/
 def inconsistentTrace : Trace :=
   ⟨⟨fp16 0 0,zeroPositive,[]⟩,0,1⟩
 

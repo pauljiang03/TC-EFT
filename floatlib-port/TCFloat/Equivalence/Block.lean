@@ -8,29 +8,29 @@ def profile (p : Profile) : TensorCore.Profile :=
   ⟨format p.format,p.products,23+p.extra,p.floor⟩
 def block (b : Block) : TensorCore.PreparedBlock :=
   ⟨profile b.profile,b.products.map (fun (a,b) => (project a,project b)),project b.c⟩
-def rawTerm (t : Term) : TensorCore.RawProduct :=
-  ⟨t.dyadic.signedSignificand,t.rawScale,t.fractionBits⟩
+def unnormalizedTerm (t : Term) : TensorCore.UnnormalizedProduct :=
+  ⟨t.dyadic.signedSignificand,t.unnormalizedExp,t.mantissaBits⟩
 
 def ValidTerm (t : Term) : Prop := t.value = (project t).value
 def ValidBlock (b : Block) : Prop :=
   ValidTerm b.c ∧ ∀ ab ∈ b.products, ValidTerm ab.1 ∧ ValidTerm ab.2
 
-theorem rawTerm_mul (a b : Term) : rawTerm (a.mul b) = TensorCore.rawMul (project a) (project b) := by
-  unfold rawTerm Term.mul TensorCore.rawMul project
+theorem unnormalizedTerm_mul (a b : Term) : unnormalizedTerm (a.mul b) = TensorCore.unnormalizedMul (project a) (project b) := by
+  unfold unnormalizedTerm Term.mul TensorCore.unnormalizedMul project
   simp only [FloatLib.Numerics.Dyadic.mul,FloatLib.Numerics.Dyadic.mulFields,
     FloatLib.Numerics.Dyadic.signedSignificand]
   cases a.dyadic.negative <;> cases b.dyadic.negative <;> simp [Bool.xor]
 
 theorem mul_valid {a b : Term} (ha : ValidTerm a) (hb : ValidTerm b) : ValidTerm (a.mul b) := by
-  change (a.mul b).value = (rawTerm (a.mul b)).value
-  rw [rawTerm_mul,TensorCore.rawProduct_value,TCFloat.mul_value,ha,hb]
+  change (a.mul b).value = (unnormalizedTerm (a.mul b)).value
+  rw [unnormalizedTerm_mul,TensorCore.unnormalizedProduct_value,TCFloat.mul_value,ha,hb]
 
-theorem terms_eq (b : Block) : (block b).terms = b.terms.map rawTerm := by
+theorem terms_eq (b : Block) : (block b).terms = b.terms.map unnormalizedTerm := by
   simp only [block,TensorCore.PreparedBlock.terms,Block.terms,List.map_cons,List.map_map]
   congr 1
   apply List.map_congr_left
   intro ab _
-  exact (rawTerm_mul ab.1 ab.2).symm
+  exact (unnormalizedTerm_mul ab.1 ab.2).symm
 
 theorem terms_valid (b : Block) (hb : ValidBlock b) :
     ∀ t ∈ b.terms, ValidTerm t := by
@@ -71,39 +71,39 @@ theorem fold_max (xs : List Int) (a : Option Int) :
     rw [ih,← maxOption_assoc]
     cases a <;> rfl
 
-theorem raw_zero (t : Term) : (rawTerm t).significand = 0 ↔ t.dyadic.significand = 0 := by
+theorem unnormalizedTerm_zero (t : Term) : (unnormalizedTerm t).significand = 0 ↔ t.dyadic.significand = 0 := by
   change t.dyadic.signedSignificand = 0 ↔ _
   rw [← Int.natAbs_eq_zero,FloatLib.Numerics.Dyadic.natAbs_signedSignificand]
 
 theorem alignment_eq (ts : List Term) :
-    TensorCore.alignmentScale (ts.map rawTerm) = alignmentScale ts := by
+    TensorCore.maxTermExp (ts.map unnormalizedTerm) = maxTermExp ts := by
   have hf := fold_max
-    ((ts.map rawTerm).filterMap fun t => if t.significand=0 then none else some t.rawScale) none
-  change TensorCore.alignmentScale (ts.map rawTerm) =
+    ((ts.map unnormalizedTerm).filterMap fun t => if t.significand=0 then none else some t.unnormalizedExp) none
+  change TensorCore.maxTermExp (ts.map unnormalizedTerm) =
     (List.foldr (fun e acc => maxOption (some e) acc) none
-      ((ts.map rawTerm).filterMap fun t => if t.significand=0 then none else some t.rawScale)) at hf
+      ((ts.map unnormalizedTerm).filterMap fun t => if t.significand=0 then none else some t.unnormalizedExp)) at hf
   rw [hf]
   clear hf
   induction ts with
   | nil => rfl
   | cons t ts ih =>
-    simp only [List.map_cons,List.filterMap_cons,raw_zero,alignmentScale]
+    simp only [List.map_cons,List.filterMap_cons,unnormalizedTerm_zero,maxTermExp]
     by_cases hz : t.dyadic.significand = 0
     · simp only [hz,ite_true]
       exact ih
     · simp only [hz,ite_false,List.foldr_cons,ih]
-      cases alignmentScale ts <;> rfl
+      cases maxTermExp ts <;> rfl
 
-theorem eta_eq (b : Block) : (block b).eta = b.eta := by
-  unfold TensorCore.PreparedBlock.eta
+theorem alignExp_eq (b : Block) : (block b).alignExp = b.alignExp := by
+  unfold TensorCore.PreparedBlock.alignExp
   rw [terms_eq,alignment_eq]
-  simp only [Block.eta,
+  simp only [Block.alignExp,
     TensorCore.Profile.applyFloor,block,profile]
-  cases alignmentScale b.terms <;> cases b.profile.floor <;> rfl
+  cases maxTermExp b.terms <;> cases b.profile.floor <;> rfl
 
-theorem q_eq (b : Block) : (block b).quantumExponent = b.q := by
-  unfold TensorCore.PreparedBlock.quantumExponent
-  rw [eta_eq]
+theorem q_eq (b : Block) : (block b).alignGridExponent = b.q := by
+  unfold TensorCore.PreparedBlock.alignGridExponent
+  rw [alignExp_eq]
   simp [Block.q,block,profile]
 
 theorem accumulator_eq (b : Block) (hb : ValidBlock b) : (block b).accumulator = b.accumulator := by

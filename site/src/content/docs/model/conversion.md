@@ -28,7 +28,7 @@ algorithm is:
    `floor` for toward-zero, `rneInt` for nearest-even (`convCoeff`).
 4. If rounding produced `2^24`, carry into the next binade (`carry`).
 5. If the exponent passes 127, fail. Otherwise assemble sign, exponent, and
-   fraction bits (`encode32`).
+   mantissa bits (`encode32`).
 
 ```lean
 def round32Core (mode : RoundingMode) (x : ℚ) : Option F32 :=

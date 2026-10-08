@@ -19,7 +19,7 @@ example (K extra carryBits : ℕ) (x : BlockInput (fp16Fp32Profile K extra))
 #check fp16Fp32_machine_eq
 #check evalBlock_success_iff
 #check evalBlock_machinePrefix
-#check canonical_eta_floor_inactive
+#check canonical_alignExp_floor_inactive
 #check evalBlock_exact_alignment
 #check canonical_padding_exact
 #check canonical_padding_success_iff

@@ -43,8 +43,8 @@ def h100 := fp16 16 2 (some (-133))
 
 structure Term where
   dyadic : ExactDyadic
-  rawScale : Int
-  fractionBits : Int
+  unnormalizedExp : Int
+  mantissaBits : Int
 
 def Term.value (t : Term) : ℚ := t.dyadic.toRat
 
@@ -57,7 +57,7 @@ def decode (f : FloatFormat) (n : Nat) : Option Term := do
     return ⟨d, scale, f.fracWidth⟩
 
 def Term.mul (a b : Term) : Term :=
-  ⟨a.dyadic.mul b.dyadic, a.rawScale + b.rawScale, a.fractionBits + b.fractionBits⟩
+  ⟨a.dyadic.mul b.dyadic, a.unnormalizedExp + b.unnormalizedExp, a.mantissaBits + b.mantissaBits⟩
 
 structure Block where
   profile : Profile
@@ -74,15 +74,15 @@ def Block.terms (b : Block) : List Term := b.c :: b.products.map fun (a,c) => a.
 /-- Independent original-input ideal, not used by the correction implementation. -/
 def Block.ideal (b : Block) : ℚ := b.c.value + (b.products.map fun (a,c) => a.value*c.value).sum
 
-def alignmentScale : List Term → Option Int
+def maxTermExp : List Term → Option Int
   | [] => none
   | t :: ts =>
-    let rest := alignmentScale ts
+    let rest := maxTermExp ts
     if t.dyadic.significand = 0 then rest
-    else some (rest.map (max t.rawScale) |>.getD t.rawScale)
-def Block.eta (b : Block) : Option Int :=
-  (alignmentScale b.terms).map fun e => b.profile.floor.map (max e) |>.getD e
-def Block.q (b : Block) : Int := b.eta.getD 0 - (23 + b.profile.extra : Nat)
+    else some (rest.map (max t.unnormalizedExp) |>.getD t.unnormalizedExp)
+def Block.alignExp (b : Block) : Option Int :=
+  (maxTermExp b.terms).map fun e => b.profile.floor.map (max e) |>.getD e
+def Block.q (b : Block) : Int := b.alignExp.getD 0 - (23 + b.profile.extra : Nat)
 def Block.aligned (b : Block) : List ℚ := b.terms.map fun t => truncGrid t.value b.q
 def Block.accumulator (b : Block) : ℚ := b.aligned.sum
 def Block.residuals (b : Block) : List ℚ := b.terms.map fun t => t.value - truncGrid t.value b.q
@@ -97,9 +97,9 @@ structure Trace where
 def trace (b : Block) (bits : Nat) : Option Trace := do
   if bits ≥ 2^32 then none else return ⟨b, bits, ← value32 bits⟩
 
-def outputQuantum (bits : Nat) : Int := max ((bits / 2^23 % 2^8 : Nat) - (127 : Int)) (-126) - 23
+def outputUlpExponent (bits : Nat) : Int := max ((bits / 2^23 % 2^8 : Nat) - (127 : Int)) (-126) - 23
 
-def Trace.extractionExponent (t : Trace) : Int := max t.block.q (outputQuantum t.bits)
+def Trace.extractionExponent (t : Trace) : Int := max t.block.q (outputUlpExponent t.bits)
 def Trace.coarse (t : Trace) : List ℚ := t.block.terms.map fun x => truncGrid x.value t.extractionExponent
 def Trace.lowParts (t : Trace) : List ℚ := t.block.terms.map fun x => x.value - truncGrid x.value t.extractionExponent
 def Trace.retained (t : Trace) : ℚ := t.coarse.sum
@@ -116,7 +116,7 @@ def naiveSumFrom (a : ℚ) : List ℚ → Option ℚ
   | x :: xs => (add32 a x).bind fun s => naiveSumFrom s xs
 
 def Trace.supportExponent (t : Trace) : Int :=
-  (t.block.terms.map fun x => x.rawScale-x.fractionBits).foldl min t.extractionExponent
+  (t.block.terms.map fun x => x.unnormalizedExp-x.mantissaBits).foldl min t.extractionExponent
 
 def Trace.lowCoefficients (t : Trace) : List Int :=
   t.lowParts.map fun x => ⌊x / pow2 t.supportExponent⌋

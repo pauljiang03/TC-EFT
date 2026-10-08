@@ -42,7 +42,7 @@ private theorem finite32_some {bits : F32} {d : Decoded} (hd : decode32 bits = s
 
 set_option maxRecDepth 4096 in
 theorem legacy_prepared_bits (p : Profile) (ps : List (Decoded × Decoded)) (c : Decoded)
-    (F : ℕ) (hF : p.alignFraction = F) :
+    (F : ℕ) (hF : p.alignSigBits = F) :
     (evalInvocationPrepared (p := p.toInvocation F) ⟨ps, c⟩).toOption.map (fun t => t.output.bits) =
       (evalPrepared ⟨p, ps, c⟩).toOption.map (fun t => t.output.bits) := by
   rcases p with ⟨f, K, af, floor⟩
@@ -62,7 +62,7 @@ theorem legacy_prepared_bits (p : Profile) (ps : List (Decoded × Decoded)) (c :
 
 set_option maxRecDepth 4096 in
 theorem legacy_invocation_bits {p : Profile} (x : BlockInput p) (F : ℕ)
-    (hinput : p.input.WellFormed) (hF : p.alignFraction = F) :
+    (hinput : p.input.WellFormed) (hF : p.alignSigBits = F) :
     invocationBits (x.toInvocation F) = (evalBlock x).toOption.map (fun t => t.output.bits) := by
   have hv : (p.toInvocation F).Valid := by
     refine ⟨hinput, ?_, rfl, ?_, trivial⟩ <;> change fp32.WellFormed <;> decide

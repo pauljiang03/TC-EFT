@@ -9,7 +9,7 @@ description: What the Lean Tensor Core model covers and what it deliberately lea
   FP16/BF16/TF32 → FP32 paths of V100, A100, and H100, plus arbitrary
   `K`, `p`, and floor through the generic profile constructors.
 - Every finite input encoding, including subnormals and signed zeros.
-- Exact raw products, maximum-exponent alignment with a floor, truncation
+- Exact unnormalized products, maximum-exponent alignment with a floor, truncation
   toward zero, exact accumulation (and fixed-width accumulation proved
   equivalent at adequate width), and FP32 round-toward-zero output.
 - Ordered chains of groups, as in WMMA instructions, passing encoded FP32
