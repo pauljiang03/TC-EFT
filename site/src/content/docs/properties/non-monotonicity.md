@@ -22,6 +22,9 @@ stage of this example.
 
 ## The general family theorem
 
+This formalizes Theorem III.4 of the TC-EFT paper (`nonmonotone_perturbation`),
+stated here on encoded inputs.
+
 ```lean
 theorem nonmonotone_encoded (K p : ℕ) (floor : Option ℤ) (hfl : ∀ f ∈ floor, f ≤ -1)
     (a b : (fp16Fp32Profile K p floor).Word) (da db : Decoded)

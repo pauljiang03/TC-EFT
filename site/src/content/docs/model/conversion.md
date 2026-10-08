@@ -45,7 +45,7 @@ def round32 (mode : RoundingMode) (x : ℚ) : Option F32 :=
 
 An accumulator larger in magnitude than `maxFinite32 = (2^24 − 1)·2^104`
 **rejects** the block with `accumulatorOutOfRange`. The model does not
-produce infinity. This is a deliberate restriction of scope: the published
+produce infinity. This is a deliberate restriction of scope: the *Accurate Models*
 model and the validation data cover finite outputs. The accepted domain is
 stated exactly:
 

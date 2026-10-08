@@ -18,7 +18,7 @@ the `TensorCore` namespace and allows only `propext`, `Classical.choice`, and
   [coverage gaps](/TC-EFT/model/validation/#what-the-rows-dont-cover) noted
   there.
 - **Agreement with Python oracles**: exact-`Fraction` reimplementations of
-  the same published semantics.
+  the same *Accurate Models* semantics.
 - **Native Float32**: `algorithm1WithLean_eq` is proved against Lean's float
   *model*. That the compiled `Float32` addition matches the model is checked
   by `check_lean_eft.py`, not proved.
@@ -35,7 +35,7 @@ the `TensorCore` namespace and allows only `propext`, `Classical.choice`, and
 
 ## Assumed
 
-That the published model, and therefore this one, matches hardware in the
+That the *Accurate Models* model, and therefore this one, matches hardware in the
 regions the recorded data does not exercise: active alignment floors,
 subnormal and zero operands, wide-exponent BF16/TF32 inputs, and the H100 TF32
 K = 8 MMA path.

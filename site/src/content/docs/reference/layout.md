@@ -7,8 +7,8 @@ description: Where each part of the development lives.
 | --- | --- |
 | [`TensorCore/Numerics/`](https://github.com/pauljiang03/TC-EFT/tree/main/TensorCore/Numerics) | Formats, encodings, exact arithmetic, truncation, rounding and its correctness |
 | [`TensorCore/TC/`](https://github.com/pauljiang03/TC-EFT/tree/main/TensorCore/TC) | Profiles, `evalBlock`, invocations, accumulator width, error bounds, non-monotonicity, chaining |
-| [`TensorCore/TC/Specification/`](https://github.com/pauljiang03/TC-EFT/tree/main/TensorCore/TC/Specification) | Independent paper specification and the equality proof |
-| [`TensorCore/EFT/`](https://github.com/pauljiang03/TC-EFT/tree/main/TensorCore/EFT) | Extraction, scalar predicate, reference Algorithm 1 |
+| [`TensorCore/TC/Specification/`](https://github.com/pauljiang03/TC-EFT/tree/main/TensorCore/TC/Specification) | Independent *Accurate Models* specification (`PaperSpec`) and the equality proof |
+| [`TensorCore/EFT/`](https://github.com/pauljiang03/TC-EFT/tree/main/TensorCore/EFT) | Extraction, scalar predicate, reference Algorithm 1 (TC-EFT paper) |
 | [`TensorCore/Kernels/EFT/`](https://github.com/pauljiang03/TC-EFT/tree/main/TensorCore/Kernels/EFT) | 576-bit bounded EFT and refinement proofs |
 | [`TensorCore/Scalar/`](https://github.com/pauljiang03/TC-EFT/tree/main/TensorCore/Scalar) | IEEE scalar operations and the Lean Float32 bridge |
 | [`tests/`](https://github.com/pauljiang03/TC-EFT/tree/main/tests) | Regression witnesses and trust audits (`TensorCoreTests`) |

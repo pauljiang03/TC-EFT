@@ -9,8 +9,8 @@ model and comparing output words exactly.
 
 ## The data
 
-The vectors come from the validation suite of Khattak and Mikaitis's MATLAB
-Tensor Core models (v0.5), vendored with pinned hashes in
+The vectors come from the validation suite of the MATLAB Tensor Core models
+(v0.5) that accompany *Accurate Models* (Khattak and Mikaitis), vendored with pinned hashes in
 [`vendor/matlab-tensor-core-v0.5/model_validation/`](https://github.com/pauljiang03/TC-EFT/tree/main/vendor/matlab-tensor-core-v0.5/model_validation).
 Each configuration has 5,000 rows of `a`, `b`, `c` inputs and the `d` output
 measured on the GPU.
@@ -48,14 +48,14 @@ hardware data**:
 - **Zero operands** do not occur, and **subnormal** operands are rare (0, 1,
   and 5 on V100, A100, and H100 FP16). BF16 and TF32 rows have none.
 - **H100 TF32 MMA (K = 8)** has no recorded rows. Its parameters come from
-  the published model alone.
+  *Accurate Models* alone.
 - **TF32 inputs are FP16-range values.** The vendored A100 and H100 TF32
   `a`/`b` files are byte-identical to the V100 FP16 inputs. The TF32 replay
   therefore tests the TF32 grouping and alignment parameters, but not TF32's
   wider exponent range. BF16 and TF32 inputs only span biased exponents of
   about 113–128.
 
-These features rest on the published model and on the
+These features rest on *Accurate Models* and on the
 [proofs](/TC-EFT/model/specification/), plus synthetic oracle cases, not on
 measurements.
 
@@ -71,4 +71,4 @@ Besides the hardware rows, Python oracles written from scratch in exact
   cases, including padding and subnormal edge cases. 0 mismatches.
 
 The oracles share no code with the Lean model. They agree with it by
-implementing the same published semantics separately.
+implementing the same *Accurate Models* semantics separately.

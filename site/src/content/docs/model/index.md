@@ -18,7 +18,8 @@ D = C + a₁·b₁ + a₂·b₂ + … + a_K·b_K
 
 where `aᵢ, bᵢ` are FP16, BF16, or TF32 words, `C` is an FP32 word, `D` is an
 FP32 word, and `K` (4, 8, or 16) depends on the GPU and the input format.
-Khattak and Mikaitis found that NVIDIA hardware does **not** round this sum
+Khattak and Mikaitis (*[Accurate Models of NVIDIA Tensor
+Cores](https://arxiv.org/html/2512.07004v4)*) found that NVIDIA hardware does **not** round this sum
 once, the way a fused dot product would. It does the following:
 
 1. Forms each product **exactly**, without normalizing the significand.
@@ -146,5 +147,5 @@ Each stage has its own page:
 5. [Output conversion](/TC-EFT/model/conversion/): `round32`, range, signed zero.
 6. [Architecture profiles](/TC-EFT/model/profiles/): V100/A100/H100 parameters and the general `InvocationSpec`.
 7. [Instructions and chaining](/TC-EFT/model/instructions/): multi-group instructions and passing `C` between groups.
-8. [Independent specification](/TC-EFT/model/specification/): `PaperSpec` and the equality proof.
+8. [Independent specification](/TC-EFT/model/specification/): `PaperSpec` (a transcription of *Accurate Models*) and the equality proof.
 9. [Hardware validation](/TC-EFT/model/validation/): replay of GPU measurements.

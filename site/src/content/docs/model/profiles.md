@@ -17,7 +17,7 @@ structure Profile where
 ## The supported paths
 
 All of them have FP32 `C` and FP32 output. The parameters follow Table 3 of
-*Accurate Models of NVIDIA Tensor Cores*.
+*Accurate Models* (Khattak and Mikaitis).
 
 | Path | Lean profile | Input | K | p (F = 23 + p) | Floor |
 | --- | --- | --- | ---: | ---: | ---: |

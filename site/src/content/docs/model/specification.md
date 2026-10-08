@@ -1,13 +1,15 @@
 ---
 title: 8. Independent specification
-description: A second, separately written formalization of the published Tensor Core model, and the proof that evalBlock agrees with it on every encoded input.
+description: A second, separately written formalization of the Accurate Models Tensor Core model, and the proof that evalBlock agrees with it on every encoded input.
 ---
 
 An executable model can be wrong in subtle ways: an off-by-one exponent, a
 truncation in the wrong direction, a mishandled subnormal. To guard against
 this, TC-EFT contains a **second formalization**, written independently,
-that follows *Accurate Models* §4.1 (Figures 2, 3, 5 and Table 3) as closely
-as possible. Lean proves the two agree on **every** encoded input.
+that follows *Accurate Models* (Khattak and Mikaitis) §4.1 (Figures 2, 3, 5
+and Table 3) as closely as possible. In the Lean names `PaperSpec`,
+`supported_eq_paper` and `tf32_eq_paper`, "paper" means *Accurate Models*,
+not the TC-EFT paper. Lean proves the two agree on **every** encoded input.
 
 ## How the specification differs
 
@@ -69,8 +71,8 @@ confirms that the audit rejects a deliberately contaminated definition.
 
 ## What this does and doesn't establish
 
-The equality shows that the executable model **is** the published model,
-as transcribed. Both rest on the same reading of the paper. If the paper's
-model differs from the hardware in some region, both formalizations inherit
+The equality shows that the executable model **is** the *Accurate Models*
+model, as transcribed. Both rest on the same reading of *Accurate Models*.
+If that model differs from the hardware in some region, both formalizations inherit
 that difference. That risk is what the [hardware
 replay](/TC-EFT/model/validation/) addresses.

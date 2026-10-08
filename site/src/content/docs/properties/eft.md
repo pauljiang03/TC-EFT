@@ -3,13 +3,15 @@ title: TC-EFT correction
 description: The error-free transformation that recovers what alignment discarded and returns the correctly rounded FP32 sum.
 ---
 
-TC-EFT takes the **encoded inputs** of a block and **any finite FP32 word D**
+TC-EFT is the algorithm of the **TC-EFT paper** (*TC-EFT: Characterizing and
+Correcting Tensor Core Arithmetic*), Section IV. It takes the **encoded inputs** of a block and **any finite FP32 word D**
 (normally the Tensor Core's output). It reconstructs the exact sum and
 returns its correctly rounded (nearest-even) FP32 value.
 
 ## The overlap identity
 
-Fix an extraction grid no finer than the alignment grid. Split each term into
+This is Theorem IV.5 of the TC-EFT paper. Fix an extraction grid no finer
+than the alignment grid. Split each term into
 a coarse part `hᵢ` on that grid and a low part `εᵢ`. Let `H = Σ hᵢ` and
 `εₒ = D − H`. Then
 
@@ -42,10 +44,10 @@ theorem scalarCorrected_correct ...   -- predicate ⇒ result is RNE(S)
 
 The core of this result is a proof that naive FP32 summation is exact under a
 bit-span bound (`naiveSumBinary_exact_of_bitSpan`).
-`ExtractionGrid.eq20_scalarPredicate` relates the manuscript's input-budget
-inequality to that predicate.
+`ExtractionGrid.eq20_scalarPredicate` relates the TC-EFT paper's input-budget
+inequality (17) to that predicate.
 
-## Algorithm 1: always returns an answer
+## Algorithm 1 of the TC-EFT paper: always returns an answer
 
 ```lean
 def algorithm1Encoded {p : Profile} (x : BlockInput p) (D : F32) : ...
@@ -82,7 +84,7 @@ real implementation would use:
   values. No theorem yet shows that the predicate *forces* the fast path to
   be taken.
 - **How often the scalar path applies depends on the inputs.** On the
-  published GPU vectors and the near-one cohort it is taken 5,000/5,000 and
+  *Accurate Models* GPU vectors and the near-one cohort it is taken 5,000/5,000 and
   1,000/1,000 times on each GPU. On application-like inputs it is taken in
   58–97% of cases. On uniformly random bit patterns, whose exponents spread
   widely, it is taken 73, 13, and 0 times out of 1,000 (V100, A100, H100).

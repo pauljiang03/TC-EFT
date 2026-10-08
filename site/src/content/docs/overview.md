@@ -16,7 +16,7 @@ The library has three layers:
 
 1. **[A model of the Tensor Core](/TC-EFT/model/).** An executable function,
    `evalBlock`, maps encoded input words to an FP32 output word for one group
-   of products. It follows Khattak and Mikaitis,
+   of products. It follows the hardware model of Khattak and Mikaitis,
    *[Accurate Models of NVIDIA Tensor Cores](https://arxiv.org/html/2512.07004v4)*,
    and uses exact integers and rationals throughout. It does not rely on
    floating-point hardware or rounding libraries.
@@ -43,12 +43,29 @@ definition, so:
   EFT correctness are Lean theorems about the *same* definition that the tests
   execute.
 - **It is cross-checked.** An [independent
-  specification](/TC-EFT/model/specification/), written from the paper without
+  specification](/TC-EFT/model/specification/), written from *Accurate Models* without
   importing the implementation, is proved to agree with `evalBlock` on every
   encoded input. A second implementation built on
   [FloatLib](/TC-EFT/proofs/floatlib/) is also proved equivalent.
 - **It is validated.** Recorded GPU outputs are [replayed bit for
   bit](/TC-EFT/model/validation/).
+
+## Two papers
+
+The site cites two papers, and always names which one it means:
+
+- ***Accurate Models***: Khattak and Mikaitis,
+  [*Accurate Models of NVIDIA Tensor Cores*](https://arxiv.org/html/2512.07004v4)
+  (arXiv 2512.07004v4). The source of the **Tensor Core model**: the
+  alignment, truncation and rounding behavior, the per-GPU parameters
+  (Table 3), and the recorded GPU validation vectors. Lean names containing
+  `Paper`, such as `PaperSpec` and `supported_eq_paper`, refer to this paper.
+- **The TC-EFT paper**: *TC-EFT: Characterizing and Correcting Tensor Core
+  Arithmetic* (under submission). The source of the **worst-case error and non-monotonicity
+  results** (Section III) and the **TC-EFT algorithm** (Section IV,
+  Algorithm 1). Theorem, lemma and equation numbers such as Theorem III.4,
+  Lemma IV.2 and inequality (17) refer to this paper, as do the
+  `tc_eft_paper` adapter and `check_paper_eft.py`.
 
 ## A first calculation
 
@@ -72,7 +89,7 @@ example : ((evalBlock ones).toOption.map fun t => t.output.bits) =
 
 The proofs are about the **formal model**, under each theorem's stated
 hypotheses. The link from the model to real GPUs comes from replaying
-recorded measurements and from the published model the definitions follow.
+recorded measurements and from *Accurate Models*, which the definitions follow.
 It is evidence, not a proof. The supported paths have FP16, BF16, or TF32
 operands and FP32 `C` and output. See [Modeling scope and
 limits](/TC-EFT/model/scope/) and the [trust boundary](/TC-EFT/proofs/trust/).
