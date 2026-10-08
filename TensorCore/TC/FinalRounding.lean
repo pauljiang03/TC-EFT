@@ -6,22 +6,22 @@ import TensorCore.TC.Profiles
 
 namespace TensorCore
 
-theorem conversionStage_nearestEven_correct (s : ConversionStage) (hf : s.format.WellFormed)
+theorem roundingStage_nearestEven_correct (s : RoundingStage) (hf : s.format.WellFormed)
     (hmode : s.mode = .nearestEven) (x : ℚ) (d : FiniteBinary s.format)
-    (h : s.convert x = some d) : NearestEven s.format x d.bits := by
-  have hout := conversionStage_output h
-  have hr := (conversionStage_range h).2
+    (h : s.roundValue x = some d) : NearestEven s.format x d.bits := by
+  have hout := roundingStage_output h
+  have hr := (roundingStage_range h).2
   rw [hmode] at hout
   obtain ⟨bits, hb, hc⟩ := roundBinary_nearestEven_correct s.format hf x hr
   rw [hout] at hb
   cases Option.some.inj hb
   exact hc
 
-theorem conversionStage_towardZero_correct (s : ConversionStage) (hf : s.format.WellFormed)
+theorem roundingStage_towardZero_correct (s : RoundingStage) (hf : s.format.WellFormed)
     (hmode : s.mode = .towardZero) (x : ℚ) (d : FiniteBinary s.format)
-    (h : s.convert x = some d) : TowardZero s.format x d.bits := by
-  have hout := conversionStage_output h
-  have hr := (conversionStage_range h).2
+    (h : s.roundValue x = some d) : TowardZero s.format x d.bits := by
+  have hout := roundingStage_output h
+  have hr := (roundingStage_range h).2
   rw [hmode] at hout
   obtain ⟨bits, hb, hc⟩ := roundBinary_towardZero_correct s.format hf x hr
   rw [hout] at hb
@@ -33,13 +33,13 @@ theorem evalInvocation_output_nearestEven {p : InvocationSpec} {x : InvocationIn
     {t : InvocationTrace p} (h : evalInvocation x = .ok t) (hmode : p.output.mode = .nearestEven) :
     NearestEven p.output.format t.intermediate.value t.output.bits := by
   obtain ⟨hv, _, _, _, _, hout⟩ := evalInvocation_spec h
-  exact conversionStage_nearestEven_correct p.output hv.2.2.2.1 hmode _ _ hout
+  exact roundingStage_nearestEven_correct p.output hv.2.2.2.1 hmode _ _ hout
 
 theorem evalInvocation_output_towardZero {p : InvocationSpec} {x : InvocationInput p}
     {t : InvocationTrace p} (h : evalInvocation x = .ok t) (hmode : p.output.mode = .towardZero) :
     TowardZero p.output.format t.intermediate.value t.output.bits := by
   obtain ⟨hv, _, _, _, _, hout⟩ := evalInvocation_spec h
-  exact conversionStage_towardZero_correct p.output hv.2.2.2.1 hmode _ _ hout
+  exact roundingStage_towardZero_correct p.output hv.2.2.2.1 hmode _ _ hout
 
 /-- FP64 fused specification: one correctly rounded result in the stated direction. -/
 theorem binary64Fma_nearestEven {x : InvocationInput (binary64Fma .nearestEven)}
@@ -52,24 +52,24 @@ theorem binary64Fma_towardZero {x : InvocationInput (binary64Fma .towardZero)}
     TowardZero fp64 t.intermediate.value t.output.bits :=
   evalInvocation_output_towardZero h rfl
 
-theorem conversionStage_towardNegative_correct (s : ConversionStage) (hf : s.format.WellFormed)
+theorem roundingStage_towardNegative_correct (s : RoundingStage) (hf : s.format.WellFormed)
     (hmode : s.mode = .towardNegative) (x : ℚ) (d : FiniteBinary s.format)
-    (h : s.convert x = some d) : TowardNegative s.format x d.bits := by
-  have hout := conversionStage_output h
+    (h : s.roundValue x = some d) : TowardNegative s.format x d.bits := by
+  have hout := roundingStage_output h
   rw [hmode] at hout
   obtain ⟨bits, hb, hc⟩ := roundBinary_towardNegative_correct s.format hf x
-    (conversionStage_range h).2
+    (roundingStage_range h).2
   rw [hout] at hb
   cases Option.some.inj hb
   exact hc
 
-theorem conversionStage_towardPositive_correct (s : ConversionStage) (hf : s.format.WellFormed)
+theorem roundingStage_towardPositive_correct (s : RoundingStage) (hf : s.format.WellFormed)
     (hmode : s.mode = .towardPositive) (x : ℚ) (d : FiniteBinary s.format)
-    (h : s.convert x = some d) : TowardPositive s.format x d.bits := by
-  have hout := conversionStage_output h
+    (h : s.roundValue x = some d) : TowardPositive s.format x d.bits := by
+  have hout := roundingStage_output h
   rw [hmode] at hout
   obtain ⟨bits, hb, hc⟩ := roundBinary_towardPositive_correct s.format hf x
-    (conversionStage_range h).2
+    (roundingStage_range h).2
   rw [hout] at hb
   cases Option.some.inj hb
   exact hc
@@ -78,13 +78,13 @@ theorem evalInvocation_output_towardNegative {p : InvocationSpec} {x : Invocatio
     {t : InvocationTrace p} (h : evalInvocation x = .ok t) (hmode : p.output.mode = .towardNegative) :
     TowardNegative p.output.format t.intermediate.value t.output.bits := by
   obtain ⟨hv, _, _, _, _, hout⟩ := evalInvocation_spec h
-  exact conversionStage_towardNegative_correct p.output hv.2.2.2.1 hmode _ _ hout
+  exact roundingStage_towardNegative_correct p.output hv.2.2.2.1 hmode _ _ hout
 
 theorem evalInvocation_output_towardPositive {p : InvocationSpec} {x : InvocationInput p}
     {t : InvocationTrace p} (h : evalInvocation x = .ok t) (hmode : p.output.mode = .towardPositive) :
     TowardPositive p.output.format t.intermediate.value t.output.bits := by
   obtain ⟨hv, _, _, _, _, hout⟩ := evalInvocation_spec h
-  exact conversionStage_towardPositive_correct p.output hv.2.2.2.1 hmode _ _ hout
+  exact roundingStage_towardPositive_correct p.output hv.2.2.2.1 hmode _ _ hout
 
 theorem binary64Fma_towardNegative {x : InvocationInput (binary64Fma .towardNegative)}
     {t : InvocationTrace (binary64Fma .towardNegative)} (h : evalInvocation x = .ok t) :
@@ -102,7 +102,7 @@ theorem binary64Fma_exact_input {mode : BinaryRoundingMode}
     (h : evalInvocation x = .ok t) : invocationIdeal x = some t.intermediate.value := by
   obtain ⟨_, _, hp, ha, hr, _⟩ := evalInvocation_spec h
   simp only [accumulateInvocation, binary64Fma, Option.some.injEq] at ha
-  simp only [binary64Fma, runConversions, Option.some.injEq] at hr
+  simp only [binary64Fma, runRoundings, Option.some.injEq] at hr
   simp only [invocationIdeal, hp, Option.map_some]
   rw [← hr, ← ha]
   rfl

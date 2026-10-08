@@ -11,7 +11,7 @@ def machineAccumulate (w : ℕ) (acc : BitVec w) : List ℤ → BitVec w
 def PreparedBlock.machineAccumulator (b : PreparedBlock) (w : ℕ) : ℚ :=
   ((machineAccumulate w 0 b.coefficients).toInt : ℚ) * pow2 b.alignGridExponent
 
-/-- Execute accumulation with w-bit additions, then the ordinary FP32 conversion. -/
+/-- Execute accumulation with w-bit additions, then the ordinary rounding to FP32. -/
 def evalPreparedMachine (w : ℕ) (b : PreparedBlock) : Except ModelError BlockTrace :=
   match round32 .towardZero (b.machineAccumulator w) with
   | none => .error .accumulatorOutOfRange

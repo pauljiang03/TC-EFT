@@ -41,7 +41,7 @@ python3 scripts/check_device_formats.py
 ## What the rows don't cover
 
 The recorded rows are random normal inputs. They exercise alignment
-truncation and RZ conversion heavily, but some features are **not covered by
+truncation and truncation heavily, but some features are **not covered by
 hardware data**:
 
 - **Alignment floors** (−132 and −133) are never active in these rows.

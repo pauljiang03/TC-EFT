@@ -56,7 +56,7 @@ theorem tcEftEncoded_bits_isSome_iff ... -- bits are returned iff |S| ≤ maxFin
 ```
 
 If the scalar predicate fails, the reference algorithm falls back to exact
-rational consolidation followed by one RNE conversion. Together the two
+rational consolidation followed by one RNE rounding. Together the two
 theorems give total correctness on the finite range.
 
 ## Bounded execution

@@ -19,7 +19,7 @@ theorem fused_requires_one_product :
     ¬ ({v100Invocation with products := 2, accumulation := .fused} : InvocationSpec).Valid := by
   decide +kernel
 
-theorem finite_range_converter_policy :
+theorem finite_range_rounding_policy :
     round32 .towardZero (maxFinite32 + 1) = none ∧
     round32 .nearestEven (maxFinite32 + 1) = none ∧
     round32Core .towardZero (maxFinite32 + 1) = some 0x7f7fffff := by decide +kernel

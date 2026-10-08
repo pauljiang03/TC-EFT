@@ -1,5 +1,5 @@
 import TensorCore.Numerics.Binary.Encoding
-import TensorCore.Numerics.ConversionBounds
+import TensorCore.Numerics.RoundingBounds
 
 
 
@@ -25,11 +25,11 @@ theorem Format.maxFinite_lt (f : Format) : f.maxFinite < pow2 (f.emax + 1) := by
     Rat.natCast_lt_natCast.mpr (by have := Nat.two_pow_pos (f.mantissaBits + 1); omega)
   exact Rat.mul_lt_mul_of_pos_right h hq
 
-theorem binaryConvExp_bounds (f : Format) (hf : f.WellFormed) (m : ℚ) (hm : 0 < m)
+theorem binaryNormExp_bounds (f : Format) (hf : f.WellFormed) (m : ℚ) (hm : 0 < m)
     (hr : m ≤ f.maxFinite) :
-    f.emin ≤ binaryConvExp f m ∧ binaryConvExp f m ≤ f.emax ∧
-    m < pow2 (binaryConvExp f m + 1) ∧
-    (pow2 (binaryConvExp f m) ≤ m ∨ binaryConvExp f m = f.emin) := by
+    f.emin ≤ binaryNormExp f m ∧ binaryNormExp f m ≤ f.emax ∧
+    m < pow2 (binaryNormExp f m + 1) ∧
+    (pow2 (binaryNormExp f m) ≤ m ∨ binaryNormExp f m = f.emin) := by
   have hs := magnitudeExponent_spec m hm
   have hemin := f.emin_le_emax hf
   have htop : magnitudeExponent m ≤ f.emax := by
@@ -38,19 +38,19 @@ theorem binaryConvExp_bounds (f : Format) (hf : f.WellFormed) (m : ℚ) (hm : 0 
     have hg := pow2_le_of_le (e := f.emax + 1) (f := magnitudeExponent m) (by omega)
     have := f.maxFinite_lt
     grind
-  have hmax : magnitudeExponent m ≤ binaryConvExp f m := by unfold binaryConvExp; omega
-  have he1 : f.emin ≤ binaryConvExp f m := by unfold binaryConvExp; omega
-  have he2 : binaryConvExp f m ≤ f.emax := by unfold binaryConvExp; omega
+  have hmax : magnitudeExponent m ≤ binaryNormExp f m := by unfold binaryNormExp; omega
+  have he1 : f.emin ≤ binaryNormExp f m := by unfold binaryNormExp; omega
+  have he2 : binaryNormExp f m ≤ f.emax := by unfold binaryNormExp; omega
   have hupper := pow2_le_of_le (e := magnitudeExponent m + 1)
-    (f := binaryConvExp f m + 1) (by omega)
+    (f := binaryNormExp f m + 1) (by omega)
   refine ⟨he1, he2, by grind, ?_⟩
   by_cases h : f.emin ≤ magnitudeExponent m
   · left
-    have : binaryConvExp f m = magnitudeExponent m := by unfold binaryConvExp; omega
+    have : binaryNormExp f m = magnitudeExponent m := by unfold binaryNormExp; omega
     rw [this]
     exact hs.1
   · right
-    unfold binaryConvExp
+    unfold binaryNormExp
     omega
 
 theorem floor_le_ceil (t : ℚ) : t.floor ≤ t.ceil := by
@@ -125,15 +125,15 @@ theorem binaryCoefficient_le_integer (mode : BinaryRoundingMode) (negative : Boo
   | towardPositive => simp only [binaryCoefficient]; split <;> omega
 
 /-- The selected coefficient of a positive in-range magnitude. -/
-theorem binaryConvCoeff_bounds (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
+theorem binaryRoundedCoeff_bounds (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
     (negative : Bool) (m : ℚ) (hm : 0 < m) (hr : m ≤ f.maxFinite) :
-    let e := binaryConvExp f m
+    let e := binaryNormExp f m
     let k := binaryCoefficient mode negative (m / pow2 (e - f.mantissaBits))
     0 ≤ k ∧ k ≤ ((2 ^ (f.mantissaBits + 1) : ℕ) : ℤ) ∧
     (((2 ^ f.mantissaBits : ℕ) : ℤ) ≤ k ∨ e = f.emin) ∧
     (e = f.emax → k ≤ ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℤ)) := by
   intro e k
-  obtain ⟨he1, he2, hupper, hlower⟩ := binaryConvExp_bounds f hf m hm hr
+  obtain ⟨he1, he2, hupper, hlower⟩ := binaryNormExp_bounds f hf m hm hr
   have hq := pow2_pos (e - f.mantissaBits)
   have ht : 0 < m / pow2 (e - f.mantissaBits) := by
     apply (Rat.lt_div_iff hq).mpr

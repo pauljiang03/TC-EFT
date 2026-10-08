@@ -43,9 +43,9 @@ theorem roundBinary_canonical (f : Format) (hf : f.WellFormed) (mode : BinaryRou
     · rw [Rat.neg_mul, absQ_neg, absQ_of_nonneg (Rat.le_of_lt hpos)]
   have hrange := f.finiteValue_abs_le r.finiteValue
   have hne : r.value ≠ 0 := by simpa [r.value_eq_zero_iff] using hk
-  have hexp : binaryConvExp f ((r.significand : ℚ) * pow2 (r.exponent - f.mantissaBits)) =
+  have hexp : binaryNormExp f ((r.significand : ℚ) * pow2 (r.exponent - f.mantissaBits)) =
       r.exponent := by
-    unfold binaryConvExp
+    unfold binaryNormExp
     by_cases hnormal : 2 ^ f.mantissaBits ≤ r.significand
     · have hlo : pow2 r.exponent ≤ (r.significand : ℚ) * pow2 (r.exponent - f.mantissaBits) := by
         rw [f.binade_grid]

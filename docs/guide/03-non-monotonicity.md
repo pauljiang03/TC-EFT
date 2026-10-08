@@ -15,7 +15,7 @@ The executable prints encoded results. Decoded as floating-point values, the obs
 
 The input accumulator decreases from `1` to `1 - 2^-24`, while the TC model output increases from `1` to `1 + 2^-23`.
 
-At C = 1, the grid is `2^-23`; each `2^-24` product truncates to zero. After the decrease, the grid is `2^-24`; all four products survive. The exact retained accumulator becomes `1 + 3·2^-24`, and the final FP32 toward-zero conversion yields `1 + 2^-23`.
+At C = 1, the grid is `2^-23`; each `2^-24` product truncates to zero. After the decrease, the grid is `2^-24`; all four products survive. The exact retained accumulator becomes `1 + 3·2^-24`, and the final truncation to FP32 yields `1 + 2^-23`.
 
 ## A kernel-checked witness
 
@@ -42,7 +42,7 @@ This checks a concrete encoded counterexample. The general family theorem is [no
 
 [nonmonotone_range_encoded](../../TensorCore/TC/MonotonicityRange.lean) extends the result to `C_j = 1 - j·2^-24`, with explicit bounds on j and a formula for the witness range and maximal output. These are family results; their theorem parameters state the permitted inputs.
 
-[Flowback.lean](../../TensorCore/TC/Flowback.lean) proves necessary and sufficient conditions that account for changed alignment grids and final conversion. Its sufficient output-level criterion retains the required representability premises.
+[Flowback.lean](../../TensorCore/TC/Flowback.lean) proves necessary and sufficient conditions that account for changed alignment grids and final rounding. Its sufficient output-level criterion retains the required representability premises.
 
 The complete worked file also executes EFT before and after the perturbation. Both corrected values are `1.0000002384185791015625 = 1 + 2^-22`. Before the decrease, the exact sum is `1 + 4·2^-24`, which is already representable. After the decrease, it is `1 + 3·2^-24`, exactly halfway between `1 + 2^-23` and `1 + 2^-22`. Nearest-even rounding selects the upper endpoint because its final significand bit is zero. Thus the exact sums differ by `2^-24` but round to the same FP32 value. See [the EFT chapter](04-eft.md) for that correction.
 

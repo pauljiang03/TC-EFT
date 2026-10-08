@@ -168,9 +168,9 @@ theorem magnitudeExponent_le_of_lt (x : ℚ) (hx : 0 < x) (e : ℤ) (h : x < pow
   have := pow2_le_of_le hle
   grind
 
-theorem convExp_le_of_lt (x : ℚ) (hx : 0 < x) (e : ℤ) (h : x < pow2 (e + 1)) :
-    convExp x ≤ max e (-126) := by
-  unfold convExp emin32
+theorem normExp_le_of_lt (x : ℚ) (hx : 0 < x) (e : ℤ) (h : x < pow2 (e + 1)) :
+    normExp x ≤ max e (-126) := by
+  unfold normExp emin32
   have := magnitudeExponent_le_of_lt x hx e h
   omega
 

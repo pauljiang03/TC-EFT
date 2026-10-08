@@ -37,7 +37,7 @@ export default defineConfig({
             { label: '2. Exact unnormalized products', slug: 'model/products' },
             { label: '3. Alignment', slug: 'model/alignment' },
             { label: '4. Accumulation', slug: 'model/accumulation' },
-            { label: '5. Output conversion', slug: 'model/conversion' },
+            { label: '5. Normalization and final rounding', slug: 'model/normalization' },
             { label: '6. Architecture profiles', slug: 'model/profiles' },
             { label: '7. Instructions and chaining', slug: 'model/instructions' },
             { label: '8. Independent specification', slug: 'model/specification' },

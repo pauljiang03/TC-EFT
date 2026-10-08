@@ -154,7 +154,7 @@ Follow one recorded V100 row through the implementation:
 
 1. [check_device.py](../scripts/check_device.py) reads A/B/C and converts the FP32-stored operand values exactly to FP16 words. D is reserved as the expected output.
 2. [Main/Trace.lean](../Main/Trace.lean) parses the words into `BlockInput` and calls the [snapshot adapter](TensorCoreTests/TC/Cases.lean).
-3. The adapter calls `evalBlock` in [TC/Block.lean](../TensorCore/TC/Block.lean), which performs decoding, exact unnormalized multiplication, grid selection, signed truncation, accumulation, and FP32 conversion.
+3. The adapter calls `evalBlock` in [TC/Block.lean](../TensorCore/TC/Block.lean), which performs decoding, exact unnormalized multiplication, grid selection, signed truncation, accumulation, and rounding to FP32.
 4. Python compares the returned `bits` with the recorded D word and fails on any mismatch. D is never supplied to this model calculation.
 
 The first published V100 row can be run directly:

@@ -467,243 +467,21 @@
    "Algorithm1Result"
   ]
  ],
- "TensorCore/Numerics/Binary/ConversionBounds.lean": [
-  [
-   26,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   40,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   85,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   102,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   168,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   180,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   200,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   228,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1350,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1366,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1384,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1417,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1464,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1479,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1507,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1517,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1600,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1619,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1641,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1650,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1700,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1717,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1763,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1774,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1816,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1839,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1862,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1935,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1955,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   1989,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2056,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2074,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2131,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2146,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2191,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2200,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2219,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2276,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2294,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2334,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2349,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2368,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2375,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2446,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2467,
-   "mantissaBits",
-   "fractionBits"
-  ],
-  [
-   2477,
-   "mantissaBits",
-   "fractionBits"
-  ]
- ],
  "TensorCore/Numerics/Binary/CorrectRounding.lean": [
+  [
+   37,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
   [
    43,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   52,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    58,
@@ -841,6 +619,31 @@
    "fractionBits"
   ],
   [
+   1004,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   1011,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   1036,
+   "binaryNormExp_bounds",
+   "binaryConvExp_bounds"
+  ],
+  [
+   1047,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   1075,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    1081,
    "mantissaBits",
    "fractionBits"
@@ -849,6 +652,11 @@
    1093,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   1108,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    1114,
@@ -861,9 +669,19 @@
    "fractionBits"
   ],
   [
+   1160,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    1166,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   1191,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    1197,
@@ -876,9 +694,19 @@
    "fractionBits"
   ],
   [
+   1255,
+   "binaryNormExp_bounds",
+   "binaryConvExp_bounds"
+  ],
+  [
    1279,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   1295,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    1301,
@@ -886,14 +714,39 @@
    "fractionBits"
   ],
   [
+   1326,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    1421,
    "mantissaBits",
    "fractionBits"
   ],
   [
+   1431,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    1464,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   1482,
+   "binaryNormExp_bounds",
+   "binaryConvExp_bounds"
+  ],
+  [
+   1493,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   1521,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    1527,
@@ -911,9 +764,24 @@
    "fractionBits"
   ],
   [
+   1587,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    1593,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   1621,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   1645,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    1651,
@@ -921,9 +789,29 @@
    "fractionBits"
   ],
   [
+   1664,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    1691,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   1801,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   1821,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   1954,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    1960,
@@ -931,9 +819,29 @@
    "fractionBits"
   ],
   [
+   1990,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   2010,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   2033,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    2039,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   2104,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    2110,
@@ -941,9 +849,19 @@
    "fractionBits"
   ],
   [
+   2568,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    2577,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   2888,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    2897,
@@ -951,9 +869,39 @@
    "fractionBits"
   ],
   [
+   2935,
+   "binaryNormExp_bounds",
+   "binaryConvExp_bounds"
+  ],
+  [
+   2956,
+   "binaryRoundedCoeff_bounds",
+   "binaryConvCoeff_bounds"
+  ],
+  [
+   2997,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   3021,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    3030,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   3045,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   3069,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    3078,
@@ -966,9 +914,19 @@
    "fractionBits"
   ],
   [
+   4049,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    4055,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   4071,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    4077,
@@ -976,9 +934,19 @@
    "fractionBits"
   ],
   [
+   4136,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    4142,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   4190,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    4196,
@@ -986,9 +954,19 @@
    "fractionBits"
   ],
   [
+   4210,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    4216,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   4235,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    4241,
@@ -996,9 +974,29 @@
    "fractionBits"
   ],
   [
+   4290,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   4310,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   4333,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    4339,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   4349,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    4355,
@@ -1006,9 +1004,24 @@
    "fractionBits"
   ],
   [
+   4369,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    4375,
    "mantissaBits",
    "fractionBits"
+  ],
+  [
+   4435,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   4461,
+   "binaryNormExp",
+   "binaryConvExp"
   ],
   [
    4467,
@@ -1339,12 +1352,349 @@
    "fractionBits"
   ],
   [
+   211,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    262,
    "mantissaBits",
    "fractionBits"
   ],
   [
+   352,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
    375,
+   "mantissaBits",
+   "fractionBits"
+  ]
+ ],
+ "TensorCore/Numerics/Binary/RoundingBounds.lean": [
+  [
+   26,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   40,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   85,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   102,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   168,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   180,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   200,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   228,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   242,
+   "binaryNormExp_bounds",
+   "binaryConvExp_bounds"
+  ],
+  [
+   281,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   285,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   297,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   307,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   314,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   397,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   404,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   414,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   421,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   427,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   438,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   459,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   494,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   504,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   518,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   1282,
+   "binaryRoundedCoeff_bounds",
+   "binaryConvCoeff_bounds"
+  ],
+  [
+   1331,
+   "binaryNormExp",
+   "binaryConvExp"
+  ],
+  [
+   1350,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1366,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1384,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1417,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1448,
+   "binaryNormExp_bounds",
+   "binaryConvExp_bounds"
+  ],
+  [
+   1464,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1479,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1507,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1517,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1600,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1619,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1641,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1650,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1700,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1717,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1763,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1774,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1816,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1839,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1862,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1935,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1955,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   1989,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2056,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2074,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2131,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2146,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2191,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2200,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2219,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2276,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2294,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2334,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2349,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2368,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2375,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2446,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2467,
+   "mantissaBits",
+   "fractionBits"
+  ],
+  [
+   2477,
    "mantissaBits",
    "fractionBits"
   ]
@@ -1468,9 +1818,139 @@
  ],
  "TensorCore/Numerics/CorrectRounding.lean": [
   [
+   157,
+   "normExp",
+   "convExp"
+  ],
+  [
+   203,
+   "normExp_bounds",
+   "convExp_bounds"
+  ],
+  [
+   212,
+   "normExp",
+   "convExp"
+  ],
+  [
+   242,
+   "normExp",
+   "convExp"
+  ],
+  [
+   265,
+   "normExp",
+   "convExp"
+  ],
+  [
+   288,
+   "normExp",
+   "convExp"
+  ],
+  [
+   311,
+   "normExp",
+   "convExp"
+  ],
+  [
+   325,
+   "normExp",
+   "convExp"
+  ],
+  [
+   436,
+   "normExp",
+   "convExp"
+  ],
+  [
+   453,
+   "normExp",
+   "convExp"
+  ],
+  [
+   465,
+   "normExp",
+   "convExp"
+  ],
+  [
+   547,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   578,
+   "normExp",
+   "convExp"
+  ],
+  [
+   595,
+   "normExp",
+   "convExp"
+  ],
+  [
+   617,
+   "normExp",
+   "convExp"
+  ],
+  [
+   638,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   680,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1093,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   1356,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   1376,
+   "normExp",
+   "convExp"
+  ],
+  [
    1384,
    "outputUlpExponent",
    "outputQuantumExponent"
+  ],
+  [
+   1408,
+   "normExp_bounds",
+   "convExp_bounds"
+  ],
+  [
+   1427,
+   "roundedCoeff_bounds",
+   "convCoeff_bounds"
+  ],
+  [
+   1455,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1462,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   1479,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1486,
+   "roundedCoeff",
+   "convCoeff"
   ],
   [
    1832,
@@ -1481,6 +1961,11 @@
    1879,
    "outputUlpExponent",
    "outputQuantumExponent"
+  ],
+  [
+   1890,
+   "normExp",
+   "convExp"
   ]
  ],
  "TensorCore/Numerics/Defs.lean": [
@@ -1745,16 +2230,559 @@
  ],
  "TensorCore/Numerics/RoundOp.lean": [
   [
+   239,
+   "normExp",
+   "convExp"
+  ],
+  [
+   256,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   278,
+   "normExp",
+   "convExp"
+  ],
+  [
+   355,
+   "normExp",
+   "convExp"
+  ],
+  [
+   362,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
    419,
    "outputUlpExponent",
    "outputQuantumExponent"
+  ],
+  [
+   519,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   528,
+   "normExp",
+   "convExp"
+  ]
+ ],
+ "TensorCore/Numerics/RoundTrip.lean": [
+  [
+   961,
+   "normExp",
+   "convExp"
+  ],
+  [
+   982,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1263,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   1285,
+   "roundedCoeff",
+   "convCoeff"
+  ]
+ ],
+ "TensorCore/Numerics/Rounding.lean": [
+  [
+   2156,
+   "normExp_le_of_lt",
+   "convExp_le_of_lt"
+  ],
+  [
+   2187,
+   "normExp",
+   "convExp"
+  ],
+  [
+   2200,
+   "normExp",
+   "convExp"
+  ]
+ ],
+ "TensorCore/Numerics/RoundingBounds.lean": [
+  [
+   114,
+   "normExp_bounds",
+   "convExp_bounds"
+  ],
+  [
+   138,
+   "normExp",
+   "convExp"
+  ],
+  [
+   141,
+   "normExp",
+   "convExp"
+  ],
+  [
+   150,
+   "normExp",
+   "convExp"
+  ],
+  [
+   159,
+   "normExp",
+   "convExp"
+  ],
+  [
+   165,
+   "normExp",
+   "convExp"
+  ],
+  [
+   230,
+   "normExp",
+   "convExp"
+  ],
+  [
+   236,
+   "normExp",
+   "convExp"
+  ],
+  [
+   245,
+   "normExp",
+   "convExp"
+  ],
+  [
+   251,
+   "normExp",
+   "convExp"
+  ],
+  [
+   258,
+   "normExp",
+   "convExp"
+  ],
+  [
+   266,
+   "normExp",
+   "convExp"
+  ],
+  [
+   288,
+   "normExp",
+   "convExp"
+  ],
+  [
+   321,
+   "normExp",
+   "convExp"
+  ],
+  [
+   330,
+   "normExp",
+   "convExp"
+  ],
+  [
+   347,
+   "normExp",
+   "convExp"
+  ],
+  [
+   571,
+   "roundedCoeff_bounds",
+   "convCoeff_bounds"
+  ],
+  [
+   599,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   603,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   612,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   616,
+   "normExp",
+   "convExp"
+  ],
+  [
+   624,
+   "normExp",
+   "convExp"
+  ],
+  [
+   629,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   650,
+   "normExp_bounds",
+   "convExp_bounds"
+  ],
+  [
+   660,
+   "normExp",
+   "convExp"
+  ],
+  [
+   674,
+   "normExp",
+   "convExp"
+  ],
+  [
+   701,
+   "normExp",
+   "convExp"
+  ],
+  [
+   743,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   747,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   758,
+   "normExp",
+   "convExp"
+  ],
+  [
+   767,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   812,
+   "normExp",
+   "convExp"
+  ],
+  [
+   833,
+   "normExp",
+   "convExp"
+  ],
+  [
+   874,
+   "normExp",
+   "convExp"
+  ],
+  [
+   901,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   911,
+   "normExp",
+   "convExp"
   ]
  ],
  "TensorCore/Numerics/RoundingError.lean": [
   [
+   22,
+   "normExp",
+   "convExp"
+  ],
+  [
+   36,
+   "normExp",
+   "convExp"
+  ],
+  [
+   110,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   179,
+   "normExp",
+   "convExp"
+  ],
+  [
    337,
    "outputUlpExponent",
    "outputQuantumExponent"
+  ],
+  [
+   555,
+   "normExp",
+   "convExp"
+  ]
+ ],
+ "TensorCore/Numerics/RoundingStage.lean": [
+  [
+   246,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   259,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   261,
+   "roundValue",
+   "convert"
+  ],
+  [
+   265,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   299,
+   "RoundingEvent",
+   "ConversionEvent"
+  ],
+  [
+   303,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   318,
+   "RoundingEvent",
+   "ConversionEvent"
+  ],
+  [
+   324,
+   "RoundingEvent",
+   "ConversionEvent"
+  ],
+  [
+   340,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   345,
+   "RoundingEvent",
+   "ConversionEvent"
+  ],
+  [
+   354,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   360,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   373,
+   "RoundingEvent",
+   "ConversionEvent"
+  ],
+  [
+   378,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   381,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   386,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   416,
+   "roundValue",
+   "convert"
+  ],
+  [
+   421,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   446,
+   "roundingStage_output",
+   "conversionStage_output"
+  ],
+  [
+   450,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   470,
+   "roundValue",
+   "convert"
+  ],
+  [
+   494,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   496,
+   "roundValue",
+   "convert"
+  ],
+  [
+   559,
+   "roundingStage_range",
+   "conversionStage_range"
+  ],
+  [
+   563,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   583,
+   "roundValue",
+   "convert"
+  ],
+  [
+   608,
+   "roundingStage_output",
+   "conversionStage_output"
+  ],
+  [
+   612,
+   "runRoundings_recovery",
+   "runConversions_recovery"
+  ],
+  [
+   617,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   627,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   632,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   664,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   672,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   691,
+   "roundValue",
+   "convert"
+  ],
+  [
+   700,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   714,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   726,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   741,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   764,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   774,
+   "RoundingEvent",
+   "ConversionEvent"
+  ],
+  [
+   782,
+   "runRoundings_events",
+   "runConversions_events"
+  ],
+  [
+   787,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   797,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   802,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   815,
+   "RoundingEvent",
+   "ConversionEvent"
+  ],
+  [
+   832,
+   "roundValue",
+   "convert"
+  ],
+  [
+   856,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   877,
+   "roundValue",
+   "convert"
+  ],
+  [
+   886,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   900,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   912,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   927,
+   "runRoundings",
+   "runConversions"
   ]
  ],
  "TensorCore/Numerics/UnnormalizedProduct.lean": [
@@ -2541,6 +3569,21 @@
    "alignFraction"
   ],
   [
+   454,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   459,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   461,
+   "roundValue",
+   "convert"
+  ],
+  [
    584,
    "alignMantissaBits",
    "alignFraction"
@@ -2699,6 +3742,166 @@
    "fractionalBits"
   ],
   [
+   659,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   676,
+   "normExp",
+   "convExp"
+  ],
+  [
+   695,
+   "normExp",
+   "convExp"
+  ],
+  [
+   712,
+   "normExp",
+   "convExp"
+  ],
+  [
+   760,
+   "normExp",
+   "convExp"
+  ],
+  [
+   809,
+   "normExp",
+   "convExp"
+  ],
+  [
+   882,
+   "normExp_bounds",
+   "convExp_bounds"
+  ],
+  [
+   904,
+   "normExp_bounds",
+   "convExp_bounds"
+  ],
+  [
+   959,
+   "normExp",
+   "convExp"
+  ],
+  [
+   962,
+   "normExp",
+   "convExp"
+  ],
+  [
+   968,
+   "normExp",
+   "convExp"
+  ],
+  [
+   987,
+   "normExp",
+   "convExp"
+  ],
+  [
+   997,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1023,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1034,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1051,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1074,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1082,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1132,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1195,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1210,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1227,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1252,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1286,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1291,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1308,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1320,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1330,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1439,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   1447,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1470,
+   "normExp",
+   "convExp"
+  ],
+  [
+   1520,
+   "normExp",
+   "convExp"
+  ],
+  [
    2341,
    "alignGridExponent",
    "quantumExponent"
@@ -2731,9 +3934,161 @@
  ],
  "TensorCore/TC/Invocation.lean": [
   [
+   13,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
    25,
    "alignMantissaBits",
    "fraction"
+  ],
+  [
+   64,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   71,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   82,
+   "RoundingStage",
+   "ConversionStage"
+  ],
+  [
+   542,
+   "roundings",
+   "conversions"
+  ],
+  [
+   545,
+   "RoundingEvent",
+   "ConversionEvent"
+  ],
+  [
+   571,
+   "roundings",
+   "conversions"
+  ],
+  [
+   574,
+   "RoundingEvent",
+   "ConversionEvent"
+  ],
+  [
+   677,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   720,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   787,
+   "localRoundingFailed",
+   "localConversionFailed"
+  ],
+  [
+   789,
+   "intermediateRoundingFailed",
+   "intermediateConversionFailed"
+  ],
+  [
+   791,
+   "outputRoundingFailed",
+   "outputConversionFailed"
+  ],
+  [
+   829,
+   "localRoundingFailed",
+   "localConversionFailed"
+  ],
+  [
+   836,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   851,
+   "intermediateRoundingFailed",
+   "intermediateConversionFailed"
+  ],
+  [
+   862,
+   "roundValue",
+   "convert"
+  ],
+  [
+   874,
+   "outputRoundingFailed",
+   "outputConversionFailed"
+  ]
+ ],
+ "TensorCore/TC/InvocationProperties.lean": [
+  [
+   202,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   263,
+   "runRoundings_recovery",
+   "runConversions_recovery"
+  ],
+  [
+   327,
+   "RoundingRun",
+   "ConversionRun"
+  ],
+  [
+   377,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   396,
+   "roundValue",
+   "convert"
+  ],
+  [
+   438,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   470,
+   "roundValue",
+   "convert"
+  ],
+  [
+   578,
+   "runRoundings",
+   "runConversions"
+  ],
+  [
+   597,
+   "roundValue",
+   "convert"
+  ],
+  [
+   785,
+   "runRoundings_recovery",
+   "runConversions_recovery"
+  ],
+  [
+   907,
+   "roundingStage_output",
+   "conversionStage_output"
+  ],
+  [
+   911,
+   "roundingStage_range",
+   "conversionStage_range"
   ]
  ],
  "TensorCore/TC/Monotonicity.lean": [
@@ -3008,6 +4363,41 @@
    "rawScale"
   ],
   [
+   2283,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   2405,
+   "normExp",
+   "convExp"
+  ],
+  [
+   2420,
+   "normExp",
+   "convExp"
+  ],
+  [
+   2437,
+   "normExp",
+   "convExp"
+  ],
+  [
+   2462,
+   "normExp",
+   "convExp"
+  ],
+  [
+   2616,
+   "normExp",
+   "convExp"
+  ],
+  [
+   2624,
+   "normExp",
+   "convExp"
+  ],
+  [
    3242,
    "unnormalizedMul",
    "rawMul"
@@ -3103,6 +4493,41 @@
    1217,
    "unnormalizedExp",
    "rawScale"
+  ],
+  [
+   2156,
+   "roundedCoeff",
+   "convCoeff"
+  ],
+  [
+   2282,
+   "normExp",
+   "convExp"
+  ],
+  [
+   2290,
+   "normExp",
+   "convExp"
+  ],
+  [
+   2976,
+   "normExp",
+   "convExp"
+  ],
+  [
+   2991,
+   "normExp",
+   "convExp"
+  ],
+  [
+   3008,
+   "normExp",
+   "convExp"
+  ],
+  [
+   3033,
+   "normExp",
+   "convExp"
   ],
   [
    3475,

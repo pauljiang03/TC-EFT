@@ -58,7 +58,7 @@ into it, and it can express variations the basic profile cannot:
 ```lean
 inductive CPlacement where
   | inGroup                                        -- C is aligned with the products
-  | afterProducts (stages : List ConversionStage)  -- products converted first, then C added exactly
+  | afterProducts (stages : List RoundingStage)  -- products rounded first, then C added exactly
 
 inductive AccumulationKind where
   | aligned (alignMantissaBits : ℕ) (floor : Option ℤ) (cPlacement : CPlacement)
@@ -69,8 +69,8 @@ structure InvocationSpec where
   cFormat : Format
   products : ℕ
   accumulation : AccumulationKind
-  intermediate : List ConversionStage := []
-  output : ConversionStage       -- output format and rounding direction
+  intermediate : List RoundingStage := []
+  output : RoundingStage       -- output format and rounding direction
 ```
 
 - `Profile.toInvocation` embeds a profile as an aligned, in-group,

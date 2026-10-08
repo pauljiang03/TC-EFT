@@ -30,12 +30,14 @@ def encode32 (negative : Bool) (e k : ℤ) : F32 :=
   BitVec.ofNat 32 ((if negative then 2 ^ 31 else 0) +
     (if k < 2 ^ 23 then k.toNat else (e + 127).toNat * 2 ^ 23 + (k - 2 ^ 23).toNat))
 
-/-- Exponent selected for a positive magnitude, clamped to the subnormal range. -/
-def convExp (m : ℚ) : ℤ := max (magnitudeExponent m) emin32
+/-- Normalization: the exponent of the leading 1 of a positive magnitude, clamped to the
+subnormal range. -/
+def normExp (m : ℚ) : ℤ := max (magnitudeExponent m) emin32
 
-/-- Coefficient selected on the grid `2^(convExp m - 23)`. -/
-def convCoeff (mode : RoundingMode) (m : ℚ) : ℤ :=
-  roundCoefficient mode (m / pow2 (convExp m - 23))
+/-- Final rounding: the 24-bit significand kept on the grid `2^(normExp m - 23)`, truncated or
+rounded to nearest even according to `mode`. -/
+def roundedCoeff (mode : RoundingMode) (m : ℚ) : ℤ :=
+  roundCoefficient mode (m / pow2 (normExp m - 23))
 
 /-- A coefficient of `2^24` carries into the next binade. -/
 def carry (e k : ℤ) : ℤ × ℤ := if k = 2 ^ 24 then (e + 1, k / 2) else (e, k)
@@ -44,7 +46,7 @@ def carry (e k : ℤ) : ℤ × ℤ := if k = 2 ^ 24 then (e + 1, k / 2) else (e,
 def round32Core (mode : RoundingMode) (x : ℚ) : Option F32 :=
   if x = 0 then some 0
   else
-    let (e', k') := carry (convExp (absQ x)) (convCoeff mode (absQ x))
+    let (e', k') := carry (normExp (absQ x)) (roundedCoeff mode (absQ x))
     if e' > 127 then none else some (encode32 (decide (x < 0)) e' k')
 
 /-- Finite-range reference conversion. -/
@@ -64,7 +66,7 @@ theorem round32_range {mode : RoundingMode} {x : ℚ} {b : F32}
   · grind
 
 def magnitudeRounded (mode : RoundingMode) (m : ℚ) : ℚ :=
-  (convCoeff mode m : ℚ) * pow2 (convExp m - 23)
+  (roundedCoeff mode m : ℚ) * pow2 (normExp m - 23)
 
 def signedRounded (mode : RoundingMode) (x : ℚ) : ℚ :=
   if x < 0 then -magnitudeRounded mode (absQ x) else magnitudeRounded mode (absQ x)

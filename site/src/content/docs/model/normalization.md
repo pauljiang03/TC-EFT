@@ -1,15 +1,30 @@
 ---
-title: 5. Output conversion
-description: The exact accumulator is converted to an FP32 word by truncation (round toward zero), with explicit range and signed-zero behavior.
+title: 5. Normalization and final rounding
+description: The aligned sum is normalized and then truncated to an FP32 word (the final rounding mode is round toward zero), with explicit range and signed-zero behavior.
 ---
 
-The final stage turns the exact rational accumulator into an FP32 bit
-pattern. On the modeled paths the hardware **truncates**: it keeps FP32's 24
-significant bits and drops the rest. IEEE 754 calls this *round toward zero*
-(RZ), and the code uses that name, `.towardZero`. The two descriptions are the
-same operation. Dropping bits shrinks the magnitude, so the result moves
-toward zero for both signs. Note that for a negative number this is not
-rounding down (floor).
+*Accurate Models* describes the last step as **normalization followed by the
+final rounding mode**: "the rounding mode at both the alignment and
+post-normalization stages is truncation", and on Hopper "upon normalization,
+results are truncated rather than rounded". In its MATLAB code this is
+`norm_helper` (the "Normalisation Helper Function") with the final rounding
+mode `frmode = 'rz'`.
+
+The step has two parts:
+
+1. **Normalization** shifts the aligned integer sum so that its leading 1
+   becomes the top bit of the significand, and adjusts the exponent to match.
+   This loses nothing.
+2. **Final rounding** keeps FP32's 24 significant bits and drops the rest.
+   This is **truncation**, which IEEE 754 calls *round toward zero* (RZ); the
+   code uses that name, `.towardZero`. Dropping bits shrinks the magnitude,
+   so the result moves toward zero for both signs. For a negative number it
+   is not rounding down (floor). This is the second lossy step of the model,
+   after alignment.
+
+Because the model keeps the sum as an exact rational, both parts are done by
+one function, `round32`. It finds the exponent of the sum (normalization) and
+truncates the significand to 24 bits (final rounding):
 
 ```lean
 def evalPrepared (b : PreparedBlock) : Except ModelError BlockTrace :=
@@ -20,17 +35,17 @@ def evalPrepared (b : PreparedBlock) : Except ModelError BlockTrace :=
     | some d => .ok ⟨b, d⟩
 ```
 
-## `round32`: an exact rational-to-FP32 converter
+## `round32`: normalize and round an exact rational to FP32
 
-[`round32`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/RoundOp.lean#L51)
+[`round32`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/RoundOp.lean#L53)
 supports two modes, `towardZero` and `nearestEven`. EFT uses the second. The
 algorithm is:
 
 1. If `x = 0`, return `+0`.
-2. Find the binary exponent `e` of `|x|` (`magnitudeExponent`), clamped below
-   at `−126` so that subnormals use the fixed grid `2^-149` (`convExp`).
-3. Scale `|x|` onto the grid `2^(e−23)` and pick the integer coefficient:
-   `floor` for toward-zero, `rneInt` for nearest-even (`convCoeff`).
+2. **Normalize:** find the binary exponent `e` of `|x|` (`magnitudeExponent`), clamped below
+   at `−126` so that subnormals use the fixed grid `2^-149` (`normExp`).
+3. **Final rounding:** scale `|x|` onto the grid `2^(e−23)` and keep 24 bits:
+   `floor` for toward-zero, `rneInt` for nearest-even (`roundedCoeff`).
 4. If rounding produced `2^24`, carry into the next binade (`carry`).
 5. If the exponent passes 127, fail. Otherwise assemble sign, exponent, and
    mantissa bits (`encode32`).
@@ -39,7 +54,7 @@ algorithm is:
 def round32Core (mode : RoundingMode) (x : ℚ) : Option F32 :=
   if x = 0 then some 0
   else
-    let (e', k') := carry (convExp (absQ x)) (convCoeff mode (absQ x))
+    let (e', k') := carry (normExp (absQ x)) (roundedCoeff mode (absQ x))
     if e' > 127 then none else some (encode32 (decide (x < 0)) e' k')
 
 def round32 (mode : RoundingMode) (x : ℚ) : Option F32 :=
@@ -73,7 +88,7 @@ equality proof covers it bit for bit.
 
 ## How the rounding is specified
 
-The converter is an algorithm. Its correctness is proved against
+`round32` is an algorithm. Its correctness is proved against
 specifications that do not mention it:
 
 - **Toward zero:** the [independent
@@ -89,4 +104,4 @@ specifications that do not mention it:
 - **Any binary format:**
   [`roundBinary_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Binary/RoundingContract.lean#L16)
   gives the same contract for well-formed formats and modes in general. FP64
-  (DMMA) and multi-stage conversions use it.
+  (DMMA) and multi-stage rounding use it.

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Independent integer checks of the complete bounded EFT and final conversion."""
+"""Independent integer checks of the complete bounded EFT and final rounding."""
 from collections import Counter
 from fractions import Fraction
 from pathlib import Path

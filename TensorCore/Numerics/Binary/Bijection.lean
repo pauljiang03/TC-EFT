@@ -1,5 +1,5 @@
 import TensorCore.Numerics.Binary.ScalarSum
-import TensorCore.Numerics.Conversion
+import TensorCore.Numerics.RoundingStage
 
 /-! Finite IEEE encodings and canonical signed representations. -/
 

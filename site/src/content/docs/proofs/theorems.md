@@ -175,7 +175,7 @@ additions changes nothing.
 
 ### Is FP32 rounding implemented correctly?
 
-**Yes.** The converter returns the nearest FP32 value, ties to even, for every
+**Yes.** The rounding function returns the nearest FP32 value, ties to even, for every
 input in range. This also holds for any binary format and any rounding
 direction.
 

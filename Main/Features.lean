@@ -37,7 +37,7 @@ private def parsePairs (p : InvocationSpec) : List ℕ → Option (List (p.input
     else return (BitVec.ofNat _ a, BitVec.ofNat _ b) :: (← parsePairs p rest)
   | _ => none
 
-private def eventJson (e : ConversionEvent) : Json := Json.mkObj [
+private def eventJson (e : RoundingEvent) : Json := Json.mkObj [
   ("input", toJson (qText e.input)), ("bits", toJson e.output.bits.toNat),
   ("value", toJson (qText e.output.value)), ("loss", toJson (qText e.loss)),
   ("mantissaBits", toJson e.stage.format.mantissaBits), ("mode", toJson (reprStr e.stage.mode))]
@@ -54,7 +54,7 @@ private def invocationJson (p : InvocationSpec) (ns : List ℕ) : Option Json :=
       ("ideal", toJson (qText t.prepared.exactDot)), ("residual", toJson (qText t.residual)),
       ("accumulated", toJson (qText t.accumulation.value)),
       ("alignmentLoss", toJson (qText t.accumulation.alignmentLoss)),
-      ("localConversions", toJson (t.accumulation.conversions.map eventJson)),
+      ("localConversions", toJson (t.accumulation.roundings.map eventJson)),
       ("intermediate", toJson (t.intermediate.events.map eventJson))]
 
 private def parseFp16Pairs : List ℕ → Option (List (F16 × F16))

@@ -1,6 +1,6 @@
 import TensorCore.Numerics.Binary
-import TensorCore.Numerics.Conversion
-import TensorCore.Numerics.ConversionBounds
+import TensorCore.Numerics.RoundingStage
+import TensorCore.Numerics.RoundingBounds
 import TensorCore.Numerics.CorrectRounding
 import TensorCore.Numerics.Defs
 import TensorCore.Numerics.Encoding

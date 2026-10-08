@@ -44,53 +44,53 @@ theorem source_round_nonzero (m : TensorCore.RoundingMode) (x : Rat)
     (hx : x ≠ 0) (hr : |x| ≤ TCFloat.maxFinite32) :
     TensorCore.round32 m x =
       some (TensorCore.encode32 (decide (x<0))
-        (TensorCore.carry (TensorCore.convExp |x|) (TensorCore.convCoeff m |x|)).1
-        (TensorCore.carry (TensorCore.convExp |x|) (TensorCore.convCoeff m |x|)).2) := by
+        (TensorCore.carry (TensorCore.normExp |x|) (TensorCore.roundedCoeff m |x|)).1
+        (TensorCore.carry (TensorCore.normExp |x|) (TensorCore.roundedCoeff m |x|)).2) := by
   have hp := abs_pos.mpr hx
-  have he := TensorCore.convExp_bounds |x| hp hr
-  have hk := TensorCore.convCoeff_bounds m |x| hp hr
+  have he := TensorCore.normExp_bounds |x| hp hr
+  have hk := TensorCore.roundedCoeff_bounds m |x| hp hr
   have hc := TensorCore.carry_spec _ _ he.1 he.2.1 hk.1 hk.2.1 hk.2.2.1 hk.2.2.2
   simp only [TensorCore.round32,TensorCore.round32Core,abs_eq,maxFinite_eq,
     not_lt.mpr hr,ite_false,hx,not_lt.mpr hc.2.1]
 
-theorem convExp_subnormal (x : Rat) (h : TensorCore.magnitudeExponent |x| < -126) :
-    TensorCore.convExp |x| = -126 := by
-  unfold TensorCore.convExp TensorCore.emin32
+theorem normExp_subnormal (x : Rat) (h : TensorCore.magnitudeExponent |x| < -126) :
+    TensorCore.normExp |x| = -126 := by
+  unfold TensorCore.normExp TensorCore.emin32
   omega
 
-theorem convCoeff_subnormal (m : TensorCore.RoundingMode) (x : Rat) (hx : x ≠ 0)
+theorem roundedCoeff_subnormal (m : TensorCore.RoundingMode) (x : Rat) (hx : x ≠ 0)
     (h : TensorCore.magnitudeExponent |x| < -126) :
-    TensorCore.convCoeff m |x| ≤ 2^23 := by
+    TensorCore.roundedCoeff m |x| ≤ 2^23 := by
   obtain ⟨_,hu⟩ := TensorCore.magnitudeExponent_spec |x| (abs_pos.mpr hx)
   have hm : |x| < TensorCore.pow2 (-126) := lt_of_lt_of_le hu (TensorCore.pow2_le_of_le (by omega))
-  unfold TensorCore.convCoeff
-  rw [convExp_subnormal x h]
+  unfold TensorCore.roundedCoeff
+  rw [normExp_subnormal x h]
   apply TensorCore.roundCoefficient_le_integer
   apply (div_le_iff₀ (TensorCore.pow2_pos _)).mpr
   have hg := TensorCore.binade_grid (-126)
   norm_num only at hg ⊢
   linarith
 
-theorem convCoeff_tiny_rtz (x : Rat) (hx : x ≠ 0)
+theorem roundedCoeff_tiny_rtz (x : Rat) (hx : x ≠ 0)
     (h : TensorCore.magnitudeExponent |x| < -149) :
-    TensorCore.convCoeff .towardZero |x| = 0 := by
+    TensorCore.roundedCoeff .towardZero |x| = 0 := by
   obtain ⟨_,hu⟩ := TensorCore.magnitudeExponent_spec |x| (abs_pos.mpr hx)
   have hm : |x| < TensorCore.pow2 (-149) := lt_of_lt_of_le hu (TensorCore.pow2_le_of_le (by omega))
-  unfold TensorCore.convCoeff
-  rw [convExp_subnormal x (by omega)]
+  unfold TensorCore.roundedCoeff
+  rw [normExp_subnormal x (by omega)]
   change ⌊|x| / TensorCore.pow2 (-149)⌋ = 0
   apply Int.floor_eq_iff.mpr
   norm_num only [Int.cast_zero,zero_add]
   exact ⟨div_nonneg (abs_nonneg _) (TensorCore.pow2_pos _).le,
     (div_lt_one (TensorCore.pow2_pos _)).mpr hm⟩
 
-theorem convCoeff_tiny_rne (x : Rat) (hx : x ≠ 0)
+theorem roundedCoeff_tiny_rne (x : Rat) (hx : x ≠ 0)
     (h : TensorCore.magnitudeExponent |x| < -150) :
-    TensorCore.convCoeff .nearestEven |x| = 0 := by
+    TensorCore.roundedCoeff .nearestEven |x| = 0 := by
   obtain ⟨_,hu⟩ := TensorCore.magnitudeExponent_spec |x| (abs_pos.mpr hx)
   have hm : |x| < TensorCore.pow2 (-150) := lt_of_lt_of_le hu (TensorCore.pow2_le_of_le (by omega))
-  unfold TensorCore.convCoeff
-  rw [convExp_subnormal x (by omega)]
+  unfold TensorCore.roundedCoeff
+  rw [normExp_subnormal x (by omega)]
   apply coefficient_tiny
   · exact div_nonneg (abs_nonneg _) (TensorCore.pow2_pos _).le
   · apply (div_lt_iff₀ (TensorCore.pow2_pos _)).mpr
@@ -98,16 +98,16 @@ theorem convCoeff_tiny_rne (x : Rat) (hx : x ≠ 0)
     norm_num only at hg ⊢
     linarith
 
-theorem converter_rtz_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ TCFloat.maxFinite32) :
+theorem round32_rtz_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ TCFloat.maxFinite32) :
     (Model.roundRatWithRounding .binary32 .towardZero s x.num.natAbs x.den).bits.toNat =
       (TensorCore.encode32 s
-        (TensorCore.carry (TensorCore.convExp |x|) (TensorCore.convCoeff .towardZero |x|)).1
-        (TensorCore.carry (TensorCore.convExp |x|) (TensorCore.convCoeff .towardZero |x|)).2).toNat := by
+        (TensorCore.carry (TensorCore.normExp |x|) (TensorCore.roundedCoeff .towardZero |x|)).1
+        (TensorCore.carry (TensorCore.normExp |x|) (TensorCore.roundedCoeff .towardZero |x|)).2).toNat := by
   have hn : x.num.natAbs ≠ 0 := by simp [hx]
-  have he := TensorCore.convExp_bounds |x| (abs_pos.mpr hx) hr
-  have hk := TensorCore.convCoeff_bounds .towardZero |x| (abs_pos.mpr hx) hr
+  have he := TensorCore.normExp_bounds |x| (abs_pos.mpr hx) hr
+  have hk := TensorCore.roundedCoeff_bounds .towardZero |x| (abs_pos.mpr hx) hr
   have hlmax : TensorCore.magnitudeExponent |x| ≤ 127 := by
-    have hm : TensorCore.magnitudeExponent |x| ≤ TensorCore.convExp |x| := le_max_left _ _
+    have hm : TensorCore.magnitudeExponent |x| ≤ TensorCore.normExp |x| := le_max_left _ _
     omega
   simp only [Model.roundRatWithRounding,Model.roundRatWithRoundingScaled,
     Model.roundRatMagnitudeDirectedScaled,beq_iff_eq,x.den_nz,hn,ite_false,
@@ -121,7 +121,7 @@ theorem converter_rtz_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
     show (0:Int)+Int.ofNat (127+23-1)=(149:Int) from rfl,
     show Int.ofNat 23=(23:Int) from rfl]
   by_cases hsmall : TensorCore.magnitudeExponent |x| < -149
-  · rw [ite_eq_left hsmall,convExp_subnormal x (by omega),convCoeff_tiny_rtz x hx hsmall]
+  · rw [ite_eq_left hsmall,normExp_subnormal x (by omega),roundedCoeff_tiny_rtz x hx hsmall]
     exact zero_bits s
   · rw [ite_eq_right hsmall]
     by_cases hsub : TensorCore.magnitudeExponent |x| < -126
@@ -131,10 +131,10 @@ theorem converter_rtz_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
         (RationalBinary.scaleByPowerOfTwo x.num.natAbs x.den 149).1
         (RationalBinary.scaleByPowerOfTwo x.num.natAbs x.den 149).2 : Int) =
           TensorCore.roundCoefficient .towardZero (|x| / TCFloat.pow2 (-149)) at hc
-      have heq := convExp_subnormal x hsub
-      have hce : TensorCore.convCoeff .towardZero |x| =
+      have heq := normExp_subnormal x hsub
+      have hce : TensorCore.roundedCoeff .towardZero |x| =
         TensorCore.roundCoefficient .towardZero (|x|/TCFloat.pow2 (-149)) := by
-        rw [TensorCore.convCoeff,heq]
+        rw [TensorCore.roundedCoeff,heq]
         rfl
       rw [← hce] at hc
       have hcn := congrArg Int.toNat hc
@@ -142,9 +142,9 @@ theorem converter_rtz_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
       change (Model.packRoundedSubnormal .binary32 s (Model.zero .binary32 s)
         (Model.roundQuotDirected false _ _)).bits.toNat = _
       rw [hcn,heq]
-      have hb := convCoeff_subnormal .towardZero x hx hsub
-      have hcarry : TensorCore.carry (-126) (TensorCore.convCoeff .towardZero |x|) =
-          (-126,TensorCore.convCoeff .towardZero |x|) := by
+      have hb := roundedCoeff_subnormal .towardZero x hx hsub
+      have hcarry : TensorCore.carry (-126) (TensorCore.roundedCoeff .towardZero |x|) =
+          (-126,TensorCore.roundedCoeff .towardZero |x|) := by
         unfold TensorCore.carry
         split
         · omega
@@ -152,12 +152,12 @@ theorem converter_rtz_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
       rw [hcarry]
       exact subnormal_pack s _ hk.1 hb
     · rw [ite_eq_right hsub]
-      have heq : TensorCore.convExp |x| = TensorCore.magnitudeExponent |x| := by
-        unfold TensorCore.convExp TensorCore.emin32; omega
-      have hc := scaled_coefficient .towardZero x (TensorCore.convExp |x|-23)
-      have hs : -(TensorCore.convExp |x|-23) = 23-TensorCore.magnitudeExponent |x| := by omega
+      have heq : TensorCore.normExp |x| = TensorCore.magnitudeExponent |x| := by
+        unfold TensorCore.normExp TensorCore.emin32; omega
+      have hc := scaled_coefficient .towardZero x (TensorCore.normExp |x|-23)
+      have hs : -(TensorCore.normExp |x|-23) = 23-TensorCore.magnitudeExponent |x| := by omega
       rw [hs] at hc
-      change (Model.roundQuotDirected false _ _ : Int) = TensorCore.convCoeff .towardZero |x| at hc
+      change (Model.roundQuotDirected false _ _ : Int) = TensorCore.roundedCoeff .towardZero |x| at hc
       have hcn := congrArg Int.toNat hc
       simp only [Int.toNat_natCast] at hcn
       change (Model.packRoundedNormal .binary32 s _ (TensorCore.magnitudeExponent |x|)
@@ -168,16 +168,16 @@ theorem converter_rtz_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
         Model.pow2_eq_two_pow,floorLog2_eq x hx,show Int.ofNat 23=(23:Int) from rfl,hcn] at hlo
       exact normal_pack s _ _ _ he.1 he.2.1 (by omega) hk.2.1 hk.2.2.2
 
-theorem converter_rne_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ TCFloat.maxFinite32) :
+theorem round32_rne_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ TCFloat.maxFinite32) :
     (Model.roundRatWithRounding .binary32 .nearestEven s x.num.natAbs x.den).bits.toNat =
       (TensorCore.encode32 s
-        (TensorCore.carry (TensorCore.convExp |x|) (TensorCore.convCoeff .nearestEven |x|)).1
-        (TensorCore.carry (TensorCore.convExp |x|) (TensorCore.convCoeff .nearestEven |x|)).2).toNat := by
+        (TensorCore.carry (TensorCore.normExp |x|) (TensorCore.roundedCoeff .nearestEven |x|)).1
+        (TensorCore.carry (TensorCore.normExp |x|) (TensorCore.roundedCoeff .nearestEven |x|)).2).toNat := by
   have hn : x.num.natAbs ≠ 0 := by simp [hx]
-  have he := TensorCore.convExp_bounds |x| (abs_pos.mpr hx) hr
-  have hk := TensorCore.convCoeff_bounds .nearestEven |x| (abs_pos.mpr hx) hr
+  have he := TensorCore.normExp_bounds |x| (abs_pos.mpr hx) hr
+  have hk := TensorCore.roundedCoeff_bounds .nearestEven |x| (abs_pos.mpr hx) hr
   have hlmax : TensorCore.magnitudeExponent |x| ≤ 127 := by
-    have hm : TensorCore.magnitudeExponent |x| ≤ TensorCore.convExp |x| := le_max_left _ _
+    have hm : TensorCore.magnitudeExponent |x| ≤ TensorCore.normExp |x| := le_max_left _ _
     omega
   simp only [Model.roundRatWithRounding,Model.roundRatWithRoundingScaled,
     Model.roundRatScaled,FloatFormat.isIEEE_binary32,dite_true,Model.ieeeRoundRatScaled,
@@ -193,7 +193,7 @@ theorem converter_rne_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
     show Int.ofNat 23=(23:Int) from rfl,
     show FloatFormat.binary32.bias=127 from rfl]
   by_cases hsmall : TensorCore.magnitudeExponent |x| < -150
-  · rw [ite_eq_left hsmall,convExp_subnormal x (by omega),convCoeff_tiny_rne x hx hsmall]
+  · rw [ite_eq_left hsmall,normExp_subnormal x (by omega),roundedCoeff_tiny_rne x hx hsmall]
     cases s
     · exact zero_bits false
     · exact zero_bits true
@@ -201,10 +201,10 @@ theorem converter_rne_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
     by_cases hsub : TensorCore.magnitudeExponent |x| < -126
     · rw [ite_eq_left hsub]
       have hc := scaled_coefficient .nearestEven x (-149)
-      have heq := convExp_subnormal x hsub
-      have hce : TensorCore.convCoeff .nearestEven |x| =
+      have heq := normExp_subnormal x hsub
+      have hce : TensorCore.roundedCoeff .nearestEven |x| =
         TensorCore.roundCoefficient .nearestEven (|x|/TCFloat.pow2 (-149)) := by
-        rw [TensorCore.convCoeff,heq]; rfl
+        rw [TensorCore.roundedCoeff,heq]; rfl
       change (roundQuotientEven
         (RationalBinary.scaleByPowerOfTwo x.num.natAbs x.den 149).1
         (RationalBinary.scaleByPowerOfTwo x.num.natAbs x.den 149).2 : Int) = _ at hc
@@ -212,9 +212,9 @@ theorem converter_rne_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
       have hcn := congrArg Int.toNat hc
       simp only [Int.toNat_natCast] at hcn
       rw [heq]
-      have hb := convCoeff_subnormal .nearestEven x hx hsub
-      have hcarry : TensorCore.carry (-126) (TensorCore.convCoeff .nearestEven |x|) =
-          (-126,TensorCore.convCoeff .nearestEven |x|) := by
+      have hb := roundedCoeff_subnormal .nearestEven x hx hsub
+      have hcarry : TensorCore.carry (-126) (TensorCore.roundedCoeff .nearestEven |x|) =
+          (-126,TensorCore.roundedCoeff .nearestEven |x|) := by
         unfold TensorCore.carry
         split
         · omega
@@ -222,25 +222,25 @@ theorem converter_rne_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
       rw [hcarry]
       split
       · rename_i hz
-        have hkz : TensorCore.convCoeff .nearestEven |x| = 0 := by rw [hz] at hc; simpa using hc.symm
+        have hkz : TensorCore.roundedCoeff .nearestEven |x| = 0 := by rw [hz] at hc; simpa using hc.symm
         rw [hkz]
         cases s
         · exact zero_bits false
         · exact zero_bits true
       · split
         · rename_i hle _
-          have hqge : 2^23 ≤ (TensorCore.convCoeff .nearestEven |x|).toNat := by
+          have hqge : 2^23 ≤ (TensorCore.roundedCoeff .nearestEven |x|).toNat := by
             change 2^23 ≤ roundQuotientEven
               (RationalBinary.scaleByPowerOfTwo x.num.natAbs x.den 149).1
               (RationalBinary.scaleByPowerOfTwo x.num.natAbs x.den 149).2 at hle
             rwa [hcn] at hle
-          have hkeq : TensorCore.convCoeff .nearestEven |x| = 8388608 := by omega
+          have hkeq : TensorCore.roundedCoeff .nearestEven |x| = 8388608 := by omega
           rw [hkeq]
           have hp := encode_normal s (-126) 8388608 (by decide) (by decide) (by decide) (by decide)
           norm_num at hp
           exact hp
         · rename_i hlt _
-          have hqlt : ¬2^23 ≤ (TensorCore.convCoeff .nearestEven |x|).toNat := by
+          have hqlt : ¬2^23 ≤ (TensorCore.roundedCoeff .nearestEven |x|).toNat := by
             change ¬2^23 ≤ roundQuotientEven
               (RationalBinary.scaleByPowerOfTwo x.num.natAbs x.den 149).1
               (RationalBinary.scaleByPowerOfTwo x.num.natAbs x.den 149).2 at hlt
@@ -248,32 +248,32 @@ theorem converter_rne_nonzero (s : Bool) (x : Rat) (hx : x ≠ 0) (hr : |x| ≤ 
           rw [hcn]
           exact encode_subnormal s _ hk.1 (by omega)
     · rw [ite_eq_right hsub]
-      have heq : TensorCore.convExp |x| = TensorCore.magnitudeExponent |x| := by
-        unfold TensorCore.convExp TensorCore.emin32; omega
-      have hc := scaled_coefficient .nearestEven x (TensorCore.convExp |x|-23)
-      have hs : -(TensorCore.convExp |x|-23) = 23-TensorCore.magnitudeExponent |x| := by omega
+      have heq : TensorCore.normExp |x| = TensorCore.magnitudeExponent |x| := by
+        unfold TensorCore.normExp TensorCore.emin32; omega
+      have hc := scaled_coefficient .nearestEven x (TensorCore.normExp |x|-23)
+      have hs : -(TensorCore.normExp |x|-23) = 23-TensorCore.magnitudeExponent |x| := by omega
       rw [hs] at hc
-      change (roundQuotientEven _ _ : Int) = TensorCore.convCoeff .nearestEven |x| at hc
+      change (roundQuotientEven _ _ : Int) = TensorCore.roundedCoeff .nearestEven |x| at hc
       have hcn := congrArg Int.toNat hc
       simp only [Int.toNat_natCast] at hcn
       rw [hcn,← heq]
       have hlo := (Model.roundQuotientEven_normal_bounds .binary32 _ _ hn x.den_nz).1
       simp only [show FloatFormat.binary32.fracWidth=23 from rfl,
         Model.pow2_eq_two_pow,floorLog2_eq x hx,show Int.ofNat 23=(23:Int) from rfl,hcn] at hlo
-      have hlok : 2^23 ≤ TensorCore.convCoeff .nearestEven |x| := by omega
-      by_cases hcarry : TensorCore.convCoeff .nearestEven |x| = 2^24
-      · have hetop : TensorCore.convExp |x|+1 ≤127 := by omega
+      have hlok : 2^23 ≤ TensorCore.roundedCoeff .nearestEven |x| := by omega
+      by_cases hcarry : TensorCore.roundedCoeff .nearestEven |x| = 2^24
+      · have hetop : TensorCore.normExp |x|+1 ≤127 := by omega
         rw [hcarry]
-        change (if TensorCore.convExp |x|+1 > 127 then _ else
-          Model.ofFields .binary32 s (TensorCore.convExp |x|+1+127).toNat 0).bits.toNat = _
+        change (if TensorCore.normExp |x|+1 > 127 then _ else
+          Model.ofFields .binary32 s (TensorCore.normExp |x|+1+127).toNat 0).bits.toNat = _
         rw [ite_eq_right (not_lt.mpr hetop)]
-        have hcarryeq : TensorCore.carry (TensorCore.convExp |x|) (2^24) =
-            (TensorCore.convExp |x|+1,8388608) := by norm_num [TensorCore.carry]
+        have hcarryeq : TensorCore.carry (TensorCore.normExp |x|) (2^24) =
+            (TensorCore.normExp |x|+1,8388608) := by norm_num [TensorCore.carry]
         rw [hcarryeq]
-        have h := encode_normal s (TensorCore.convExp |x|+1) 8388608 (by omega) hetop (by decide) (by decide)
+        have h := encode_normal s (TensorCore.normExp |x|+1) 8388608 (by omega) hetop (by decide) (by decide)
         norm_num at h
         exact h
-      · have hcarryN : (TensorCore.convCoeff .nearestEven |x|).toNat ≠ 2^24 := by omega
+      · have hcarryN : (TensorCore.roundedCoeff .nearestEven |x|).toNat ≠ 2^24 := by omega
         simp only [Model.pow2_eq_two_pow,hcarryN,ite_false,
           not_lt.mpr he.2.1,TensorCore.carry,hcarry]
         exact encode_normal s _ _ he.1 he.2.1 hlok (by omega)
@@ -293,8 +293,8 @@ theorem round32_eq (m : TensorCore.RoundingMode) (x : Rat) :
       rw [hs]
       apply congrArg some
       cases m
-      · exact converter_rtz_nonzero _ x hz hr
-      · exact converter_rne_nonzero _ x hz hr
+      · exact round32_rtz_nonzero _ x hz hr
+      · exact round32_rne_nonzero _ x hz hr
   · have ho : |x| > TCFloat.maxFinite32 := lt_of_not_ge hr
     simp only [TCFloat.round32,TensorCore.round32,abs_eq,maxFinite_eq,ho,ite_true,Option.map_none]
 

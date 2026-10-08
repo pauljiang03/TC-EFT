@@ -35,7 +35,7 @@ run_cmd TensorCore.IndependentSpec.Audit.check ``contaminatedProposition
     assert 'Paper specification has forbidden dependencies' in failure, failure
     assert 'TensorCore.round32' in failure, failure
     contaminated_scalar = """import TensorCoreTests.Specification.Audit
-def hiddenScalarStage := TensorCore.ConversionStage.convert
+def hiddenScalarStage := TensorCore.RoundingStage.roundValue
 def contaminatedScalar := hiddenScalarStage
 run_cmd TensorCore.IndependentSpec.Audit.check ``contaminatedScalar
 """
@@ -43,7 +43,7 @@ run_cmd TensorCore.IndependentSpec.Audit.check ``contaminatedScalar
     failure_scalar = negative_scalar.stdout + negative_scalar.stderr
     assert negative_scalar.returncode != 0, 'Implementation-dependent scalar stage was accepted'
     assert 'Paper specification has forbidden dependencies' in failure_scalar, failure_scalar
-    assert 'TensorCore.ConversionStage.convert' in failure_scalar, failure_scalar
+    assert 'TensorCore.RoundingStage.roundValue' in failure_scalar, failure_scalar
     sources = (sorted((ROOT / 'TensorCore/TC/Specification').glob('*.lean')) +
                sorted((ROOT / 'tests/TensorCoreTests/Specification').glob('*.lean')) +
                [ROOT / 'scripts/lean/IndependentSpecAudit.lean', ROOT / 'examples/IndependentSpecification.lean',

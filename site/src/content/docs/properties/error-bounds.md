@@ -20,7 +20,7 @@ theorem evalBlock_residual_identity {p : Profile} {x : BlockInput p} {t : BlockT
 
 Whenever the model succeeds, the exact sum `C + Σ aᵢbᵢ` of the decoded
 inputs equals the output plus the residual. Here the residual is the
-conversion loss plus the alignment losses. The exact sum is computed from the
+final-rounding loss plus the alignment losses. The exact sum is computed from the
 input words directly (`exactDot`), not from the model's intermediate values.
 
 ## Two-part error bound
@@ -37,7 +37,7 @@ So the error is less than
 
 ```text
 (K + 1) · 2^(η − F)    +    ulp(D)
-  alignment loss          conversion loss
+  alignment loss          final-rounding loss
 ```
 
 Each of the `K + 1` terms loses less than one grid step, and truncation to FP32

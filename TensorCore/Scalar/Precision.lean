@@ -139,8 +139,8 @@ theorem precisionMagnitude_le_max (f : Format) (hf : f.WellFormed)
   have hp : 0 < m := by grind
   let e := magnitudeExponent m
   have he : e ≤ f.emax := by
-    have hb := binaryConvExp_bounds f hf m hp hr
-    unfold binaryConvExp at hb
+    have hb := binaryNormExp_bounds f hf m hp hr
+    unfold binaryNormExp at hb
     dsimp [e]; omega
   obtain ⟨j, hj⟩ := f.finite_on_grid
     ((2 ^ (f.mantissaBits + 1) - 1 : ℕ) : ℤ) f.emax e he

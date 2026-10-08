@@ -38,7 +38,7 @@ The supplied D is FP32 `1.0`. Each exact product is `2^-24`, so the exact input 
 
 | Layer | Entry point | Consolidation |
 | --- | --- | --- |
-| Reference | `tcEftEncoded` | Guarded FP32 scalar branch, otherwise exact-rational consolidation and one RNE conversion |
+| Reference | `tcEftEncoded` | Guarded FP32 scalar branch, otherwise exact-rational consolidation and one RNE rounding |
 | Bounded | `EFMachine.tcEft` | Fixed 576-bit workspace, guarded FP32 scalar branch, otherwise bounded exact consolidation |
 | Native scalar refinement | `EFMachine.tcEftWithLean` | Same bounded algorithm with Lean native FP32 scalar additions |
 | Independent FloatLib | `TCFloat.Interface.eftChecked` | FloatLib scalar operations and reference exact fallback |

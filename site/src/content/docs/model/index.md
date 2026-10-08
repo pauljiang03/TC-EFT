@@ -40,7 +40,7 @@ The Lean model implements these five steps directly.
   <a href="/TC-EFT/model/products/"><span class="n">02 · unnormalizedMul</span><span class="t">Multiply</span><span class="d"><code>Decoded × Decoded</code> → <code>UnnormalizedProduct</code></span></a>
   <a href="/TC-EFT/model/alignment/"><span class="n">03 · alignExp, truncCoeff</span><span class="t">Align</span><span class="d">grid <code>2^(η − F)</code>, truncate</span></a>
   <a href="/TC-EFT/model/accumulation/"><span class="n">04 · accumulator</span><span class="t">Accumulate</span><span class="d">exact <code>Σ coeff · 2^(η−F)</code></span></a>
-  <a href="/TC-EFT/model/conversion/"><span class="n">05 · round32</span><span class="t">Convert</span><span class="d">truncate → <code>F32</code></span></a>
+  <a href="/TC-EFT/model/normalization/"><span class="n">05 · round32</span><span class="t">Normalize &amp; round</span><span class="d">truncate → <code>F32</code></span></a>
 </div>
 
 The whole model is about 120 lines, in
@@ -106,7 +106,7 @@ Three design choices run through the model:
 - **Exact arithmetic everywhere.** Values are `ℤ` and `ℚ`. Neither Lean's
   `Float` nor a floating-point library is used. The only lossy steps are the
   two the hardware performs: the alignment truncation (`truncCoeff`) and the
-  final conversion (`round32 .towardZero`).
+  final rounding (`round32 .towardZero`).
 - **Bits in, bits out.** Inputs are `BitVec` words and the output is an
   `F32 = BitVec 32`. Theorems can therefore state facts about exact bit
   patterns, including signed zero.
@@ -158,7 +158,7 @@ Each stage has its own page:
 2. [Exact unnormalized products](/TC-EFT/model/products/): why products are not normalized.
 3. [Alignment](/TC-EFT/model/alignment/): `η`, the floor, the grid, and truncation.
 4. [Accumulation](/TC-EFT/model/accumulation/): the exact sum and fixed-width registers.
-5. [Output conversion](/TC-EFT/model/conversion/): `round32`, range, signed zero.
+5. [Normalization and final rounding](/TC-EFT/model/normalization/): `round32`, range, signed zero.
 6. [Architecture profiles](/TC-EFT/model/profiles/): V100/A100/H100 parameters and the general `InvocationSpec`.
 7. [Instructions and chaining](/TC-EFT/model/instructions/): multi-group instructions and passing `C` between groups.
 8. [Independent specification](/TC-EFT/model/specification/): `IndependentSpec` (a transcription of *Accurate Models*) and the equality proof.

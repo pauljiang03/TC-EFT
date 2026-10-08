@@ -11,8 +11,8 @@ The model evaluates K exact products plus an FP32 accumulator input C. Each name
 | Select grid | `PreparedBlock.alignExp`, `alignGridExponent` | Take the nonzero unnormalized-exponent maximum, apply the profile floor, and subtract alignment precision |
 | Align | `truncCoeff`, `PreparedBlock.coefficients` | Truncate signed terms toward zero onto the common grid |
 | Accumulate | `PreparedBlock.accumulator` | Sum retained integer coefficients exactly |
-| Convert | `evalPrepared`, `round32 .towardZero` | Convert the exact accumulator to finite FP32 |
-| Explain loss | `alignmentResiduals`, `BlockTrace.residual` | Account for alignment loss and final conversion loss |
+| Normalize and round | `evalPrepared`, `round32 .towardZero` | Normalize the exact accumulator and truncate it to finite FP32 |
+| Explain loss | `alignmentResiduals`, `BlockTrace.residual` | Account for alignment loss and final-rounding loss |
 
 Start with [Block.lean](../../TensorCore/TC/Block.lean), then follow [StageResiduals.lean](../../TensorCore/TC/StageResiduals.lean) and [ErrorBounds.lean](../../TensorCore/TC/ErrorBounds.lean). The [independent specification](../../TensorCore/TC/Specification/Defs.lean) uses separate mathematical definitions; its bridge proves equality of encoded results.
 
@@ -45,7 +45,7 @@ open TensorCore
 #check IndependentSpec.supported_eq_spec
 ```
 
-`evalBlock_success_iff` characterizes the accepted input domain. `profile_contract` states arithmetic and accumulator-width guarantees under explicit hypotheses. `evalBlock_machinePrefix` relates fixed-width accumulation to exact accumulation when the capacity assumptions hold. `evalBlock_error_bound` accounts for alignment loss and final FP32 conversion loss. For every encoded input of a supported path, `supported_eq_spec` proves that the evaluator and independent specification agree on the output or rejection.
+`evalBlock_success_iff` characterizes the accepted input domain. `profile_contract` states arithmetic and accumulator-width guarantees under explicit hypotheses. `evalBlock_machinePrefix` relates fixed-width accumulation to exact accumulation when the capacity assumptions hold. `evalBlock_error_bound` accounts for alignment loss and final rounding to FP32 loss. For every encoded input of a supported path, `supported_eq_spec` proves that the evaluator and independent specification agree on the output or rejection.
 
 The finite model rejects nonfinite operands, wrong group sizes, and exact accumulators larger in magnitude than `maxFinite32`. Exact zero is canonicalized to +0; negative nonzero underflow may produce -0. The `tc_features` interface accepts TF32 register words with thirteen zero low bits; the paper EFT interface accepts packed 19-bit TF32 words.
 

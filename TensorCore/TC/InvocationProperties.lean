@@ -28,34 +28,34 @@ theorem accumulateInvocation_recovery {p : InvocationSpec} (b : PreparedInvocati
         sumQ (b.alignedBlock F floor true).alignmentResiduals at hr
       simpa [LocalAccumulation.loss, sumQ, Rat.add_zero] using hr
     | afterProducts ss =>
-      cases hc : runConversions ss (b.alignedBlock F floor false).accumulator with
+      cases hc : runRoundings ss (b.alignedBlock F floor false).accumulator with
       | none => simp [accumulateInvocation, hk, hc] at h
       | some r =>
         simp [accumulateInvocation, hk, hc] at h
         subst a
         have hr := aligned_recovery (b.alignedBlock F floor false)
-        have hs := runConversions_recovery ss _ r hc
+        have hs := runRoundings_recovery ss _ r hc
         have hz : (b.alignedBlock F floor false).exactDot = b.exactProducts := by
           simp [PreparedInvocation.alignedBlock, PreparedBlock.exactDot,
             PreparedBlock.exactProducts, PreparedInvocation.exactProducts, Decoded.value,
             Rat.zero_add]
         rw [hz] at hr
-        unfold PreparedInvocation.exactDot LocalAccumulation.loss ConversionRun.loss at *
+        unfold PreparedInvocation.exactDot LocalAccumulation.loss RoundingRun.loss at *
         grind
 
 theorem evalInvocationPrepared_spec {p : InvocationSpec} {b : PreparedInvocation p}
     {t : InvocationTrace p} (h : evalInvocationPrepared b = .ok t) :
     t.prepared = b ∧ accumulateInvocation b = some t.accumulation ∧
-    runConversions p.intermediate t.accumulation.value = some t.intermediate ∧
-    p.output.convert t.intermediate.value = some t.output := by
+    runRoundings p.intermediate t.accumulation.value = some t.intermediate ∧
+    p.output.roundValue t.intermediate.value = some t.output := by
   unfold evalInvocationPrepared at h
   cases ha : accumulateInvocation b with
   | none => simp [ha] at h
   | some a =>
-    cases hr : runConversions p.intermediate a.value with
+    cases hr : runRoundings p.intermediate a.value with
     | none => simp [ha, hr] at h
     | some r =>
-      cases hd : p.output.convert r.value with
+      cases hd : p.output.roundValue r.value with
       | none => simp [ha, hr, hd] at h
       | some d =>
         simp [ha, hr, hd] at h
@@ -67,8 +67,8 @@ theorem evalInvocation_spec {p : InvocationSpec} {x : InvocationInput p} {t : In
     (h : evalInvocation x = .ok t) :
     p.Valid ∧ x.products.length = p.products ∧ prepareInvocation x = some t.prepared ∧
     accumulateInvocation t.prepared = some t.accumulation ∧
-    runConversions p.intermediate t.accumulation.value = some t.intermediate ∧
-    p.output.convert t.intermediate.value = some t.output := by
+    runRoundings p.intermediate t.accumulation.value = some t.intermediate ∧
+    p.output.roundValue t.intermediate.value = some t.output := by
   unfold evalInvocation at h
   split at h
   · simp at h
@@ -91,7 +91,7 @@ theorem evalInvocation_recovery {p : InvocationSpec} {x : InvocationInput p} {t 
     invocationIdeal x = some (t.output.value + t.residual) := by
   obtain ⟨_, _, hp, ha, hr, _⟩ := evalInvocation_spec h
   have hl := accumulateInvocation_recovery t.prepared t.accumulation ha
-  have hc := runConversions_recovery p.intermediate t.accumulation.value t.intermediate hr
+  have hc := runRoundings_recovery p.intermediate t.accumulation.value t.intermediate hr
   simp only [invocationIdeal, hp, Option.map_some]
   congr 1
   unfold InvocationTrace.residual
@@ -103,6 +103,6 @@ theorem evalInvocation_output {p : InvocationSpec} {x : InvocationInput p} {t : 
     roundBinary p.output.format p.output.mode t.intermediate.value = some t.output.bits ∧
     absQ t.intermediate.value ≤ p.output.format.maxFinite := by
   have hs := (evalInvocation_spec h).2.2.2.2.2
-  exact ⟨conversionStage_output hs, (conversionStage_range hs).2⟩
+  exact ⟨roundingStage_output hs, (roundingStage_range hs).2⟩
 
 end TensorCore

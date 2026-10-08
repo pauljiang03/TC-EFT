@@ -36,40 +36,40 @@ theorem finiteBinary_some {f : Format} {bits : BitVec f.width} {d : Decoded}
     cases Option.some.inj h
     rfl
 
-structure ConversionStage where
+structure RoundingStage where
   format : Format
   mode : BinaryRoundingMode
   deriving Repr, DecidableEq
 
-def ConversionStage.convert (s : ConversionStage) (x : ℚ) : Option (FiniteBinary s.format) := do
+def RoundingStage.roundValue (s : RoundingStage) (x : ℚ) : Option (FiniteBinary s.format) := do
   finiteBinary s.format (← roundBinary s.format s.mode x)
 
-structure ConversionEvent where
-  stage : ConversionStage
+structure RoundingEvent where
+  stage : RoundingStage
   input : ℚ
   output : FiniteBinary stage.format
   deriving Repr, DecidableEq
 
-def ConversionEvent.loss (e : ConversionEvent) : ℚ := e.input - e.output.value
+def RoundingEvent.loss (e : RoundingEvent) : ℚ := e.input - e.output.value
 
-structure ConversionRun where
-  events : List ConversionEvent
+structure RoundingRun where
+  events : List RoundingEvent
   value : ℚ
   deriving Repr, DecidableEq
 
-def ConversionRun.loss (r : ConversionRun) : ℚ := sumQ (r.events.map ConversionEvent.loss)
+def RoundingRun.loss (r : RoundingRun) : ℚ := sumQ (r.events.map RoundingEvent.loss)
 
 /-- Each following conversion receives the decoded encoding of its predecessor. -/
-def runConversions : List ConversionStage → ℚ → Option ConversionRun
+def runRoundings : List RoundingStage → ℚ → Option RoundingRun
   | [], x => some ⟨[], x⟩
   | s :: ss, x => do
-    let d ← s.convert x
-    let rest ← runConversions ss d.value
+    let d ← s.roundValue x
+    let rest ← runRoundings ss d.value
     return ⟨⟨s, x, d⟩ :: rest.events, rest.value⟩
 
-theorem conversionStage_output {s : ConversionStage} {x : ℚ} {d : FiniteBinary s.format}
-    (h : s.convert x = some d) : roundBinary s.format s.mode x = some d.bits := by
-  unfold ConversionStage.convert at h
+theorem roundingStage_output {s : RoundingStage} {x : ℚ} {d : FiniteBinary s.format}
+    (h : s.roundValue x = some d) : roundBinary s.format s.mode x = some d.bits := by
+  unfold RoundingStage.roundValue at h
   cases hr : roundBinary s.format s.mode x with
   | none => simp [hr] at h
   | some bits =>
@@ -81,47 +81,47 @@ theorem conversionStage_output {s : ConversionStage} {x : ℚ} {d : FiniteBinary
       subst d
       rfl
 
-theorem conversionStage_range {s : ConversionStage} {x : ℚ} {d : FiniteBinary s.format}
-    (h : s.convert x = some d) : s.format.WellFormed ∧ absQ x ≤ s.format.maxFinite :=
-  roundBinary_range (conversionStage_output h)
+theorem roundingStage_range {s : RoundingStage} {x : ℚ} {d : FiniteBinary s.format}
+    (h : s.roundValue x = some d) : s.format.WellFormed ∧ absQ x ≤ s.format.maxFinite :=
+  roundBinary_range (roundingStage_output h)
 
 /-- Executed sequences telescope across actual encodings, with every loss retained. -/
-theorem runConversions_recovery (ss : List ConversionStage) (x : ℚ) (r : ConversionRun)
-    (h : runConversions ss x = some r) : x = r.value + r.loss := by
+theorem runRoundings_recovery (ss : List RoundingStage) (x : ℚ) (r : RoundingRun)
+    (h : runRoundings ss x = some r) : x = r.value + r.loss := by
   induction ss generalizing x r with
   | nil =>
-    simp [runConversions] at h
+    simp [runRoundings] at h
     subst r
-    simp [ConversionRun.loss, sumQ]
+    simp [RoundingRun.loss, sumQ]
     grind
   | cons s ss ih =>
-    cases hd : s.convert x with
-    | none => simp [runConversions, hd] at h
+    cases hd : s.roundValue x with
+    | none => simp [runRoundings, hd] at h
     | some d =>
-      cases hr : runConversions ss d.value with
-      | none => simp [runConversions, hd, hr] at h
+      cases hr : runRoundings ss d.value with
+      | none => simp [runRoundings, hd, hr] at h
       | some rest =>
-        simp [runConversions, hd, hr] at h
+        simp [runRoundings, hd, hr] at h
         subst r
         have hi := ih d.value rest hr
-        simp only [ConversionRun.loss, List.map_cons, sumQ, ConversionEvent.loss] at *
+        simp only [RoundingRun.loss, List.map_cons, sumQ, RoundingEvent.loss] at *
         grind
 
 /-- Every event is a successful conversion; the trace does not invent rounded boundaries. -/
-theorem runConversions_events (ss : List ConversionStage) (x : ℚ) (r : ConversionRun)
-    (h : runConversions ss x = some r) :
-    r.events.map ConversionEvent.stage = ss ∧
-      ∀ e ∈ r.events, e.stage.convert e.input = some e.output := by
+theorem runRoundings_events (ss : List RoundingStage) (x : ℚ) (r : RoundingRun)
+    (h : runRoundings ss x = some r) :
+    r.events.map RoundingEvent.stage = ss ∧
+      ∀ e ∈ r.events, e.stage.roundValue e.input = some e.output := by
   induction ss generalizing x r with
-  | nil => simp [runConversions] at h; subst r; simp
+  | nil => simp [runRoundings] at h; subst r; simp
   | cons s ss ih =>
-    cases hd : s.convert x with
-    | none => simp [runConversions, hd] at h
+    cases hd : s.roundValue x with
+    | none => simp [runRoundings, hd] at h
     | some d =>
-      cases hr : runConversions ss d.value with
-      | none => simp [runConversions, hd, hr] at h
+      cases hr : runRoundings ss d.value with
+      | none => simp [runRoundings, hd, hr] at h
       | some rest =>
-        simp [runConversions, hd, hr] at h
+        simp [runRoundings, hd, hr] at h
         subst r
         have hi := ih d.value rest hr
         constructor

@@ -1,5 +1,5 @@
 import TensorCore.Numerics.Binary.Bijection
-import TensorCore.Numerics.Binary.ConversionBounds
+import TensorCore.Numerics.Binary.RoundingBounds
 import TensorCore.Numerics.Binary.CorrectRounding
 import TensorCore.Numerics.Binary.Defs
 import TensorCore.Numerics.Binary.DirectedRounding

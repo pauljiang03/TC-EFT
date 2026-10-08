@@ -2,7 +2,7 @@ import TensorCore.TC.Specification.Defs
 import TensorCore.TC.AcceptedDomain
 import TensorCore.TC.CanonicalFormats
 
-/-! Bridges for decoding and the four pre-conversion stages. -/
+/-! Bridges for decoding and the four pre-rounding stages. -/
 
 namespace TensorCore.IndependentSpec
 

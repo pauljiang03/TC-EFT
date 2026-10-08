@@ -36,12 +36,12 @@ theorem round32_sign (x : ℚ) (b : F32) (h : round32 .towardZero x = some b) :
     decide
   have hr := round32_range h
   have hm := absQ_pos_of_ne_zero x hz
-  obtain ⟨he1, he2, _, _⟩ := convExp_bounds (absQ x) hm hr
-  obtain ⟨hk0, hk1, hsub, htop⟩ := convCoeff_bounds .towardZero (absQ x) hm hr
+  obtain ⟨he1, he2, _, _⟩ := normExp_bounds (absQ x) hm hr
+  obtain ⟨hk0, hk1, hsub, htop⟩ := roundedCoeff_bounds .towardZero (absQ x) hm hr
   have hs := carry_spec _ _ he1 he2 hk0 hk1 hsub htop
   unfold round32 round32Core at h
   rw [if_neg (Rat.not_lt.mpr hr), if_neg hz] at h
-  generalize hp : carry (convExp (absQ x)) (convCoeff .towardZero (absQ x)) = pair at h hs
+  generalize hp : carry (normExp (absQ x)) (roundedCoeff .towardZero (absQ x)) = pair at h hs
   rcases pair with ⟨e, k⟩
   dsimp only at h hs
   rw [if_neg (by omega)] at h

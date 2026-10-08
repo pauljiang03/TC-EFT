@@ -54,7 +54,7 @@ def InstructionPath.schedule (p : InstructionPath) (pairs : List (F16 × F16)) :
 
 - [`runBlocks_residual_ledger`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Composition.lean#L93):
   the exact sum of all inputs equals the final output plus the sum of the
-  losses recorded by every group, alignment and conversion included.
+  losses recorded by every group, alignment and final rounding included.
 - `zero_products_passthrough`: a group whose products are all zero returns its
   finite `C` unchanged. The theorem excludes `C = −0`.
 - `single_group_output`: if only the first group has nonzero products, the

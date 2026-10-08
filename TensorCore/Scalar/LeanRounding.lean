@@ -129,8 +129,8 @@ theorem magnitudeExponent_dyadic (m : ℕ) (e : ℤ) (hm : 0 < m) :
 /-- Exponent selection agrees, including the gradual-underflow floor. -/
 theorem targetExponent32_eq (m : ℕ) (e : ℤ) (hm : 0 < m) :
     Float.Model.Format.binary32.targetExponent (Float.Model.totalExponent m e) =
-      binaryConvExp fp32 ((m : ℚ) * pow2 e) - fp32.mantissaBits := by
-  rw [binaryConvExp, magnitudeExponent_dyadic m e hm]
+      binaryNormExp fp32 ((m : ℚ) * pow2 e) - fp32.mantissaBits := by
+  rw [binaryNormExp, magnitudeExponent_dyadic m e hm]
   simp only [Float.Model.Format.targetExponent, Float.Model.totalExponent,
     Float.Model.Format.mantissaBits,
     Float.Model.Format.minExponent, fp32, Format.emin]

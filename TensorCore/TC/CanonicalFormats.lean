@@ -156,8 +156,8 @@ theorem padded_prepared_bits (f : Format) (pad K F : ℕ) (floor : Option ℤ)
       ⟨ps, c⟩).toOption.map (fun t => t.output.bits) =
       (evalPrepared ⟨⟨f, K, F, floor⟩, ps, c⟩).toOption.map (fun t => t.output.bits) := by
   simp only [evalInvocationPrepared, accumulateInvocation, alignedInvocation,
-    PreparedInvocation.alignedBlock, runConversions]
-  simp only [ConversionStage.convert, evalPrepared, ite_true]
+    PreparedInvocation.alignedBlock, runRoundings]
+  simp only [RoundingStage.roundValue, evalPrepared, ite_true]
   rw [roundBinary_fp32 .towardZero]
   cases hr : round32 .towardZero (PreparedBlock.mk ⟨f, K, F, floor⟩ ps c).accumulator with
   | none => rfl

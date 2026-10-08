@@ -213,7 +213,7 @@ theorem packFinite32_eq (negative : Bool) (e : ℤ) (k : ℕ)
 theorem packRound32_eq (negative : Bool) (m : ℕ) (e : ℤ) (hm : 0 < m)
     (hr : (m : ℚ) * pow2 e ≤ fp32.maxFinite) :
     let x := (m : ℚ) * pow2 e
-    let E := binaryConvExp fp32 x
+    let E := binaryNormExp fp32 x
     let K := rneInt (x / pow2 (E - 23))
     pack Float.Model.Format.binary32
       (Float.Model.UnpackedFloat.round Float.Model.Format.binary32 (nativeSign negative) m e) =
@@ -227,8 +227,8 @@ theorem packRound32_eq (negative : Bool) (m : ℕ) (e : ℤ) (hm : 0 < m)
   have hq : q = E - 23 := targetExponent32_eq m e hm
   have hk : (k : ℤ) = K := by simpa only [hq] using hf.2
   have hx : 0 < x := Rat.mul_pos (Rat.natCast_pos.mpr hm) (pow2_pos e)
-  have he := binaryConvExp_bounds fp32 (by decide) x hx hr
-  have hb := binaryConvCoeff_bounds fp32 (by decide) .nearestEven negative x hx hr
+  have he := binaryNormExp_bounds fp32 (by decide) x hx hr
+  have hb := binaryRoundedCoeff_bounds fp32 (by decide) .nearestEven negative x hx hr
   change 0 ≤ K ∧ K ≤ 16777216 ∧ (8388608 ≤ K ∨ E = -126) ∧
     (E = 127 → K ≤ 16777215) at hb
   have hEl : -126 ≤ E := he.1
@@ -268,7 +268,7 @@ theorem packRound32_eq (negative : Bool) (m : ℕ) (e : ℤ) (hm : 0 < m)
 
 theorem finiteBits32_encode (x : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ fp32.maxFinite) :
     finiteBits .binary32 .nearestEven x hr =
-      let E := binaryConvExp fp32 (absQ x)
+      let E := binaryNormExp fp32 (absQ x)
       let K := rneInt (absQ x / pow2 (E - 23))
       encodeBinary fp32 (decide (x < 0)) (binaryCarry fp32 E K).1 (binaryCarry fp32 E K).2 := by
   have h := finiteBits_eq .binary32 .nearestEven x hr
@@ -277,8 +277,8 @@ theorem finiteBits32_encode (x : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ fp32.maxFi
   rw [if_neg (by decide : ¬ ¬ fp32.WellFormed), if_neg (Rat.not_lt.mpr hr), if_neg hx] at h
   dsimp only at h ⊢
   simp only [binaryCoefficient, show fp32.mantissaBits = 23 from rfl] at h
-  generalize hc : binaryCarry fp32 (binaryConvExp fp32 (absQ x))
-    (rneInt (absQ x / pow2 (binaryConvExp fp32 (absQ x) - 23))) = c at h ⊢
+  generalize hc : binaryCarry fp32 (binaryNormExp fp32 (absQ x))
+    (rneInt (absQ x / pow2 (binaryNormExp fp32 (absQ x) - 23))) = c at h ⊢
   rcases c with ⟨E, K⟩
   change (if E > fp32.emax then none else some (encodeBinary fp32 (decide (x < 0)) E K)) = some _ at h
   split at h

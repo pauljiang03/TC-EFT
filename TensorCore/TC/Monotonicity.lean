@@ -187,7 +187,7 @@ theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
     rw [hf2v]
     unfold signedRounded
     rw [if_neg (by grind), absQ_of_nonneg (Rat.le_of_lt hApos)]
-    unfold magnitudeRounded convCoeff roundCoefficient
+    unfold magnitudeRounded roundedCoeff roundCoefficient
     dsimp only
     by_cases hKp : K < 2 ^ p
     · have hAlt : A < 1 := by
@@ -200,9 +200,9 @@ theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
         have h24 : ((24 + p : ℕ) : ℤ) + -(24 + p) = 0 := by omega
         rw [h24, pow2_zero] at this
         exact this
-      have hqe := pow2_pos (convExp A - 23)
-      have hle : (((A / pow2 (convExp A - 23)).floor : ℤ) : ℚ) * pow2 (convExp A - 23) ≤ A := by
-        have := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (A / pow2 (convExp A - 23)))
+      have hqe := pow2_pos (normExp A - 23)
+      have hle : (((A / pow2 (normExp A - 23)).floor : ℤ) : ℚ) * pow2 (normExp A - 23) ≤ A := by
+        have := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (A / pow2 (normExp A - 23)))
           (Rat.le_of_lt hqe)
         rwa [Rat.div_mul_cancel (Rat.ne_of_gt hqe)] at this
       constructor
@@ -218,8 +218,8 @@ theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
         have h24 : ((24 + p : ℕ) : ℤ) + -(24 + p) = 0 := by omega
         rw [h24, pow2_zero] at this
         exact this
-      have hexp : convExp A = 0 := by
-        unfold convExp emin32
+      have hexp : normExp A = 0 := by
+        unfold normExp emin32
         rw [magnitudeExponent_eq_of_bounds A 0 (by rw [pow2_zero]; exact hAge)
           (by rw [show (0 : ℤ) + 1 = 1 by omega, pow2_one]; exact hA2lt)]
         decide

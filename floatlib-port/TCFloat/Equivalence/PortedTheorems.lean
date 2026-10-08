@@ -91,7 +91,7 @@ theorem floatlib_accumulator_eq_retained (t : Trace) :
     exact hsplit x.value
   rw [hm,List.sum_map_add]
 
-/-- The overlap `D − H` equals the retained low parts minus the output conversion residual (TC-EFT paper, Lemma IV.4). -/
+/-- The overlap `D − H` equals the retained low parts minus the output normalization and rounding residual (TC-EFT paper, Lemma IV.4). -/
 theorem floatlib_overlap_eq_retained_sub_outputResidual (t : Trace) :
     t.overlap = t.retainedLowParts.sum-t.outputResidual := by
   have h := floatlib_accumulator_eq_retained t
@@ -133,7 +133,7 @@ theorem rtz_output_monotone (x y : Rat) (bx by' : Nat) (dx dy : Rat)
   rw [rtz_value_spec x bx dx hx hdx,rtz_value_spec y by' dy hy hdy]
   exact TensorCore.signedRounded_rtz_monotone x y hxy (rtz_range x bx hx) (rtz_range y by' hy)
 
-/-- Under a perturbation of C, the output increases exactly when the round-toward-zero conversion of the shifted accumulator increases (TC-EFT paper, Eq. 6). -/
+/-- Under a perturbation of C, the output increases exactly when the round-truncation of the shifted accumulator increases (TC-EFT paper, Eq. 6). -/
 theorem floatlib_output_increase_iff (p : Profile) (ps : List (Term×Term)) (c c' : Term)
     (bits bits' : Nat) (d d' : Rat)
     (h : (Block.mk p c ps).evaluate=some bits) (h' : (Block.mk p c' ps).evaluate=some bits')

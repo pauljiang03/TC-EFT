@@ -36,14 +36,14 @@ The following equalities are proved under the stated representation invariants. 
 | Exact multiplication and original-input sum | `unnormalizedTerm_mul`, `mul_valid`, `terms_eq`, `ideal_eq` |
 | Zero-aware maximum, floor and alignment grid | `alignment_eq`, `eta_eq`, `q_eq` |
 | Signed truncation, retained accumulator and alignment residuals | `truncCoeff_eq`, `truncGrid_eq`, `accumulator_eq`, `residuals_eq` |
-| Actual RTZ/RNE conversion, including ties, subnormals, signed underflow and finite-range rejection | `round32_eq` for **every rational input** and both modes |
+| Actual RTZ/RNE rounding, including ties, subnormals, signed underflow and finite-range rejection | `round32_eq` for **every rational input** and both modes |
 | FP32 representability, addition and sequential summation | `representable_eq`, `add_eq`, `naiveSum_eq` |
 | Extraction grid, coarse/low parts, retained sum and overlap | `extraction_eq`, `coarse_eq`, `lows_eq`, `retained_eq`, `overlap_eq` |
 | Support grid, coefficients and exact executable guard | `support_eq`, `lowCoefficients_eq`, `guard_eq` |
 | Scalar correction, exact fallback, branch and zero shortcut | `scalarUnchecked_eq`, `scalar_eq`, `consolidation_eq`, `algorithm_eq`, `encoded_trace_eq` |
 | Encoded preparation and full entry points | `prepare_eq`, `prepare_valid`, `tc_checked_eq`, `eft_checked_eq` |
 
-Files are under [`TCFloat/Equivalence/`](TCFloat/Equivalence/). The converter bridge proves equality between the first-principles rational converter and FloatLib's quotient and packing operations.
+Files are under [`TCFloat/Equivalence/`](TCFloat/Equivalence/). The rounding bridge proves equality between the first-principles rational converter and FloatLib's quotient and packing operations.
 
 ## Correspondence to the paper's FP32 statements
 

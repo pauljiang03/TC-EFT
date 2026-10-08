@@ -1,4 +1,4 @@
-import TensorCore.Numerics.ConversionBounds
+import TensorCore.Numerics.RoundingBounds
 
 namespace TensorCore
 
@@ -10,19 +10,19 @@ theorem rne_grid_nearest (m : ℚ) (e : ℤ) (j : ℤ) :
 
 /-- A finer grid below the input's binade cannot supply an equally near competitor. -/
 theorem rne_lower_binade_strict (m : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32)
-    (j f : ℤ) (hf : -126 ≤ f) (hj : j.natAbs < 2 ^ 24) (he : f < convExp m) :
+    (j f : ℤ) (hf : -126 ≤ f) (hj : j.natAbs < 2 ^ 24) (he : f < normExp m) :
     absQ (m - magnitudeRounded .nearestEven m) <
       absQ (m - (j : ℚ) * pow2 (f - 23)) := by
-  obtain ⟨_, _, _, hl⟩ := convExp_bounds m hm hr
-  have hl' : pow2 (convExp m) ≤ m := by rcases hl with h | h <;> first | exact h | omega
-  have hb := rne_grid_nearest m (convExp m) 8388608
+  obtain ⟨_, _, _, hl⟩ := normExp_bounds m hm hr
+  have hl' : pow2 (normExp m) ≤ m := by rcases hl with h | h <;> first | exact h | omega
+  have hb := rne_grid_nearest m (normExp m) 8388608
   change absQ (m - magnitudeRounded .nearestEven m) ≤
-    absQ (m - 8388608 * pow2 (convExp m - 23)) at hb
+    absQ (m - 8388608 * pow2 (normExp m - 23)) at hb
   rw [← binade_grid] at hb
-  have hsmall := finite_below_binade j f (convExp m) hj he
+  have hsmall := finite_below_binade j f (normExp m) hj he
   have hsmall' := (absQ_le_iff _ _).mp hsmall
-  have hq := pow2_pos (convExp m - 24)
-  have h1 : 0 ≤ m - pow2 (convExp m) := by grind
+  have hq := pow2_pos (normExp m - 24)
+  have h1 : 0 ≤ m - pow2 (normExp m) := by grind
   have h2 : 0 ≤ m - (j : ℚ) * pow2 (f - 23) := by grind
   rw [absQ_of_nonneg h1] at hb
   rw [absQ_of_nonneg h2]
@@ -32,27 +32,27 @@ theorem rne_magnitude_nearest (m y : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32)
     (hy : FiniteValue32 y) :
     absQ (m - magnitudeRounded .nearestEven m) ≤ absQ (m - y) := by
   obtain ⟨j, f, hf, _, hj, rfl⟩ := hy
-  by_cases he : convExp m ≤ f
-  · obtain ⟨z, hz⟩ := finite_on_grid j f (convExp m) he
+  by_cases he : normExp m ≤ f
+  · obtain ⟨z, hz⟩ := finite_on_grid j f (normExp m) he
     rw [hz]
-    exact rne_grid_nearest m (convExp m) z
+    exact rne_grid_nearest m (normExp m) z
   · exact Rat.le_of_lt (rne_lower_binade_strict m hm hr j f hf hj (by omega))
 
 theorem rne_magnitude_tie_even (m y : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32)
     (hy : FiniteValue32 y) (hne : y ≠ magnitudeRounded .nearestEven m)
     (ht : absQ (m - y) = absQ (m - magnitudeRounded .nearestEven m)) :
-    convCoeff .nearestEven m % 2 = 0 := by
+    roundedCoeff .nearestEven m % 2 = 0 := by
   obtain ⟨j, f, hf, _, hj, rfl⟩ := hy
-  by_cases he : convExp m ≤ f
-  · obtain ⟨z, hz⟩ := finite_on_grid j f (convExp m) he
+  by_cases he : normExp m ≤ f
+  · obtain ⟨z, hz⟩ := finite_on_grid j f (normExp m) he
     rw [hz] at hne ht
-    have hz' : z ≠ rneInt (m / pow2 (convExp m - 23)) := by
+    have hz' : z ≠ rneInt (m / pow2 (normExp m - 23)) := by
       intro h
       apply hne
       rw [h]; rfl
-    unfold magnitudeRounded convCoeff roundCoefficient at ht
+    unfold magnitudeRounded roundedCoeff roundCoefficient at ht
     rw [dist_scale _ _ (pow2_pos _) _, dist_scale _ _ (pow2_pos _) _] at ht
-    have hcancel := congrArg (fun a : ℚ => a / pow2 (convExp m - 23)) ht
+    have hcancel := congrArg (fun a : ℚ => a / pow2 (normExp m - 23)) ht
     simp only [Rat.mul_div_cancel (Rat.ne_of_gt (pow2_pos _))] at hcancel
     exact rneInt_tie_even _ z hcancel hz'
   · have h := rne_lower_binade_strict m hm hr j f hf hj (by omega)
@@ -89,7 +89,7 @@ theorem signedRounded_nearest (x y : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ maxFin
 theorem signedRounded_tie_even (x y : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ maxFinite32)
     (hy : FiniteValue32 y) (hne : y ≠ signedRounded .nearestEven x)
     (ht : absQ (x - y) = absQ (x - signedRounded .nearestEven x)) :
-    convCoeff .nearestEven (absQ x) % 2 = 0 := by
+    roundedCoeff .nearestEven (absQ x) % 2 = 0 := by
   have hm := absQ_pos_of_ne_zero x hx
   unfold signedRounded at hne ht
   split at hne
@@ -112,14 +112,14 @@ theorem signedRounded_tie_even (x y : ℚ) (hx : x ≠ 0) (hr : absQ x ≤ maxFi
 theorem round32_nonzero_spec (mode : RoundingMode) (x : ℚ)
     (hx : x ≠ 0) (hr : absQ x ≤ maxFinite32) :
     ∃ b : F32, round32 mode x = some b ∧ value32 b = some (signedRounded mode x) ∧
-      (convCoeff mode (absQ x) % 2 = 0 → b.toNat % 2 = 0) ∧
-      convExp (absQ x) - 23 ≤ outputUlpExponent b := by
+      (roundedCoeff mode (absQ x) % 2 = 0 → b.toNat % 2 = 0) ∧
+      normExp (absQ x) - 23 ≤ outputUlpExponent b := by
   have hm := absQ_pos_of_ne_zero x hx
-  obtain ⟨he1, he2, _, _⟩ := convExp_bounds (absQ x) hm hr
-  obtain ⟨hk0, hk1, hsub, htop⟩ := convCoeff_bounds mode (absQ x) hm hr
+  obtain ⟨he1, he2, _, _⟩ := normExp_bounds (absQ x) hm hr
+  obtain ⟨hk0, hk1, hsub, htop⟩ := roundedCoeff_bounds mode (absQ x) hm hr
   have hs := carry_spec _ _ he1 he2 hk0 hk1 hsub htop
-  let e := (carry (convExp (absQ x)) (convCoeff mode (absQ x))).1
-  let k := (carry (convExp (absQ x)) (convCoeff mode (absQ x))).2
+  let e := (carry (normExp (absQ x)) (roundedCoeff mode (absQ x))).1
+  let k := (carry (normExp (absQ x)) (roundedCoeff mode (absQ x))).2
   let b := encode32 (decide (x < 0)) e k
   refine ⟨b, ?_, ?_, ?_, ?_⟩
   · unfold round32 round32Core
@@ -146,7 +146,7 @@ theorem round32_nonzero_spec (mode : RoundingMode) (x : ℚ)
   · have he := encode32_ulpExponent (decide (x < 0)) e k hs.1 hs.2.1 hs.2.2.1
       hs.2.2.2.1 hs.2.2.2.2.1
     change outputUlpExponent b = e - 23 at he
-    have hh : convExp (absQ x) ≤ e := hs.2.2.2.2.2.2.1
+    have hh : normExp (absQ x) ≤ e := hs.2.2.2.2.2.2.1
     omega
 
 /-- Total correctness on the declared finite range, for all rational inputs. -/

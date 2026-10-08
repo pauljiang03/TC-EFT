@@ -3,7 +3,7 @@ import TensorCore.Numerics.CorrectRounding
 
 namespace TensorCore
 
-/-- Exact residual recovery followed by mathematically nearest-even FP32 conversion. -/
+/-- Exact residual recovery followed by mathematically nearest-even rounding to FP32. -/
 theorem corrected_correct (t : BlockTrace) (hr : absQ t.block.exactDot ≤ maxFinite32) :
     ∃ b, t.corrected = some b ∧ NearestEven32 t.block.exactDot b := by
   rw [corrected_eq_round_exactDot]
@@ -25,7 +25,7 @@ def recoveredSchedule (initial : Finite32) (ts : List BlockTrace) : ℚ :=
 def correctedSchedule (initial : Finite32) (ts : List BlockTrace) : Option F32 :=
   round32 .nearestEven (recoveredSchedule initial ts)
 
-/-- The exact ledger is consolidated before the single final conversion. -/
+/-- The exact ledger is consolidated before the single final rounding. -/
 theorem correctedSchedule_correct (initial : Finite32) (ts : List BlockTrace)
     (chain : EncodedChain initial ts)
     (hr : absQ (initial.value + sumQ (ts.map fun t => t.block.exactProducts)) ≤ maxFinite32) :

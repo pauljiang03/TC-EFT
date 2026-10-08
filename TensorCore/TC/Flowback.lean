@@ -69,26 +69,26 @@ theorem evalPrepared_output_value {b : PreparedBlock} {t : BlockTrace}
 theorem magnitudeRounded_rtz_monotone (x y : ℚ) (hx : 0 ≤ x) (hxy : x ≤ y)
     (hy : y ≤ maxFinite32) :
     magnitudeRounded .towardZero x ≤ magnitudeRounded .towardZero y := by
-  unfold magnitudeRounded convCoeff roundCoefficient
+  unfold magnitudeRounded roundedCoeff roundCoefficient
   by_cases hx0 : x = 0
   · subst hx0
-    have hqy := pow2_pos (convExp y - 23)
-    have h0 : ((((0 : ℚ) / pow2 (convExp 0 - 23)).floor : ℤ) : ℚ) * pow2 (convExp 0 - 23) = 0 := by
+    have hqy := pow2_pos (normExp y - 23)
+    have h0 : ((((0 : ℚ) / pow2 (normExp 0 - 23)).floor : ℤ) : ℚ) * pow2 (normExp 0 - 23) = 0 := by
       rw [Rat.div_def, Rat.zero_mul, ← Rat.intCast_zero, Rat.floor_intCast]
       simp
     rw [h0]
-    have hfl : (0 : ℤ) ≤ (y / pow2 (convExp y - 23)).floor := by
+    have hfl : (0 : ℤ) ≤ (y / pow2 (normExp y - 23)).floor := by
       apply Rat.le_floor_iff.mpr
       have := div_nonneg_of_pos _ _ (Rat.le_trans hx hxy) hqy
       simpa using this
-    have : (0 : ℚ) ≤ (((y / pow2 (convExp y - 23)).floor : ℤ) : ℚ) := by
+    have : (0 : ℚ) ≤ (((y / pow2 (normExp y - 23)).floor : ℤ) : ℚ) := by
       have := Rat.intCast_le_intCast.mpr hfl
       simpa using this
     exact Rat.mul_nonneg this (Rat.le_of_lt hqy)
   · have hxpos : 0 < x := by grind
     have hypos : 0 < y := by grind
-    obtain ⟨hex1, _, hexlt, hexge⟩ := convExp_bounds x hxpos (Rat.le_trans hxy hy)
-    obtain ⟨_, _, _, heyge⟩ := convExp_bounds y hypos hy
+    obtain ⟨hex1, _, hexlt, hexge⟩ := normExp_bounds x hxpos (Rat.le_trans hxy hy)
+    obtain ⟨_, _, _, heyge⟩ := normExp_bounds y hypos hy
     have hmx := magnitudeExponent_spec x hxpos
     have hmy := magnitudeExponent_spec y hypos
     have hmono : magnitudeExponent x ≤ magnitudeExponent y := by
@@ -96,21 +96,21 @@ theorem magnitudeRounded_rtz_monotone (x y : ℚ) (hx : 0 ≤ x) (hxy : x ≤ y)
       intro hne
       have := pow2_le_of_le (show magnitudeExponent y + 1 ≤ magnitudeExponent x by omega)
       grind
-    have hce : convExp x ≤ convExp y := by unfold convExp; omega
+    have hce : normExp x ≤ normExp y := by unfold normExp; omega
     rcases Int.lt_or_eq_of_le hce with hlt | heq
-    · have hqy := pow2_pos (convExp y - 23)
-      have hey : pow2 (convExp y) ≤ y := by
+    · have hqy := pow2_pos (normExp y - 23)
+      have hey : pow2 (normExp y) ≤ y := by
         rcases heyge with h | h
         · exact h
         · exfalso; omega
-      have hlow : pow2 (convExp y) ≤
-          (((y / pow2 (convExp y - 23)).floor : ℤ) : ℚ) * pow2 (convExp y - 23) := by
-        have h23 : ((8388608 : ℤ) : ℚ) * pow2 (convExp y - 23) = pow2 (convExp y) := by
+      have hlow : pow2 (normExp y) ≤
+          (((y / pow2 (normExp y - 23)).floor : ℤ) : ℚ) * pow2 (normExp y - 23) := by
+        have h23 : ((8388608 : ℤ) : ℚ) * pow2 (normExp y - 23) = pow2 (normExp y) := by
           have : ((8388608 : ℤ) : ℚ) = pow2 23 := by decide +kernel
           rw [this, ← pow2_add]
           congr 1
           omega
-        have hk : (8388608 : ℤ) ≤ (y / pow2 (convExp y - 23)).floor := by
+        have hk : (8388608 : ℤ) ≤ (y / pow2 (normExp y - 23)).floor := by
           apply Rat.le_floor_iff.mpr
           apply le_div_of_mul_le _ _ _ hqy
           rw [h23]
@@ -118,16 +118,16 @@ theorem magnitudeRounded_rtz_monotone (x y : ℚ) (hx : 0 ≤ x) (hxy : x ≤ y)
         have := Rat.mul_le_mul_of_nonneg_right (Rat.intCast_le_intCast.mpr hk) (Rat.le_of_lt hqy)
         rw [h23] at this
         exact this
-      have hqx := pow2_pos (convExp x - 23)
-      have hhigh : (((x / pow2 (convExp x - 23)).floor : ℤ) : ℚ) * pow2 (convExp x - 23) ≤ x := by
-        have := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (x / pow2 (convExp x - 23)))
+      have hqx := pow2_pos (normExp x - 23)
+      have hhigh : (((x / pow2 (normExp x - 23)).floor : ℤ) : ℚ) * pow2 (normExp x - 23) ≤ x := by
+        have := Rat.mul_le_mul_of_nonneg_right (Rat.floor_le (x / pow2 (normExp x - 23)))
           (Rat.le_of_lt hqx)
         rwa [Rat.div_mul_cancel (Rat.ne_of_gt hqx)] at this
-      have hstep := pow2_le_of_le (show convExp x + 1 ≤ convExp y by omega)
+      have hstep := pow2_le_of_le (show normExp x + 1 ≤ normExp y by omega)
       grind
     · rw [heq]
-      have hq := pow2_pos (convExp y - 23)
-      have hdiv : x / pow2 (convExp y - 23) ≤ y / pow2 (convExp y - 23) :=
+      have hq := pow2_pos (normExp y - 23)
+      have hdiv : x / pow2 (normExp y - 23) ≤ y / pow2 (normExp y - 23) :=
         div_le_div_of_le_right _ _ _ hq hxy
       have hfl := Rat.floor_monotone hdiv
       exact Rat.mul_le_mul_of_nonneg_right (Rat.intCast_le_intCast.mpr hfl) (Rat.le_of_lt hq)
@@ -139,13 +139,13 @@ theorem signedRounded_rtz_monotone (x y : ℚ) (hxy : x ≤ y) (hx : absQ x ≤ 
   unfold signedRounded
   have hnonneg : ∀ z : ℚ, 0 ≤ magnitudeRounded .towardZero (absQ z) := by
     intro z
-    unfold magnitudeRounded convCoeff roundCoefficient
-    have hq := pow2_pos (convExp (absQ z) - 23)
-    have hfl : (0 : ℤ) ≤ (absQ z / pow2 (convExp (absQ z) - 23)).floor := by
+    unfold magnitudeRounded roundedCoeff roundCoefficient
+    have hq := pow2_pos (normExp (absQ z) - 23)
+    have hfl : (0 : ℤ) ≤ (absQ z / pow2 (normExp (absQ z) - 23)).floor := by
       apply Rat.le_floor_iff.mpr
       have := div_nonneg_of_pos _ _ (absQ_nonneg z) hq
       simpa using this
-    have : (0 : ℚ) ≤ (((absQ z / pow2 (convExp (absQ z) - 23)).floor : ℤ) : ℚ) := by
+    have : (0 : ℚ) ≤ (((absQ z / pow2 (normExp (absQ z) - 23)).floor : ℤ) : ℚ) := by
       have := Rat.intCast_le_intCast.mpr hfl
       simpa using this
     exact Rat.mul_nonneg this (Rat.le_of_lt hq)

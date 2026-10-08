@@ -58,7 +58,7 @@ def outputGrid (b : F32) : Grid :=
   let e := ((b >>> 23).setWidth 8).zeroExtend 10
   if e == 0 then 123 else e + 122
 
-/-- Positive FP32 conversion grid, using at most ten leading-support probes. -/
+/-- Positive rounding to FP32 grid, using at most ten leading-support probes. -/
 def roundingGrid (m : Magnitude) : Magnitude :=
   let length := (576 : Magnitude) - leadingZeros m
   if length ≤ 147 then 123 else length - 24

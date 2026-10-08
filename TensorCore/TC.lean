@@ -10,7 +10,7 @@ import TensorCore.TC.CanonicalFormatDefs
 import TensorCore.TC.CanonicalFormats
 import TensorCore.TC.Compatibility
 import TensorCore.TC.Composition
-import TensorCore.TC.Conversion
+import TensorCore.TC.FinalRounding
 import TensorCore.TC.Correction
 import TensorCore.TC.Defs
 import TensorCore.TC.EncodedMonotonicity

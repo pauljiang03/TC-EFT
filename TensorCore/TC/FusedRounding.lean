@@ -1,5 +1,5 @@
 import TensorCore.Numerics.Binary.RoundingContract
-import TensorCore.TC.Conversion
+import TensorCore.TC.FinalRounding
 
 -- Correct rounding and acceptance of fused FP64 invocations.
 
@@ -26,14 +26,14 @@ theorem binary64Fma_success (mode : BinaryRoundingMode) (x : InvocationInput (bi
   unfold binary64Fma at *
   obtain ⟨bits, hb, hc⟩ := roundBinary_correct fp64 (by decide) mode b.exactDot hr
   obtain ⟨d, hd⟩ := hc.finite
-  have hconv : (ConversionStage.mk fp64 mode).convert b.exactDot =
+  have hconv : (RoundingStage.mk fp64 mode).roundValue b.exactDot =
       some ⟨bits, d, hd⟩ := by
-    simp only [ConversionStage.convert, hb]
+    simp only [RoundingStage.roundValue, hb]
     exact finiteBinary_some hd
   have hv : (binary64Fma mode).Valid := by cases mode <;> decide +kernel
   unfold evalInvocation
   rw [if_neg (fun h => h hv), if_neg (by simp [hn]), hp]
-  simp only [evalInvocationPrepared, accumulateInvocation, runConversions]
+  simp only [evalInvocationPrepared, accumulateInvocation, runRoundings]
   rw [hconv]
   exact ⟨_, rfl⟩
 

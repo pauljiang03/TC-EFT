@@ -22,7 +22,7 @@ The library has three layers:
    floating-point hardware or rounding libraries.
 2. **[Properties of that model](/TC-EFT/properties/error-bounds/).** Proved
    facts: the accepted input domain, an error bound split into alignment loss
-   and conversion loss, exactness of fixed-width accumulators, and a
+   and final-rounding loss, exactness of fixed-width accumulators, and a
    characterization of non-monotonicity.
 3. **[TC-EFT](/TC-EFT/properties/eft/).** An error-free transformation that
    takes the encoded inputs and any finite FP32 output `D`, recovers what

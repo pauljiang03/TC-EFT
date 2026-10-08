@@ -1,4 +1,4 @@
-import TensorCore.Numerics.Conversion
+import TensorCore.Numerics.RoundingStage
 import TensorCore.TC.Block
 
 namespace TensorCore
@@ -6,7 +6,7 @@ namespace TensorCore
 inductive CPlacement where
   | inGroup
   /-- Convert the product accumulator through these stages, then add c exactly. -/
-  | afterProducts (stages : List ConversionStage)
+  | afterProducts (stages : List RoundingStage)
   deriving Repr, DecidableEq
 
 inductive AccumulationKind where
@@ -20,11 +20,11 @@ structure InvocationSpec where
   cFormat : Format
   products : ℕ
   accumulation : AccumulationKind
-  intermediate : List ConversionStage := []
-  output : ConversionStage
+  intermediate : List RoundingStage := []
+  output : RoundingStage
   deriving Repr, DecidableEq
 
-def stagesValid (ss : List ConversionStage) : Bool := ss.all fun s => decide s.format.WellFormed
+def stagesValid (ss : List RoundingStage) : Bool := ss.all fun s => decide s.format.WellFormed
 
 def InvocationSpec.Valid (p : InvocationSpec) : Prop :=
   p.input.valueFormat.layout.WellFormed ∧ p.cFormat.WellFormed ∧
@@ -74,11 +74,11 @@ def PreparedInvocation.alignedBlock {p : InvocationSpec} (b : PreparedInvocation
 structure LocalAccumulation where
   value : ℚ
   alignmentLoss : ℚ
-  conversions : List ConversionEvent
+  roundings : List RoundingEvent
   deriving Repr, DecidableEq
 
 def LocalAccumulation.loss (r : LocalAccumulation) : ℚ :=
-  r.alignmentLoss + sumQ (r.conversions.map ConversionEvent.loss)
+  r.alignmentLoss + sumQ (r.roundings.map RoundingEvent.loss)
 
 def accumulateInvocation {p : InvocationSpec} (b : PreparedInvocation p) : Option LocalAccumulation :=
   match p.accumulation with
@@ -90,13 +90,13 @@ def accumulateInvocation {p : InvocationSpec} (b : PreparedInvocation p) : Optio
       some ⟨a.accumulator, sumQ a.alignmentResiduals, []⟩
     | .afterProducts stages => do
       let a := b.alignedBlock F floor false
-      let r ← runConversions stages a.accumulator
+      let r ← runRoundings stages a.accumulator
       return ⟨r.value + b.c.value, sumQ a.alignmentResiduals, r.events⟩
 
 structure InvocationTrace (p : InvocationSpec) where
   prepared : PreparedInvocation p
   accumulation : LocalAccumulation
-  intermediate : ConversionRun
+  intermediate : RoundingRun
   output : FiniteBinary p.output.format
   deriving Repr, DecidableEq
 
@@ -107,19 +107,19 @@ inductive InvocationError where
   | invalidSpec
   | wrongProductCount
   | nonfiniteOrInvalidEncoding
-  | localConversionFailed
-  | intermediateConversionFailed
-  | outputConversionFailed
+  | localRoundingFailed
+  | intermediateRoundingFailed
+  | outputRoundingFailed
   deriving Repr, DecidableEq
 
 def evalInvocationPrepared {p : InvocationSpec} (b : PreparedInvocation p) :
     Except InvocationError (InvocationTrace p) :=
   match accumulateInvocation b with
-  | none => .error .localConversionFailed
-  | some a => match runConversions p.intermediate a.value with
-    | none => .error .intermediateConversionFailed
-    | some r => match p.output.convert r.value with
-      | none => .error .outputConversionFailed
+  | none => .error .localRoundingFailed
+  | some a => match runRoundings p.intermediate a.value with
+    | none => .error .intermediateRoundingFailed
+    | some r => match p.output.roundValue r.value with
+      | none => .error .outputRoundingFailed
       | some d => .ok ⟨b, a, r, d⟩
 
 def evalInvocation {p : InvocationSpec} (x : InvocationInput p) :

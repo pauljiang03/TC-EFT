@@ -56,19 +56,19 @@ theorem roundingGrid_bounds (m : Magnitude) :
     123 ≤ (roundingGrid m).toNat ∧ (roundingGrid m).toNat ≤ 552 := by
   rw [roundingGrid_toNat]; omega
 
-theorem roundingGrid_convExp (m : Magnitude) (hm : m ≠ 0) :
-    convExp (magnitudeValue m) = ((roundingGrid m).toNat : ℤ) - 249 := by
+theorem roundingGrid_normExp (m : Magnitude) (hm : m ≠ 0) :
+    normExp (magnitudeValue m) = ((roundingGrid m).toNat : ℤ) - 249 := by
   have hc : m.clz.toNat < 576 := by
     simpa [BitVec.lt_def] using (BitVec.clz_lt_iff_ne_zero.mpr hm)
   rw [roundingGrid_toNat]
-  unfold convExp emin32
+  unfold normExp emin32
   rw [magnitudeExponent_word m hm]
   omega
 
 theorem roundingGrid_div (m : Magnitude) (hm : m ≠ 0) :
-    magnitudeValue m / pow2 (convExp (magnitudeValue m) - 23) =
+    magnitudeValue m / pow2 (normExp (magnitudeValue m) - 23) =
       (m.toNat : ℚ) / (2 ^ (roundingGrid m).toNat : ℕ) := by
-  rw [roundingGrid_convExp m hm]
+  rw [roundingGrid_normExp m hm]
   have he : ((roundingGrid m).toNat : ℤ) - 249 - 23 =
       -272 + (roundingGrid m).toNat := by omega
   rw [he]
@@ -144,12 +144,12 @@ theorem roundingCoefficient_spec (m g : Magnitude)
   · rename_i hc
     rw [if_neg (by intro h; exact hc (hcond.mpr h)), hk']
 
-theorem roundingCoefficient_convCoeff (m : Magnitude) (hm : m ≠ 0) :
+theorem roundingCoefficient_roundedCoeff (m : Magnitude) (hm : m ≠ 0) :
     ((roundingCoefficient m (roundingGrid m)).toNat : ℤ) =
-      convCoeff .nearestEven (magnitudeValue m) := by
+      roundedCoeff .nearestEven (magnitudeValue m) := by
   have hg := roundingGrid_bounds m
   rw [roundingCoefficient_spec _ _ (by omega) (by omega) (roundingGrid_quotient_bound m)]
-  unfold convCoeff roundCoefficient
+  unfold roundedCoeff roundCoefficient
   rw [roundingGrid_div m hm]
 
 theorem encodeAtGrid_spec (negative : Bool) (g k : Magnitude)
@@ -286,18 +286,18 @@ theorem Word.round32_eq (x : Word) :
         exact absQ_pos_of_ne_zero _ hz'
       have hmr : magnitudeValue x.magnitude ≤ maxFinite32 := by rwa [x.abs_value] at hr'
       have hnmr : ¬ magnitudeValue x.magnitude > maxFinite32 := by grind
-      obtain ⟨he0, he1, _, _⟩ := convExp_bounds _ hp hmr
-      obtain ⟨hk0, hk1, hsub, htop⟩ := convCoeff_bounds .nearestEven _ hp hmr
+      obtain ⟨he0, he1, _, _⟩ := normExp_bounds _ hp hmr
+      obtain ⟨hk0, hk1, hsub, htop⟩ := roundedCoeff_bounds .nearestEven _ hp hmr
       have hs := carry_spec _ _ he0 he1 hk0 hk1 hsub htop
-      have hcarry : ¬ (carry (convExp (magnitudeValue x.magnitude))
-          (convCoeff .nearestEven (magnitudeValue x.magnitude))).1 > 127 := by
+      have hcarry : ¬ (carry (normExp (magnitudeValue x.magnitude))
+          (roundedCoeff .nearestEven (magnitudeValue x.magnitude))).1 > 127 := by
         exact Int.not_lt.mpr hs.2.1
       have hg := roundingGrid_bounds x.magnitude
-      have hk := roundingCoefficient_convCoeff x.magnitude hz
+      have hk := roundingCoefficient_roundedCoeff x.magnitude hz
       have hsign := x.sign_value hz
       simp only [Word.round32, if_neg hnr, beq_iff_eq, if_neg hz]
       rw [encodeRounded_spec _ _ _ hg.1 hg.2 (by omega), hk,
-        ← roundingGrid_convExp x.magnitude hz]
+        ← roundingGrid_normExp x.magnitude hz]
       simp only [TensorCore.round32, round32Core, if_neg hz', x.abs_value,
         hsign, if_neg hcarry, if_neg hnmr]
   · have hr' : absQ x.value > maxFinite32 := by

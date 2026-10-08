@@ -45,9 +45,9 @@ for the Tensor Core model, and *the TC-EFT paper* for non-monotonicity and the T
 
 | What it says | Lean name | File |
 | --- | --- | --- |
-| FP32 conversion returns the nearest value, ties to even, for every in-range input. | `round32_nearestEven_correct` | [Numerics/CorrectRounding.lean](Numerics/CorrectRounding.lean) |
+| rounding to FP32 returns the nearest value, ties to even, for every in-range input. | `round32_nearestEven_correct` | [Numerics/CorrectRounding.lean](Numerics/CorrectRounding.lean) |
 | The same holds for any binary format and rounding direction. | `roundBinary_correct` | [Numerics/Binary/RoundingContract.lean](Numerics/Binary/RoundingContract.lean) |
-| Conversion succeeds exactly when the input is within the format's finite range. | `roundBinary_isSome_iff` | [Numerics/Binary/RoundingContract.lean](Numerics/Binary/RoundingContract.lean) |
+| Rounding succeeds exactly when the input is within the format's finite range. | `roundBinary_isSome_iff` | [Numerics/Binary/RoundingContract.lean](Numerics/Binary/RoundingContract.lean) |
 | Finite bit patterns and representable values correspond one to one, including subnormals and both zeros. | `signedFiniteBinaryBijection` | [Numerics/Binary/SignedBijection.lean](Numerics/Binary/SignedBijection.lean) |
 | Naive floating-point summation is exact when the summands fit within a bounded bit span. | `naiveSumBinary_exact_of_bitSpan` | [Numerics/Binary/ScalarSum.lean](Numerics/Binary/ScalarSum.lean) |
 

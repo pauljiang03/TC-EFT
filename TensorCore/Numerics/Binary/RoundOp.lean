@@ -27,7 +27,7 @@ def encodeBinary (f : Format) (negative : Bool) (e k : ℤ) : BitVec f.width :=
     (if k < (2 ^ f.mantissaBits : ℕ) then k.toNat
      else (e + f.bias).toNat * 2 ^ f.mantissaBits + (k - (2 ^ f.mantissaBits : ℕ)).toNat))
 
-def binaryConvExp (f : Format) (m : ℚ) : ℤ := max (magnitudeExponent m) f.emin
+def binaryNormExp (f : Format) (m : ℚ) : ℤ := max (magnitudeExponent m) f.emin
 
 def binaryCarry (f : Format) (e k : ℤ) : ℤ × ℤ :=
   if k = (2 ^ (f.mantissaBits + 1) : ℕ) then (e + 1, k / 2) else (e, k)
@@ -39,7 +39,7 @@ def roundBinary (f : Format) (mode : BinaryRoundingMode) (x : ℚ) : Option (Bit
   else if x = 0 then some 0
   else
     let negative := decide (x < 0)
-    let e := binaryConvExp f (absQ x)
+    let e := binaryNormExp f (absQ x)
     let k := binaryCoefficient mode negative (absQ x / pow2 (e - f.mantissaBits))
     let (e', k') := binaryCarry f e k
     if e' > f.emax then none else some (encodeBinary f negative e' k')

@@ -38,7 +38,7 @@ python3 scripts/check_monotonicity.py
 
 Reproduce validation with `scripts/check_all.py`. Current reports and source hashes are generated under `test-results/summary.json`; the direct comparison writes `test-results/equivalence/report.json`.
 
-`prepare_reference.py` verifies the parent dependency graph against the bundled [reference manifest](reference-manifest.json). The script checks the manifest's SHA-256, resolves modules to their manifest entries, and verifies mathematical code tokens, string literals, and imports. Comments and whitespace do not affect token verification. It copies the verified parent sources into `reference-compat/` and records their hashes and dependency metadata in the generated manifest. Edge checks exercise source archives and reject mutations of protected code, imports, manifests, and dependencies.
+`prepare_reference.py` verifies the parent dependency graph against the bundled [reference manifest](reference-manifest.json). The script checks the manifest's SHA-256, resolves modules to their manifest entries, and verifies mathematical code tokens, string literals, and imports. Comments and whitespace do not affect token verification. Parent declarations renamed since the pinned revision are recorded in [renamed-identifiers.json](renamed-identifiers.json) as exact token positions; restoring them must reproduce the pinned hash, so the check still proves the parent code changed only by those renames. After renaming parent declarations, regenerate the record with `python3 scripts/record_renames.py`. It copies the verified parent sources into `reference-compat/` and records their hashes and dependency metadata in the generated manifest. Edge checks exercise source archives and reject mutations of protected code, imports, manifests, and dependencies.
 
 ## Equivalence with the first-principles implementation
 
@@ -85,7 +85,7 @@ When the scalar guard fails, Algorithm 1 consolidates the components using exact
 | `TCFloat/Rounding.lean` | FloatLib executable-to-real rounding bridge and FP32 grid representability |
 | `TCFloat/EFT.lean` | Prefix-sum exactness, scalar correctness, full Algorithm 1 correctness and range |
 | `TCFloat/Behavior.lean` | C-perturbation flowback identity, exact internal-increase criterion, fixed-grid monotonicity, alignment error bounds, kernel-checked nonmonotonic outputs for V100/A100/H100 |
-| `TCFloat/DirectedRounding.lean` | Proved connection from FloatLib RTZ conversion to signed-grid truncation for positive normal binary intervals |
+| `TCFloat/DirectedRounding.lean` | Proved connection from FloatLib RTZ rounding to signed-grid truncation for positive normal binary intervals |
 | `TCFloat/Monotonicity.lean` | General K/p non-monotonicity threshold, actual encoded FP16 version, and formal failure of accumulator monotonicity |
 | `Main.lean` | Batch executable adapter |
 
@@ -94,7 +94,7 @@ When the scalar guard fails, Algorithm 1 consolidates the components using exact
 | File | Purpose |
 |---|---|
 | `TCFloat/Interface.lean` | Independent encoded interfaces, including typed validation results |
-| `TCFloat/Equivalence/Conversion.lean` | Universal RTZ/RNE converter bit equality |
+| `TCFloat/Equivalence/RoundingStage.lean` | Universal RTZ/RNE rounding bit equality |
 | `TCFloat/Equivalence/Encoded.lean` | Universal TC/EFT encoded-interface equivalence |
 | `TCFloat/Equivalence/Representations.lean` | Two-way input/result mappings and exact-error equivalence |
 | `TCFloat/Equivalence/PortedTheorems.lean` | Error, flowback, perturbation-range and overlap statements |

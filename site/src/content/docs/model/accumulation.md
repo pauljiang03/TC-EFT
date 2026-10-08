@@ -13,7 +13,7 @@ def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
 
 Accumulation is exact and does not depend on order. All the loss happens in
 [alignment](/TC-EFT/model/alignment/) and in the final
-[conversion](/TC-EFT/model/conversion/). Exactness is a modeling choice, so
+[normalization and final rounding](/TC-EFT/model/normalization/). Exactness is a modeling choice, so
 the library also models a finite register and proves the two agree.
 
 ## A fixed-width register model

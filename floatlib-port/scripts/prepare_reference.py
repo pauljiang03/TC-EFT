@@ -81,6 +81,10 @@ def legacy_module(module):
         'TensorCore.EFT.TcEft': 'TensorCore.EFT.Algorithm1',
         'TensorCore.Numerics.UnnormalizedProduct': 'TensorCore.Core.RawProduct',
         'TensorCore.TC.AlignmentExponent': 'TensorCore.TC.AlignmentScale',
+        'TensorCore.TC.FinalRounding': 'TensorCore.TC.Conversion',
+        'TensorCore.Numerics.RoundingStage': 'TensorCore.Core.Conversion',
+        'TensorCore.Numerics.RoundingBounds': 'TensorCore.Core.ConversionBounds',
+        'TensorCore.Numerics.Binary.RoundingBounds': 'TensorCore.Core.Binary.ConversionBounds',
         'TensorCore.Kernels.EFT.Defs': 'TensorCore.EFT.Bounded',
         'TensorCore.Kernels.EFT.Native': 'TensorCore.EFT.Native',
     }

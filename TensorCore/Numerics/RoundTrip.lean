@@ -74,8 +74,8 @@ theorem round32_canonical (mode : RoundingMode) (negative : Bool) (e k : ℤ)
     simp [absQ] at hmag
     grind
   -- Exponent selection.
-  have hexp : convExp ((k : ℚ) * pow2 (e - 23)) = e := by
-    unfold convExp emin32
+  have hexp : normExp ((k : ℚ) * pow2 (e - 23)) = e := by
+    unfold normExp emin32
     by_cases hk : 2 ^ 23 ≤ k
     · have hlo : pow2 e ≤ (k : ℚ) * pow2 (e - 23) := by
         rw [binade_grid]
@@ -105,8 +105,8 @@ theorem round32_canonical (mode : RoundingMode) (negative : Bool) (e k : ℤ)
         have h2 := pow2_le_of_le hge
         grind
       omega
-  have hcoef : convCoeff mode ((k : ℚ) * pow2 (e - 23)) = k := by
-    unfold convCoeff
+  have hcoef : roundedCoeff mode ((k : ℚ) * pow2 (e - 23)) = k := by
+    unfold roundedCoeff
     rw [hexp, Rat.mul_div_cancel (Rat.ne_of_gt hq)]
     exact roundCoefficient_intCast mode k
   have hcarry : carry e k = (e, k) := by

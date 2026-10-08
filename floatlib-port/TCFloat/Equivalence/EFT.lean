@@ -1,4 +1,4 @@
-import TCFloat.Equivalence.Conversion
+import TCFloat.Equivalence.RoundingStage
 import TCFloat.Equivalence.Block
 
 set_option backward.isDefEq.respectTransparency false

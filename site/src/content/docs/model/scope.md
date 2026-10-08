@@ -15,7 +15,7 @@ description: What the Lean Tensor Core model covers and what it deliberately lea
 - Ordered chains of groups, as in WMMA instructions, passing encoded FP32
   outputs between groups.
 - A general `InvocationSpec`, including FP64 fused DMMA and configurable
-  conversion stages.
+  rounding stages.
 
 ## Not covered, or covered differently from IEEE
 

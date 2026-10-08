@@ -15,9 +15,9 @@ theorem next_binade_grid (e : ℤ) : pow2 (e + 1) = 16777216 * pow2 (e - 23) := 
 
 theorem maxFinite32_lt_pow128 : maxFinite32 < pow2 128 := by decide +kernel
 
-theorem convExp_bounds (m : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32) :
-    -126 ≤ convExp m ∧ convExp m ≤ 127 ∧
-    m < pow2 (convExp m + 1) ∧ (pow2 (convExp m) ≤ m ∨ convExp m = -126) := by
+theorem normExp_bounds (m : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32) :
+    -126 ≤ normExp m ∧ normExp m ≤ 127 ∧
+    m < pow2 (normExp m + 1) ∧ (pow2 (normExp m) ≤ m ∨ normExp m = -126) := by
   have hs := magnitudeExponent_spec m hm
   have htop : magnitudeExponent m ≤ 127 := by
     apply Classical.byContradiction
@@ -25,17 +25,17 @@ theorem convExp_bounds (m : ℚ) (hm : 0 < m) (hr : m ≤ maxFinite32) :
     have hg := pow2_le_of_le (e := 128) (f := magnitudeExponent m) (by omega)
     have := maxFinite32_lt_pow128
     grind
-  have hmax : magnitudeExponent m ≤ convExp m := by unfold convExp; omega
-  have he1 : -126 ≤ convExp m := by unfold convExp emin32; omega
-  have he2 : convExp m ≤ 127 := by unfold convExp emin32; omega
+  have hmax : magnitudeExponent m ≤ normExp m := by unfold normExp; omega
+  have he1 : -126 ≤ normExp m := by unfold normExp emin32; omega
+  have he2 : normExp m ≤ 127 := by unfold normExp emin32; omega
   have hupper := pow2_le_of_le (e := magnitudeExponent m + 1)
-    (f := convExp m + 1) (by omega)
+    (f := normExp m + 1) (by omega)
   refine ⟨he1, he2, by grind, ?_⟩
   by_cases h : -126 ≤ magnitudeExponent m
   · left
-    have : convExp m = magnitudeExponent m := by unfold convExp emin32; omega
+    have : normExp m = magnitudeExponent m := by unfold normExp emin32; omega
     rw [this]; exact hs.1
-  · right; unfold convExp emin32; omega
+  · right; unfold normExp emin32; omega
 
 theorem roundCoefficient_bounds (mode : RoundingMode) (t : ℚ)
     (ht : 0 ≤ t) (htop : t < 16777216) :
@@ -64,39 +64,39 @@ theorem roundCoefficient_le_integer (mode : RoundingMode) (t : ℚ) (n : ℤ)
       · omega
     · omega
 
-theorem convCoeff_bounds (mode : RoundingMode) (m : ℚ)
+theorem roundedCoeff_bounds (mode : RoundingMode) (m : ℚ)
     (hm : 0 < m) (hr : m ≤ maxFinite32) :
-    0 ≤ convCoeff mode m ∧ convCoeff mode m ≤ 16777216 ∧
-    (8388608 ≤ convCoeff mode m ∨ convExp m = -126) ∧
-    (convExp m = 127 → convCoeff mode m ≤ 16777215) := by
-  obtain ⟨he1, he2, hupper, hlower⟩ := convExp_bounds m hm hr
-  have hq := pow2_pos (convExp m - 23)
-  have ht : 0 < m / pow2 (convExp m - 23) := by
+    0 ≤ roundedCoeff mode m ∧ roundedCoeff mode m ≤ 16777216 ∧
+    (8388608 ≤ roundedCoeff mode m ∨ normExp m = -126) ∧
+    (normExp m = 127 → roundedCoeff mode m ≤ 16777215) := by
+  obtain ⟨he1, he2, hupper, hlower⟩ := normExp_bounds m hm hr
+  have hq := pow2_pos (normExp m - 23)
+  have ht : 0 < m / pow2 (normExp m - 23) := by
     apply (Rat.lt_div_iff hq).mpr
     simpa using hm
-  have htop : m / pow2 (convExp m - 23) < 16777216 := by
+  have htop : m / pow2 (normExp m - 23) < 16777216 := by
     apply (Rat.div_lt_iff hq).mpr
     rwa [next_binade_grid] at hupper
   have hb := roundCoefficient_bounds mode _ (Rat.le_of_lt ht) htop
-  change 0 ≤ convCoeff mode m ∧ convCoeff mode m ≤ 16777216 ∧
-    (m / pow2 (convExp m - 23)).floor ≤ convCoeff mode m at hb
+  change 0 ≤ roundedCoeff mode m ∧ roundedCoeff mode m ≤ 16777216 ∧
+    (m / pow2 (normExp m - 23)).floor ≤ roundedCoeff mode m at hb
   refine ⟨hb.1, hb.2.1, ?_, ?_⟩
   · rcases hlower with hl | he
     · left
-      have hs : (8388608 : ℚ) ≤ m / pow2 (convExp m - 23) := by
+      have hs : (8388608 : ℚ) ≤ m / pow2 (normExp m - 23) := by
         apply Classical.byContradiction
         intro h
-        have h' : m / pow2 (convExp m - 23) < 8388608 := by grind
+        have h' : m / pow2 (normExp m - 23) < 8388608 := by grind
         have h'' := (Rat.div_lt_iff hq).mp h'
         rw [binade_grid] at hl
         grind
-      have hf : 8388608 ≤ (m / pow2 (convExp m - 23)).floor := Rat.le_floor_iff.mpr hs
+      have hf : 8388608 ≤ (m / pow2 (normExp m - 23)).floor := Rat.le_floor_iff.mpr hs
       omega
     · exact Or.inr he
   · intro he
-    unfold convCoeff
+    unfold roundedCoeff
     apply roundCoefficient_le_integer
-    have hscale : m / pow2 (convExp m - 23) ≤ (16777215 : ℚ) := by
+    have hscale : m / pow2 (normExp m - 23) ≤ (16777215 : ℚ) := by
       rw [he]
       apply Classical.byContradiction
       intro h
