@@ -5,7 +5,7 @@ import Init.GrindInstances.Ring.Rat
 
 /-! Independent specification of the aligned FP32-output paths in Accurate Models v4, Section 4.1 (especially 4.1.1, 4.1.2, 4.1.6), Figures 2/3/5, and Table 3. -/
 
-namespace TensorCore.PaperSpec
+namespace TensorCore.IndependentSpec
 
 structure Layout where
   fraction : ℕ
@@ -82,7 +82,7 @@ def accumulated (p : Parameters) (ts : List Term) : ℚ :=
 
 def maxFinite : ℚ := (16777215 : ℚ) * (2 : ℚ) ^ (104 : ℤ)
 
-/-- Domain from the paper-side computation, without evaluating the implementation. -/
+/-- Domain from the specification-side computation, without evaluating the implementation. -/
 def Valid (p : Parameters) (x : Input p) : Prop :=
   x.products.length = p.products ∧
     ∃ ts, terms p x = some ts ∧ magnitude (accumulated p ts) ≤ maxFinite
@@ -109,4 +109,4 @@ noncomputable def bits (p : Parameters) (x : Input p) : Option (BitVec 32) := by
   classical
   exact if h : ∃ b, Result p x b then some (Classical.choose h) else none
 
-end TensorCore.PaperSpec
+end TensorCore.IndependentSpec

@@ -46,7 +46,7 @@ a GPU behaves that way. That link comes from the
 [hardware replay](/TC-EFT/model/validation/).
 
 The independent specification transcribes the same eight parameter sets on
-its own, as `PaperSpec.parameters`. `supported_parameters` checks with `rfl`
+its own, as `IndependentSpec.parameters`. `supported_parameters` checks with `rfl`
 that the two transcriptions match.
 
 ## Beyond one block: `InvocationSpec`

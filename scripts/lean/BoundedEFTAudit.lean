@@ -29,11 +29,11 @@ def check (root : Name) : CommandElabM Unit := do
   logInfo m!"bounded_execution_audit: {root}; {deps.size} transitive declarations; no Rat/model/ideal"
 
 elab "bounded_eft_audit" : command => do
-  for root in [``TensorCore.EFMachine.algorithm1, ``TensorCore.EFMachine.prepare,
+  for root in [``TensorCore.EFMachine.tcEft, ``TensorCore.EFMachine.prepare,
     ``TensorCore.EFMachine.extract, ``TensorCore.EFMachine.Components.scalarGuard,
     ``TensorCore.EFMachine.Components.scalar, ``TensorCore.EFMachine.Word.round32,
     ``TensorCore.EFMachine.leadingZeros, ``TensorCore.EFMachine.trailingZeros,
-    ``TensorCore.EFMachine.algorithm1WithLean, ``TensorCore.EFMachine.Components.scalarWithLean,
+    ``TensorCore.EFMachine.tcEftWithLean, ``TensorCore.EFMachine.Components.scalarWithLean,
     ``TensorCore.EFMachine.naiveSum32WithLeanFrom, ``TensorCore.EFMachine.add32WithLean] do check root
   let env ← getEnv
   let allowed := [``propext, ``Classical.choice, ``Quot.sound]

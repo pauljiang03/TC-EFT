@@ -42,7 +42,7 @@ Reproduce validation with `scripts/check_all.py`. Current reports and source has
 
 ## Equivalence with the first-principles implementation
 
-[COMPARISON.md](COMPARISON.md) maps the definitions and paper statements to their Lean theorems. **`TCFloat.Equivalence.paper_one_to_one` is a universal Lean theorem**: the two encoded interfaces agree on TC bits, EFT bits and branches, and validation errors for every encoded input in the paper's FP16/BF16/TF32 profile family and every supplied D. `inputEquiv` and `paper_one_to_one_inverse` supply the two-way input correspondence. `round32_eq` proves converter equality for every rational input in toward-zero (RTZ) and nearest-even (RNE) modes.
+[COMPARISON.md](COMPARISON.md) maps the definitions and paper statements to their Lean theorems. **`TCFloat.Equivalence.floatlib_eq_reference` is a universal Lean theorem**: the two encoded interfaces agree on TC bits, EFT bits and branches, and validation errors for every encoded input in the paper's FP16/BF16/TF32 profile family and every supplied D. `inputEquiv` and `floatlib_eq_reference_inverse` supply the two-way input correspondence. `round32_eq` proves converter equality for every rational input in toward-zero (RTZ) and nearest-even (RNE) modes.
 
 The theorem concerns checked encoded inputs and consistent/canonical numerical representations; it does not identify arbitrary raw `Term` or `Trace` records. See the comparison for the precise scope and inverse laws. Direct differential tests additionally compare command observations and exhaustive FP16/BF16/TF32 decoder cases against a snapshot of the current parent sources. Reproduce with `python3 scripts/check_equivalence.py` after `check_all.py`.
 
@@ -93,12 +93,12 @@ When the scalar guard fails, Algorithm 1 consolidates the components using exact
 
 | File | Purpose |
 |---|---|
-| `TCFloat/Paper.lean` | Independent encoded interfaces, including typed validation results |
+| `TCFloat/Interface.lean` | Independent encoded interfaces, including typed validation results |
 | `TCFloat/Equivalence/Conversion.lean` | Universal RTZ/RNE converter bit equality |
 | `TCFloat/Equivalence/Encoded.lean` | Universal TC/EFT encoded-interface equivalence |
 | `TCFloat/Equivalence/Representations.lean` | Two-way input/result mappings and exact-error equivalence |
-| `TCFloat/Equivalence/PaperTheorems.lean` | Error, flowback, perturbation-range and overlap statements |
-| `TCFloat/Equivalence/PaperScalar.lean` | Paper scalar-summation and chosen-grid conditions |
+| `TCFloat/Equivalence/PortedTheorems.lean` | Error, flowback, perturbation-range and overlap statements |
+| `TCFloat/Equivalence/ScalarCorrection.lean` | Paper scalar-summation and chosen-grid conditions |
 
 ## What the tests do
 

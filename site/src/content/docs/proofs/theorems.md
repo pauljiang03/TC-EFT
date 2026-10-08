@@ -12,7 +12,7 @@ whether the theorem carries real content or holds largely by construction.
 
 | Theorem | What it states | Reading |
 | --- | --- | --- |
-| [`PaperSpec.supported_eq_paper`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Specification/Supported.lean#L25) | `evalBlock` and an independently written specification give the same bits or rejection on every input of all 8 paths | Substantive. The specification is audited for independence and the result is not vacuous (`supported_valid_success`) |
+| [`IndependentSpec.supported_eq_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Specification/Supported.lean#L25) | `evalBlock` and an independently written specification give the same bits or rejection on every input of all 8 paths | Substantive. The specification is audited for independence and the result is not vacuous (`supported_valid_success`) |
 | [`evalBlock_success_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AcceptedDomain.lean#L33) | Exact accepted domain: shape, finite operands, in-range accumulator | Substantive |
 | [`evalBlock_residual_identity`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/StageResiduals.lean#L90) | Exact input sum = output + named residual | Substantive. Ties the model to the original-input sum |
 | [`evalBlock_error_bound`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/ErrorBounds.lean#L78) | Error < (K+1)·2^(η−F) + ulp(D) | Substantive. A tight two-part bound |
@@ -39,11 +39,11 @@ whether the theorem carries real content or holds largely by construction.
 | --- | --- | --- |
 | [`overlap_recovery`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/Extraction.lean#L20) | S = D − εₒ + Σ εᵢ | True by construction, since εₒ is defined as D − H. A bookkeeping identity |
 | [`scalarCorrected_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/Extraction.lean#L144) | Scalar predicate ⇒ FP32 pipeline returns RNE(S) | Partly substantive. Exact FP32 summation is the real content |
-| [`ExtractionGrid.eq20_scalarPredicate`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/ExtractionGrid.lean#L174) | Input-budget inequality ⇒ scalar predicate | Partly circular. 7 of the 9 predicate conjuncts are hypotheses, and no instance in the repository satisfies them all |
-| [`algorithm1Encoded_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/Encoded.lean#L114) | Any returned bits are RNE of the exact sum, for any finite D | Substantive. Partial correctness; with `algorithm1Encoded_bits_isSome_iff` it becomes total |
-| [`EFMachine.algorithm1_success` / `_range_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Correctness.lean#L91) | 576-bit kernel succeeds exactly when the sum is in range | Substantive |
-| [`EFMachine.algorithm1_agrees`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Refinement.lean#L7) | Bounded and reference bits agree | Substantive refinement |
-| [`EFMachine.algorithm1WithLean_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Native.lean#L108) | Native Float32 additions preserve the whole result | Substantive, relative to Lean's `Float` model |
+| [`ExtractionGrid.inputBudget_scalarPredicate`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/ExtractionGrid.lean#L174) | Input-budget inequality ⇒ scalar predicate | Partly circular. 7 of the 9 predicate conjuncts are hypotheses, and no instance in the repository satisfies them all |
+| [`tcEftEncoded_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/Encoded.lean#L114) | Any returned bits are RNE of the exact sum, for any finite D | Substantive. Partial correctness; with `tcEftEncoded_bits_isSome_iff` it becomes total |
+| [`EFMachine.tcEft_success` / `_range_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Correctness.lean#L91) | 576-bit kernel succeeds exactly when the sum is in range | Substantive |
+| [`EFMachine.tcEft_agrees`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Refinement.lean#L7) | Bounded and reference bits agree | Substantive refinement |
+| [`EFMachine.tcEftWithLean_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Native.lean#L108) | Native Float32 additions preserve the whole result | Substantive, relative to Lean's `Float` model |
 
 ## What is not in the proofs
 

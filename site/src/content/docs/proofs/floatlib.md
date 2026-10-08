@@ -11,7 +11,7 @@ runtime.
 
 ## The equivalence theorem
 
-[`paper_one_to_one`](https://github.com/pauljiang03/TC-EFT/blob/main/floatlib-port/TCFloat/Equivalence/Representations.lean#L149)
+[`floatlib_eq_reference`](https://github.com/pauljiang03/TC-EFT/blob/main/floatlib-port/TCFloat/Equivalence/Representations.lean#L149)
 and its inverse cover every profile with FP16, BF16, or TF32 input (any `K`,
 extra bits, and floor), every encoded input, and every `D`. They prove that
 the two implementations produce corresponding **complete observations**:

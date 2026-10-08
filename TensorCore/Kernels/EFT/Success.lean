@@ -25,7 +25,7 @@ private theorem unit_product (a b : ℚ) (ha : absQ a ≤ 1) (hb : absQ b ≤ 1)
     grind
 
 /-- A concrete input-only success family, requiring no bound on the ideal: all decoded input operands and c have magnitude at most one. -/
-theorem algorithm1_unitInputs_success {path : Path} {x : BlockInput path.profile} {D : F32}
+theorem tcEft_unitInputs_success {path : Path} {x : BlockInput path.profile} {D : F32}
     {b : PreparedBlock} {d : ℚ}
     (shape : x.products.length = path.profile.products)
     (inputs : TensorCore.prepare x = some b)
@@ -33,7 +33,7 @@ theorem algorithm1_unitInputs_success {path : Path} {x : BlockInput path.profile
     (hp : ∀ ab ∈ b.products, absQ ab.1.value ≤ 1 ∧ absQ ab.2.value ≤ 1)
     (hD : TensorCore.value32 D = some d) :
     absQ b.exactDot ≤ 17 ∧
-      ∃ r bits, algorithm1 path x D = .ok r ∧ r.bits = some bits ∧ NearestEven32 b.exactDot bits := by
+      ∃ r bits, tcEft path x D = .ok r ∧ r.bits = some bits ∧ NearestEven32 b.exactDot bits := by
   have hlen : b.products.length = path.profile.products := by
     unfold TensorCore.prepare at inputs
     cases hd : TensorCore.decode32 x.c <;>
@@ -58,7 +58,7 @@ theorem algorithm1_unitInputs_success {path : Path} {x : BlockInput path.profile
     dsimp only [PreparedBlock.exactProducts] at ha
     dsimp only [PreparedBlock.exactDot, PreparedBlock.exactProducts]
     grind
-  refine ⟨hbound, algorithm1_success shape ?_ hD ?_⟩
+  refine ⟨hbound, tcEft_success shape ?_ hD ?_⟩
   · simp [TensorCore.exactDot, inputs]
   · have hmax : (17 : ℚ) ≤ maxFinite32 := by decide +kernel
     exact Rat.le_trans hbound hmax

@@ -1,7 +1,7 @@
 import TCFloat.Model
 
-/-! The paper's two encoded interfaces. -/
-namespace TCFloat.Paper
+/-! The two encoded interfaces: the TC model and the TC-EFT correction. -/
+namespace TCFloat.Interface
 
 def tc (p : Profile) (pairs : List (Nat × Nat)) (c : Nat) : Option Nat :=
   (prepare p pairs c).bind Block.evaluate
@@ -10,7 +10,7 @@ def eft (p : Profile) (pairs : List (Nat × Nat)) (c d : Nat) : Option (Option N
   (prepare p pairs c).bind fun b =>
     (trace b d).map Trace.encodedAlgorithm
 
-end TCFloat.Paper
+end TCFloat.Interface
 
 namespace TCFloat.Trace
 def retainedLowParts (t : Trace) : List Rat :=
@@ -18,7 +18,7 @@ def retainedLowParts (t : Trace) : List Rat :=
 def outputResidual (t : Trace) : Rat := t.block.accumulator-t.output
 end TCFloat.Trace
 
-namespace TCFloat.Paper
+namespace TCFloat.Interface
 /-- Bounded encodings for one block. -/
 structure Input (p : Profile) where
   products : List (Fin (2^p.format.bitWidth) × Fin (2^p.format.bitWidth))
@@ -51,7 +51,7 @@ def eftChecked (p : Profile) (x : Input p) (d : Fin (2^32)) :
     | some b => match trace b d.val with
       | none => .error .nonfiniteOutput
       | some t => .ok t.encodedAlgorithm
-end TCFloat.Paper
+end TCFloat.Interface
 
 namespace TCFloat.Trace
 /-- Residual coefficients on an explicitly chosen paper grid. -/

@@ -119,15 +119,15 @@ theorem consolidation_eq {s : TensorCore.BlockTrace} {t : Trace} (h : TraceRel s
   rw [h.output_eq,overlap_eq h,lows_eq h,sumQ_eq]
   exact round32_eq .nearestEven _
 
-def result : TensorCore.Algorithm1Result → Option Nat × String
+def result : TensorCore.TcEftResult → Option Nat × String
   | .scalar b => (some b.toNat,"scalar")
   | .exactReference b => (some b.toNat,"exactReference")
   | .outOfRange => (none,"outOfRange")
 
 /-- Both the branch and returned bits agree, for any supplied finite D. -/
 theorem algorithm_eq {s : TensorCore.BlockTrace} {t : Trace} (h : TraceRel s t) :
-    t.algorithm = result s.algorithm1 := by
-  unfold Trace.algorithm TensorCore.BlockTrace.algorithm1
+    t.algorithm = result s.tcEft := by
+  unfold Trace.algorithm TensorCore.BlockTrace.tcEft
   rw [scalar_eq h,consolidation_eq h]
   cases s.scalarCorrected <;> cases s.exactConsolidation <;> rfl
 
@@ -145,7 +145,7 @@ def encodedResult : TensorCore.EncodedEFTResult → Option Nat × String
 
 theorem encoded_trace_eq {s : TensorCore.BlockTrace} {t : Trace} (h : TraceRel s t) :
     t.encodedAlgorithm = encodedResult
-      (if s.block.allZeroTerms then .allZero else .consolidated s.algorithm1) := by
+      (if s.block.allZeroTerms then .allZero else .consolidated s.tcEft) := by
   rw [h.block_eq,allZero_eq]
   unfold Trace.encodedAlgorithm
   cases t.block.terms.all (fun t => t.dyadic.significand==0) <;> simp [encodedResult,algorithm_eq h]

@@ -1,1 +1,1 @@
-import TCFloat.Equivalence.PaperScalar
+import TCFloat.Equivalence.ScalarCorrection

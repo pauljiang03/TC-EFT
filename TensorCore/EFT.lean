@@ -1,4 +1,4 @@
-import TensorCore.EFT.Algorithm1
+import TensorCore.EFT.TcEft
 import TensorCore.EFT.Defs
 import TensorCore.EFT.Encoded
 import TensorCore.EFT.Extraction

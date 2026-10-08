@@ -35,7 +35,7 @@ private def command (args : List String) : Option Json := do
         let ps ← pairs path (ns.take (path.profile.products * 2))
         let x : BlockInput path.profile := ⟨ps, BitVec.ofNat _ c⟩
         let d : F32 := BitVec.ofNat _ D
-        let result := EFMachine.algorithm1WithLean path x d
+        let result := EFMachine.tcEftWithLean path x d
         let components := (EFMachine.prepare path x d).toOption.bind EFMachine.extract
         return match result with
         | .error e => Json.mkObj [("error", toJson (reprStr e))]

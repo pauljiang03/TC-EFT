@@ -97,7 +97,7 @@ theorem lowParts_on_grid (g : ExtractionGrid t) (ℓ : ℤ) (hℓ : ℓ ≤ g.ex
   rw [hr, Rat.mul_div_cancel (Rat.ne_of_gt (pow2_pos ℓ)), Rat.floor_intCast]
 
 /-- The input-grid budget bounds residual coefficients using component count (including C) and extraction exponent. -/
-theorem eq20_coefficients (g : ExtractionGrid t) (ℓ : ℤ) (P : ℕ) (hℓ : ℓ ≤ g.exponent)
+theorem inputBudget_coefficient_bound (g : ExtractionGrid t) (ℓ : ℤ) (P : ℕ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ P) :
     magnitudeSum (g.coefficients ℓ) < 2 ^ P := by
@@ -109,14 +109,14 @@ theorem eq20_coefficients (g : ExtractionGrid t) (ℓ : ℤ) (P : ℕ) (hℓ : �
     exact List.mem_map.mpr ⟨z, hz, rfl⟩
   · simpa [coefficients, lowParts] using hbudget
 
-theorem eq20_exact_sum (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
+theorem inputBudget_lowParts_sum_exact (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
     (ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.fractionBits + 1))
     (hrange : (magnitudeSum (g.coefficients ℓ) : ℚ) * pow2 ℓ ≤ f.maxFinite) :
     naiveSumBinary f g.lowParts = some (sumQ g.lowParts) := by
   rw [g.lowParts_on_grid ℓ hℓ hinput,
-    naiveSumBinary_exact f hf ℓ hmin _ (g.eq20_coefficients ℓ _ hℓ hinput hbudget) hrange,
+    naiveSumBinary_exact f hf ℓ hmin _ (g.inputBudget_coefficient_bound ℓ _ hℓ hinput hbudget) hrange,
     sum_coefficients]
 
 def scalarPredicate (g : ExtractionGrid t) (f : Format) (ℓ : ℤ) : Bool :=
@@ -171,7 +171,7 @@ theorem scalarCorrected_isSome_iff (g : ExtractionGrid t) (f : Format) (ℓ : �
     simp [hb]
 
 /-- The input-grid budget and range/representability conditions imply the scalar predicate. -/
-theorem eq20_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
+theorem inputBudget_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.WellFormed)
     (ℓ : ℤ) (hmin : f.emin - f.fractionBits ≤ ℓ) (hℓ : ℓ ≤ g.exponent)
     (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
     (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ (f.fractionBits + 1))
@@ -182,7 +182,7 @@ theorem eq20_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.WellFor
     (hfinal : absQ t.block.exactDot ≤ maxFinite32) :
     g.scalarPredicate f ℓ = true := by
   have hgrid := g.lowParts_on_grid ℓ hℓ hinput
-  have hcoeff := g.eq20_coefficients ℓ _ hℓ hinput hbudget
+  have hcoeff := g.inputBudget_coefficient_bound ℓ _ hℓ hinput hbudget
   simp only [scalarPredicate, Bool.and_eq_true, decide_eq_true_eq, beq_iff_eq]
   exact ⟨⟨⟨⟨⟨⟨⟨⟨hf, hmin⟩, hgrid⟩, hcoeff⟩, hrange⟩, hD⟩, hO⟩, hH⟩,
     by simpa [g.retained_add_low] using hfinal⟩

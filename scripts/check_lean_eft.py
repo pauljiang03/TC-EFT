@@ -105,8 +105,8 @@ def main():
               'first_failures': failures[:20],
               'preservation_theorems': ['TensorCore.EFMachine.add32WithLean_eq',
                                        'TensorCore.EFMachine.naiveSum32WithLeanFrom_eq',
-                                       'TensorCore.EFMachine.algorithm1WithLean_eq'],
-              'correctness_theorem': 'TensorCore.EFMachine.algorithm1WithLean_correct',
+                                       'TensorCore.EFMachine.tcEftWithLean_eq'],
+              'correctness_theorem': 'TensorCore.EFMachine.tcEftWithLean_correct',
               'request_sha256': hashlib.sha256(data.encode()).hexdigest(),
               'source_sha256': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                                 for p in sources},

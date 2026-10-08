@@ -1,9 +1,9 @@
 import TensorCore.TC.Specification.Composition
 import TensorCoreTests.TC.Cases
 
-/-! Deliberately incorrect evaluators and encoded witnesses separating them from the paper specification. -/
+/-! Deliberately incorrect evaluators and encoded witnesses separating them from the independent Accurate Models specification. -/
 
-namespace TensorCore.PaperSpec.Controls
+namespace TensorCore.IndependentSpec.Controls
 
 set_option maxRecDepth 16384
 set_option maxHeartbeats 4000000
@@ -33,7 +33,7 @@ theorem premature_normalization_detected :
     bits (parametersOf v100F16F32) (inputOf Regression.r1a) = some 0x40100001 := by
   constructor
   · decide +kernel
-  · rw [← implementation_eq_paper]
+  · rw [← evalBlock_eq_spec]
     decide +kernel
 
 theorem ieee_alignment_detected :
@@ -41,7 +41,7 @@ theorem ieee_alignment_detected :
     bits (parametersOf v100F16F32) (inputOf Regression.r1b) = some 0x40100000 := by
   constructor
   · decide +kernel
-  · rw [← implementation_eq_paper]
+  · rw [← evalBlock_eq_spec]
     decide +kernel
 
 /-- A100: p1 = sum_{j=150..155} 2^-j, p2 = 2^-156, p3 = p4 = 2^-157. -/
@@ -59,7 +59,7 @@ theorem ampere_floor_removal_detected :
     bits (parametersOf a100BF16F32) (inputOf ampereFloorInput) = some 0 := by
   constructor
   · decide +kernel
-  · rw [← implementation_eq_paper]
+  · rw [← evalBlock_eq_spec]
     decide +kernel
 
 theorem hopper_floor_removal_detected :
@@ -67,7 +67,7 @@ theorem hopper_floor_removal_detected :
     bits (parametersOf hopperBF16F32) (inputOf hopperFloorInput) = some 0 := by
   constructor
   · decide +kernel
-  · rw [← implementation_eq_paper]
+  · rw [← evalBlock_eq_spec]
     decide +kernel
 
 def cancelGroup : List (F16 × F16) := (0xbc00, 0x3c00) :: List.replicate 7 (0, 0)
@@ -77,9 +77,9 @@ theorem group_reversal_detected :
     lastBits (parametersOf ampereF16F32) 0x3f800000 [cancelGroup, tinyGroup] = some 0x33800000 ∧
     lastBits (parametersOf ampereF16F32) 0x3f800000 [tinyGroup, cancelGroup] = some 0 := by
   constructor
-  · exact (schedule_last_eq_paper ampereF16F32 0x3f800000 [cancelGroup, tinyGroup]).symm.trans
+  · exact (schedule_last_eq_spec ampereF16F32 0x3f800000 [cancelGroup, tinyGroup]).symm.trans
       (by decide +kernel)
-  · exact (schedule_last_eq_paper ampereF16F32 0x3f800000 [tinyGroup, cancelGroup]).symm.trans
+  · exact (schedule_last_eq_spec ampereF16F32 0x3f800000 [tinyGroup, cancelGroup]).symm.trans
       (by decide +kernel)
 
 /-- Value equality alone cannot distinguish these two encodings; the sign clause can. -/
@@ -99,6 +99,6 @@ theorem all_zero_and_nonfinite_boundaries :
       (inputOf (⟨List.replicate 4 (0x8000, 0), 0x80000000⟩ : BlockInput v100F16F32)) = some 0 ∧
     bits (parametersOf v100F16F32)
       (inputOf (⟨List.replicate 4 (0x7c00, 0), 0⟩ : BlockInput v100F16F32)) = none := by
-  constructor <;> rw [← implementation_eq_paper] <;> decide +kernel
+  constructor <;> rw [← evalBlock_eq_spec] <;> decide +kernel
 
-end TensorCore.PaperSpec.Controls
+end TensorCore.IndependentSpec.Controls

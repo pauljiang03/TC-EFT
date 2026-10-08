@@ -151,7 +151,7 @@ theorem coefficient_bitSpan_sufficient (zs : List ℤ) (B P : ℕ)
   rw [he] at h
   omega
 
-/-- The paper's signed-exponent form: |Tᵢ| < 2^(b+1), Tᵢ = zᵢ 2^ℓ, and `b − ℓ + 1 + ⌈log₂ n⌉ ≤ P` imply the predicate's strict coefficient budget. -/
+/-- The TC-EFT paper's signed-exponent form: |Tᵢ| < 2^(b+1), Tᵢ = zᵢ 2^ℓ, and `b − ℓ + 1 + ⌈log₂ n⌉ ≤ P` imply the predicate's strict coefficient budget. -/
 theorem bitSpan_coefficient_bound (zs : List ℤ) (b ℓ : ℤ) (P : ℕ)
     (hterm : ∀ z ∈ zs, absQ ((z : ℚ) * pow2 ℓ) < pow2 (b + 1))
     (hspan : b - ℓ + 1 + (ceilLog2 zs.length : ℤ) ≤ P) : magnitudeSum zs < 2 ^ P := by

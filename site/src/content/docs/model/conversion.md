@@ -74,7 +74,7 @@ specifications that do not mention it:
 - **Toward zero:** the [independent
   specification](/TC-EFT/model/specification/) describes RZ by ordering:
   the result is the finite FP32 value with the largest magnitude lying
-  between 0 and `x`. `supported_eq_paper` proves `round32 .towardZero` meets
+  between 0 and `x`. `supported_eq_spec` proves `round32 .towardZero` meets
   this on every supported input.
 - **Nearest even:** `NearestEven32 x b` says that `b` decodes to a finite
   value at least as close to `x` as any finite FP32 value, and that `b` has

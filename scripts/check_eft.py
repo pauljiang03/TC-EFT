@@ -65,11 +65,11 @@ def main():
             assert 'TensorCore.bitSpan_coefficient_bound' in p.stdout
             assert 'TensorCore.evalBlock_scalarCorrectedIn_correct' in p.stdout
             assert 'TensorCore.Regression.scalar64_double_rounding_incorrect' in p.stdout
-            assert 'TensorCore.algorithm1Encoded_correct' in p.stdout
-            assert 'TensorCore.EFMachine.algorithm1_correct' in p.stdout
-            assert 'TensorCore.EFMachine.algorithm1_range_iff' in p.stdout
-            assert 'TensorCore.EFMachine.algorithm1_agrees' in p.stdout
-            assert 'TensorCore.algorithm1Encoded_of_evalBlock' in p.stdout
+            assert 'TensorCore.tcEftEncoded_correct' in p.stdout
+            assert 'TensorCore.EFMachine.tcEft_correct' in p.stdout
+            assert 'TensorCore.EFMachine.tcEft_range_iff' in p.stdout
+            assert 'TensorCore.EFMachine.tcEft_agrees' in p.stdout
+            assert 'TensorCore.tcEftEncoded_of_evalBlock' in p.stdout
             assert 'TensorCore.monotoneInAccumulator_encoded' in p.stdout
         results.append(result)
     sources = [*(ROOT/'TensorCore').rglob('*.lean'), *(ROOT/'tests').rglob('*.lean'), *(ROOT/'examples').glob('*.lean'),

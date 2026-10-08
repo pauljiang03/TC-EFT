@@ -3,7 +3,7 @@ import TensorCore.TC.MachineRefinement
 
 /-! Universal, bit-level paper/implementation agreement. -/
 
-namespace TensorCore.PaperSpec
+namespace TensorCore.IndependentSpec
 
 set_option maxRecDepth 4096
 
@@ -48,7 +48,7 @@ theorem bits_eq_of_result {p : Parameters} {x : Input p} {b : F32}
   exact congrArg some (result_unique (Classical.choose_spec (show ∃ b, Result p x b from ⟨b, h⟩)) h)
 
 /-- Every encoded input: successful output bits and all rejection cases agree. -/
-theorem implementation_eq_paper {p : Profile} (x : BlockInput p) :
+theorem evalBlock_eq_spec {p : Profile} (x : BlockInput p) :
     (evalBlock x).toOption.map (fun t => t.output.bits) =
       bits (parametersOf p) (inputOf x) := by
   classical
@@ -69,13 +69,13 @@ theorem valid_success {p : Profile} (x : BlockInput p)
   obtain ⟨t, ht⟩ := (valid_iff x).mp hv
   exact ⟨t, ht, bits_eq_of_result (result_of_eval ht)⟩
 
-/-- Adequate modular accumulator widths inherit the independent paper theorem. -/
-theorem machine_eq_paper {p : Profile} (x : BlockInput p) (w F carryBits : ℕ)
+/-- Adequate modular accumulator widths inherit the independent-specification theorem. -/
+theorem machine_eq_spec {p : Profile} (x : BlockInput p) (w F carryBits : ℕ)
     (hF : p.alignFraction = F) (hc : p.products + 1 ≤ 2 ^ carryBits)
     (hw : F + 3 + carryBits ≤ w) :
     (evalBlockMachine w x).toOption.map (fun t => t.output.bits) =
       bits (parametersOf p) (inputOf x) := by
   rw [evalBlockMachine_eq x w F carryBits hF hc (by omega)]
-  exact implementation_eq_paper x
+  exact evalBlock_eq_spec x
 
-end TensorCore.PaperSpec
+end TensorCore.IndependentSpec

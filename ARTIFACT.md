@@ -31,12 +31,12 @@ Run the individual commands after the smoke build. Lean files check their proof 
 | Paper claim | Proof or data to inspect | Review command |
 | --- | --- | --- |
 | Consistency of finite binary encodings, including subnormals and signed zero | [`signedFiniteBinaryBijection`](TensorCore/Numerics/Binary/SignedBijection.lean) and its inverse laws | `lake env lean examples/BinaryFoundation.lean` |
-| TC block model and total output error bound | [`PaperSpec.supported_eq_paper`](TensorCore/TC/Specification/Supported.lean); [`evalBlock_error_bound`](TensorCore/TC/ErrorBounds.lean) | `python3 scripts/check_paper_spec.py` |
+| TC block model and total output error bound | [`IndependentSpec.supported_eq_spec`](TensorCore/TC/Specification/Supported.lean); [`evalBlock_error_bound`](TensorCore/TC/ErrorBounds.lean) | `python3 scripts/check_paper_spec.py` |
 | Hardware conditions for non-monotonicity and the perturbation range | [`nonmonotone_encoded`](TensorCore/TC/Monotonicity.lean); [`nonmonotone_range_encoded`](TensorCore/TC/MonotonicityRange.lean) | `lake env lean tests/TensorCoreTests/TC/Monotonicity.lean` |
 | Exact Sum Recovery | [`overlap_recovery`](TensorCore/EFT/Extraction.lean) | `lake env lean tests/TensorCoreTests/EFT/EFT.lean` |
-| Precondition for Correct Rounding and its application to TC-EFT | [`ExtractionGrid.eq20_scalarPredicate`](TensorCore/EFT/ExtractionGrid.lean); [`scalarCorrected_correct`](TensorCore/EFT/Extraction.lean); [`algorithm1Encoded_correct`](TensorCore/EFT/Encoded.lean) | `python3 scripts/check_eft.py` |
+| Precondition for Correct Rounding and its application to TC-EFT | [`ExtractionGrid.inputBudget_scalarPredicate`](TensorCore/EFT/ExtractionGrid.lean); [`scalarCorrected_correct`](TensorCore/EFT/Extraction.lean); [`tcEftEncoded_correct`](TensorCore/EFT/Encoded.lean) | `python3 scripts/check_eft.py` |
 | Bitwise agreement with all 35,000 published validation cases | [Pinned source hashes](vendor/SOURCES.json) and [recorded inputs/outputs](vendor/matlab-tensor-core-v0.5/model_validation/) | `python3 scripts/check_features.py` followed by `python3 scripts/check_device_formats.py` |
-| Correspondence between the first-principles and FloatLib implementations | [`paper_one_to_one`](floatlib-port/TCFloat/Equivalence/Representations.lean) and `paper_one_to_one_inverse` | Run the FloatLib commands in section 3 |
+| Correspondence between the first-principles and FloatLib implementations | [`floatlib_eq_reference`](floatlib-port/TCFloat/Equivalence/Representations.lean) and `floatlib_eq_reference_inverse` | Run the FloatLib commands in section 3 |
 
 The reviewed TC paths use FP16, BF16, or TF32 operands and FP32 outputs. The scalar correctness results require the stated grid, coefficient-budget, representability, and range premises. The reference algorithm also provides exact accumulation when its scalar guard fails. Hardware evidence consists of replaying recorded GPU outputs; the universal proofs concern the defined model under their hypotheses. The [theorem index](TensorCore/THEOREMS.md) also identifies the bounded backend and native FP32 refinement proofs.
 

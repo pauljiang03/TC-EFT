@@ -1,5 +1,5 @@
 import TCFloat.Equivalence.EFT
-import TCFloat.Paper
+import TCFloat.Interface
 
 set_option backward.isDefEq.respectTransparency false
 namespace TCFloat.Equivalence
@@ -149,7 +149,7 @@ theorem evalPrepared_bits (b : TensorCore.PreparedBlock) :
 theorem trace_algorithm_eq (b : Block) (hb : ValidBlock b) (D : TensorCore.F32) :
     (TCFloat.trace b D.toNat).map Trace.encodedAlgorithm =
       (TensorCore.finite32 D).map (fun d => encodedResult
-        (if (block b).allZeroTerms then .allZero else .consolidated (TensorCore.BlockTrace.mk (block b) d).algorithm1)) := by
+        (if (block b).allZeroTerms then .allZero else .consolidated (TensorCore.BlockTrace.mk (block b) d).tcEft)) := by
   have hv := finite32_value D
   have hn : ¬D.toNat ≥ 2^32 := Nat.not_le.mpr D.isLt
   rw [← value32_eq] at hv
@@ -174,11 +174,11 @@ theorem trace_algorithm_eq (b : Block) (hb : ValidBlock b) (D : TensorCore.F32) 
 /-- Universal encoded TC equality, including malformed product counts, nonfinite inputs, subnormals, signed zero and out-of-range accumulator rejection. -/
 theorem tc_encoded_eq (p : Profile) (hf : p.format.isIEEE=true)
     (x : TensorCore.BlockInput (profile p)) :
-    Paper.tc p (inputPairs x) x.c.toNat =
+    Interface.tc p (inputPairs x) x.c.toNat =
       (TensorCore.evalBlock x).toOption.map (fun t => t.output.bits.toNat) := by
   by_cases hs : x.products.length=p.products
   · have hp := prepare_eq p hf x hs
-    unfold Paper.tc TensorCore.evalBlock
+    unfold Interface.tc TensorCore.evalBlock
     simp only [profile,hs,bne_self_eq_false,Bool.false_eq_true,ite_false]
     rw [← hp]
     cases hb : TCFloat.prepare p (inputPairs x) x.c.toNat with
@@ -188,16 +188,16 @@ theorem tc_encoded_eq (p : Profile) (hf : p.format.isIEEE=true)
       rw [evalPrepared_bits]
       exact evaluate_eq b (prepare_valid p hf x b hb)
   · have hs' : (x.products.length != p.products)=true := bne_iff_ne.mpr hs
-    simp [Paper.tc,TCFloat.prepare,inputPairs,TensorCore.evalBlock,profile,hs',Except.toOption]
+    simp [Interface.tc,TCFloat.prepare,inputPairs,TensorCore.evalBlock,profile,hs',Except.toOption]
 
 /-- Universal encoded EFT equality: identical validation success, branch and bits, for every supplied FP32 D. -/
 theorem eft_encoded_eq (p : Profile) (hf : p.format.isIEEE=true)
     (x : TensorCore.BlockInput (profile p)) (D : TensorCore.F32) :
-    Paper.eft p (inputPairs x) x.c.toNat D.toNat =
-      (TensorCore.algorithm1Encoded x D).toOption.map encodedResult := by
+    Interface.eft p (inputPairs x) x.c.toNat D.toNat =
+      (TensorCore.tcEftEncoded x D).toOption.map encodedResult := by
   by_cases hs : x.products.length=p.products
   · have hp := prepare_eq p hf x hs
-    unfold Paper.eft TensorCore.algorithm1Encoded TensorCore.prepareEncodedEFT
+    unfold Interface.eft TensorCore.tcEftEncoded TensorCore.prepareEncodedEFT
     simp only [profile,hs,bne_self_eq_false,Bool.false_eq_true,ite_false]
     rw [← hp]
     cases hb : TCFloat.prepare p (inputPairs x) x.c.toNat with
@@ -207,16 +207,16 @@ theorem eft_encoded_eq (p : Profile) (hf : p.format.isIEEE=true)
       rw [trace_algorithm_eq b (prepare_valid p hf x b hb) D]
       cases TensorCore.finite32 D <;> rfl
   · have hs' : (x.products.length != p.products)=true := bne_iff_ne.mpr hs
-    simp [Paper.eft,TCFloat.prepare,inputPairs,TensorCore.algorithm1Encoded,
+    simp [Interface.eft,TCFloat.prepare,inputPairs,TensorCore.tcEftEncoded,
       TensorCore.prepareEncodedEFT,profile,hs',Except.toOption]
 
-/-- The paper's TC and EFT interfaces commute with the same input translation. -/
+/-- The encoded TC and EFT interfaces commute with the same input translation. -/
 theorem universal_equivalence (p : Profile) (hf : p.format.isIEEE=true)
     (x : TensorCore.BlockInput (profile p)) (D : TensorCore.F32) :
-    Paper.tc p (inputPairs x) x.c.toNat =
+    Interface.tc p (inputPairs x) x.c.toNat =
         (TensorCore.evalBlock x).toOption.map (fun t => t.output.bits.toNat) ∧
-    Paper.eft p (inputPairs x) x.c.toNat D.toNat =
-        (TensorCore.algorithm1Encoded x D).toOption.map encodedResult :=
+    Interface.eft p (inputPairs x) x.c.toNat D.toNat =
+        (TensorCore.tcEftEncoded x D).toOption.map encodedResult :=
   ⟨tc_encoded_eq p hf x,eft_encoded_eq p hf x D⟩
 
 end TCFloat.Equivalence

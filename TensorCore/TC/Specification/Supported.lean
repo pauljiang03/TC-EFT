@@ -1,7 +1,7 @@
 import TensorCore.TC.Specification.Equivalence
 import TensorCore.TC.Specification.Profiles
 
-namespace TensorCore.PaperSpec
+namespace TensorCore.IndependentSpec
 
 def implementationProfile : Path → Profile
   | .v100F16 => v100F16F32
@@ -22,10 +22,10 @@ theorem supported_parameters (path : Path) :
     parametersOf (implementationProfile path) = parameters path := by cases path <;> rfl
 
 /-- Every supported paper path and every input, with failures observed as none. -/
-theorem supported_eq_paper (path : Path) (x : BlockInput (implementationProfile path)) :
+theorem supported_eq_spec (path : Path) (x : BlockInput (implementationProfile path)) :
     (evalBlock x).toOption.map (fun t => t.output.bits) =
       bits (parameters path) (supportedInput path x) := by
-  cases path <;> exact implementation_eq_paper x
+  cases path <;> exact evalBlock_eq_spec x
 
 /-- Every paper-valid input of every supported path produces the specified bits. -/
 theorem supported_valid_success (path : Path) (x : BlockInput (implementationProfile path))
@@ -35,14 +35,14 @@ theorem supported_valid_success (path : Path) (x : BlockInput (implementationPro
   cases path <;> exact valid_success x hv
 
 /-- The compatibility layer transfers the result to the public aligned invocation API. -/
-theorem invocation_eq_paper {p : Profile} (x : BlockInput p) (F : ℕ)
+theorem invocation_eq_spec {p : Profile} (x : BlockInput p) (F : ℕ)
     (hf : p.input.WellFormed) (hF : p.alignFraction = F) :
     invocationBits (x.toInvocation F) = bits (parametersOf p) (inputOf x) := by
   rw [legacy_invocation_bits x F hf hF]
-  exact implementation_eq_paper x
+  exact evalBlock_eq_spec x
 
 /-- Register-level TF32 agreement on every correctly padded input. -/
-theorem tf32_eq_paper (K extra : ℕ) (floor : Option ℤ)
+theorem tf32_eq_spec (K extra : ℕ) (floor : Option ℤ)
     (ps : List (tf32Register.Word × tf32Register.Word)) (c : F32)
     (hp : ∀ pair ∈ ps, tf32Padded pair.1 = true ∧ tf32Padded pair.2 = true) :
     tf32InvocationBits K (23 + extra) floor ps c = tf32Bits K extra floor ps c := by
@@ -55,8 +55,8 @@ theorem tf32_eq_paper (K extra : ℕ) (floor : Option ℤ)
     change (pair.2.toNat % 8192 == 0) = true at hb
     rw [ha, hb]
     rfl
-  rw [tf32_invocation_bits K extra floor ps c hp, implementation_eq_paper]
+  rw [tf32_invocation_bits K extra floor ps c hp, evalBlock_eq_spec]
   simp only [tf32Bits, hpad, ↓reduceIte]
   rfl
 
-end TensorCore.PaperSpec
+end TensorCore.IndependentSpec

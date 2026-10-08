@@ -1,5 +1,5 @@
 import TensorCore.TC.Flowback
-import TensorCore.EFT.Algorithm1
+import TensorCore.EFT.TcEft
 import TensorCoreTests.EFT.EFT
 import TensorCoreTests.TC.Monotonicity
 
@@ -41,11 +41,11 @@ theorem v100_products_not_monotone :
     (by decide) (by decide)
 
 /-- Algorithm 1 on the EFT cases: R3 takes the scalar branch, the coefficient-budget and subnormal-accumulator cases take the exact reference branch. -/
-theorem algorithm1_cases :
-    (evalBlock r3).map (fun t => (t.algorithm1, t.extractionExponent - t.block.quantumExponent)) =
+theorem tcEft_cases :
+    (evalBlock r3).map (fun t => (t.tcEft, t.extractionExponent - t.block.quantumExponent)) =
       .ok (.scalar 0x41080000, 3) ∧
-    (evalBlock supportOverflow).map (fun t => t.algorithm1) = .ok (.exactReference 0x4e800003) ∧
-    (evalBlock subnormalAccumulator).map (fun t => t.algorithm1) =
+    (evalBlock supportOverflow).map (fun t => t.tcEft) = .ok (.exactReference 0x4e800003) ∧
+    (evalBlock subnormalAccumulator).map (fun t => t.tcEft) =
       .ok (.exactReference 0x3f800001) := by
   decide +kernel
 

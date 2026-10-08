@@ -20,11 +20,11 @@ Equivalence cannot rule out an assumption shared by both models being wrong abou
 
 ## Scope of interface equivalence
 
-The main theorem is [`TCFloat.Equivalence.paper_one_to_one`](TCFloat/Equivalence/Representations.lean). It covers FP16, BF16 and packed TF32 operands with FP32 output, using alignment precision `F = 23 + extra`. Product count, the natural number of extra bits and the optional alignment floor are parameters.
+The main theorem is [`TCFloat.Equivalence.floatlib_eq_reference`](TCFloat/Equivalence/Representations.lean). It covers FP16, BF16 and packed TF32 operands with FP32 output, using alignment precision `F = 23 + extra`. Product count, the natural number of extra bits and the optional alignment floor are parameters.
 
 For every encoded block and every supplied FP32 word D, the two checked interfaces return the same TC bits and the same EFT branch/bits, or corresponding validation errors. D does not have to be the TC model's output. Nonfinite encodings and wrong product counts are included as rejected cases.
 
-`inputEquiv` supplies a two-way mapping between the encoded input types. `paper_one_to_one_inverse` states the result starting from a FloatLib input. Separate equivalences cover words, canonical decoded terms, errors and tagged EFT outcomes. [`round32_eq`](TCFloat/Equivalence/Conversion.lean) connects the converters for every rational input in toward-zero (RTZ) and nearest-even (RNE) modes.
+`inputEquiv` supplies a two-way mapping between the encoded input types. `floatlib_eq_reference_inverse` states the result starting from a FloatLib input. Separate equivalences cover words, canonical decoded terms, errors and tagged EFT outcomes. [`round32_eq`](TCFloat/Equivalence/Conversion.lean) connects the converters for every rational input in toward-zero (RTZ) and nearest-even (RNE) modes.
 
 These claims concern checked interfaces and representations whose metadata and values are consistent. Arbitrary raw `Term` and `Trace` records can contain inconsistent metadata or output fields, so the representation equivalences cover their valid subsets. [RepresentationFacts.lean](tests/RepresentationFacts.lean) checks these distinctions.
 
@@ -36,7 +36,7 @@ Some proofs follow this argument:
 2. A proved equivalence connects the relevant first-principles and FloatLib computations.
 3. Rewriting through those equalities establishes the property for the FloatLib implementation.
 
-For example, [`paper_error_bound`](TCFloat/Equivalence/PaperTheorems.lean) applies `TensorCore.evalPrepared_error_bound`, then translates the exact input sum, accumulator, output and grid quantities through the proved correspondence. Lean checks that translation and all required hypotheses.
+For example, [`floatlib_error_bound`](TCFloat/Equivalence/PortedTheorems.lean) applies `TensorCore.evalPrepared_error_bound`, then translates the exact input sum, accumulator, output and grid quantities through the proved correspondence. Lean checks that translation and all required hypotheses.
 
 The transported proof depends on the first-principles theorem and the proved equivalence. Separate FloatLib theory modules prove recovery, scalar correction and rounding directly from FloatLib operations.
 
@@ -47,7 +47,7 @@ The executable uses FloatLib decoding, exact dyadic multiplication and FP32 conv
 | Path | Purpose |
 |---|---|
 | [TCFloat/Model.lean](TCFloat/Model.lean) | Executable TC stages, extraction, scalar guard and reference EFT branches. |
-| [TCFloat/Paper.lean](TCFloat/Paper.lean) | Encoded paper interfaces, bounded inputs and typed validation errors. |
+| [TCFloat/Interface.lean](TCFloat/Interface.lean) | Encoded paper interfaces, bounded inputs and typed validation errors. |
 | [TCFloat/Theory.lean](TCFloat/Theory.lean), [Rounding.lean](TCFloat/Rounding.lean), [EFT.lean](TCFloat/EFT.lean) | Recovery, FloatLib rounding semantics and EFT correctness proofs. |
 | [Behavior.lean](TCFloat/Behavior.lean), [DirectedRounding.lean](TCFloat/DirectedRounding.lean), [Monotonicity.lean](TCFloat/Monotonicity.lean) | Alignment, flowback, directed rounding and general non-monotonicity results. |
 | [TCFloat/Equivalence/](TCFloat/Equivalence/) | Decoder/converter/stage bridges, universal equivalence, inverse maps and paper theorems. |
@@ -108,7 +108,7 @@ For a specific proof module after preparation, use Lake so that its dependencies
 
 ```sh
 lake build TCFloat.Equivalence.Representations
-lake build TCFloat.Equivalence.PaperScalar
+lake build TCFloat.Equivalence.ScalarCorrection
 ```
 
 ### 2. Execute each saved/generated test suite

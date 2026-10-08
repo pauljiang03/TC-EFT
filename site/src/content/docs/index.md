@@ -58,14 +58,19 @@ The site cites two papers, and always names which one it means:
   [*Accurate Models of NVIDIA Tensor Cores*](https://arxiv.org/html/2512.07004v4)
   (arXiv 2512.07004v4). The source of the **Tensor Core model**: the
   alignment, truncation and rounding behavior, the per-GPU parameters
-  (Table 3), and the recorded GPU validation vectors. Lean names containing
-  `Paper`, such as `PaperSpec` and `supported_eq_paper`, refer to this paper.
+  (Table 3), and the recorded GPU validation vectors. The Lean
+  specification `IndependentSpec` is a transcription of this paper.
 - **The TC-EFT paper**: *TC-EFT: Characterizing and Correcting Tensor Core
   Arithmetic* (under submission). The source of the **worst-case error and non-monotonicity
   results** (Section III) and the **TC-EFT algorithm** (Section IV,
   Algorithm 1). Theorem, lemma and equation numbers such as Theorem III.4,
   Lemma IV.2 and inequality (17) refer to this paper, as do the
-  `tc_eft_paper` adapter and `check_paper_eft.py`.
+  `tc_eft_paper` adapter and `check_paper_eft.py`. In Lean, the algorithm is
+  named `tcEft` (for example `tcEftEncoded` and `EFMachine.tcEft`).
+
+Lean declaration names describe what each result states rather than citing a
+paper number. Docstrings give the corresponding paper reference where there is
+one.
 
 ## A first calculation
 

@@ -19,7 +19,7 @@ description: Build, audit, and validation status, and known open items.
 - **Hardware coverage.** Floors, subnormal and zero operands, wide-exponent
   BF16/TF32 inputs, and the H100 TF32 K = 8 path have no recorded GPU rows.
   The TF32 input files duplicate the V100 FP16 inputs.
-- **`eq20_scalarPredicate`** takes most of its conclusion as hypotheses, and
+- **`inputBudget_scalarPredicate`** takes most of its conclusion as hypotheses, and
   no repository instance satisfies all of them.
 - **Scalar fast path.** No theorem shows that the predicate forces the
   bounded kernel to take the fast path.

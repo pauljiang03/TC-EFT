@@ -5,7 +5,7 @@ import TensorCoreTests.Specification.NegativeControls
 
 open Lean Elab Command
 
-namespace TensorCore.PaperSpec.Audit
+namespace TensorCore.IndependentSpec.Audit
 
 def specificationModules : List Name :=
   [`TensorCore.TC.Specification.Defs, `TensorCore.TC.Specification.Profiles,
@@ -53,6 +53,6 @@ elab "paper_spec_audit" : command => do
   for n in roots do check n
   logInfo m!"paper_spec_audit: {roots.size} specification declarations; no implementation dependencies"
 
-end TensorCore.PaperSpec.Audit
+end TensorCore.IndependentSpec.Audit
 
 paper_spec_audit

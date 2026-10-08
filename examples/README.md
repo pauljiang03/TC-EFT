@@ -11,7 +11,7 @@ Run `lake build` from the repository root, then check a file with `lake env lean
 | [EncodedEFT.lean](EncodedEFT.lean) | Supplied-D correction and encoded correctness | Checks concrete and symbolic results |
 | [ScalarEFT.lean](ScalarEFT.lean) | Generic correction precision and any-order exact summation | Checks symbolic results |
 | [BoundedEFT.lean](BoundedEFT.lean) | BF16 cancellation, operation budget, bounded success contract | Prints calculations and checks symbolic results |
-| [PaperSpecification.lean](PaperSpecification.lean) | Encoded model equality to the independent specification | Checks symbolic results |
+| [IndependentSpecification.lean](IndependentSpecification.lean) | Encoded model equality to the independent specification | Checks symbolic results |
 | [EFTCoverage.lean](EFTCoverage.lean) | Batch observation adapter for the scalar-coverage harness | Has `main`; requires an input file when run |
 | [InstructionGroups.lean](InstructionGroups.lean) | Ordered 16-position instruction-group model observations | Has `main`; requires an input file when run |
 

@@ -101,7 +101,7 @@ def BlockTrace.scalarCorrected (t : BlockTrace) : Option F32 :=
   if t.scalarPredicate then t.scalarCorrectedUnchecked else none
 
 /-- The scalar EFT: the scalar branch when its predicate holds, and `none` otherwise. -/
-def BlockTrace.tceft (t : BlockTrace) : Option F32 := t.scalarCorrected
+def BlockTrace.scalarTcEft (t : BlockTrace) : Option F32 := t.scalarCorrected
 
 theorem retained_add_low (t : BlockTrace) :
     t.retainedSum + sumQ t.lowParts = t.block.exactDot := by
@@ -151,9 +151,9 @@ theorem scalarCorrected_correct (t : BlockTrace) (h : t.scalarPredicate = true) 
   exact h.2
 
 /-- Whenever the scalar EFT returns a result, it is the correctly rounded exact sum. -/
-theorem tceft_correct (t : BlockTrace) (b : F32) (h : t.tceft = some b) :
+theorem scalarTcEft_correct (t : BlockTrace) (b : F32) (h : t.scalarTcEft = some b) :
     NearestEven32 t.block.exactDot b := by
-  unfold BlockTrace.tceft BlockTrace.scalarCorrected at h
+  unfold BlockTrace.scalarTcEft BlockTrace.scalarCorrected at h
   split at h
   · rename_i hp
     obtain ⟨b', hb', hn⟩ := scalarCorrected_correct t hp
@@ -164,8 +164,8 @@ theorem tceft_correct (t : BlockTrace) (b : F32) (h : t.tceft = some b) :
   · contradiction
 
 /-- The scalar EFT succeeds exactly when its predicate holds. -/
-theorem tceft_isSome_iff (t : BlockTrace) : (t.tceft).isSome = true ↔ t.scalarPredicate = true := by
-  unfold BlockTrace.tceft BlockTrace.scalarCorrected
+theorem scalarTcEft_isSome_iff (t : BlockTrace) : (t.scalarTcEft).isSome = true ↔ t.scalarPredicate = true := by
+  unfold BlockTrace.scalarTcEft BlockTrace.scalarCorrected
   constructor
   · intro h
     split at h
@@ -179,17 +179,17 @@ theorem tceft_isSome_iff (t : BlockTrace) : (t.tceft).isSome = true ↔ t.scalar
     rfl
 
 /-- Under the predicate, the scalar EFT and the exact-rational reference return the same bits. -/
-theorem tceft_eq_corrected (t : BlockTrace) (h : t.scalarPredicate = true) :
-    t.tceft = t.corrected := by
-  unfold BlockTrace.tceft BlockTrace.scalarCorrected
+theorem scalarTcEft_eq_corrected (t : BlockTrace) (h : t.scalarPredicate = true) :
+    t.scalarTcEft = t.corrected := by
+  unfold BlockTrace.scalarTcEft BlockTrace.scalarCorrected
   rw [if_pos h, scalarCorrectedUnchecked_eq t h, corrected_eq_round_exactDot]
 
 /-- On a successful encoded-input evaluation, a scalar EFT result correctly rounds the independent ideal sum. -/
-theorem evalBlock_tceft_correct {p : Profile} {x : BlockInput p} {t : BlockTrace} {z : ℚ}
-    {b : F32} (h : evalBlock x = .ok t) (hz : exactDot x = some z) (hb : t.tceft = some b) :
+theorem evalBlock_scalarTcEft_correct {p : Profile} {x : BlockInput p} {t : BlockTrace} {z : ℚ}
+    {b : F32} (h : evalBlock x = .ok t) (hz : exactDot x = some z) (hb : t.scalarTcEft = some b) :
     NearestEven32 z b := by
   simp only [exactDot, evalBlock_prepared h, Option.map_some] at hz
   rw [← Option.some.inj hz]
-  exact tceft_correct t b hb
+  exact scalarTcEft_correct t b hb
 
 end TensorCore

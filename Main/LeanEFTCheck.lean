@@ -38,8 +38,8 @@ private def block (j : Json) : Except String Json := do
   let c ← j.getObjValAs? ℕ "c" >>= word
   let d ← j.getObjValAs? ℕ "D" >>= word
   let x : BlockInput p.profile := ⟨ps, c⟩
-  pure <| Json.mkObj [("reference", resultJson (EFMachine.algorithm1 p x d)),
-    ("native", resultJson (EFMachine.algorithm1WithLean p x d))]
+  pure <| Json.mkObj [("reference", resultJson (EFMachine.tcEft p x d)),
+    ("native", resultJson (EFMachine.tcEftWithLean p x d))]
 
 private def evaluate (j : Json) : Except String Json := do
   if (j.getObjVal? "profile").isOk then return ← block j

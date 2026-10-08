@@ -90,7 +90,7 @@ theorem extract_spec {p : Prepared} {c : Components} (hc : extract p = some c) :
             · dsimp only; grind [Rat.sub_eq_add_neg]
             · dsimp only [Prepared.ideal]; grind [Rat.sub_eq_add_neg]
 
-/-- Each high component follows the paper's intended signed-magnitude truncation. -/
+/-- Each high component follows the TC-EFT paper's intended signed-magnitude truncation. -/
 theorem extract_component (t : Term) (g : Grid) :
     (t.word.split g).coarse.value = truncGrid t.word.value (g.toNat - 272) ∧
     (t.word.split g).low.value = t.word.value - truncGrid t.word.value (g.toNat - 272) :=

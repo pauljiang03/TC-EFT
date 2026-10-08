@@ -11,13 +11,13 @@ structure EftSnapshot where
   overlap : ℚ
   scalarPredicate : Bool
   scalarBits : Option ℕ
-  tceftBits : Option ℕ
+  scalarTcEftBits : Option ℕ
   deriving Repr, DecidableEq
 
 def eftSnapshot {p : Profile} (x : BlockInput p) : Except ModelError EftSnapshot := do
   let t ← evalBlock x
   return ⟨t.extractionExponent, t.lowParts, t.overlap, t.scalarPredicate,
-    t.scalarCorrectedUnchecked.map BitVec.toNat, t.tceft.map BitVec.toNat⟩
+    t.scalarCorrectedUnchecked.map BitVec.toNat, t.scalarTcEft.map BitVec.toNat⟩
 
 set_option maxRecDepth 16384
 set_option maxHeartbeats 4000000
@@ -48,7 +48,7 @@ def supportOverflow : V100Input :=
 
 theorem predicate_rejected :
     outputBits supportOverflow = .ok 0x4e800000 ∧
-    ((eftSnapshot supportOverflow).map fun s => (s.scalarPredicate, s.tceftBits)) =
+    ((eftSnapshot supportOverflow).map fun s => (s.scalarPredicate, s.scalarTcEftBits)) =
       .ok (false, none) ∧
     ((snapshot supportOverflow).map fun s => s.correctedBits) = .ok (some 0x4e800003) := by
   decide +kernel
@@ -60,7 +60,7 @@ def subnormalAccumulator : V100Input :=
 theorem subnormal_accumulator_rejected :
     outputBits subnormalAccumulator = .ok 0x3f800000 ∧
     ((eftSnapshot subnormalAccumulator).map fun s =>
-      (s.extractionExponent, s.scalarPredicate, s.scalarBits, s.tceftBits)) =
+      (s.extractionExponent, s.scalarPredicate, s.scalarBits, s.scalarTcEftBits)) =
       .ok (-23, false, some 0x3f800000, none) ∧
     ((snapshot subnormalAccumulator).map fun s => s.correctedBits) = .ok (some 0x3f800001) := by
   decide +kernel
@@ -68,7 +68,7 @@ theorem subnormal_accumulator_rejected :
 /-- Both public names enforce the guard on the subnormal counterexample. -/
 theorem scalar_public_subnormal_rejected :
     ((evalBlock subnormalAccumulator).map fun t =>
-      (t.scalarCorrected, t.tceft)) = .ok (none, none) := by decide +kernel
+      (t.scalarCorrected, t.scalarTcEft)) = .ok (none, none) := by decide +kernel
 
 /-- A correction that changes the output remains available through the safe helper. -/
 theorem scalar_public_r3 :

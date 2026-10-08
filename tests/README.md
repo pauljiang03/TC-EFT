@@ -167,7 +167,7 @@ python3 scripts/check_device.py
 
 The JSON reports `bits` as an integer whose hexadecimal representation is `3f9b7dec`, matching the first recorded D. Its alignment exponent `eta` is `-1` and grid exponent `qExponent` is `-24`. The final command compares all 5,000 V100 rows.
 
-The semantic proof is a separate guarantee: [`PaperSpec.supported_eq_paper`](../TensorCore/TC/Specification/Supported.lean) equates the executable evaluator with the independent mathematical specification for every input of each supported profile, including rejection. `python3 scripts/check_paper_spec.py` checks this development and its dependency-independence controls. The [theorem index](../TensorCore/THEOREMS.md) identifies the non-monotonicity and EFT results and their premises.
+The semantic proof is a separate guarantee: [`IndependentSpec.supported_eq_spec`](../TensorCore/TC/Specification/Supported.lean) equates the executable evaluator with the independent mathematical specification for every input of each supported profile, including rejection. `python3 scripts/check_paper_spec.py` checks this development and its dependency-independence controls. The [theorem index](../TensorCore/THEOREMS.md) identifies the non-monotonicity and EFT results and their premises.
 
 The universal proofs concern the defined finite-domain model under their stated hypotheses. Agreement with recorded GPU outputs covers those recorded inputs; correspondence between the specification, the paper, and physical hardware remains a separate specification question.
 

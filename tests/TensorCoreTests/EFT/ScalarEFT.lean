@@ -40,7 +40,7 @@ theorem scalar_coefficient_boundary :
     ceilLog2 0 = 0 ∧ ceilLog2 1 = 0 ∧ ceilLog2 8 = 3 ∧ ceilLog2 9 = 4 := by
   decide +kernel
 
-/-- Exercise the paper's bit-span theorem at equality, with a signed list. -/
+/-- Exercise the TC-EFT paper's bit-span theorem at equality, with a signed list. -/
 theorem scalar_bitSpan_budget : magnitudeSum [7, -7, 7, -7] < 2 ^ 5 := by
   apply bitSpan_coefficient_bound [7, -7, 7, -7] 2 0 5
   · intro z hz

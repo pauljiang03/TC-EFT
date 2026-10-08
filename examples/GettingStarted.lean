@@ -23,10 +23,10 @@ def tiny : BlockInput v100F16F32 :=
   ⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f800000⟩
 
 #eval (modelBits tiny).map BitVec.toNat
-#eval (algorithm1Encoded tiny 0x3f800000).map fun r => r.bits.map BitVec.toNat
+#eval (tcEftEncoded tiny 0x3f800000).map fun r => r.bits.map BitVec.toNat
 
 example : modelBits tiny = .ok 0x3f800000 := by decide +kernel
-example : algorithm1Encoded tiny 0x3f800000 =
+example : tcEftEncoded tiny 0x3f800000 =
     .ok (.consolidated (.scalar 0x3f800002)) := by decide +kernel
 
 /-- The same executable evaluator has a symbolic, input-parametric recovery law. -/

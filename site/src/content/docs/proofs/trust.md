@@ -19,7 +19,7 @@ the `TensorCore` namespace and allows only `propext`, `Classical.choice`, and
   there.
 - **Agreement with Python oracles**: exact-`Fraction` reimplementations of
   the same *Accurate Models* semantics.
-- **Native Float32**: `algorithm1WithLean_eq` is proved against Lean's float
+- **Native Float32**: `tcEftWithLean_eq` is proved against Lean's float
   *model*. That the compiled `Float32` addition matches the model is checked
   by `check_lean_eft.py`, not proved.
 

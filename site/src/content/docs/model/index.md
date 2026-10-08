@@ -147,5 +147,5 @@ Each stage has its own page:
 5. [Output conversion](/TC-EFT/model/conversion/): `round32`, range, signed zero.
 6. [Architecture profiles](/TC-EFT/model/profiles/): V100/A100/H100 parameters and the general `InvocationSpec`.
 7. [Instructions and chaining](/TC-EFT/model/instructions/): multi-group instructions and passing `C` between groups.
-8. [Independent specification](/TC-EFT/model/specification/): `PaperSpec` (a transcription of *Accurate Models*) and the equality proof.
+8. [Independent specification](/TC-EFT/model/specification/): `IndependentSpec` (a transcription of *Accurate Models*) and the equality proof.
 9. [Hardware validation](/TC-EFT/model/validation/): replay of GPU measurements.

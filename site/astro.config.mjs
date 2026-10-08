@@ -7,7 +7,8 @@ export default defineConfig({
   base: '/TC-EFT',
   trailingSlash: 'always',
   devToolbar: { enabled: false },
-  redirects: { '/': '/TC-EFT/overview/' },
+  // Old links to /overview/ land on the root Overview page.
+  redirects: { '/overview': '/TC-EFT/' },
   integrations: [
     starlight({
       title: 'TC-EFT',
@@ -23,7 +24,7 @@ export default defineConfig({
         {
           label: 'Start here',
           items: [
-            { label: 'Overview', slug: 'overview' },
+            { label: 'Overview', link: '/' },
             { label: 'Quick start', slug: 'quick-start' },
             { label: 'Project status', slug: 'status' },
           ],

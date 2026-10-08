@@ -6,13 +6,13 @@ The scope is the FP16, BF16 and packed TF32 inputs in the paper, FP32 output, an
 
 ## Main theorem and the two-way correspondence
 
-See [`paper_one_to_one`](TCFloat/Equivalence/Representations.lean) and `paper_one_to_one_inverse`. For every profile in that scope, every encoded block, and every supplied FP32 word D:
+See [`floatlib_eq_reference`](TCFloat/Equivalence/Representations.lean) and `floatlib_eq_reference_inverse`. For every profile in that scope, every encoded block, and every supplied FP32 word D:
 
 - The FloatLib TC interface returns the same output word or the same validation error as `TensorCore.evalBlock`.
-- The FloatLib EFT interface returns the same branch and word, or the same validation error, as `TensorCore.algorithm1Encoded`.
+- The FloatLib EFT interface returns the same branch and word, or the same validation error, as `TensorCore.tcEftEncoded`.
 - D need not be the model's output. Invalid product counts and nonfinite operands/D are included in the comparison.
 
-The statement uses the independent `Paper.tcChecked` and `Paper.eftChecked` functions. The `universal_equivalence` theorem in [`Encoded.lean`](TCFloat/Equivalence/Encoded.lean) proves the same numerical/branch behavior for the Option interfaces, which represent validation errors as `none`. The checked theorem also preserves the error constructors.
+The statement uses the independent `Interface.tcChecked` and `Interface.eftChecked` functions. The `universal_equivalence` theorem in [`Encoded.lean`](TCFloat/Equivalence/Encoded.lean) proves the same numerical/branch behavior for the Option interfaces, which represent validation errors as `none`. The checked theorem also preserves the error constructors.
 
 The correspondence includes explicit representation proofs:
 
@@ -47,25 +47,25 @@ Files are under [`TCFloat/Equivalence/`](TCFloat/Equivalence/). The converter br
 
 ## Correspondence to the paper's FP32 statements
 
-The table follows the manuscript's section and theorem numbering. Source identifiers containing `eq20` denote the input-budget inequality numbered (17).
+The table follows the manuscript's section and theorem numbering. Identifiers beginning `inputBudget_` concern the input-budget inequality (17).
 
 | Paper statement | FloatLib-side theorem(s) |
 |---|---|
-| II-B: block behavior model | `paper_one_to_one`, plus the individual stage equalities above |
-| III.1: total output error bound | `paper_error_bound`, including the final FP32 output quantum |
-| III.2–III.3: monotonicity and flowback | `truncGrid_mono`, `paper_output_condition`, `general_flowback_necessary`, `general_flowback_sufficient` |
+| II-B: block behavior model | `floatlib_eq_reference`, plus the individual stage equalities above |
+| III.1: total output error bound | `floatlib_error_bound`, including the final FP32 output quantum |
+| III.2–III.3: monotonicity and flowback | `truncGrid_mono`, `floatlib_output_increase_iff`, `general_flowback_necessary`, `general_flowback_sufficient` |
 | III.4: hardware non-monotonicity family | `nonmonotone_perturbation`, `nonmonotone_encoded`, `construction_not_monotone` |
-| III.5: general perturbation range and size | `paper_nonmonotone_range` for arbitrary admissible K, p and j |
-| IV.1: extraction identity and low-component bound | `retained_add_low`, `paper_lowPart_bound` |
-| IV.2: overlap width | `paper_overlap_window` |
-| IV.3–IV.4: overlapping bits and signed correction | `paper_accumulator_eq_retained`, `paper_overlap_correction` |
+| III.5: general perturbation range and size | `floatlib_nonmonotone_range` for arbitrary admissible K, p and j |
+| IV.1: extraction identity and low-component bound | `retained_add_low`, `floatlib_lowPart_bound` |
+| IV.2: overlap width | `floatlib_overlap_window_width` |
+| IV.3–IV.4: overlapping bits and signed correction | `floatlib_accumulator_eq_retained`, `floatlib_overlap_eq_retained_sub_outputResidual` |
 | IV.5: exact recovery for any finite supplied D | `overlap_recovery` |
 | IV.6–IV.7: sequential FP32 addition and exact representable sums | `naiveSumFrom`, `representable_add_exact`, `grid_representable` |
-| IV.8: coefficient budget, any order, and bit-span condition (16) | `paper_naiveSum_exact`, `paper_naiveSum_any_order`, `paper_bitSpan_exact` |
-| IV.9: common input grid and input-based condition (17) | `paper_lowParts_on_grid`, `paper_input_budget`, `paper_scalar_input_condition` |
-| IV.10: exact FP32 overlap subtraction | `paper_overlap_subtraction` |
-| IV.11: scalar correction and one final RNE rounding | `paper_scalar_on_grid`, `scalar_correct`, `encodedAlgorithm_nearest` |
-| Reference full EFT, including the exact alternative described in IV-B | `algorithm_correct`, `algorithm_range`, `paper_one_to_one` |
+| IV.8: coefficient budget, any order, and bit-span condition (16) | `floatlib_naiveSum_exact`, `floatlib_naiveSum_any_order`, `floatlib_bitSpan_exact` |
+| IV.9: common input grid and input-based condition (17) | `floatlib_lowParts_on_grid`, `floatlib_inputBudget_coefficient_bound`, `floatlib_scalar_correct_of_inputBudget` |
+| IV.10: exact FP32 overlap subtraction | `floatlib_overlap_subtraction_exact` |
+| IV.11: scalar correction and one final RNE rounding | `floatlib_scalar_correct_on_grid`, `scalar_correct`, `encodedAlgorithm_nearest` |
+| Reference full EFT, including the exact alternative described in IV-B | `algorithm_correct`, `algorithm_range`, `floatlib_eq_reference` |
 
 The flowback criteria cover an **arbitrary chosen summand** and the rounded outputs before and after its perturbation. The two alignment grids are parameters and may differ. The sufficient condition includes representability assumptions. C-specialized criteria are proved in [Behavior.lean](TCFloat/Behavior.lean).
 
@@ -79,7 +79,7 @@ The [reference manifest](reference-manifest.json) pins the parent arithmetic and
 
 The parent project uses Lean 4.33.1; the FloatLib project uses Lean 4.34.0. `scripts/prepare_reference.py` checks the reference manifest's SHA-256 and verifies parent dependencies against its code-token, string-literal, and import entries. Module names are resolved through the compatibility map; comments and whitespace do not affect token verification. The verified parent modules are copied into ignored `reference-compat/`. Its Nat, Int and Rat notation is scoped to `TensorCore` with the same expansions to avoid mathlib parser collisions. The generated manifest records source hashes and dependency metadata. Preparation works from a complete source archive.
 
-The equivalence modules import verified parent definitions. `Main.lean`, `TCFloat/Model.lean` and `TCFloat/Paper.lean` execute the FloatLib implementation. A dependency audit checks runtime independence from the parent functions and verifies that EFT correction does not call TC evaluation or the function that computes the exact input sum. Negative controls require rejection when forbidden dependencies are deliberately introduced.
+The equivalence modules import verified parent definitions. `Main.lean`, `TCFloat/Model.lean` and `TCFloat/Interface.lean` execute the FloatLib implementation. A dependency audit checks runtime independence from the parent functions and verifies that EFT correction does not call TC evaluation or the function that computes the exact input sum. Negative controls require rejection when forbidden dependencies are deliberately introduced.
 
 From the repository root:
 

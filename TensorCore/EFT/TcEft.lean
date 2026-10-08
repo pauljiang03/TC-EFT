@@ -27,19 +27,19 @@ theorem exactConsolidation_eq_corrected (t : BlockTrace) :
   rw [← overlap_recovery, corrected_eq_round_exactDot]
 
 /-- Outcome of Algorithm 1: the scalar branch, the exact reference branch, or an exact sum outside the FP32 range. -/
-inductive Algorithm1Result where
+inductive TcEftResult where
   | scalar (bits : F32)
   | exactReference (bits : F32)
   | outOfRange
   deriving Repr, DecidableEq
 
-def Algorithm1Result.bits : Algorithm1Result → Option F32
+def TcEftResult.bits : TcEftResult → Option F32
   | .scalar b => some b
   | .exactReference b => some b
   | .outOfRange => none
 
 /-- Algorithm 1 on a trace: the scalar branch when the predicate holds, otherwise the exact reference branch. -/
-def BlockTrace.algorithm1 (t : BlockTrace) : Algorithm1Result :=
+def BlockTrace.tcEft (t : BlockTrace) : TcEftResult :=
   match t.scalarCorrected with
   | some b => .scalar b
   | none =>
@@ -47,18 +47,18 @@ def BlockTrace.algorithm1 (t : BlockTrace) : Algorithm1Result :=
     | some b => .exactReference b
     | none => .outOfRange
 
-theorem algorithm1_scalar_iff (t : BlockTrace) (b : F32) :
-    t.algorithm1 = .scalar b ↔ t.scalarCorrected = some b := by
-  unfold BlockTrace.algorithm1
+theorem tcEft_scalar_iff (t : BlockTrace) (b : F32) :
+    t.tcEft = .scalar b ↔ t.scalarCorrected = some b := by
+  unfold BlockTrace.tcEft
   cases hs : t.scalarCorrected with
   | some b' => simp
   | none =>
     cases t.exactConsolidation <;> simp
 
-theorem algorithm1_exact_iff (t : BlockTrace) (b : F32) :
-    t.algorithm1 = .exactReference b ↔
+theorem tcEft_exact_iff (t : BlockTrace) (b : F32) :
+    t.tcEft = .exactReference b ↔
       t.scalarPredicate = false ∧ t.corrected = some b := by
-  unfold BlockTrace.algorithm1
+  unfold BlockTrace.tcEft
   rw [← exactConsolidation_eq_corrected]
   cases hp : t.scalarPredicate with
   | true =>
@@ -70,21 +70,21 @@ theorem algorithm1_exact_iff (t : BlockTrace) (b : F32) :
     cases t.exactConsolidation <;> simp
 
 /-- Whichever branch runs, a returned encoding is the correctly rounded exact sum. -/
-theorem algorithm1_correct (t : BlockTrace) (b : F32) (h : t.algorithm1.bits = some b) :
+theorem tcEft_correct (t : BlockTrace) (b : F32) (h : t.tcEft.bits = some b) :
     NearestEven32 t.block.exactDot b := by
-  unfold BlockTrace.algorithm1 at h
+  unfold BlockTrace.tcEft at h
   cases hs : t.scalarCorrected with
   | some b' =>
     rw [hs] at h
-    simp only [Algorithm1Result.bits, Option.some.injEq] at h
+    simp only [TcEftResult.bits, Option.some.injEq] at h
     subst h
-    exact tceft_correct t b' hs
+    exact scalarTcEft_correct t b' hs
   | none =>
     rw [hs] at h
     cases he : t.exactConsolidation with
     | some b' =>
       rw [he] at h
-      simp only [Algorithm1Result.bits, Option.some.injEq] at h
+      simp only [TcEftResult.bits, Option.some.injEq] at h
       subst h
       rw [exactConsolidation_eq_corrected, corrected_eq_round_exactDot] at he
       obtain ⟨b'', hb'', hn⟩ := round32_nearestEven_correct _ (round32_range he)
@@ -93,15 +93,15 @@ theorem algorithm1_correct (t : BlockTrace) (b : F32) (h : t.algorithm1.bits = s
       exact hn
     | none =>
       rw [he] at h
-      simp [Algorithm1Result.bits] at h
+      simp [TcEftResult.bits] at h
 
 /-- Algorithm 1 returns an encoding exactly when the exact sum is in range. -/
-theorem algorithm1_bits_isSome_iff (t : BlockTrace) :
-    t.algorithm1.bits.isSome = true ↔ absQ t.block.exactDot ≤ maxFinite32 := by
-  unfold BlockTrace.algorithm1
+theorem tcEft_bits_isSome_iff (t : BlockTrace) :
+    t.tcEft.bits.isSome = true ↔ absQ t.block.exactDot ≤ maxFinite32 := by
+  unfold BlockTrace.tcEft
   cases hs : t.scalarCorrected with
   | some b =>
-    simp only [Algorithm1Result.bits, Option.isSome_some, true_iff]
+    simp only [TcEftResult.bits, Option.isSome_some, true_iff]
     have hp : t.scalarPredicate = true := by
       apply Classical.byContradiction
       intro hne
@@ -116,16 +116,16 @@ theorem algorithm1_bits_isSome_iff (t : BlockTrace) :
     rw [exactConsolidation_eq_corrected, corrected_eq_round_exactDot]
     cases hr : round32 .nearestEven t.block.exactDot with
     | some b =>
-      simp only [Algorithm1Result.bits, Option.isSome_some, true_iff]
+      simp only [TcEftResult.bits, Option.isSome_some, true_iff]
       exact round32_range hr
     | none =>
-      simp only [Algorithm1Result.bits, Option.isSome_none, Bool.false_eq_true, false_iff]
+      simp only [TcEftResult.bits, Option.isSome_none, Bool.false_eq_true, false_iff]
       intro hrange
       obtain ⟨b, hb, _⟩ := round32_nearestEven_correct t.block.exactDot hrange
       rw [hr] at hb
       contradiction
 
-/-- TC-EFT Table V: the reference branch's per-cell operation ledger for `K` products (`n = K + 1` terms), as the paper counts it. -/
+/-- TC-EFT Table V: the reference branch's per-cell operation ledger for `K` products (`n = K + 1` terms), as the TC-EFT paper counts it. -/
 structure ReferenceLedger where
   bitDecodes : ℕ
   scaleComparisons : ℕ

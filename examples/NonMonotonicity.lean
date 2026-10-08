@@ -24,12 +24,12 @@ example : value32 after.c = some (1 - pow2 (-24)) ∧
 example : modelBits before = .ok 0x3f800000 ∧
     modelBits after = .ok 0x3f800001 := by decide +kernel
 
-#eval (algorithm1Encoded before 0x3f800000).map fun r => r.bits.map BitVec.toNat
-#eval (algorithm1Encoded after 0x3f800001).map fun r => r.bits.map BitVec.toNat
+#eval (tcEftEncoded before 0x3f800000).map fun r => r.bits.map BitVec.toNat
+#eval (tcEftEncoded after 0x3f800001).map fun r => r.bits.map BitVec.toNat
 
-example : algorithm1Encoded before 0x3f800000 =
+example : tcEftEncoded before 0x3f800000 =
     .ok (.consolidated (.scalar 0x3f800002)) ∧
-    algorithm1Encoded after 0x3f800001 =
+    tcEftEncoded after 0x3f800001 =
     .ok (.consolidated (.scalar 0x3f800002)) := by decide +kernel
 
 #check nonmonotone_encoded

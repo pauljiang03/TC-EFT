@@ -2,7 +2,7 @@ import TensorCore.TC.Specification.Defs
 
 /-! Ordered group composition. -/
 
-namespace TensorCore.PaperSpec
+namespace TensorCore.IndependentSpec
 
 noncomputable def runGroups (p : Parameters) : BitVec 32 →
     List (List (BitVec p.input.width × BitVec p.input.width)) → Option (List (BitVec 32))
@@ -16,4 +16,4 @@ noncomputable def lastBits (p : Parameters) (c : BitVec 32)
     (groups : List (List (BitVec p.input.width × BitVec p.input.width))) : Option (BitVec 32) :=
   (runGroups p c groups).map fun ds => ds.getLast?.getD c
 
-end TensorCore.PaperSpec
+end TensorCore.IndependentSpec

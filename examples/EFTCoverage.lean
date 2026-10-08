@@ -35,7 +35,7 @@ private def runRow (row : List String) : IO Json := do
       ("accepted", toJson t.scalarPredicate),
       ("failed", toJson failed),
       ("corrected", toJson (t.scalarCorrected.map BitVec.toNat)),
-      ("tceft", toJson (t.tceft.map BitVec.toNat)),
+      ("tceft", toJson (t.scalarTcEft.map BitVec.toNat)),
       ("unchecked", toJson (t.scalarCorrectedUnchecked.map BitVec.toNat)),
       ("support", toJson t.supportExponent),
       ("coefficient_sum", toJson (toString (magnitudeSum t.lowCoefficients))),

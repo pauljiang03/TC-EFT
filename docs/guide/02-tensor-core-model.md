@@ -42,10 +42,10 @@ open TensorCore
 #check profile_contract
 #check evalBlock_machinePrefix
 #check evalBlock_error_bound
-#check PaperSpec.supported_eq_paper
+#check IndependentSpec.supported_eq_spec
 ```
 
-`evalBlock_success_iff` characterizes the accepted input domain. `profile_contract` states arithmetic and accumulator-width guarantees under explicit hypotheses. `evalBlock_machinePrefix` relates fixed-width accumulation to exact accumulation when the capacity assumptions hold. `evalBlock_error_bound` accounts for alignment loss and final FP32 conversion loss. For every encoded input of a supported path, `supported_eq_paper` proves that the evaluator and independent specification agree on the output or rejection.
+`evalBlock_success_iff` characterizes the accepted input domain. `profile_contract` states arithmetic and accumulator-width guarantees under explicit hypotheses. `evalBlock_machinePrefix` relates fixed-width accumulation to exact accumulation when the capacity assumptions hold. `evalBlock_error_bound` accounts for alignment loss and final FP32 conversion loss. For every encoded input of a supported path, `supported_eq_spec` proves that the evaluator and independent specification agree on the output or rejection.
 
 The finite model rejects nonfinite operands, wrong group sizes, and exact accumulators larger in magnitude than `maxFinite32`. Exact zero is canonicalized to +0; negative nonzero underflow may produce -0. The `tc_features` interface accepts TF32 register words with thirteen zero low bits; the paper EFT interface accepts packed 19-bit TF32 words.
 

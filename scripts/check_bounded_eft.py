@@ -214,7 +214,7 @@ def main():
                Path(__file__)]
     report = dict(status='passed', audit=audit,
                   backend='compiled Lean BitVec extraction and guards; native Float32 scalar addition',
-                  preservation_theorem='TensorCore.EFMachine.algorithm1WithLean_eq',
+                  preservation_theorem='TensorCore.EFMachine.tcEftWithLean_eq',
                   full_result_comparisons=len(requests) + len(controls),
                   error_preservation_controls=len(controls),
                   paper_blocks=len(corpus), arbitrary_D_blocks=len(cases) - len(corpus),

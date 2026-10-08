@@ -2,7 +2,7 @@ import TensorCore.TC.Specification.Defs
 
 /-! Independently transcribed parameters of the supported FP32-output paths. -/
 
-namespace TensorCore.PaperSpec
+namespace TensorCore.IndependentSpec
 
 inductive Path where
   | v100F16
@@ -38,4 +38,4 @@ noncomputable def tf32Bits (K extra : ℕ) (floor : Option ℤ)
     bits ⟨⟨10, 8, 127⟩, K, 23 + extra, floor⟩ ⟨unpackTF32 ps, c⟩
   else none
 
-end TensorCore.PaperSpec
+end TensorCore.IndependentSpec

@@ -7,9 +7,8 @@ An executable model can be wrong in subtle ways: an off-by-one exponent, a
 truncation in the wrong direction, a mishandled subnormal. To guard against
 this, TC-EFT contains a **second formalization**, written independently,
 that follows *Accurate Models* (Khattak and Mikaitis) §4.1 (Figures 2, 3, 5
-and Table 3) as closely as possible. In the Lean names `PaperSpec`,
-`supported_eq_paper` and `tf32_eq_paper`, "paper" means *Accurate Models*,
-not the TC-EFT paper. Lean proves the two agree on **every** encoded input.
+and Table 3) as closely as possible. In Lean it is the `IndependentSpec`
+namespace, and the theorems relating it to the model end in `_eq_spec`. Lean proves the two agree on **every** encoded input.
 
 ## How the specification differs
 
@@ -17,7 +16,7 @@ not the TC-EFT paper. Lean proves the two agree on **every** encoded input.
 imports only Lean's standard library and a notation file. It shares no
 definitions with the implementation and is written in a different style:
 
-| Concern | Implementation (`evalBlock`) | Specification (`PaperSpec`) |
+| Concern | Implementation (`evalBlock`) | Specification (`IndependentSpec`) |
 | --- | --- | --- |
 | Decoding | `classifyNat` → `Decoded` (significand, scale, point) | `decode` → `Term` (rational value, exponent) |
 | Products | `rawMul` on integer significands | `product`: value product, exponent sum |
@@ -41,7 +40,7 @@ def Rounds (x : ℚ) (bits : BitVec 32) : Prop :=
 
 ```lean
 /-- Every supported paper path and every input, with failures observed as none. -/
-theorem supported_eq_paper (path : Path) (x : BlockInput (implementationProfile path)) :
+theorem supported_eq_spec (path : Path) (x : BlockInput (implementationProfile path)) :
     (evalBlock x).toOption.map (fun t => t.output.bits) =
       bits (parameters path) (supportedInput path x)
 ```
@@ -55,8 +54,8 @@ theorem supported_eq_paper (path : Path) (x : BlockInput (implementationProfile 
   succeed with the specified bits.
 - **Signed zero is covered.** The result is unique at the bit level,
   including the sign of zero.
-- `tf32_eq_paper` extends the result to padded TF32 register words, and
-  `machine_eq_paper` extends it to fixed-width accumulators of adequate
+- `tf32_eq_spec` extends the result to padded TF32 register words, and
+  `machine_eq_spec` extends it to fixed-width accumulators of adequate
   width.
 
 ## Checking independence

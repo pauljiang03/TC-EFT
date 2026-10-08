@@ -45,7 +45,7 @@ theorem nonfinite_rejection : add32WithLean 0 0x7f800000 = none := by decide +ke
 theorem nan_rejection : add32WithLean 0x7fc00007 0 = none := by decide +kernel
 
 theorem single_v100_corrected :
-    algorithm1WithLean .v100F16
+    tcEftWithLean .v100F16
       ⟨[(0x3e00, 0x3d00), (0x3e00, 0x3d00), (0x3e00, 0x3d00), (0x3e00, 0x3d00)],
         0x3f7fffff⟩ 0x4107ffff = .ok (.scalar 0x41080000) := by decide +kernel
 

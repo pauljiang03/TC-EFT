@@ -4,7 +4,7 @@ import TensorCore.Numerics.RoundTrip
 
 /-! The ordering-based final-rounding relation selects unique *bits*, including signed zero, and the executable converter satisfies it throughout its finite domain. -/
 
-namespace TensorCore.PaperSpec
+namespace TensorCore.IndependentSpec
 
 set_option maxRecDepth 4096
 
@@ -109,4 +109,4 @@ theorem rounds_iff (x : ℚ) (b : F32) (hr : magnitude x ≤ maxFinite) :
     rwa [hab] at ha
   · exact round32_rounds x b
 
-end TensorCore.PaperSpec
+end TensorCore.IndependentSpec

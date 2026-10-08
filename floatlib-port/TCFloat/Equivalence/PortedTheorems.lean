@@ -7,17 +7,17 @@ set_option maxRecDepth 2048
 namespace TCFloat.Equivalence
 open FloatLib.Floats.Formats.BinaryInterchange
 
-def PaperFormat (f : FloatFormat) : Prop := f=.binary16 ∨ f=.bfloat16 ∨ f=.tf32
-theorem PaperFormat.ieee {f : FloatFormat} (h : PaperFormat f) : f.isIEEE=true := by
+def SupportedFormat (f : FloatFormat) : Prop := f=.binary16 ∨ f=.bfloat16 ∨ f=.tf32
+theorem SupportedFormat.ieee {f : FloatFormat} (h : SupportedFormat f) : f.isIEEE=true := by
   rcases h with rfl|rfl|rfl <;> decide +kernel
 
-/-- The universal theorem restricted explicitly to the paper's FP32-output input formats. -/
-theorem paper_equivalence (p : Profile) (hf : PaperFormat p.format)
+/-- The universal equivalence, restricted to the supported FP16, BF16 and TF32 input formats with FP32 output. -/
+theorem supportedFormat_equivalence (p : Profile) (hf : SupportedFormat p.format)
     (x : TensorCore.BlockInput (profile p)) (D : TensorCore.F32) :
-    Paper.tc p (inputPairs x) x.c.toNat =
+    Interface.tc p (inputPairs x) x.c.toNat =
         (TensorCore.evalBlock x).toOption.map (fun t => t.output.bits.toNat) ∧
-    Paper.eft p (inputPairs x) x.c.toNat D.toNat =
-        (TensorCore.algorithm1Encoded x D).toOption.map encodedResult :=
+    Interface.eft p (inputPairs x) x.c.toNat D.toNat =
+        (TensorCore.tcEftEncoded x D).toOption.map encodedResult :=
   universal_equivalence p hf.ieee x D
 
 theorem trace_related (t : Trace) (hb : ValidBlock t.block) (hw : t.bits < 2^32)
@@ -46,8 +46,8 @@ theorem trace_evaluated {s : TensorCore.BlockTrace} {t : Trace} (h : TraceRel s 
       rfl
   simp only [TensorCore.evalPrepared,hbits,hd]
 
-/-- Paper Theorem III.1, including the actual final-output quantum. -/
-theorem paper_error_bound (t : Trace) (hb : ValidBlock t.block) (hw : t.bits<2^32)
+/-- Two-part error bound: the model's error is below (number of terms)·(alignment quantum) plus the output quantum (TC-EFT paper, Theorem III.1). -/
+theorem floatlib_error_bound (t : Trace) (hb : ValidBlock t.block) (hw : t.bits<2^32)
     (hv : TCFloat.value32 t.bits=some t.output) (ht : t.block.evaluate=some t.bits) :
     |t.block.ideal-t.output| < (t.block.terms.length:Rat)*TCFloat.pow2 t.block.q +
       TCFloat.pow2 (outputQuantum t.bits) := by
@@ -57,25 +57,25 @@ theorem paper_error_bound (t : Trace) (hb : ValidBlock t.block) (hw : t.bits<2^3
     q_eq,pow2_eq,TensorCore.outputQuantumExponent,hs.bits_eq] at h
   exact h
 
-/-- Paper Lemma IV.1. -/
-theorem paper_lowPart_bound (t : Trace) (e : Rat) (he : e ∈ t.lowParts) :
+/-- Every extracted low part is strictly smaller in magnitude than the extraction quantum (TC-EFT paper, Lemma IV.1). -/
+theorem floatlib_lowPart_bound (t : Trace) (e : Rat) (he : e ∈ t.lowParts) :
     |e| < TCFloat.pow2 t.extractionExponent := by
   obtain ⟨x,_,rfl⟩ := List.mem_map.mp he
   exact truncGrid_error x.value t.extractionExponent
 
-/-- Paper Lemma IV.2. -/
-theorem paper_overlap_window (t : Trace) :
+/-- The extraction grid is never finer than the alignment grid, and the gap is `max 0 (output quantum − alignment quantum)` (TC-EFT paper, Lemma IV.2). -/
+theorem floatlib_overlap_window_width (t : Trace) :
     0 ≤ t.extractionExponent-t.block.q ∧
       t.extractionExponent-t.block.q = max 0 (outputQuantum t.bits-t.block.q) := by
   unfold Trace.extractionExponent
   omega
 
-/-- Paper Lemma IV.3, the exact nested-grid decomposition. -/
-theorem paper_accumulator_eq_retained (t : Trace) :
+/-- The aligned accumulator equals the retained coarse sum plus the alignment-grid truncations of the low parts: an exact nested-grid decomposition (TC-EFT paper, Lemma IV.3). -/
+theorem floatlib_accumulator_eq_retained (t : Trace) :
     t.block.accumulator = t.retained + t.retainedLowParts.sum := by
   let τ := (t.extractionExponent-t.block.q).toNat
   have ht : t.extractionExponent=t.block.q+τ := by
-    have := (paper_overlap_window t).1
+    have := (floatlib_overlap_window_width t).1
     dsimp [τ]; omega
   have hsplit (x : Rat) : truncGrid x t.block.q = truncGrid x t.extractionExponent +
       truncGrid (x-truncGrid x t.extractionExponent) t.block.q := by
@@ -91,10 +91,10 @@ theorem paper_accumulator_eq_retained (t : Trace) :
     exact hsplit x.value
   rw [hm,List.sum_map_add]
 
-/-- Paper Lemma IV.4. -/
-theorem paper_overlap_correction (t : Trace) :
+/-- The overlap `D − H` equals the retained low parts minus the output conversion residual (TC-EFT paper, Lemma IV.4). -/
+theorem floatlib_overlap_eq_retained_sub_outputResidual (t : Trace) :
     t.overlap = t.retainedLowParts.sum-t.outputResidual := by
-  have h := paper_accumulator_eq_retained t
+  have h := floatlib_accumulator_eq_retained t
   unfold Trace.overlap Trace.outputResidual
   linarith
 
@@ -133,8 +133,8 @@ theorem rtz_output_monotone (x y : Rat) (bx by' : Nat) (dx dy : Rat)
   rw [rtz_value_spec x bx dx hx hdx,rtz_value_spec y by' dy hy hdy]
   exact TensorCore.signedRounded_rtz_monotone x y hxy (rtz_range x bx hx) (rtz_range y by' hy)
 
-/-- Paper Eq. 6 for the port's actual outputs under a C perturbation. -/
-theorem paper_output_condition (p : Profile) (ps : List (Term×Term)) (c c' : Term)
+/-- Under a perturbation of C, the output increases exactly when the round-toward-zero conversion of the shifted accumulator increases (TC-EFT paper, Eq. 6). -/
+theorem floatlib_output_increase_iff (p : Profile) (ps : List (Term×Term)) (c c' : Term)
     (bits bits' : Nat) (d d' : Rat)
     (h : (Block.mk p c ps).evaluate=some bits) (h' : (Block.mk p c' ps).evaluate=some bits')
     (hd : TCFloat.value32 bits=some d) (hd' : TCFloat.value32 bits'=some d') :
@@ -143,7 +143,7 @@ theorem paper_output_condition (p : Profile) (ps : List (Term×Term)) (c c' : Te
         TCFloat.flowback p ps c c'-TCFloat.accumulatorShift p ps c c')) := by
   rw [rtz_value_spec _ _ _ h hd,rtz_value_spec _ _ _ h' hd',TCFloat.perturbed_accumulator p ps c c']
 
-theorem paper_flowback_necessary (p : Profile) (ps : List (Term×Term)) (c c' : Term)
+theorem floatlib_flowback_necessary (p : Profile) (ps : List (Term×Term)) (c c' : Term)
     (bits bits' : Nat) (d d' : Rat)
     (h : (Block.mk p c ps).evaluate=some bits) (h' : (Block.mk p c' ps).evaluate=some bits')
     (hd : TCFloat.value32 bits=some d) (hd' : TCFloat.value32 bits'=some d') (hi : d<d') :
@@ -154,7 +154,7 @@ theorem paper_flowback_necessary (p : Profile) (ps : List (Term×Term)) (c c' : 
   have hm := rtz_output_monotone _ _ _ _ _ _ h' h hd' hd ha
   linarith
 
-theorem paper_flowback_sufficient (p : Profile) (ps : List (Term×Term)) (c c' : Term)
+theorem floatlib_flowback_sufficient (p : Profile) (ps : List (Term×Term)) (c c' : Term)
     (bits bits' : Nat) (d d' : Rat)
     (h : (Block.mk p c ps).evaluate=some bits) (h' : (Block.mk p c' ps).evaluate=some bits')
     (hd : TCFloat.value32 bits=some d) (hd' : TCFloat.value32 bits'=some d')
@@ -172,8 +172,8 @@ def belowTerm (j : Nat) : Term :=
 theorem belowTerm_project (j : Nat) : project (belowTerm j)=TensorCore.belowDecoded j :=
   project_term (TensorCore.belowDecoded j)
 
-/-- Paper Theorem III.5 in the port: arbitrary p, K and perturbation j, including the exact increase, threshold and maximum. -/
-theorem paper_nonmonotone_range (prof : Profile) (p K j : Nat) (a b : Term)
+/-- Non-monotonicity over the family `C = 1 − j·2^-24`: exact output increase, threshold on j, and maximal output, for arbitrary p and K (TC-EFT paper, Theorem III.5). -/
+theorem floatlib_nonmonotone_range (prof : Profile) (p K j : Nat) (a b : Term)
     (hp : prof.extra=p) (ha : ValidTerm a) (hb : ValidTerm b)
     (hf : ∀ f ∈ prof.floor, f≤ -1)
     (hv : (a.mul b).value=TCFloat.pow2 (-(24+(p:Int))))
@@ -229,7 +229,7 @@ private theorem sum_map_difference (xs : List Rat) (f g : Rat → Rat) :
   | nil => simp
   | cons x xs ih => simp only [List.map_cons,List.sum_cons,ih]; ring
 
-/-- Paper Def. -/
+/-- Flowback must exceed the accumulator shift for the output to increase (general form of TC-EFT paper, Definition III.3). -/
 theorem general_flowback_necessary (primary primary' : Rat) (others : List Rat) (q q' : Int)
     (bits bits' : Nat) (d d' : Rat)
     (h : TCFloat.round32 .towardZero

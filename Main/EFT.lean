@@ -30,7 +30,7 @@ private def traceJson (t : BlockTrace) : Json := Json.mkObj [
   ("overlap", toJson (qText t.overlap)), ("low_parts", toJson (t.lowParts.map qText)),
   ("scalar_predicate", toJson t.scalarPredicate),
   ("scalar_bits", toJson (t.scalarCorrected.map BitVec.toNat)),
-  ("algorithm_bits", toJson (t.algorithm1.bits.map BitVec.toNat))]
+  ("algorithm_bits", toJson (t.tcEft.bits.map BitVec.toNat))]
 
 private def parsePairs (p : Profile) : List ℕ → Option (List (p.Word × p.Word))
   | [] => some []
@@ -50,7 +50,7 @@ private def blockJson (f : TensorCore.Format) (k extra : ℕ) (floor : Option �
       return Json.mkObj [
         ("ideal", toJson ((exactDot x).map qText)),
         ("model", match evalBlock x with | .error e => failure e | .ok t => traceJson t),
-        ("correction", correctionJson (algorithm1Encoded x (BitVec.ofNat 32 D)))]
+        ("correction", correctionJson (tcEftEncoded x (BitVec.ofNat 32 D)))]
 
 private def familyJson (p k j : ℕ) : Option Json := do
   if p > 4 || k = 0 || k ≥ 2 ^ (24 + p) || j = 0 || j > 2 ^ 23 then none else do

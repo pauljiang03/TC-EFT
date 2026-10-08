@@ -4,7 +4,7 @@ import TensorCore.TC.CanonicalFormats
 
 /-! Bridges for decoding and the four pre-conversion stages. -/
 
-namespace TensorCore.PaperSpec
+namespace TensorCore.IndependentSpec
 
 @[implicit_reducible] def layoutOf (f : Format) : Layout := ⟨f.fractionBits, f.exponentBits, f.bias⟩
 def parametersOf (p : Profile) : Parameters :=
@@ -162,4 +162,4 @@ theorem valid_iff {p : Profile} (x : BlockInput p) :
     rw [ha]
     rfl
 
-end TensorCore.PaperSpec
+end TensorCore.IndependentSpec

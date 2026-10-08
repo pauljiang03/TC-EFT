@@ -99,7 +99,7 @@ set_option maxRecDepth 16384
 set_option maxHeartbeats 4000000
 
 /-- TC-EFT Table III: the source block widths `K = 4, 8, 16` all exceed `3·2^p`, and decreasing the accumulator from `3f800000` to `3f7fffff` raises the output to `3f800001`. -/
-theorem table_iii_witnesses :
+theorem nonmonotone_ampere_hopper_witnesses :
     outputBits (⟨List.replicate 8 (0x0c00, 0x0800), 0x3f800000⟩ : BlockInput ampereF16F32) =
       .ok 0x3f800000 ∧
     outputBits (⟨List.replicate 8 (0x0c00, 0x0800), 0x3f7fffff⟩ : BlockInput ampereF16F32) =
@@ -131,7 +131,7 @@ theorem range_witnesses :
     outputBits (⟨List.replicate 16 (0x0c00, 0x0400), 0x3f7ffffd⟩ : BlockInput hopperF16F32) =
       .ok 0x3f800000 := by decide +kernel
 
-/-- The paper's `K = 5`, `p = 0` example: the largest output increase `2·2^-23` occurs at `j = 1`, the largest input decrease `3·2^-24` at `J = 3`, and `j = 4` is monotone. -/
+/-- The TC-EFT paper's `K = 5`, `p = 0` example: the largest output increase `2·2^-23` occurs at `j = 1`, the largest input decrease `3·2^-24` at `J = 3`, and `j = 4` is monotone. -/
 theorem range_extrema_k5 :
     outputBits (⟨List.replicate 5 (0x0c00, 0x0c00), 0x3f7fffff⟩ :
       BlockInput (fp16Fp32Profile 5 0 none)) = .ok 0x3f800002 ∧

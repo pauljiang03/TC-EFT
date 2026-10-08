@@ -17,7 +17,7 @@ def main():
     build = run(['lake', 'build', 'TensorCoreTests.Specification.Audit'])
     if build.returncode:
         raise RuntimeError(build.stdout + build.stderr)
-    audit = run(['lake', 'env', 'lean', 'scripts/lean/PaperSpecAudit.lean'])
+    audit = run(['lake', 'env', 'lean', 'scripts/lean/IndependentSpecAudit.lean'])
     if audit.returncode:
         raise RuntimeError(audit.stdout + audit.stderr)
     declarations = re.search(r'paper_spec_audit: (\d+) specification declarations', audit.stdout)
@@ -27,7 +27,7 @@ def main():
 def hiddenImplementationCall (x : Rat) := TensorCore.round32 .towardZero x
 def contaminatedProposition (x : Rat) (b : BitVec 32) : Prop :=
   hiddenImplementationCall x = some b
-run_cmd TensorCore.PaperSpec.Audit.check ``contaminatedProposition
+run_cmd TensorCore.IndependentSpec.Audit.check ``contaminatedProposition
 '''
     negative = run(['lake', 'env', 'lean', '--stdin'], contaminated)
     failure = negative.stdout + negative.stderr
@@ -37,7 +37,7 @@ run_cmd TensorCore.PaperSpec.Audit.check ``contaminatedProposition
     contaminated_scalar = """import TensorCoreTests.Specification.Audit
 def hiddenScalarStage := TensorCore.ConversionStage.convert
 def contaminatedScalar := hiddenScalarStage
-run_cmd TensorCore.PaperSpec.Audit.check ``contaminatedScalar
+run_cmd TensorCore.IndependentSpec.Audit.check ``contaminatedScalar
 """
     negative_scalar = run(['lake', 'env', 'lean', '--stdin'], contaminated_scalar)
     failure_scalar = negative_scalar.stdout + negative_scalar.stderr
@@ -46,7 +46,7 @@ run_cmd TensorCore.PaperSpec.Audit.check ``contaminatedScalar
     assert 'TensorCore.ConversionStage.convert' in failure_scalar, failure_scalar
     sources = (sorted((ROOT / 'TensorCore/TC/Specification').glob('*.lean')) +
                sorted((ROOT / 'tests/TensorCoreTests/Specification').glob('*.lean')) +
-               [ROOT / 'scripts/lean/PaperSpecAudit.lean', ROOT / 'examples/PaperSpecification.lean',
+               [ROOT / 'scripts/lean/IndependentSpecAudit.lean', ROOT / 'examples/IndependentSpecification.lean',
                 Path(__file__)])
     for source in sources:
         if source.suffix != '.lean':
@@ -55,8 +55,8 @@ run_cmd TensorCore.PaperSpec.Audit.check ``contaminatedScalar
                              source.read_text()), source
     report = dict(
         status='passed',
-        theorem='TensorCore.PaperSpec.supported_eq_paper',
-        generic_theorem='TensorCore.PaperSpec.implementation_eq_paper',
+        theorem='TensorCore.IndependentSpec.supported_eq_spec',
+        generic_theorem='TensorCore.IndependentSpec.evalBlock_eq_spec',
         supported_paths=8,
         scope='FP16/BF16/packed-TF32 inputs; FP32 c/output; finite reference domain; one group and ordered group lists',
         all_encoded_inputs_including_rejections=True,

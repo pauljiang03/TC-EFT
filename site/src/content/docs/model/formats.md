@@ -107,9 +107,9 @@ ignored. The model separates the two concerns:
   `tf32Unpack` extracts the 19 value bits.
 
 The theorem
-[`tf32_eq_paper`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Specification/Supported.lean#L45)
+[`tf32_eq_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Specification/Supported.lean#L45)
 proves that, on correctly padded register words, the register-level
-invocation gives the same bits as the *Accurate Models* specification (`PaperSpec`). Words whose low
+invocation gives the same bits as the *Accurate Models* specification (`IndependentSpec`). Words whose low
 bits are not zero are rejected rather than silently masked.
 
 ## Proved properties of the encoding layer

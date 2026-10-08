@@ -5,7 +5,7 @@ import TensorCore.Numerics.Binary.ScalarSum
 
 namespace TensorCore
 
-/-- The paper's component predicate with separate minimum-grid, coefficient, and absolute range budgets. -/
+/-- The TC-EFT paper's component predicate with separate minimum-grid, coefficient, and absolute range budgets. -/
 def BlockTrace.scalarPredicateIn (t : BlockTrace) (f : Format) : Bool :=
   decide f.WellFormed && decide (f.emin - f.fractionBits ≤ t.supportExponent) &&
   (t.lowParts == t.lowCoefficients.map fun (z : ℤ) => (z : ℚ) * pow2 t.supportExponent) &&

@@ -50,14 +50,14 @@ theorem Prepared.ideal_allZero {p : Prepared}
     simp [sumQ, hv, hs, Rat.zero_add]
 
 /-- Full bounded execution terminates without workspace overflow. -/
-theorem algorithm1_prepared {path : Path} {x : BlockInput path.profile} {D : F32} {p : Prepared}
+theorem tcEft_prepared {path : Path} {x : BlockInput path.profile} {D : F32} {p : Prepared}
     (hp : prepare path x D = .ok p) :
-    ∃ r, algorithm1 path x D = .ok r ∧
+    ∃ r, tcEft path x D = .ok r ∧
       r.bits = TensorCore.round32 .nearestEven p.ideal := by
   have hcap := prepare_capacity hp
   obtain ⟨c, hc⟩ := extract_exists hcap.1 hcap.2
   have hs := extract_spec hc
-  unfold algorithm1
+  unfold tcEft
   simp only [hp, Bind.bind, Except.bind]
   by_cases hz : p.terms.all (fun t => t.word.magnitude == 0) = true
   · refine ⟨.allZero, ?_, ?_⟩
@@ -77,39 +77,39 @@ theorem algorithm1_prepared {path : Path} {x : BlockInput path.profile} {D : F32
       | some b => exact ⟨.boundedExact b, by rw [if_neg hz, hc]; dsimp +instances only; rw [hb, hf]; rfl, hf.symm.trans hr⟩
 
 /-- Universal finite-input theorem for all eight paths and any finite supplied D. -/
-theorem algorithm1_correct {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
+theorem tcEft_correct {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
     (hlen : x.products.length = path.profile.products)
     (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
-    ∃ r, algorithm1 path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s := by
+    ∃ r, tcEft path x D = .ok r ∧ r.bits = TensorCore.round32 .nearestEven s := by
   obtain ⟨p, hp⟩ := prepare_exists hlen hx hD
   have hi := (prepare_spec hp).2.1
   have hv : p.ideal = s := Option.some.inj (hi.symm.trans hx)
-  obtain ⟨r, hr, hb⟩ := algorithm1_prepared hp
+  obtain ⟨r, hr, hb⟩ := tcEft_prepared hp
   exact ⟨r, hr, by simpa [hv] using hb⟩
 
 /-- Useful success family: every shape-correct finite block whose *independent* ideal is within the finite FP32 interval. -/
-theorem algorithm1_success {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
+theorem tcEft_success {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
     (hlen : x.products.length = path.profile.products)
     (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d)
     (hrange : absQ s ≤ maxFinite32) :
-    ∃ r b, algorithm1 path x D = .ok r ∧ r.bits = some b ∧ NearestEven32 s b := by
-  obtain ⟨r, hr, hb⟩ := algorithm1_correct hlen hx hD
+    ∃ r b, tcEft path x D = .ok r ∧ r.bits = some b ∧ NearestEven32 s b := by
+  obtain ⟨r, hr, hb⟩ := tcEft_correct hlen hx hD
   obtain ⟨b, hround, hn⟩ := round32_nearestEven_correct s hrange
   exact ⟨r, b, hr, hb.trans hround, hn⟩
 
 /-- After valid decoding, range acceptance is both necessary and sufficient. -/
-theorem algorithm1_range_iff {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
+theorem tcEft_range_iff {path : Path} {x : BlockInput path.profile} {D : F32} {s d : ℚ}
     (hlen : x.products.length = path.profile.products)
     (hx : TensorCore.exactDot x = some s) (hD : TensorCore.value32 D = some d) :
-    (∃ r b, algorithm1 path x D = .ok r ∧ r.bits = some b) ↔ absQ s ≤ maxFinite32 := by
+    (∃ r b, tcEft path x D = .ok r ∧ r.bits = some b) ↔ absQ s ≤ maxFinite32 := by
   constructor
   · rintro ⟨r, b, hr, hb⟩
-    obtain ⟨r', hr', hb'⟩ := algorithm1_correct hlen hx hD
+    obtain ⟨r', hr', hb'⟩ := tcEft_correct hlen hx hD
     have he : r' = r := Except.ok.inj (hr'.symm.trans hr)
     subst r'
     exact TensorCore.round32_range (hb'.symm.trans hb)
   · intro h
-    obtain ⟨r, b, hr, hb, _⟩ := algorithm1_success hlen hx hD h
+    obtain ⟨r, b, hr, hb, _⟩ := tcEft_success hlen hx hD h
     exact ⟨r, b, hr, hb⟩
 
 

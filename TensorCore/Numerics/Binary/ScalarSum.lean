@@ -109,7 +109,7 @@ theorem naiveSumBinaryFrom_exact (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
     simp only [List.map_cons, naiveSumBinaryFrom, hstep, Option.bind_some, ih']
     rw [show a + z + sumZ zs = a + sumZ (z :: zs) by simp only [sumZ]; omega]
 
-/-- Theorem IV.8 with exactly the paper's minimum-grid, coefficient, and absolute-range conditions. -/
+/-- TC-EFT paper Theorem IV.8 with exactly its minimum-grid, coefficient, and absolute-range conditions. -/
 theorem naiveSumBinary_exact (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
     (h1 : f.emin - f.fractionBits ≤ ℓ) (zs : List ℤ)
     (hbound : magnitudeSum zs < 2 ^ (f.fractionBits + 1))

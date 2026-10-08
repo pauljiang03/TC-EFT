@@ -14,7 +14,7 @@ S = D - εₒ + Σ εᵢ = H + Σ εᵢ
 
 The scalar procedure sequentially adds the low parts in FP32, computes D - εₒ in FP32, and performs one final nearest-even addition. Its sufficient predicate checks that the support-grid exponent lies between -149 and 104, residual coefficients are exact integers with total absolute sum below `2^24`, D/εₒ/H are representable in FP32, and the final sum is within finite FP32 range. These premises justify exact intermediate operations. A failed predicate makes the scalar helper return `none`.
 
-The deterministic support-grid choice is conservative. The chosen-grid theorems permit other valid common grids; source identifiers containing `eq20` denote the manuscript's input-budget inequality numbered (17).
+The deterministic support-grid choice is conservative. The chosen-grid theorems permit other valid common grids; identifiers beginning `inputBudget_` concern the TC-EFT paper's input-budget inequality (17).
 
 ## Execute a correction
 
@@ -26,9 +26,9 @@ open TensorCore
 def tiny : BlockInput v100F16F32 :=
   ⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f800000⟩
 
-#eval (algorithm1Encoded tiny 0x3f800000).map fun r => r.bits.map BitVec.toNat
+#eval (tcEftEncoded tiny 0x3f800000).map fun r => r.bits.map BitVec.toNat
 
-example : algorithm1Encoded tiny 0x3f800000 =
+example : tcEftEncoded tiny 0x3f800000 =
     .ok (.consolidated (.scalar 0x3f800002)) := by decide +kernel
 ```
 
@@ -38,12 +38,12 @@ The supplied D is FP32 `1.0`. Each exact product is `2^-24`, so the exact input 
 
 | Layer | Entry point | Consolidation |
 | --- | --- | --- |
-| Reference | `algorithm1Encoded` | Guarded FP32 scalar branch, otherwise exact-rational consolidation and one RNE conversion |
-| Bounded | `EFMachine.algorithm1` | Fixed 576-bit workspace, guarded FP32 scalar branch, otherwise bounded exact consolidation |
-| Native scalar refinement | `EFMachine.algorithm1WithLean` | Same bounded algorithm with Lean native FP32 scalar additions |
-| Independent FloatLib | `TCFloat.Paper.eftChecked` | FloatLib scalar operations and reference exact fallback |
+| Reference | `tcEftEncoded` | Guarded FP32 scalar branch, otherwise exact-rational consolidation and one RNE conversion |
+| Bounded | `EFMachine.tcEft` | Fixed 576-bit workspace, guarded FP32 scalar branch, otherwise bounded exact consolidation |
+| Native scalar refinement | `EFMachine.tcEftWithLean` | Same bounded algorithm with Lean native FP32 scalar additions |
+| Independent FloatLib | `TCFloat.Interface.eftChecked` | FloatLib scalar operations and reference exact fallback |
 
-`EFMachine.algorithm1_agrees` preserves the returned bits of the reference algorithm under its premises. The bounded and reference fallback branch names may differ. `algorithm1WithLean_eq` preserves the entire bounded result, including tags and errors. FloatLib's `paper_one_to_one` preserves the complete checked reference TC/EFT observations for every encoded input in its profile family.
+`EFMachine.tcEft_agrees` preserves the returned bits of the reference algorithm under its premises. The bounded and reference fallback branch names may differ. `tcEftWithLean_eq` preserves the entire bounded result, including tags and errors. FloatLib's `floatlib_eq_reference` preserves the complete checked reference TC/EFT observations for every encoded input in its profile family.
 
 ```lean
 import TensorCore.EFT
@@ -53,12 +53,12 @@ open TensorCore
 
 #check overlap_recovery
 #check scalarCorrected_correct
-#check ExtractionGrid.eq20_scalarPredicate
-#check algorithm1Encoded_correct
-#check EFMachine.algorithm1_success
-#check EFMachine.algorithm1_range_iff
-#check EFMachine.algorithm1_agrees
-#check EFMachine.algorithm1WithLean_eq
+#check ExtractionGrid.inputBudget_scalarPredicate
+#check tcEftEncoded_correct
+#check EFMachine.tcEft_success
+#check EFMachine.tcEft_range_iff
+#check EFMachine.tcEft_agrees
+#check EFMachine.tcEftWithLean_eq
 ```
 
 [BoundedEFT.lean](../../examples/BoundedEFT.lean) runs a BF16 cancellation case with a supplied D unrelated to the exact ideal, then applies the universal success contract. [ScalarEFT.lean](../../examples/ScalarEFT.lean) shows correction with FP64 intermediates and a final FP32 output.

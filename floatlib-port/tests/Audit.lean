@@ -60,9 +60,9 @@ def checkSourceIndependence (root : Name) : CommandElabM Unit := do
   logInfo m!"checked source independence: {root}"
 
 run_cmd do
-  checkDependencies ``TCFloat.Paper.eft
-  checkDependencies ``TCFloat.Paper.eftChecked
+  checkDependencies ``TCFloat.Interface.eft
+  checkDependencies ``TCFloat.Interface.eftChecked
   for root in [``TCFloat.decode, ``TCFloat.Term.mul, ``TCFloat.round32,
     ``TCFloat.Block.evaluate, ``TCFloat.Trace.scalar, ``TCFloat.Trace.encodedAlgorithm,
-    ``TCFloat.Paper.tc, ``TCFloat.Paper.eft, ``TCFloat.Paper.tcChecked, ``TCFloat.Paper.eftChecked] do
+    ``TCFloat.Interface.tc, ``TCFloat.Interface.eft, ``TCFloat.Interface.tcChecked, ``TCFloat.Interface.eftChecked] do
     checkSourceIndependence root

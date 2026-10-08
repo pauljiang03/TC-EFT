@@ -1,4 +1,4 @@
-import TensorCore.EFT.Algorithm1
+import TensorCore.EFT.TcEft
 
 /-! TC-EFT Algorithm 1 with its paper interface: encoded operands, an explicit profile, and a supplied finite FP32 output D. -/
 
@@ -13,10 +13,10 @@ def prepareEncodedEFT {p : Profile} (x : BlockInput p) (D : F32) : Except ModelE
       | none => .error .nonfiniteOutput
       | some d => .ok ⟨b, d⟩
 
-/-- The paper's zero shortcut is distinct from the two consolidation branches. -/
+/-- The TC-EFT paper's zero shortcut is distinct from the two consolidation branches. -/
 inductive EncodedEFTResult where
   | allZero
-  | consolidated (result : Algorithm1Result)
+  | consolidated (result : TcEftResult)
   deriving Repr, DecidableEq
 
 def EncodedEFTResult.bits : EncodedEFTResult → Option F32
@@ -27,11 +27,11 @@ def PreparedBlock.allZeroTerms (b : PreparedBlock) : Bool :=
   b.terms.all fun t => t.significand == 0
 
 /-- Algorithm 1: check the finite encoded interface, return +0 for all-zero terms, otherwise reconstruct the grids and overlap components and execute the two-branch reference. -/
-def algorithm1Encoded {p : Profile} (x : BlockInput p) (D : F32) :
+def tcEftEncoded {p : Profile} (x : BlockInput p) (D : F32) :
     Except ModelError EncodedEFTResult :=
   match prepareEncodedEFT x D with
   | .error e => .error e
-  | .ok t => .ok (if t.block.allZeroTerms then .allZero else .consolidated t.algorithm1)
+  | .ok t => .ok (if t.block.allZeroTerms then .allZero else .consolidated t.tcEft)
 
 theorem prepareEncodedEFT_spec {p : Profile} {x : BlockInput p} {D : F32} {t : BlockTrace}
     (h : prepareEncodedEFT x D = .ok t) :
@@ -75,12 +75,12 @@ theorem allZeroTerms_exactDot {b : PreparedBlock} (h : b.allZeroTerms = true) : 
     exact ih (by intro u hu; exact hz u (by simp [hu]))
 
 /-- Bit equality for the trace algorithm, including rejection outside the finite ideal range. -/
-theorem algorithm1_bits_eq_round (t : BlockTrace) :
-    t.algorithm1.bits = round32 .nearestEven t.block.exactDot := by
-  unfold BlockTrace.algorithm1
+theorem tcEft_bits_eq_round (t : BlockTrace) :
+    t.tcEft.bits = round32 .nearestEven t.block.exactDot := by
+  unfold BlockTrace.tcEft
   cases hs : t.scalarCorrected with
   | some b =>
-    have hp : t.scalarPredicate = true := (tceft_isSome_iff t).mp (by
+    have hp : t.scalarPredicate = true := (scalarTcEft_isSome_iff t).mp (by
       change t.scalarCorrected.isSome = true
       rw [hs]; rfl)
     exact (hs.symm.trans (scalarCorrected_eq t hp))
@@ -89,55 +89,55 @@ theorem algorithm1_bits_eq_round (t : BlockTrace) :
     cases round32 .nearestEven t.block.exactDot <;> rfl
 
 /-- The all-zero shortcut agrees in bits with Algorithm 1 on the reconstructed trace. -/
-theorem algorithm1Encoded_agrees {p : Profile} {x : BlockInput p} {D : F32} {t : BlockTrace}
+theorem tcEftEncoded_agrees {p : Profile} {x : BlockInput p} {D : F32} {t : BlockTrace}
     (h : prepareEncodedEFT x D = .ok t) :
-    (algorithm1Encoded x D).map EncodedEFTResult.bits = .ok t.algorithm1.bits := by
-  simp only [algorithm1Encoded, h, Except.map]
+    (tcEftEncoded x D).map EncodedEFTResult.bits = .ok t.tcEft.bits := by
+  simp only [tcEftEncoded, h, Except.map]
   split
   · rename_i hz
-    rw [algorithm1_bits_eq_round, allZeroTerms_exactDot hz]
+    rw [tcEft_bits_eq_round, allZeroTerms_exactDot hz]
     rw [show round32 .nearestEven 0 = some 0 by decide +kernel]
     rfl
   · rfl
 
 /-- Nonzero inputs preserve the trace algorithm's branch as well as its bits. -/
-theorem algorithm1Encoded_nonzero {p : Profile} {x : BlockInput p} {D : F32} {t : BlockTrace}
+theorem tcEftEncoded_nonzero {p : Profile} {x : BlockInput p} {D : F32} {t : BlockTrace}
     (h : prepareEncodedEFT x D = .ok t) (hz : t.block.allZeroTerms = false) :
-    algorithm1Encoded x D = .ok (.consolidated t.algorithm1) := by
-  simp [algorithm1Encoded, h, hz]
+    tcEftEncoded x D = .ok (.consolidated t.tcEft) := by
+  simp [tcEftEncoded, h, hz]
 
-theorem algorithm1Encoded_allZero {p : Profile} {x : BlockInput p} {D : F32} {t : BlockTrace}
+theorem tcEftEncoded_allZero {p : Profile} {x : BlockInput p} {D : F32} {t : BlockTrace}
     (h : prepareEncodedEFT x D = .ok t) (hz : t.block.allZeroTerms = true) :
-    algorithm1Encoded x D = .ok .allZero := by simp [algorithm1Encoded, h, hz]
+    tcEftEncoded x D = .ok .allZero := by simp [tcEftEncoded, h, hz]
 
 /-- Returned bits round the independent decoded original-input ideal, for any finite D. -/
-theorem algorithm1Encoded_correct {p : Profile} {x : BlockInput p} {D b : F32}
-    {r : EncodedEFTResult} (h : algorithm1Encoded x D = .ok r) (hb : r.bits = some b) :
+theorem tcEftEncoded_correct {p : Profile} {x : BlockInput p} {D b : F32}
+    {r : EncodedEFTResult} (h : tcEftEncoded x D = .ok r) (hb : r.bits = some b) :
     ∃ z, exactDot x = some z ∧ NearestEven32 z b := by
   cases ht : prepareEncodedEFT x D with
-  | error e => simp [algorithm1Encoded, ht] at h
+  | error e => simp [tcEftEncoded, ht] at h
   | ok t =>
-    have he := algorithm1Encoded_agrees ht
+    have he := tcEftEncoded_agrees ht
     rw [h] at he
     simp only [Except.map, Except.ok.injEq] at he
-    have ha : t.algorithm1.bits = some b := he.symm.trans hb
+    have ha : t.tcEft.bits = some b := he.symm.trans hb
     exact ⟨t.block.exactDot, by simp [exactDot, (prepareEncodedEFT_spec ht).2.1],
-      algorithm1_correct t b ha⟩
+      tcEft_correct t b ha⟩
 
 /-- After finite input decoding, an encoding exists exactly when the independent ideal fits. -/
-theorem algorithm1Encoded_bits_isSome_iff {p : Profile} {x : BlockInput p} {D : F32}
+theorem tcEftEncoded_bits_isSome_iff {p : Profile} {x : BlockInput p} {D : F32}
     {t : BlockTrace} (h : prepareEncodedEFT x D = .ok t) :
-    (algorithm1Encoded x D).map (fun r => r.bits.isSome) = .ok true ↔
+    (tcEftEncoded x D).map (fun r => r.bits.isSome) = .ok true ↔
       ∃ z, exactDot x = some z ∧ absQ z ≤ maxFinite32 := by
-  have he := algorithm1Encoded_agrees h
-  have hm : (algorithm1Encoded x D).map (fun r => r.bits.isSome) = .ok t.algorithm1.bits.isSome := by
-    cases hr : algorithm1Encoded x D with
+  have he := tcEftEncoded_agrees h
+  have hm : (tcEftEncoded x D).map (fun r => r.bits.isSome) = .ok t.tcEft.bits.isSome := by
+    cases hr : tcEftEncoded x D with
     | error e => simp [hr, Except.map] at he
     | ok r =>
       simp only [hr, Except.map, Except.ok.injEq] at he
       simp only [Except.map, he]
   rw [hm]
-  simpa [exactDot, (prepareEncodedEFT_spec h).2.1] using algorithm1_bits_isSome_iff t
+  simpa [exactDot, (prepareEncodedEFT_spec h).2.1] using tcEft_bits_isSome_iff t
 
 /-- A model evaluation supplies exactly the same decoded trace at this public interface. -/
 theorem prepareEncodedEFT_of_evalBlock {p : Profile} {x : BlockInput p} {t : BlockTrace}
@@ -158,9 +158,9 @@ theorem prepareEncodedEFT_of_evalBlock {p : Profile} {x : BlockInput p} {t : Blo
   simp only [prepareEncodedEFT, hs, bne_self_eq_false, Bool.false_eq_true, ↓reduceIte,
     evalBlock_prepared h, hd]
 
-theorem algorithm1Encoded_of_evalBlock {p : Profile} {x : BlockInput p} {t : BlockTrace}
+theorem tcEftEncoded_of_evalBlock {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) :
-    (algorithm1Encoded x t.output.bits).map EncodedEFTResult.bits = .ok t.algorithm1.bits :=
-  algorithm1Encoded_agrees (prepareEncodedEFT_of_evalBlock h)
+    (tcEftEncoded x t.output.bits).map EncodedEFTResult.bits = .ok t.tcEft.bits :=
+  tcEftEncoded_agrees (prepareEncodedEFT_of_evalBlock h)
 
 end TensorCore

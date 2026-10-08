@@ -139,7 +139,7 @@ def checkDependencies (root : Name) : CommandElabM Unit := do
     for name, body, valid in [
         ('dependencies', '''run_cmd do
   checkDependencies ``TensorCore.prepareEncodedEFT
-  checkDependencies ``TensorCore.algorithm1Encoded
+  checkDependencies ``TensorCore.tcEftEncoded
 ''', True),
         ('dependency-negative', '''def contaminated (x : TensorCore.BlockInput TensorCore.v100F16F32) :=
   TensorCore.evalBlock x

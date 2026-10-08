@@ -111,7 +111,7 @@ def Result.bits : Result → Option F32
   | .outOfRange => none
 
 /-- Full bounded Algorithm 1, on each of the eight supported encoded input paths. -/
-def algorithm1 (path : Path) (x : BlockInput path.profile) (D : F32) : Except Error Result := do
+def tcEft (path : Path) (x : BlockInput path.profile) (D : F32) : Except Error Result := do
   let p ← prepare path x D
   if p.terms.all (fun t => t.word.magnitude == 0) then return .allZero
   let some c := extract p | throw .arithmeticOverflow

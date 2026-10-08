@@ -44,15 +44,15 @@ theorem scalarCorrected_correct ...   -- predicate ⇒ result is RNE(S)
 
 The core of this result is a proof that naive FP32 summation is exact under a
 bit-span bound (`naiveSumBinary_exact_of_bitSpan`).
-`ExtractionGrid.eq20_scalarPredicate` relates the TC-EFT paper's input-budget
+`ExtractionGrid.inputBudget_scalarPredicate` relates the TC-EFT paper's input-budget
 inequality (17) to that predicate.
 
 ## Algorithm 1 of the TC-EFT paper: always returns an answer
 
 ```lean
-def algorithm1Encoded {p : Profile} (x : BlockInput p) (D : F32) : ...
-theorem algorithm1Encoded_correct ...       -- any returned bits are RNE(S)
-theorem algorithm1Encoded_bits_isSome_iff ... -- bits are returned iff |S| ≤ maxFinite32
+def tcEftEncoded {p : Profile} (x : BlockInput p) (D : F32) : ...
+theorem tcEftEncoded_correct ...       -- any returned bits are RNE(S)
+theorem tcEftEncoded_bits_isSome_iff ... -- bits are returned iff |S| ≤ maxFinite32
 ```
 
 If the scalar predicate fails, the reference algorithm falls back to exact
@@ -61,15 +61,15 @@ theorems give total correctness on the finite range.
 
 ## Bounded execution
 
-[`EFMachine.algorithm1`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Defs.lean)
+[`EFMachine.tcEft`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Defs.lean)
 runs in a fixed **576-bit** fixed-point workspace (bias `2^-272`), the size a
 real implementation would use:
 
-- `algorithm1_success`, `algorithm1_range_iff`: on supported, finite,
+- `tcEft_success`, `tcEft_range_iff`: on supported, finite,
   correctly shaped inputs, a result exists exactly when the exact sum is in
   range. The workspace never overflows.
-- `algorithm1_agrees`: its output bits equal the reference algorithm's.
-- `algorithm1WithLean_eq`: replacing the scalar additions with Lean's native
+- `tcEft_agrees`: its output bits equal the reference algorithm's.
+- `tcEftWithLean_eq`: replacing the scalar additions with Lean's native
   FP32 `Float32.add`, as specified by Lean's float model, gives the same
   complete result.
 
