@@ -39,7 +39,7 @@
     "TensorCore/TC/Specification/Rounding.lean": "45e7d023148299a4489c4977d7804b48e0ae59be53afee89cedbbdc5bb246fbc",
     "TensorCore/TC/Specification/Schedule.lean": "30f0c310fc132faaa33e1e6998b700aa0e4349b93e2542595a6b48dfcb06726d",
     "TensorCore/TC/Specification/Stages.lean": "c1d651e64a644be5b6afbb4b6475be307d2dd98c855b4d5cd80ed0b2d6d59607",
-    "TensorCore/TC/Specification/Supported.lean": "f9588fc642156a16891c7f69c6a78703eb8e4417eb96fedf121c34706396d54a",
+    "TensorCore/TC/Specification/Supported.lean": "bb1d44155450f0b093d6fca4b18d5bd2e7b6a50809ad7be140e730164a848cf4",
     "tests/TensorCoreTests/Specification/Audit.lean": "54934f572c27d84e5a874cfbf9a6430be706e60af63c5a2c21614a24c0ca3b13",
     "tests/TensorCoreTests/Specification/NegativeControls.lean": "ff2b835f384a55b41cd9ffe11a826a4da78a563504caff6c4e367995b7602c82",
     "scripts/lean/IndependentSpecAudit.lean": "c9a6896917135ba8d477194d0e14bab0219391b1cab262e4f252be09db783cfe",

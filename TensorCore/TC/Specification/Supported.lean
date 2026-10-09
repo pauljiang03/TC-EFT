@@ -23,7 +23,7 @@ def supportedInput (path : Path) (x : BlockInput (implementationProfile path)) :
 theorem supported_parameters (path : Path) :
     parametersOf (implementationProfile path) = parameters path := by cases path <;> rfl
 
-/-- Every supported paper path and every input, with failures observed as none. -/
+/-- Every supported GPU path and every input, with failures observed as none. -/
 theorem supported_eq_spec (path : Path) (x : BlockInput (implementationProfile path)) :
     (evalBlock x).toOption.map (fun t => t.output.bits) =
       bits (parameters path) (supportedInput path x) := by
