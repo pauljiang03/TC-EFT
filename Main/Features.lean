@@ -114,7 +114,7 @@ private def command (args : List String) : Option Json := do
     let den ← d.toNat?
     if den = 0 then none else
       let x : ℚ := num / (den : ℚ)
-      return Json.mkObj (([("rz", .truncate), ("rne", .nearestEven),
+      return Json.mkObj (([("trunc", .truncate), ("rne", .nearestEven),
         ("rd", .towardNegative), ("ru", .towardPositive)] : List (String × BinaryRoundingMode)).map
         fun (name, mode) => (name, toJson ((roundBinary f mode x).map BitVec.toNat)))
   | ["decode", fmt, n] =>

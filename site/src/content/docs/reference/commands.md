@@ -26,7 +26,7 @@ The trace also reports `correctedBits`, the TC-EFT result `0x41080000 = 8.5`.
 | --- | --- | --- |
 | `tc_trace` | eight FP16 hex words and one FP32 word; `--file`, `--round-file` | V100 stage trace |
 | `tc_features` | `canonical K EXTRA FLOOR …`, `bf16 …`, `tf32 …`, `block PROFILE …`, `decode`, `round` | general profiles, decimal words |
-| `tc_eft_paper` | `block FORMAT K EXTRA FLOOR a0 b0 … c D`, `round`, `family p K j` | reference EFT, in the TC-EFT paper's input format |
+| `tc_eft_reference` | `block FORMAT K EXTRA FLOOR a0 b0 … c D`, `round`, `family p K j` | reference EFT, in the TC-EFT paper's input format |
 | `tc_bounded_eft` | `block PROFILE a0 b0 … c D`, `round SIGNED_COEFFICIENT` | 576-bit bounded EFT |
 | `tc_lean_eft_check` | JSON Lines on stdin | native Float32 vs bounded scalar fold |
 
@@ -39,7 +39,7 @@ Profiles for `tc_bounded_eft` are `v100-fp16`, `a100-fp16`, `h100-fp16`,
 | --- | --- |
 | `check_clean_build.py` | everything below, from a fresh snapshot |
 | `check_axioms.py` | axiom allowlist over all public theorems |
-| `check_paper_spec.py` | model = *Accurate Models* specification, independence negative control |
+| `check_independent_spec.py` | model = *Accurate Models* specification, independence negative control |
 | `check_features.py` | 132 configurations and recorded FP16 device vectors |
 | `check_device_formats.py` | recorded BF16 and TF32 device vectors |
 | `check_eft.py` | EFT proofs, oracles, and the TC-EFT paper's test vectors |

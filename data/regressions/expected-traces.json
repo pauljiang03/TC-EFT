@@ -3,8 +3,8 @@
     "name": "R1a",
     "trace": {
       "bits": 1074790401,
-      "eta": 0,
-      "qExponent": -23,
+      "alignExp": 0,
+      "alignGridExponent": -23,
       "unnormalizedExps": [
         0,
         -23,
@@ -36,8 +36,8 @@
     "name": "R1b",
     "trace": {
       "bits": 1074790400,
-      "eta": 1,
-      "qExponent": -22,
+      "alignExp": 1,
+      "alignGridExponent": -22,
       "unnormalizedExps": [
         1,
         -23,
@@ -69,8 +69,8 @@
     "name": "R2",
     "trace": {
       "bits": 1076889601,
-      "eta": 0,
-      "qExponent": -23,
+      "alignExp": 0,
+      "alignGridExponent": -23,
       "unnormalizedExps": [
         0,
         -3,
@@ -102,8 +102,8 @@
     "name": "R3",
     "trace": {
       "bits": 1091043327,
-      "eta": 0,
-      "qExponent": -23,
+      "alignExp": 0,
+      "alignGridExponent": -23,
       "unnormalizedExps": [
         0,
         0,
@@ -135,8 +135,8 @@
     "name": "zero",
     "trace": {
       "bits": 0,
-      "eta": null,
-      "qExponent": -23,
+      "alignExp": null,
+      "alignGridExponent": -23,
       "unnormalizedExps": [
         0,
         0,
@@ -168,8 +168,8 @@
     "name": "subnormal-product",
     "trace": {
       "bits": 662700032,
-      "eta": -28,
-      "qExponent": -51,
+      "alignExp": -28,
+      "alignGridExponent": -51,
       "unnormalizedExps": [
         -28,
         0,
@@ -201,8 +201,8 @@
     "name": "subnormal-c",
     "trace": {
       "bits": 1,
-      "eta": -126,
-      "qExponent": -149,
+      "alignExp": -126,
+      "alignGridExponent": -149,
       "unnormalizedExps": [
         0,
         0,
@@ -234,8 +234,8 @@
     "name": "historical-reconstructed",
     "trace": {
       "bits": 1151319632,
-      "eta": 14,
-      "qExponent": -9,
+      "alignExp": 14,
+      "alignGridExponent": -9,
       "unnormalizedExps": [
         14,
         11,

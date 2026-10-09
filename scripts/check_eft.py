@@ -40,7 +40,7 @@ def main():
         ['lake', 'env', 'lean', 'scripts/lean/Audit.lean'],
         [sys.executable, 'scripts/check_eft_coverage.py'],
         [sys.executable, 'scripts/check_instruction_groups.py'],
-        [sys.executable, 'scripts/check_paper_eft.py'],
+        [sys.executable, 'scripts/check_tc_eft_paper.py'],
         [sys.executable, 'scripts/check_bounded_eft.py'],
     ]
     tmp = ROOT / 'tmp/eft'

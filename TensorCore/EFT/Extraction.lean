@@ -95,7 +95,7 @@ def BlockTrace.scalarChecks (t : BlockTrace) : List (String × Bool) :=
   [("lowest_bit_min", decide (-149 ≤ ℓ)),
    ("lowest_bit_max", decide (ℓ ≤ 104)),
    ("low_bits_on_grid", t.lowParts == zs.map fun (z : ℤ) => (z : ℚ) * q),
-   ("low_bits_fit_24", decide (magnitudeSum zs < 2 ^ 24)),
+   ("low_bits_sum_below_2pow24", decide (magnitudeSum zs < 2 ^ 24)),
    ("D_fits_fp32", representable32 t.output.value),
    ("overlap_fits_fp32", representable32 t.overlap),
    ("H_fits_fp32", representable32 t.retainedSum),

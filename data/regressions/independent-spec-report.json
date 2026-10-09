@@ -44,7 +44,7 @@
     "tests/TensorCoreTests/Specification/NegativeControls.lean": "ff2b835f384a55b41cd9ffe11a826a4da78a563504caff6c4e367995b7602c82",
     "scripts/lean/IndependentSpecAudit.lean": "c9a6896917135ba8d477194d0e14bab0219391b1cab262e4f252be09db783cfe",
     "examples/IndependentSpecification.lean": "51a07efc18e3cecb89be976abe81f0db485de7eef69352571233bf70fc028692",
-    "scripts/check_paper_spec.py": "c86cbf62da687250446194eb12a7a8b724f74743f941a415110c3d9e4edb08bf"
+    "scripts/check_independent_spec.py": "0f43bfd50a3ffa165b8879d8143cb1ebeadddcb3aefc20ad4376d20cb824c475"
   },
   "limitations": [
     "Paper-to-formula correspondence remains a human review obligation",

@@ -49,7 +49,7 @@ commands = [['lake', 'build'], [sys.executable, 'scripts/check_axioms.py'],
             [sys.executable, 'scripts/validate.py'],
             [sys.executable, 'scripts/check_device.py'],
             [sys.executable, 'scripts/check_eft.py'],
-            [sys.executable, 'scripts/check_paper_spec.py'],
+            [sys.executable, 'scripts/check_independent_spec.py'],
             [sys.executable, 'scripts/check_axioms_regression.py'],
             [sys.executable, 'scripts/check_lean_eft.py']]
 commands += [['lake', 'env', 'lean', str(p.relative_to(target))]
@@ -93,7 +93,7 @@ generated += ['data/regressions/' + name for name in [
     'feature-report.json', 'device-formats-report.json', 'device-report.json', 'validation-report.json',
     'eft-checks.json', 'eft-coverage.json', 'eft-coverage-cases.json', 'eft-paper-report.json',
     'eft-paper-cases.json', 'eft-paper-original.json', 'eft-paper-second-pass.json',
-    'paper-spec-report.json', 'bounded-eft-report.json', 'lean-eft-report.json',
+    'independent-spec-report.json', 'bounded-eft-report.json', 'lean-eft-report.json',
     'instruction-groups-report.json']]
 for name in generated:
     shutil.copyfile(target / name, root / name)

@@ -21,7 +21,7 @@ def build_reference():
         shutil.copytree(ROOT/name, dest)
     for source in [*ROOT.glob('*.lean'), ROOT/'lakefile.toml', ROOT/'lake-manifest.json', ROOT/'lean-toolchain']:
         shutil.copy2(source, SOURCE/source.name)
-    p=subprocess.run(['lake','build','tc_eft_paper'],cwd=SOURCE,text=True,capture_output=True)
+    p=subprocess.run(['lake','build','tc_eft_reference'],cwd=SOURCE,text=True,capture_output=True)
     (OUT/'reference-build.log').write_text(p.stdout+p.stderr)
     p.check_returncode()
     shutil.copyfile(PORT/'tests/DecodeOriginal.lean',SOURCE/'DecodeOriginal.lean')
@@ -43,7 +43,7 @@ def execute_pair(name,rows,decode=False):
         original=['lake','env','lean','--run','DecodeOriginal.lean',str(inp)]
         port=['lake','env','lean','--run','tests/DecodeFloatLib.lean',str(inp)]
     else:
-        original=[str(SOURCE/'.lake/build/bin/tc_eft_paper'),str(inp)]
+        original=[str(SOURCE/'.lake/build/bin/tc_eft_reference'),str(inp)]
         port=[str(PORT/'.lake/build/bin/tc_floatlib'),str(inp)]
     for cmd,cwd,target in [(original,SOURCE,a),(port,PORT,b)]:
         with target.open('w') as f:

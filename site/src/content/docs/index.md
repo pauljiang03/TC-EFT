@@ -64,8 +64,8 @@ The site cites two papers, and always names which one it means:
   Arithmetic* (under submission). The source of the **worst-case error and non-monotonicity
   results** (Section III) and the **TC-EFT algorithm** (Section IV,
   Algorithm 1). Theorem, lemma and equation numbers such as Theorem III.4,
-  Lemma IV.2 and inequality (17) refer to this paper, as do the
-  `tc_eft_paper` adapter and `check_paper_eft.py`. In Lean, the algorithm is
+  Lemma IV.2 and inequality (17) refer to this paper, and
+  `check_tc_eft_paper.py` replays its validation suites. In Lean, the algorithm is
   named `tcEft` (for example `tcEftEncoded` and `EFMachine.tcEft`).
 
 Lean declaration names describe what each result states rather than citing a

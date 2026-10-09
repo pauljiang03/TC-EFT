@@ -25,11 +25,11 @@
   "request_sha256": "902036b3fcb2c646abe27966429c506fde81f486483b6042cdd44c24bd619f2f",
   "source_sha256": {
     "scripts/check_lean_eft.py": "a1a0cdf68dc9e47046b46f677f0d3203c77306ca0076fb0e363f60eb727557ee",
-    "scripts/scalar_oracle.py": "75bb40521b16c4ea74c3f08af2bea050a6327573a69e99b4523f573d8eeaf027",
+    "scripts/scalar_oracle.py": "6ed03f649e8fa95dad0509c3b7a39103ebef1eb90c03135e69caced3878d7c49",
     "Main/LeanEFTCheck.lean": "73ab4d3bd30e7f4744cc02f3697d4705880d942e584e80001a72e04734b6e554",
     "Main/BoundedEFT.lean": "5d542df9b6c2d223ca9fbbf2c57aa6a1189cdc2e1ab46db8bb212a085e7ef8c5",
     "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
-    "lakefile.toml": "e5c76c18e1e05b60e480b52e8c15e4546102778966e9ce6a9cc9c36eb873c532",
+    "lakefile.toml": "bac332c6bcd61fef0be208aaa0e3fa8bad6832a05801ec8b8790c92856a62571",
     "TensorCore/Kernels/EFT/Native.lean": "78eee9de1aeac88e86806ca2c8bc12dde4b2b759f5d79d436e5bfe5f4eefba4c",
     "TensorCore/Kernels/EFT/Defs.lean": "4f48290e81ee9b724a822b9588ed2e1a7a60cead54a0600fce034a8b0de8e34a",
     "tests/TensorCoreTests/EFT/NativeEFT.lean": "ea60d839b4e14725661df32637729825e19c9f214e71a8f70ad5a29a1c259d98",

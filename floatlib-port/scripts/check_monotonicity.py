@@ -32,7 +32,7 @@ def main():
         m=out['model']
         expected=Q(1) if c==0x3f800000 else Q(1)-Q(2)**-24+k*Q(2)**(-24-p)
         assert Q(m['accumulator'])==expected,(p,k,floor,c,'alignment')
-        assert m['eta']==(0 if c==0x3f800000 else -1),(p,k,floor,c,'grid selection')
+        assert m['alignExp']==(0 if c==0x3f800000 else -1),(p,k,floor,c,'grid selection')
         if c==0x3f800000:
             assert m['bits']==0x3f800000,(p,k,floor,'base')
         else:

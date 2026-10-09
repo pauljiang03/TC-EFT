@@ -11,7 +11,7 @@ COMMANDS=[[sys.executable,'scripts/prepare_reference.py'],['lake','build'],['lak
           ['lake','env','lean','tests/RepresentationFacts.lean'],
           [sys.executable,'scripts/check_features.py'],
           [sys.executable,'scripts/check_replay.py'],
-          [sys.executable,'scripts/check_paper.py'],
+          [sys.executable,'scripts/check_tc_eft_paper.py'],
           [sys.executable,'scripts/check_edges.py'],
           [sys.executable,'scripts/check_monotonicity.py']]
 

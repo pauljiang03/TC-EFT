@@ -18,7 +18,7 @@ The [guide](README.md), [What is proven](../TensorCore/THEOREMS.md), and [test w
 
 `tc_features --file FILE` reads commands such as `canonical K EXTRA FLOOR a0 b0 ... c`, `bf16 K EXTRA FLOOR ...`, `tf32 K EXTRA FLOOR ...`, `block PROFILE ...`, `decode FORMAT WORD`, and `round FORMAT NUM DEN`. Words are unsigned decimal encodings. Feature TF32 inputs are 32-bit register words with thirteen zero low bits.
 
-`tc_eft_paper FILE` reads `block FORMAT K EXTRA FLOOR a0 b0 ... c D`, `round NUM DEN`, and `family p K j`. FORMAT is `fp16`, `bf16`, or packed 19-bit `tf32`; FLOOR is an integer or `none`.
+`tc_eft_reference FILE` reads `block FORMAT K EXTRA FLOOR a0 b0 ... c D`, `round NUM DEN`, and `family p K j`. FORMAT is `fp16`, `bf16`, or packed 19-bit `tf32`; FLOOR is an integer or `none`.
 
 `tc_bounded_eft FILE` reads `block PROFILE a0 b0 ... c D` or `round SIGNED_COEFFICIENT`. Profiles are `v100-fp16`, `a100-fp16`, `h100-fp16`, `a100-bf16`, `h100-bf16`, `a100-tf32`, `h100-tf32-wmma`, and `h100-tf32-mma`. The integer rounding command uses the bounded backend's `2^-272` grid.
 

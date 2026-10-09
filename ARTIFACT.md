@@ -31,7 +31,7 @@ Run the individual commands after the smoke build. Lean files check their proof 
 | Paper claim | Proof or data to inspect | Review command |
 | --- | --- | --- |
 | Consistency of finite binary encodings, including subnormals and signed zero | [`signedFiniteBinaryBijection`](TensorCore/Numerics/Binary/SignedBijection.lean) and its inverse laws | `lake env lean examples/BinaryFoundation.lean` |
-| TC block model and total output error bound | [`IndependentSpec.supported_eq_spec`](TensorCore/TC/Specification/Supported.lean); [`evalBlock_error_bound`](TensorCore/TC/ErrorBounds.lean) | `python3 scripts/check_paper_spec.py` |
+| TC block model and total output error bound | [`IndependentSpec.supported_eq_spec`](TensorCore/TC/Specification/Supported.lean); [`evalBlock_error_bound`](TensorCore/TC/ErrorBounds.lean) | `python3 scripts/check_independent_spec.py` |
 | Model conditions for non-monotonicity and the perturbation range | [`nonmonotone_encoded`](TensorCore/TC/Monotonicity.lean); [`nonmonotone_range_encoded`](TensorCore/TC/MonotonicityRange.lean) | `lake env lean tests/TensorCoreTests/TC/Monotonicity.lean` |
 | Exact Sum Recovery | [`overlap_recovery`](TensorCore/EFT/Extraction.lean) | `lake env lean tests/TensorCoreTests/EFT/EFT.lean` |
 | Precondition for Correct Rounding and its application to TC-EFT | [`ExtractionGrid.inputBudget_scalarPredicate_fp32`](TensorCore/EFT/ExtractionGrid.lean); [`scalarCorrected_correct`](TensorCore/EFT/Extraction.lean); [`tcEftEncoded_correct`](TensorCore/EFT/Encoded.lean); [`EFMachine.Components.scalar_of_guard`](TensorCore/Kernels/EFT/ScalarGuard.lean) | `python3 scripts/check_eft.py` |

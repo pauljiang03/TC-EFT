@@ -44,7 +44,7 @@ def select_magnitude(fmt, magnitude, mode, negative):
     if upper < infinity and positive_value(fmt, upper) == magnitude:
         return upper
     lower = max(0, upper - 1)
-    if mode == 'rtz' or mode == 'rdn' and not negative or mode == 'rup' and negative:
+    if mode == 'trunc' or mode == 'rdn' and not negative or mode == 'rup' and negative:
         return lower
     if mode != 'rne':
         return upper

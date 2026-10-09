@@ -4,7 +4,7 @@
   "cases": 21966,
   "baseline_gate": "passed",
   "input_sha256": "704c7b8b5c3134880dd3cb911fb84039d8edf80d886ea5c7d23f2e07b014cd94",
-  "case_record_sha256": "e9cf48a8ba9d59bcd2d3648212626ff499baa4b1ad6bf6c15528de903699bd3e",
+  "case_record_sha256": "3321dcc0f8d7d428e30dc2257353697f9c88860a3cdf3a8a0e25b6c161b640f2",
   "comparison": "Actual Lean predicate and safe API; binary-search original-input rational oracle",
   "limits": [
     "All extraction and guard work here is exact arithmetic.",
@@ -20,7 +20,7 @@
       "unchecked_mismatches": 1,
       "tighter_support_budget_passes": 86,
       "failures": {
-        "low_bits_fit_24": 914
+        "low_bits_sum_below_2pow24": 914
       }
     },
     "finite_bits/A100": {
@@ -31,7 +31,7 @@
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 24,
       "failures": {
-        "low_bits_fit_24": 976
+        "low_bits_sum_below_2pow24": 976
       }
     },
     "finite_bits/H100": {
@@ -42,7 +42,7 @@
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 1,
       "failures": {
-        "low_bits_fit_24": 999
+        "low_bits_sum_below_2pow24": 999
       }
     },
     "near_one/V100": {
@@ -107,7 +107,7 @@
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 141,
       "failures": {
-        "low_bits_fit_24": 19
+        "low_bits_sum_below_2pow24": 19
       }
     },
     "bounded_signed_tails/A100": {
@@ -118,7 +118,7 @@
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 129,
       "failures": {
-        "low_bits_fit_24": 31
+        "low_bits_sum_below_2pow24": 31
       }
     },
     "bounded_signed_tails/H100": {
@@ -129,7 +129,7 @@
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 121,
       "failures": {
-        "low_bits_fit_24": 39
+        "low_bits_sum_below_2pow24": 39
       }
     },
     "application_small/V100": {
@@ -140,7 +140,7 @@
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 159,
       "failures": {
-        "low_bits_fit_24": 1
+        "low_bits_sum_below_2pow24": 1
       }
     },
     "application_small/A100": {
@@ -151,7 +151,7 @@
       "unchecked_mismatches": 0,
       "tighter_support_budget_passes": 140,
       "failures": {
-        "low_bits_fit_24": 20
+        "low_bits_sum_below_2pow24": 20
       }
     },
     "application_small/H100": {
@@ -162,7 +162,7 @@
       "unchecked_mismatches": 1,
       "tighter_support_budget_passes": 119,
       "failures": {
-        "low_bits_fit_24": 41
+        "low_bits_sum_below_2pow24": 41
       }
     },
     "adversarial/V100": {
@@ -173,7 +173,7 @@
       "unchecked_mismatches": 1,
       "tighter_support_budget_passes": 2,
       "failures": {
-        "low_bits_fit_24": 2,
+        "low_bits_sum_below_2pow24": 2,
         "final_range": 1
       }
     }

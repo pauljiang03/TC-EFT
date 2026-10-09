@@ -1,6 +1,6 @@
 name = "tensorCore"
 version = "0.1.0"
-defaultTargets = ["TensorCore", "TensorCoreTests", "tc_trace", "tc_features", "tc_eft_paper", "tc_bounded_eft", "tc_lean_eft_check"]
+defaultTargets = ["TensorCore", "TensorCoreTests", "tc_trace", "tc_features", "tc_eft_reference", "tc_bounded_eft", "tc_lean_eft_check"]
 
 [leanOptions]
 pp.unicode.fun = true
@@ -23,7 +23,7 @@ name = "tc_features"
 root = "Main.Features"
 
 [[lean_exe]]
-name = "tc_eft_paper"
+name = "tc_eft_reference"
 root = "Main.EFT"
 
 [[lean_exe]]

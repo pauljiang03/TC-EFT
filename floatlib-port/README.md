@@ -27,7 +27,7 @@ Individual checks:
 lake env lean tests/Audit.lean
 python3 scripts/check_features.py
 python3 scripts/check_replay.py
-python3 scripts/check_paper.py
+python3 scripts/check_tc_eft_paper.py
 python3 scripts/check_edges.py
 python3 scripts/check_monotonicity.py
 ```
@@ -104,7 +104,7 @@ When the scalar guard fails, Algorithm 1 consolidates the components using exact
 
 1. **`check_features.py`:** 2,033 synthetic FP16 model cases plus 15,000 recorded FP16 GPU vectors. It checks output bits, exact ideal, accumulator, output value, and total residual. Synthetic cases include arbitrary block sizes, extra-bit counts, floors, cancellation, zeros, subnormals, overflow, and nonfinite inputs. The independent Python oracle uses exact rational arithmetic and binary search over FP32 encodings.
 2. **`check_replay.py`:** 20,000 recorded BF16/TF32 GPU rows (5,000 per A100/H100 format pair). It also replays 21,966 saved scalar-coverage records, checking model bits, low parts, the exact guard decision, scalar bits, and full-EFT bits. Two records are nonfinite-input rejections. The source coverage suite deliberately uses no alignment floor; the hardware replay uses the architecture floors.
-3. **`check_paper.py`:** runs the hash-pinned Python generators in an isolated scratch directory. It sends 52,031 cases to the compiled FloatLib executable: 59 named blocks, 800 deterministic blocks, 1,600 full-range blocks, retained out-of-domain draws, 8 boundary/composition blocks, 49,005 encoded perturbation-family cases, and 100 rounding cases. It compares intermediate extraction values as well as final bits. Mutating model/correction bits must make the comparator fail; malformed commands must be rejected.
+3. **`check_tc_eft_paper.py`:** runs the hash-pinned Python generators in an isolated scratch directory. It sends 52,031 cases to the compiled FloatLib executable: 59 named blocks, 800 deterministic blocks, 1,600 full-range blocks, retained out-of-domain draws, 8 boundary/composition blocks, 49,005 encoded perturbation-family cases, and 100 rounding cases. It compares intermediate extraction values as well as final bits. Mutating model/correction bits must make the comparator fail; malformed commands must be rejected.
 4. **`check_edges.py`:** unrelated finite supplied D values, signed zeros, underflow ties, finite endpoints and rejection beyond them, nonfinite D, nonfinite operands, invalid TF32 padding, and a negative executable-dependency control.
 
 5. **`check_monotonicity.py`:** boundary cases immediately below, at, and above the proven `3·2^p` threshold, as well as zero/small K, p=0 through 8, and three alignment-floor configurations. Both alignment-grid selection and accumulator formulas are checked, together with the final FP32 output inequality. The universal theorem is established by Lean, not by this finite enumeration.

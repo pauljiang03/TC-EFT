@@ -82,7 +82,7 @@ run_cmd TensorCore.IndependentSpec.Audit.check ``contaminatedScalar
                      'No FP16-output stage-order resolution or independent FP8 path',
                      'Rejections agree as none; implementation-specific error tags are not part of the independent specification'],
     )
-    (ROOT / 'data/regressions/paper-spec-report.json').write_text(json.dumps(report, indent=2) + '\n')
+    (ROOT / 'data/regressions/independent-spec-report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
 
 

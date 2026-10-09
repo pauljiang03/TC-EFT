@@ -42,7 +42,7 @@
     {
       "command": [
         "/Applications/Xcode.app/Contents/Developer/usr/bin/python3",
-        "scripts/check_paper_eft.py"
+        "scripts/check_tc_eft_paper.py"
       ],
       "exit_code": 0
     },
@@ -115,7 +115,7 @@
       "tests/TensorCoreTests/EFT/BoundedEFT.lean": "83bb28bc2f586a0609d3da631dd804d7ae5b7462b7310d5556d8bf19e279a8a6",
       "scripts/lean/BoundedEFTAudit.lean": "21ed2cdc0db1bc0e7bd511de64c8dfa80ffc98405f7c39219ed343f733afd2ba",
       "examples/BoundedEFT.lean": "77e20295a71521c404ca16598590665b5daad2d622fb3524da2b9c321b5e2fee",
-      "data/regressions/eft-paper-cases.json": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
+      "data/regressions/eft-paper-cases.json": "7110dd9a8d942c3b7c2a15058e077e5ea44947029b47d6a1af1b8de4bf65f197",
       "scripts/check_bounded_eft.py": "facd3ba1b7db71e245707c326d71e8940ae852d4c99e798aa217dcce63ab0354"
     }
   },

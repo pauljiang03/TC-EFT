@@ -6,8 +6,8 @@ open FloatLib.Floats.Formats.BinaryInterchange
 private def qText (q : ℚ) : String := s!"{q.num}/{q.den}"
 private def failure (s : String) : Json := Json.mkObj [("error", toJson ("TensorCore.ModelError." ++ s))]
 private def traceJson (t : Trace) : Json := Json.mkObj [
-  ("bits", toJson t.bits), ("eta", toJson t.block.alignExp),
-  ("quantum", toJson (qText (pow2 t.block.q))),
+  ("bits", toJson t.bits), ("alignExp", toJson t.block.alignExp),
+  ("alignGridStep", toJson (qText (pow2 t.block.q))),
   ("accumulator", toJson (qText t.block.accumulator)),
   ("terms", toJson (t.block.terms.map (qText ∘ Term.value))),
   ("aligned", toJson (t.block.aligned.map qText)),
@@ -81,7 +81,7 @@ private def command (args : List String) : Option Json := do
     let d ← d.toNat?
     if d = 0 then none else do
       let x : ℚ := n / (d : ℚ)
-      return Json.mkObj [("rne", toJson (round32 .nearestEven x)), ("rtz", toJson (round32 .towardZero x))]
+      return Json.mkObj [("rne", toJson (round32 .nearestEven x)), ("trunc", toJson (round32 .towardZero x))]
   | fmt :: k :: extra :: fl :: words =>
     let f ← format (if fmt = "canonical" then "fp16" else fmt)
     let k ← k.toNat?

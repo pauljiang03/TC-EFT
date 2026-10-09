@@ -106,7 +106,7 @@ block fp16 4 0 none 3072 3072 3072 3072 3072 3072 3072 3072 1065353216 106535321
 Run:
 
 ```sh
-.lake/build/bin/tc_eft_paper /path/to/input.txt
+.lake/build/bin/tc_eft_reference /path/to/input.txt
 ```
 
 The command encodes four `2^-12 · 2^-12` products, with C and supplied D both `1.0`. Decoded as FP32 values, the model result is `1.0` and the EFT correction is `1.0000002384185791015625 = 1 + 2^-22`, with branch `scalar`. The executable also prints exact ideal and extraction diagnostics.
@@ -115,7 +115,7 @@ The command encodes four `2^-12 · 2^-12` products, with C and supplied D both `
 | --- | --- |
 | `tc_trace` | V100 FP16 hexadecimal words, or `--file`/`--round-file` batches; full trace observations |
 | `tc_features` | Decimal commands for formats, profiles, generic groups, and rounding |
-| `tc_eft_paper` | Generic FP16/BF16/packed-TF32 block, rounding, and perturbation-family commands |
+| `tc_eft_reference` | Generic FP16/BF16/packed-TF32 block, rounding, and perturbation-family commands |
 | `tc_bounded_eft` | Named profile blocks and fixed-workspace rounding; bounded/native scalar execution |
 | `tc_lean_eft_check` | JSON Lines on stdin; compares bounded and native scalar execution paths |
 
@@ -165,9 +165,9 @@ lake build tc_trace
 python3 scripts/check_device.py
 ```
 
-The JSON reports `bits` as an integer whose hexadecimal representation is `3f9b7dec`, matching the first recorded D. Its alignment exponent `eta` is `-1` and grid exponent `qExponent` is `-24`. The final command compares all 5,000 V100 rows.
+The JSON reports `bits` as an integer whose hexadecimal representation is `3f9b7dec`, matching the first recorded D. Its alignment exponent `alignExp` is `-1` and grid exponent `alignGridExponent` is `-24`. The final command compares all 5,000 V100 rows.
 
-The semantic proof is a separate guarantee: [`IndependentSpec.supported_eq_spec`](../TensorCore/TC/Specification/Supported.lean) equates the executable evaluator with the independent mathematical specification for every input of each supported profile, including rejection. `python3 scripts/check_paper_spec.py` checks this development and its dependency-independence controls. [What is proven](../TensorCore/THEOREMS.md) identifies the non-monotonicity and EFT results and their premises.
+The semantic proof is a separate guarantee: [`IndependentSpec.supported_eq_spec`](../TensorCore/TC/Specification/Supported.lean) equates the executable evaluator with the independent mathematical specification for every input of each supported profile, including rejection. `python3 scripts/check_independent_spec.py` checks this development and its dependency-independence controls. [What is proven](../TensorCore/THEOREMS.md) identifies the non-monotonicity and EFT results and their premises.
 
 The universal proofs concern the defined finite-domain model under their stated hypotheses. Agreement with recorded GPU outputs covers those recorded inputs; correspondence between the specification, the paper, and physical hardware remains a separate specification question.
 

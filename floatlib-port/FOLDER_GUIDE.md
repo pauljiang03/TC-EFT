@@ -117,7 +117,7 @@ lake build TCFloat.Equivalence.ScalarCorrection
 |---|---|---|
 | `python3 scripts/check_features.py` | Compiled Lean TC model on synthetic FP16 cases and recorded V100/A100/H100 FP16 rows; compares bits and exact stage values. | `feature-report.json` |
 | `python3 scripts/check_replay.py` | Compiled Lean model on recorded A100/H100 BF16/TF32 rows, plus model/EFT execution on the saved scalar-coverage corpus. | `replay-report.json` |
-| `python3 scripts/check_paper.py` | Pinned paper generators produce inputs and expected results; compiled Lean executes the blocks, perturbation families and rounding cases. | `eft-paper-report.json` |
+| `python3 scripts/check_tc_eft_paper.py` | Pinned paper generators produce inputs and expected results; compiled Lean executes the blocks, perturbation families and rounding cases. | `eft-paper-report.json` |
 | `python3 scripts/check_edges.py` | Compiled Lean on supplied-D, rounding and invalid-input edge cases; also checks that deliberately contaminated dependency audits fail. | `edges-report.json` |
 | `python3 scripts/check_monotonicity.py` | Compiled Lean on 360 boundary cases around the proved non-monotonicity threshold. | `monotonicity-report.json` |
 
@@ -137,7 +137,7 @@ After `check_all.py` has generated the corpus:
 python3 scripts/check_equivalence.py
 ```
 
-This snapshots the parent sources and builds `tc_eft_paper` under `test-results/reference-source/`, sends the same commands to it and `.lake/build/bin/tc_floatlib`, and compares complete JSON records. It also executes both decoder comparison programs. The result is `test-results/equivalence/report.json`; paired outputs are saved as `observations-original.jsonl`, `observations-floatlib.jsonl`, `decoding-original.jsonl` and `decoding-floatlib.jsonl` in that directory.
+This snapshots the parent sources and builds `tc_eft_reference` under `test-results/reference-source/`, sends the same commands to it and `.lake/build/bin/tc_floatlib`, and compares complete JSON records. It also executes both decoder comparison programs. The result is `test-results/equivalence/report.json`; paired outputs are saved as `observations-original.jsonl`, `observations-floatlib.jsonl`, `decoding-original.jsonl` and `decoding-floatlib.jsonl` in that directory.
 
 ### 4. Run a small input file yourself
 
@@ -156,13 +156,13 @@ There is one JSON output record per input line. The `block` command runs the TC 
 
 The `block` command expects packed 19-bit TF32 words when FORMAT is `tf32`. The separate feature command named `tf32` expects 32-bit register words with their low 13 bits zero. See the [README's executable interface](README.md#executable-interface) for the command forms.
 
-To rerun the generated paper inputs directly after `check_paper.py`:
+To rerun the generated paper inputs directly after `check_tc_eft_paper.py`:
 
 ```sh
 .lake/build/bin/tc_floatlib test-results/eft-paper/inputs.txt > test-results/paper-rerun.jsonl
 ```
 
-This last command executes the model and writes observations. Use `check_paper.py` to also perform the expected-result comparisons. The same distinction applies to custom input files: producing JSON alone does not check an expected answer.
+This last command executes the model and writes observations. Use `check_tc_eft_paper.py` to also perform the expected-result comparisons. The same distinction applies to custom input files: producing JSON alone does not check an expected answer.
 
 ## Precisely how the executable checks work
 
@@ -194,7 +194,7 @@ For a `block` command, [Main.lean](Main.lean) prepares the operands once, then p
 
 **Saved scalar/EFT corpus — [check_replay.py](scripts/check_replay.py).** The script reads `../data/regressions/eft-coverage-cases.json` and sends `block` commands to Lean. Its cases use no alignment floor. For ordinary records it checks TC bits, the exact scalar-guard Boolean, scalar result bits or rejection, each low component, full reference-EFT bits and the correction using supplied D. For records marked as errors it compares the model error string exactly and skips the ordinary-field checks. These records contain saved regression expectations.
 
-**Paper oracle suite — [check_paper.py](scripts/check_paper.py).** Hash-checked generator files from `../vendor/tc-eft-validation/` are copied into an isolated scratch directory and run. The harness captures their inputs and stage values, including draws excluded from the generator's finite accepted set. It computes the expected ideal independently from the encoded inputs, obtains model expectations from the integer block oracle, and obtains FP32 rounding expectations from the oracle's neighboring-value procedure. It supplies the expected TC word as D when available, otherwise zero.
+**Paper oracle suite — [check_tc_eft_paper.py](scripts/check_tc_eft_paper.py).** Hash-checked generator files from `../vendor/tc-eft-validation/` are copied into an isolated scratch directory and run. The harness captures their inputs and stage values, including draws excluded from the generator's finite accepted set. It computes the expected ideal independently from the encoded inputs, obtains model expectations from the integer block oracle, and obtains FP32 rounding expectations from the oracle's neighboring-value procedure. It supplies the expected TC word as D when available, otherwise zero.
 
 For ordinary block cases, the comparison checks the exact ideal, TC bits or the exact accumulator-out-of-range error, accumulator value, selected unnormalized-exponent maximum and corrected bits. Where the generator supplies intermediate stages, it also checks the quantum, original terms, aligned terms, alignment residuals, low parts, output residual and overlap. The generator stores C last; the harness rotates those lists to the port's C-first order before comparing. It verifies that the scalar guard agrees with whether a scalar result exists, and that any accepted scalar result equals the expected correctly rounded answer.
 
@@ -208,7 +208,7 @@ The same script executes 49,005 encoded `family p K j` commands for `p=0..4`, `K
 
 ### Direct comparison of the two implementations
 
-[check_equivalence.py](scripts/check_equivalence.py) snapshots the current parent implementation and builds its `tc_eft_paper` executable with the parent toolchain. It combines the generated paper inputs, scalar corpus and feature/hardware fixtures, then adds 2,000 deterministic random encoded blocks and 2,000 deterministic random rational-rounding commands using seed `20260923`. Feature rows are converted to the shared packed-word `block` interface, with D set to zero to exercise supplied-D independence. One malformed feature row is skipped because that shared interface rejects its shape during parsing.
+[check_equivalence.py](scripts/check_equivalence.py) snapshots the current parent implementation and builds its `tc_eft_reference` executable with the parent toolchain. It combines the generated paper inputs, scalar corpus and feature/hardware fixtures, then adds 2,000 deterministic random encoded blocks and 2,000 deterministic random rational-rounding commands using seed `20260923`. Feature rows are converted to the shared packed-word `block` interface, with D set to zero to exercise supplied-D independence. One malformed feature row is skipped because that shared interface rejects its shape during parsing.
 
 Both executables receive the identical input file. `compare_outputs` uses `zip_longest` over the input and both output files, so a missing or extra record fails. It parses both JSON records and requires complete object equality. Dictionary key order and JSON whitespace do not matter; every emitted field value does, including branch labels, errors, exact rational strings and output words. The saved run matched all 115,029 command records. It also recorded identical output-file SHA-256 hashes; structural JSON equality is the comparator's acceptance rule, while the hashes preserve the observed artifacts.
 

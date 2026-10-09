@@ -95,7 +95,7 @@ def block_oracle(words):
     residuals = [v - u for v, u in zip(values, aligned)]
     out_loss = acc - f32(bits)
     text = lambda q: f'{q.numerator}/{q.denominator}'
-    return dict(bits=bits, eta=eta, qExponent=qe, unnormalizedExps=raw_scales,
+    return dict(bits=bits, alignExp=eta, alignGridExponent=qe, unnormalizedExps=raw_scales,
                 coefficients=coeff, ideal=text(ideal), accumulator=text(acc),
                 alignmentResiduals=list(map(text, residuals)), outputResidual=text(out_loss),
                 residual=text(ideal - f32(bits)), correctedBits=round_oracle(ideal, True))
@@ -148,7 +148,7 @@ def main():
     actual_r = run_file('--round-file', tmp / 'rounds.txt',
                         [f'{x.numerator} {x.denominator}' for x in rounds])
     for i, (x, got) in enumerate(zip(rounds, actual_r)):
-        want = {'rz': round_oracle(x, False), 'rne': round_oracle(x, True)}
+        want = {'trunc': round_oracle(x, False), 'rne': round_oracle(x, True)}
         assert got == want, (i, str(x), got, want)
     report = dict(seed=SEED, blocks=len(blocks), rounding_cases=len(rounds),
                   rejected_blocks=sum('error' in x for x in actual),

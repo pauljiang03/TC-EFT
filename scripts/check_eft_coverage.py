@@ -167,7 +167,7 @@ def main():
             tighter_pass = mag < 2**24 and (support is None or -149 <= support <= 104)
             tally['tighter_support_budget_passes'] += tighter_pass
             # The Lean predicate uses the lowest bit actually set, as this independent oracle does.
-            bit_checks = {'lowest_bit_min', 'lowest_bit_max', 'low_bits_on_grid', 'low_bits_fit_24'}
+            bit_checks = {'lowest_bit_min', 'lowest_bit_max', 'low_bits_on_grid', 'low_bits_sum_below_2pow24'}
             if not (bit_checks & set(out['failed'])) != tighter_pass:
                 raise SystemExit(f'Lean low-bit checks disagree with the oracle: {case} {out}')
             record.update(oracle=expected, correction_changed=changed,
@@ -178,7 +178,7 @@ def main():
     # A changed sufficient predicate must be separately named; baseline is a strict gate.
     for (device, _, _), accepted, changed in zip(CONFIGS, [86, 24, 1], [1885, 1919, 2093]):
         assert totals[f'finite_bits/{device}']['scalar_accepted'] == accepted
-        assert totals[f'finite_bits/{device}']['failures'] == {'low_bits_fit_24': 1000 - accepted}
+        assert totals[f'finite_bits/{device}']['failures'] == {'low_bits_sum_below_2pow24': 1000 - accepted}
         assert totals[f'near_one/{device}']['scalar_accepted'] == 1000
         assert totals[f'published/{device}']['scalar_accepted'] == 5000
         assert totals[f'published/{device}']['corrected_changed'] == changed

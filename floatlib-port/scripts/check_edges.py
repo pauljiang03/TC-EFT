@@ -83,7 +83,7 @@ def main():
         ref.MAX32, -ref.MAX32,ref.MAX32+1,-ref.MAX32-1]
     results=run([f'round {x.numerator} {x.denominator}' for x in xs],'round-edges')
     for x,r in zip(xs,results):
-        for m in ['rne','rtz']:
+        for m in ['rne','trunc']:
             want=oracle.neighbor_round(x,m) if abs(x)<=ref.MAX32 else None
             assert r[m]==want,(x,m,r,want)
     # Supplied nonfinite D and nonfinite inputs are rejected before the zero shortcut.
