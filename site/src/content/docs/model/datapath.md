@@ -24,7 +24,7 @@ alignment bits, and the number of products `K`.
 | Product significand | 24 bits | an 11-bit × 11-bit product is below `2^22` |
 | Exponents | 9 bits | see [exponents](#exponents) below |
 | Output exponent field | 8 bits | the FP32 exponent field |
-| Aligned term | `F + 2 = 25 + p` bits | `F = 23 + p` bits after the binary point, and 2 integer bits because products are below 4 |
+| Aligned term | `F + 2 = 25 + p` bits | the implicit bit, one implicit padding bit, and `F = 23 + p` bits after the binary point |
 | Accumulator | `F + 2 + c` magnitude bits and a sign bit, two's complement | `c = ⌊log₂ K⌋ + 1` carry bits, so the `K + 1` terms cannot overflow |
 
 | Path | `F` | `K` | Accumulator |
@@ -35,6 +35,12 @@ alignment bits, and the number of products `K`.
 | H100 FP16, BF16 | 25 | 16 | 32 bits + sign |
 | H100 TF32 (wmma) | 25 | 4 | 30 bits + sign |
 | H100 TF32 (mma) | 25 | 8 | 31 bits + sign |
+
+The **implicit bit** is the leading 1 of a significand `1.xxx`; multiplying
+two implicit bits puts a 1 in the same place. The **implicit padding** bit
+sits above it: a product of two significands below 2 can reach `11.xxx`, just
+under 4, and the hardware does not renormalize it, so the carry stays in the
+register. `C` and subnormal products never use the padding bit.
 
 The magnitude widths for A100 and H100 FP16 are the adder widths *Accurate
 Models* gives (§4.1.2 and §4.1.6): `26 + ⌈log₂ 9⌉ = 30` and `27 + 5 = 32`.

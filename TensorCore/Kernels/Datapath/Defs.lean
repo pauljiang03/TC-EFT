@@ -24,7 +24,7 @@ def floor : Path → Exp
 /-- Carry bits for summing the K products and c: `K + 1 ≤ 2 ^ carryBits`. -/
 def carryBits (path : Path) : ℕ := path.profile.products.log2 + 1
 
-/-- An aligned term: two integer bits (products are below 4) and F bits after the binary point. -/
+/-- An aligned term: the implicit bit, one implicit padding bit for a product's carry, and F bits after the binary point. -/
 def termWidth (path : Path) : ℕ := (alignBits path).toNat + 2
 
 /-- The two's complement accumulator: an aligned term's width, the carry bits and a sign bit. -/
