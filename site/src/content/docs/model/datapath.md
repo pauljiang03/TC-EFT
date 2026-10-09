@@ -93,6 +93,46 @@ the stages:
 proves `normalize_eq` for any accumulator width from 24 to 64 bits, so it
 does not depend on the profile.
 
+## What the equality covers
+
+- **Every output bit and every error.** The sign of zero, subnormal outputs,
+  out-of-range sums, and which error is reported all match.
+- **The output word, not the trace.** `evalBlock` also returns intermediate
+  values such as the aligned bits and residuals; the datapath returns only
+  the word. Each stage is still proved to match internally.
+- **The eight supported paths.** `evalBlock` is defined for any profile; the
+  datapath covers V100 FP16, A100 FP16/BF16/TF32 and H100 FP16/BF16/TF32
+  (both TF32 modes). The FP64 DMMA path has no datapath.
+- **The definitions are bitvectors; the proof is not.** The equivalence is
+  proved by reading registers as integers (`toNat`, `toInt`), so one proof
+  covers every input and every register width.
+
+Because the output words are equal, every theorem about `evalBlock`'s output
+(the error bound, non-monotonicity, the accepted inputs, agreement with the
+independent specification) holds for the datapath too.
+
+## Comparison with the SMT model of Valpey et al.
+
+Valpey et al., [*An SMT Formalization of Mixed-Precision Matrix
+Multiplication: Modeling Three Generations of Tensor
+Cores*](https://arxiv.org/abs/2502.15999), model the same pipeline in SMT
+bitvectors: exact products, alignment to the largest exponent with the
+shifted-out bits discarded, carry bits for the sum, no intermediate
+normalization, and a final truncation.
+
+| | SMT model | This datapath |
+| --- | --- | --- |
+| Products | exact, in the SMT floating-point theory | exact, bitvector multiplication |
+| Extra alignment bits | none on Volta/Turing, one on Ampere | `p` = 0, 1, 2 on V100, A100, H100 |
+| Carry bits | ⌈log₂ N⌉ for N terms | ⌊log₂ K⌋ + 1 for K products and C: 3, 4, 5 |
+| Use | solver queries for discriminating inputs, then GPU runs | executable definition with proofs over every input |
+| Coverage | FP16 inputs on Volta, Turing, Ampere, including FP16 output | FP16, BF16, TF32 inputs with FP32 output on V100, A100, H100, including floors and subnormals |
+
+The SMT model answers one query at a time and some queries time out (the
+Ampere carry-bit query ran for 6 hours). Here the carry-bit width is proved
+sufficient for every input. The datapath could also be used for solver
+queries on one fixed profile, through Lean's `bv_decide`.
+
 ## Tests
 
 [`tests/TensorCoreTests/TC/Datapath.lean`](https://github.com/pauljiang03/TC-EFT/blob/main/tests/TensorCoreTests/TC/Datapath.lean)
