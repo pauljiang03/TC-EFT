@@ -50,6 +50,7 @@ The calculation succeeds with the FP32 value `4.0`. It prints the encoded result
 | [`Main/`](Main/) | Command-line entry points that call the library and print results for test comparisons |
 | [`tests/`](tests/README.md) | Separate `TensorCoreTests` regression modules and executable-test walkthrough |
 | [`examples/`](examples/README.md) | Checked worked examples and Lean batch adapters |
+| [`amd/`](amd/README.md) | Matrix-Core: the AMD matrix-core (CDNA 1–3) formalization of *Accurate Models of AMD Matrix Cores*, a standalone Lake project with its own FloatLib implementation |
 | [`floatlib-port/`](floatlib-port/README.md) | Independent FloatLib implementation and equivalence proofs, with its own Lake project |
 | [`docs/`](docs/README.md) | Numbered guide, command reference, and trust boundaries |
 | [`scripts/`](scripts/) | Validation runners, exact-arithmetic oracles, and proof audits |

@@ -1,0 +1,314 @@
+import MatrixCore.MC.PairWiseSum
+import MatrixCore.MC.LateAccumulation
+import MatrixCore.MC.CorrectRounding
+
+/-! # Error of the block output
+
+The distance of `d` from the exact `Σ p_ℓ + c` of Eq. (1), for each configuration. Every `fl{·}`
+is within `flBound` of its argument: half an ulp, plus `2^-126` where results are flushed.
+
+* SFMA and CDNA 1: `|exact − d| ≤ halfUlp32 exact`.
+* CDNA 2: input flushing, the conversion of each product, every node of the pairwise tree, and
+  the final `fl{·}` (`pairwiseBound` sums them, evaluated at the computed intermediate values).
+* CDNA 3: the error of `S_acc` (`alignedBound`, by the branches of Algorithms 1 and 2) plus half an
+  ulp of `S_acc`. -/
+
+namespace MatrixCore
+
+theorem absQ_sub_le (a b c : ℚ) : absQ (a - c) ≤ absQ (a - b) + absQ (b - c) := by
+  have := absQ_add_le (a - b) (b - c)
+  rwa [show a - b + (b - c) = a - c by grind] at this
+
+theorem sumQ_map_mono {l : List α} {f g : α → ℚ} (h : ∀ a ∈ l, f a ≤ g a) :
+    sumQ (l.map f) ≤ sumQ (l.map g) := by
+  induction l with
+  | nil => exact Rat.le_refl
+  | cons a l ih =>
+    simp only [List.map_cons, sumQ]
+    have h1 := h a (by simp)
+    have h2 := ih (fun b hb => h b (by simp [hb]))
+    grind
+
+/-! ## One `fl{·}` -/
+
+/-- Error of one `fl{·}`: half an ulp, and `2^-126` more when subnormal results are flushed. -/
+def flBound (ftz : Bool) (x : ℚ) : ℚ := halfUlp32 x + if ftz then pow2 (-126) else 0
+
+theorem flBound_nonneg (ftz : Bool) (x : ℚ) : 0 ≤ flBound ftz x := by
+  have := halfUlp32_nonneg x
+  have := pow2_pos (-126)
+  unfold flBound; split <;> grind
+
+theorem flValue_error {ftz : Bool} {x v : ℚ} (h : flValue ftz x = some v) :
+    absQ (x - v) ≤ flBound ftz x := by
+  have h1 := rneValue_error x
+  have hp := pow2_pos (-126)
+  cases ftz with
+  | false =>
+    rw [flValue_false h]; simp only [flBound, Bool.false_eq_true, ↓reduceIte]; grind
+  | true =>
+    simp only [flBound, ↓reduceIte]
+    rcases flValue_true h with ⟨rfl, _⟩ | ⟨rfl, _, hsmall⟩
+    · grind
+    · have h2 := absQ_add_le (x - rneValue x) (rneValue x)
+      rw [show x - rneValue x + rneValue x = x - 0 by grind] at h2
+      grind
+
+theorem fl32_value {ftz : Bool} {x : ℚ} {w : F32} (h : fl32 ftz x = some w) :
+    value32 w = some (wordValue w) := by
+  unfold fl32 at h
+  cases hr : rne32 x with
+  | none => rw [hr] at h; simp at h
+  | some w₀ =>
+    rw [hr] at h
+    simp only [Option.some.injEq] at h
+    subst h
+    split
+    · simp [wordValue, value32_signedZero32]
+    · simp [wordValue, rne32_value hr]
+
+theorem fl32_error {ftz : Bool} {x : ℚ} {w : F32} (h : fl32 ftz x = some w) :
+    absQ (x - wordValue w) ≤ flBound ftz x := by
+  apply flValue_error
+  unfold flValue
+  rw [h]
+  exact fl32_value h
+
+/-- The final `fl{S_acc}` of every block. -/
+theorem evalBlock_output_error {P : Profile} {x : BlockInput P} {t : BlockTrace P}
+    (h : evalBlock x = .ok t) : absQ (t.sAcc - wordValue t.d) ≤ flBound (!P.subnormals) t.sAcc :=
+  fl32_error (evalBlock_ok h).2.2.2.2
+
+/-! ## SFMA and CDNA 1 -/
+
+theorem correctRounding_error {P : Profile} (hacc : P.accumulation = .correctRounding)
+    (hov : P.productOverflow = false) (hs : P.subnormals = true)
+    {x : BlockInput P} {t : BlockTrace P} (h : evalBlock x = .ok t) :
+    absQ (t.prepared.exact - wordValue t.d) ≤ halfUlp32 t.prepared.exact := by
+  have he := (correctRounding_nearestEven hacc hov hs h).1
+  have := evalBlock_output_error h
+  rw [hs, he] at this
+  simp only [flBound, Bool.not_true, Bool.false_eq_true, ↓reduceIte] at this
+  rwa [Rat.add_zero] at this
+
+/-! ## CDNA 2 -/
+
+/-- Error budget of the pairwise tree: one `flBound` per node, at the computed children. -/
+def pairTreeBound (ftz : Bool) : ℕ → List ℚ → ℚ
+  | _, [] => 0
+  | _, [_] => 0
+  | 0, _ => 0
+  | depth + 1, xs =>
+    match pairTree ftz depth (xs.take (xs.length / 2)),
+        pairTree ftz depth (xs.drop (xs.length / 2)) with
+    | some u, some v => pairTreeBound ftz depth (xs.take (xs.length / 2)) +
+        pairTreeBound ftz depth (xs.drop (xs.length / 2)) + flBound ftz (u + v)
+    | _, _ => 0
+
+theorem sumQ_take_drop (xs : List ℚ) (n : ℕ) : sumQ (xs.take n) + sumQ (xs.drop n) = sumQ xs := by
+  rw [← sumQ_append, List.take_append_drop]
+
+theorem pairTree_error (ftz : Bool) : ∀ (depth : ℕ) (xs : List ℚ) (t : ℚ),
+    pairTree ftz depth xs = some t → absQ (sumQ xs - t) ≤ pairTreeBound ftz depth xs
+  | _, [], t, h => by
+    simp only [pairTree, Option.some.injEq] at h; subst h
+    simp only [sumQ, pairTreeBound]; decide +kernel
+  | _, [x], t, h => by
+    simp only [pairTree, Option.some.injEq] at h; subst h
+    simp only [sumQ, pairTreeBound]
+    rw [show x + 0 - x = 0 by grind]; decide +kernel
+  | 0, _ :: _ :: _, t, h => by simp [pairTree] at h
+  | depth + 1, x :: y :: rest, t, h => by
+    generalize hxs : x :: y :: rest = xs at h
+    have hb : pairTreeBound ftz (depth + 1) xs =
+        match pairTree ftz depth (xs.take (xs.length / 2)),
+            pairTree ftz depth (xs.drop (xs.length / 2)) with
+        | some u, some v => pairTreeBound ftz depth (xs.take (xs.length / 2)) +
+            pairTreeBound ftz depth (xs.drop (xs.length / 2)) + flBound ftz (u + v)
+        | _, _ => 0 := by subst hxs; rfl
+    have ht : pairTree ftz (depth + 1) xs = (do
+        let u ← pairTree ftz depth (xs.take (xs.length / 2))
+        let v ← pairTree ftz depth (xs.drop (xs.length / 2))
+        flValue ftz (u + v)) := by subst hxs; rfl
+    rw [hb]
+    rw [ht] at h
+    cases hu : pairTree ftz depth (xs.take (xs.length / 2)) with
+    | none => rw [hu] at h; simp at h
+    | some u =>
+      cases hv : pairTree ftz depth (xs.drop (xs.length / 2)) with
+      | none => rw [hu, hv] at h; simp at h
+      | some v =>
+        rw [hu, hv] at h
+        change flValue ftz (u + v) = some t at h
+        have e1 := pairTree_error ftz depth _ u hu
+        have e2 := pairTree_error ftz depth _ v hv
+        have e3 := flValue_error h
+        have hs := sumQ_take_drop xs (xs.length / 2)
+        have t1 := absQ_add_le (sumQ (xs.take (xs.length / 2)) - u)
+          (sumQ (xs.drop (xs.length / 2)) - v)
+        have t2 := absQ_add_le (sumQ (xs.take (xs.length / 2)) - u +
+          (sumQ (xs.drop (xs.length / 2)) - v)) (u + v - t)
+        rw [show sumQ (xs.take (xs.length / 2)) - u + (sumQ (xs.drop (xs.length / 2)) - v) +
+          (u + v - t) = sumQ xs - t by grind] at t2
+        grind
+
+theorem mapM_flValue_error (ftz : Bool) : ∀ (l : List Unpacked) (ps : List ℚ),
+    l.mapM (fun p => flValue ftz p.value) = some ps →
+      absQ (sumQ (l.map Unpacked.value) - sumQ ps) ≤ sumQ (l.map fun p => flBound ftz p.value)
+  | [], ps, h => by
+    simp at h; subst h; simp only [List.map_nil, sumQ]; decide +kernel
+  | p :: l, ps, h => by
+    simp only [List.mapM_cons] at h
+    cases hp : flValue ftz p.value with
+    | none => rw [hp] at h; simp at h
+    | some q =>
+      cases hl : l.mapM (fun p => flValue ftz p.value) with
+      | none => rw [hp, hl] at h; simp at h
+      | some qs =>
+        rw [hp, hl] at h
+        simp at h
+        subst h
+        have e1 := flValue_error hp
+        have e2 := mapM_flValue_error ftz l qs hl
+        simp only [List.map_cons, sumQ]
+        have := absQ_add_le (p.value - q) (sumQ (l.map Unpacked.value) - sumQ qs)
+        rw [show p.value - q + (sumQ (l.map Unpacked.value) - sumQ qs) =
+          p.value + sumQ (l.map Unpacked.value) - (q + sumQ qs) by grind] at this
+        grind
+
+/-- CDNA 2 error budget: the effect of flushing subnormal inputs, the conversion of each
+product, and the pairwise tree, at the computed values. -/
+def pairwiseBound (P : Profile) (x : Prepared) : ℚ :=
+  let x' := if P.subnormals then x else x.flushed
+  absQ (x.exact - x'.exact) + sumQ (x'.p.map fun p => flBound (!P.subnormals) p.value) +
+    match x'.p.mapM fun p => flValue (!P.subnormals) p.value with
+    | some ps => pairTreeBound (!P.subnormals) ps.length ps
+    | none => 0
+
+theorem pairwiseSum_error {P : Profile} {x : Prepared} {s : ℚ} (h : pairwiseSum P x = some s) :
+    absQ (x.exact - s) ≤ pairwiseBound P x := by
+  unfold pairwiseSum at h
+  unfold pairwiseBound
+  dsimp only at h ⊢
+  generalize (if P.subnormals then x else x.flushed) = x' at h ⊢
+  generalize (!P.subnormals) = ftz at h ⊢
+  cases hm : x'.p.mapM fun p => flValue ftz p.value with
+  | none => rw [hm] at h; simp at h
+  | some ps =>
+    rw [hm] at h
+    cases ht : pairTree ftz ps.length ps with
+    | none => simp [ht] at h
+    | some t =>
+      change (pairTree ftz ps.length ps).bind (fun t => some (x'.c.value + t)) = some s at h
+      rw [ht] at h
+      simp only [Option.bind_some, Option.some.injEq] at h
+      subst h
+      have e1 := mapM_flValue_error ftz x'.p ps hm
+      have e2 := pairTree_error ftz ps.length ps t ht
+      have hx' : x'.exact = sumQ (x'.p.map Unpacked.value) + x'.c.value := rfl
+      have t1 := absQ_sub_le x.exact x'.exact (x'.c.value + t)
+      have t2 := absQ_add_le (sumQ (x'.p.map Unpacked.value) - sumQ ps) (sumQ ps - t)
+      rw [show x'.exact - (x'.c.value + t) =
+        sumQ (x'.p.map Unpacked.value) - sumQ ps + (sumQ ps - t) by grind] at t1
+      simp only
+      grind
+
+theorem accumulate_pairwise {P : Profile} (hacc : P.accumulation = .pairWiseSum) {x : Prepared}
+    {s : ℚ} (h : accumulate P x = .ok s) : pairwiseSum P x = some s := by
+  unfold accumulate at h
+  split at h
+  · simp at h
+  · rw [hacc] at h
+    simp only at h
+    cases hp : pairwiseSum P x with
+    | none => rw [hp] at h; simp at h
+    | some s' => rw [hp] at h; simp only [Except.ok.injEq] at h; rw [h]
+
+theorem pairwise_error {P : Profile} (hacc : P.accumulation = .pairWiseSum)
+    {x : BlockInput P} {t : BlockTrace P} (h : evalBlock x = .ok t) :
+    absQ (t.prepared.exact - wordValue t.d) ≤
+      pairwiseBound P t.prepared + flBound (!P.subnormals) t.sAcc := by
+  have e1 := pairwiseSum_error (accumulate_pairwise hacc (evalBlock_ok h).2.2.2.1)
+  have e2 := evalBlock_output_error h
+  have := absQ_sub_le t.prepared.exact t.sAcc (wordValue t.d)
+  grind
+
+/-! ## CDNA 3 -/
+
+/-- Error budget of `S_acc` in Algorithms 1 and 2, by branch (`alignedAccumulation_error`). -/
+def alignedBound (P : Profile) (x : Prepared) : ℚ :=
+  let s := productSum P x.p
+  let F : ℕ := 23 + P.neab
+  let n : ℚ := x.p.length + 2
+  match s.1, cExp P x.c with
+  | some e, some eC =>
+    if eC ≤ e then n * pow2 (e - F) + pow2 (e - P.late.cFracBits)
+    else n * pow2 (e - F) + pow2 (eC - P.late.sumFracBits) +
+      pow2 (normExp (absQ (rdGrid s.2 (eC - P.late.sumFracBits) + x.c.value)) - P.late.accFracBits)
+  | none, some eC => pow2 (eC - P.late.sumFracBits) +
+      pow2 (normExp (absQ (rdGrid s.2 (eC - P.late.sumFracBits) + x.c.value)) - P.late.accFracBits)
+  | some e, none => n * pow2 (e - F)
+  | none, none => 0
+
+theorem alignedAccumulation_abs_error (P : Profile) (x : Prepared)
+    (hcut : ∀ n, P.late.cCutoff = some n → P.late.cFracBits ≤ n)
+    (hc : ∀ eC, cExp P x.c = some eC → absQ x.c.value < pow2 (eC + 1))
+    (hcz : P.cZeroExp ≠ none) :
+    absQ (x.exact - alignedAccumulation P x) ≤ alignedBound P x := by
+  obtain ⟨h1, h2, h3, h4⟩ := alignedAccumulation_error P x hcut hc
+  have hn : (0 : ℚ) ≤ (x.p.length : ℚ) + 2 := by
+    have : (0 : ℚ) ≤ (x.p.length : ℚ) := by exact_mod_cast Nat.zero_le _
+    grind
+  unfold alignedBound
+  cases hce : cExp P x.c with
+  | none =>
+    unfold cExp at hce
+    split at hce
+    · exact absurd hce hcz
+    · simp at hce
+  | some eC =>
+    cases hs : (productSum P x.p).1 with
+    | none =>
+      obtain ⟨l, r⟩ := h4 eC hs hce
+      simp only [hs]
+      rw [absQ_le_iff]
+      have := pow2_pos (eC - P.late.sumFracBits)
+      constructor <;> grind
+    | some e =>
+      simp only [hs]
+      by_cases hle : eC ≤ e
+      · simp only [hle, ↓reduceIte]
+        exact Rat.le_of_lt (h2 e eC hs hce hle)
+      · simp only [hle, ↓reduceIte]
+        obtain ⟨l, r⟩ := h3 e eC hs hce (by omega)
+        rw [absQ_le_iff]
+        have := pow2_pos (eC - P.late.sumFracBits)
+        have := pow2_pos (normExp (absQ (rdGrid (productSum P x.p).2 (eC - P.late.sumFracBits) +
+          x.c.value)) - P.late.accFracBits)
+        have := Rat.mul_nonneg hn (Rat.le_of_lt (pow2_pos (e - ((23 + P.neab : ℕ) : ℤ))))
+        constructor <;> grind
+
+theorem accumulate_aligned {P : Profile}
+    (hacc : P.accumulation = .globalAlignment ∨ P.accumulation = .oddEvenGrouping) {x : Prepared}
+    {s : ℚ} (h : accumulate P x = .ok s) : s = alignedAccumulation P x := by
+  unfold accumulate at h
+  split at h
+  · simp at h
+  · rcases hacc with hacc | hacc <;> rw [hacc] at h <;> simp only [Except.ok.injEq] at h <;>
+      exact h.symm
+
+theorem aligned_error {P : Profile}
+    (hacc : P.accumulation = .globalAlignment ∨ P.accumulation = .oddEvenGrouping)
+    (hcut : ∀ n, P.late.cCutoff = some n → P.late.cFracBits ≤ n) (hcz : P.cZeroExp ≠ none)
+    {x : BlockInput P} {t : BlockTrace P} (h : evalBlock x = .ok t) :
+    absQ (t.prepared.exact - wordValue t.d) ≤
+      alignedBound P t.prepared + flBound (!P.subnormals) t.sAcc := by
+  have hp := (evalBlock_ok h).2.2.1
+  have hs := accumulate_aligned hacc (evalBlock_ok h).2.2.2.1
+  have e1 := alignedAccumulation_abs_error P t.prepared hcut (prepare_cExp_bound hp) hcz
+  rw [← hs] at e1
+  have e2 := evalBlock_output_error h
+  have := absQ_sub_le t.prepared.exact t.sAcc (wordValue t.d)
+  grind
+
+end MatrixCore
