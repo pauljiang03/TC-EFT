@@ -76,6 +76,20 @@ sum is exact too, whatever the order of additions.
 - **Classification:** Core theorem.
 - **Lean:** [`evalBlockMachine_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/MachineRefinement.lean#L15), [`evalBlock_machinePrefix`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AlignmentExponent.lean#L186)
 
+### Can the whole model run in fixed-width bitvector registers?
+
+**Yes.** A [bitvector datapath](/TC-EFT/model/datapath/) decodes, multiplies,
+aligns, sums and normalizes using bitvector operations only. Its registers
+are sized from the profile: `F + 2` bits per aligned term and a 29 to
+33-bit accumulator. It returns the same output word as the model, or the same
+error, for every input on all eight supported GPU paths.
+
+- **Assumes:** nothing beyond the input being one of the eight supported paths.
+- **Classification:** Core theorem. The datapath shares no arithmetic with the
+  model: it uses shifts, a leading-zero count and wrapping additions where the
+  model uses rationals and floors.
+- **Lean:** [`Datapath.evalBlock_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Correctness.lean#L253)
+
 ### Chained groups
 
 **For instructions made of several groups, the same loss accounting holds

@@ -12,6 +12,7 @@ import TensorCoreTests.TC.BinaryRounding
 import TensorCoreTests.TC.CanonicalFormats
 import TensorCoreTests.TC.Cases
 import TensorCoreTests.TC.Composition
+import TensorCoreTests.TC.Datapath
 import TensorCoreTests.TC.DirectedBinary
 import TensorCoreTests.TC.Features
 import TensorCoreTests.TC.Instruction

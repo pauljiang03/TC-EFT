@@ -8,7 +8,7 @@ The hardware adds these bit strings in a fixed-point adder. The model adds them 
 
 ```lean
 def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
-  (sumZ b.coefficients : ℚ) * pow2 b.alignGridExponent
+  (sumZ b.alignedBits : ℚ) * pow2 b.alignGridExponent
 ```
 
 Accumulation is exact and does not depend on order. All the loss happens in

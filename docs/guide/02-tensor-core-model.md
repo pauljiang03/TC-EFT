@@ -10,13 +10,13 @@ The model evaluates K exact products plus an FP32 accumulator input C. Each name
 | Multiply | `unnormalizedMul`, `PreparedBlock.terms` | Form exact products without normalizing their unnormalized exponent sums |
 | Select grid | `PreparedBlock.alignExp`, `alignGridExponent` | Take the nonzero unnormalized-exponent maximum, apply the profile floor, and subtract alignment precision |
 | Align | `truncBits`, `PreparedBlock.alignedBits` | Truncate each term's magnitude onto the common grid, keeping its sign |
-| Accumulate | `PreparedBlock.accumulator` | Sum retained integer coefficients exactly |
+| Accumulate | `PreparedBlock.accumulator` | Sum the retained aligned bits exactly |
 | Normalize and round | `evalPrepared`, `round32 .truncate` | Normalize the exact accumulator and truncate it to finite FP32 |
 | Explain loss | `alignmentResiduals`, `BlockTrace.residual` | Account for alignment loss and final-rounding loss |
 
 Start with [Block.lean](../../TensorCore/TC/Block.lean), then follow [StageResiduals.lean](../../TensorCore/TC/StageResiduals.lean) and [ErrorBounds.lean](../../TensorCore/TC/ErrorBounds.lean). The [independent specification](../../TensorCore/TC/Specification/Defs.lean) uses separate mathematical definitions; its bridge proves equality of encoded results.
 
-The unnormalized exponent matters even when two factorizations have the same product value. Replacing exact unnormalized products with normalized products can change the alignment grid and the answer. Zero terms do not choose the maximum unnormalized exponent; nonzero subnormal inputs retain their format's raw subnormal scale.
+The unnormalized exponent matters even when two factorizations have the same product value. Replacing exact unnormalized products with normalized products can change the alignment grid and the answer. Zero terms do not choose the maximum unnormalized exponent; nonzero subnormal inputs keep their format's subnormal exponent.
 
 For FP32 output, alignment precision is `F = 23 + p`. The selected profiles are:
 

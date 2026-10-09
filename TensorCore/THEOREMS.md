@@ -17,6 +17,7 @@ for the Tensor Core model, and *the TC-EFT paper* for non-monotonicity and the T
 | The error is less than (number of terms) × (alignment grid step) + (one output ulp). | `evalBlock_error_bound` | [TC/ErrorBounds.lean](TC/ErrorBounds.lean) |
 | A fixed-width wrapping accumulator gives the same output for every input when it is wide enough (29/31/33 bits for V100/A100/H100 FP16). | `evalBlockMachine_eq` | [TC/MachineRefinement.lean](TC/MachineRefinement.lean) |
 | Every partial sum in that accumulator is exact, in any order. | `evalBlock_machinePrefix` | [TC/AlignmentExponent.lean](TC/AlignmentExponent.lean) |
+| A bitvector datapath (aligned terms of F + 2 bits, a 29 to 33-bit accumulator, shifts and a leading-zero count) returns the same output word, or the same error, as the model for every input on all 8 supported GPU paths. | `Datapath.evalBlock_eq` | [Kernels/Datapath/Correctness.lean](Kernels/Datapath/Correctness.lean) |
 | The guarantees above, bundled for any profile. | `profile_contract` | [TC/CanonicalFormats.lean](TC/CanonicalFormats.lean) |
 | For chained groups, the loss accounting holds across the whole chain. | `runBlocks_residual_ledger` | [TC/Composition.lean](TC/Composition.lean) |
 
@@ -71,6 +72,7 @@ open TensorCore
 #check evalBlock_error_bound
 #check evalBlockMachine_eq
 #check evalBlock_machinePrefix
+#check Datapath.evalBlock_eq
 #check profile_contract
 #check runBlocks_residual_ledger
 #check nonmonotone_encoded

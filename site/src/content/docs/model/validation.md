@@ -1,5 +1,5 @@
 ---
-title: 9. Hardware validation
+title: 10. Hardware validation
 description: Recorded GPU measurements from V100, A100, and H100 are replayed through the Lean executable bit for bit.
 ---
 

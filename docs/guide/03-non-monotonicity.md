@@ -38,7 +38,7 @@ example : ((evalBlock before).toOption.map fun t => t.output.bits) = some 0x3f80
   decide +kernel
 ```
 
-This checks a concrete encoded counterexample. The general family theorem is [nonmonotone_encoded](../../TensorCore/TC/Monotonicity.lean): for K products of `2^-(24+p)`, lowering C from one to its predecessor increases the output exactly when `K ≥ 3·2^p`, under the construction's factorization, scale, floor, and range hypotheses.
+This checks a concrete encoded counterexample. The general family theorem is [nonmonotone_encoded](../../TensorCore/TC/Monotonicity.lean): for K products of `2^-(24+p)`, lowering C from one to its predecessor increases the output exactly when `K ≥ 3·2^p`, under the construction's factorization, exponent, floor, and range hypotheses.
 
 [nonmonotone_range_encoded](../../TensorCore/TC/MonotonicityRange.lean) extends the result to `C_j = 1 - j·2^-24`, with explicit bounds on j and a formula for the witness range and maximal output. These are family results; their theorem parameters state the permitted inputs.
 

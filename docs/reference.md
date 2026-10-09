@@ -45,6 +45,7 @@ The model rejects nonfinite operands, wrong product counts, and exact accumulato
 | `TensorCore/Numerics` | Bit encodings, exact arithmetic, finite rounding, scalar sums |
 | `TensorCore/TC` | Base TC model, profiles, specification, width/refinement, error and non-monotonicity theory |
 | `TensorCore/EFT` | Extraction, scalar preconditions, and reference EFT |
+| `TensorCore/Kernels/Datapath` | Bitvector Tensor Core datapath and its equality with the model |
 | `TensorCore/Kernels/EFT` | Bounded workspace operations and EFT refinement |
 | `tests/TensorCoreTests` | Separate regression modules and trust checks |
 | `TensorCore/Scalar` | Scalar proof dependencies for native EFT tests |

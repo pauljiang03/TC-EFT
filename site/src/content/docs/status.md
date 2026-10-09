@@ -7,9 +7,10 @@ description: Build, audit, and validation status, and known open items.
 
 | Check | Status |
 | --- | --- |
-| `lake build` (226 targets) | passes, no Lean warnings |
+| `lake build` (234 targets) | passes, no Lean warnings |
 | Axiom audit | only `propext`, `Classical.choice`, `Quot.sound`; no `sorry` |
 | Model = independent specification | proved for all inputs on 8 paths |
+| Model = bitvector datapath | proved for all inputs on 8 paths |
 | Recorded GPU vectors | 35,000 rows, 0 mismatches |
 | Software oracle cases | 715 blocks, 2,918 rounding cases, 2,033 feature cases, 0 mismatches |
 | FloatLib equivalence | proved; 115,029 + 668,944 comparison cases, 0 mismatches |

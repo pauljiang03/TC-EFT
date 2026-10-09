@@ -45,8 +45,9 @@ definition, so:
 - **It is cross-checked.** An [independent
   specification](/TC-EFT/model/specification/), written from *Accurate Models* without
   importing the implementation, is proved to agree with `evalBlock` on every
-  encoded input. A second implementation built on
-  [FloatLib](/TC-EFT/proofs/floatlib/) is also proved equivalent.
+  encoded input. A [bitvector datapath](/TC-EFT/model/datapath/) with
+  fixed-width registers, and a second implementation built on
+  [FloatLib](/TC-EFT/proofs/floatlib/), are also proved equivalent.
 - **It is validated.** Recorded GPU outputs are [replayed bit for
   bit](/TC-EFT/model/validation/).
 

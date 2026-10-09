@@ -59,6 +59,7 @@ A successful module may print nothing. Lean elaborates and checks its definition
 | [TC/Features.lean](TensorCoreTests/TC/Features.lean) | Canonical alignment, floors, padding and machine-refinement witnesses |
 | [TC/Instruction.lean](TensorCoreTests/TC/Instruction.lean) | Ordered instruction groups, input width, and group-order examples |
 | [TC/Composition.lean](TensorCoreTests/TC/Composition.lean) | Encoded group residual ledger and cancellation correction |
+| [TC/Datapath.lean](TensorCoreTests/TC/Datapath.lean) | Bitvector datapath words: alignment loss, overflow, subnormal output, −0, and input errors |
 | [EFT/EFT.lean](TensorCoreTests/EFT/EFT.lean) | Low parts, overlap, scalar acceptance/rejection, and unsafe-unchecked counterexamples |
 | [EFT/EncodedEFT.lean](TensorCoreTests/EFT/EncodedEFT.lean) | Encoded Algorithm 1 results and supplied-D/domain behavior |
 | [EFT/ScalarEFT.lean](TensorCoreTests/EFT/ScalarEFT.lean) | Correction precision and scalar-summation conditions |

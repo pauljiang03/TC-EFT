@@ -16,7 +16,7 @@ description: Executable adapters, the tc launcher, and validation scripts.
 
 The `trace` example runs the V100 model on four products `1.5 × 1.25` with
 `C = 1 − 2^-24`, and prints every stage as JSON. The products have unnormalized
-scale 0, so η = 0 and the grid is `2^-23`. The `C` term loses its last bit,
+exponent 0, so η = 0 and the grid is `2^-23`. The `C` term loses its last bit,
 and the exact sum `8.5 − 2^-24` truncates to the output `0x4107ffff ≈ 8.4999995`.
 The trace also reports `correctedBits`, the TC-EFT result `0x41080000 = 8.5`.
 

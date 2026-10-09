@@ -28,7 +28,7 @@ once, the way a fused dot product would. It does the following:
 3. **Aligns** every term to a fixed-point grid `F` bits below that exponent,
    and **truncates** any bits below the grid.
 4. **Adds** the aligned bits exactly, in a fixed-point adder.
-5. **Converts** the sum to FP32 by **truncating** it: bits beyond FP32's 24
+5. **Normalizes** the sum to FP32 and **truncates** it: bits beyond FP32's 24
    significant bits are dropped.
 
 The Lean model implements these five steps directly.
@@ -39,7 +39,7 @@ The Lean model implements these five steps directly.
   <a href="/TC-EFT/model/formats/"><span class="n">01 · prepare</span><span class="t">Decode</span><span class="d"><code>BlockInput p</code> → <code>PreparedBlock</code></span></a>
   <a href="/TC-EFT/model/products/"><span class="n">02 · unnormalizedMul</span><span class="t">Multiply</span><span class="d"><code>Decoded × Decoded</code> → <code>UnnormalizedProduct</code></span></a>
   <a href="/TC-EFT/model/alignment/"><span class="n">03 · alignExp, truncBits</span><span class="t">Align</span><span class="d">grid <code>2^(η − F)</code>, truncate</span></a>
-  <a href="/TC-EFT/model/accumulation/"><span class="n">04 · accumulator</span><span class="t">Accumulate</span><span class="d">exact <code>Σ coeff · 2^(η−F)</code></span></a>
+  <a href="/TC-EFT/model/accumulation/"><span class="n">04 · accumulator</span><span class="t">Accumulate</span><span class="d">exact <code>Σ bits · 2^(η−F)</code></span></a>
   <a href="/TC-EFT/model/normalization/"><span class="n">05 · round32</span><span class="t">Normalize &amp; round</span><span class="d">truncate → <code>F32</code></span></a>
 </div>
 
@@ -68,11 +68,11 @@ def PreparedBlock.alignExp (b : PreparedBlock) : Option ℤ :=
 def PreparedBlock.alignGridExponent (b : PreparedBlock) : ℤ :=
   b.alignExp.getD 0 - b.profile.alignMantissaBits
 
-def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
+def PreparedBlock.alignedBits (b : PreparedBlock) : List ℤ :=
   b.terms.map fun t => truncBits t.value b.alignGridExponent
 
 def PreparedBlock.accumulator (b : PreparedBlock) : ℚ :=
-  (sumZ b.coefficients : ℚ) * pow2 b.alignGridExponent
+  (sumZ b.alignedBits : ℚ) * pow2 b.alignGridExponent
 
 def evalPrepared (b : PreparedBlock) : Except ModelError BlockTrace :=
   match round32 .truncate b.accumulator with
@@ -162,4 +162,5 @@ Each stage has its own page:
 6. [Architecture profiles](/TC-EFT/model/profiles/): V100/A100/H100 parameters and the general `InvocationSpec`.
 7. [Instructions and chaining](/TC-EFT/model/instructions/): multi-group instructions and passing `C` between groups.
 8. [Independent specification](/TC-EFT/model/specification/): `IndependentSpec` (a transcription of *Accurate Models*) and the equality proof.
-9. [Hardware validation](/TC-EFT/model/validation/): replay of GPU measurements.
+9. [Bitvector datapath](/TC-EFT/model/datapath/): the model in fixed-width registers, proved to give the same output word.
+10. [Hardware validation](/TC-EFT/model/validation/): replay of GPU measurements.

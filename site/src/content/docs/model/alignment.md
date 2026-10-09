@@ -54,7 +54,7 @@ def truncBits (x : ℚ) (e : ℤ) : ℤ :=
 
 def truncGrid (x : ℚ) (e : ℤ) : ℚ := (truncBits x e : ℚ) * pow2 e
 
-def PreparedBlock.coefficients (b : PreparedBlock) : List ℤ :=
+def PreparedBlock.alignedBits (b : PreparedBlock) : List ℤ :=
   b.terms.map fun t => truncBits t.value b.alignGridExponent
 ```
 
@@ -64,7 +64,7 @@ sign-magnitude shifter of the hardware: it **truncates** the magnitude and
 keeps the sign. For a negative term this is not the same as rounding down
 (toward −∞). Each term keeps only its bits at or above the grid's lowest bit
 `2^(η − F)`. `truncBits` returns those kept bits, with the sign, counted in
-units of that lowest bit; the code calls this the term's *coefficient*.
+units of that lowest bit; `alignedBits` lists them for every term.
 
 ## What is lost
 

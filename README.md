@@ -45,7 +45,7 @@ The calculation succeeds with the FP32 value `4.0`. It prints the encoded result
 | [`TensorCore.Numerics`](TensorCore/Numerics.lean) | Exact arithmetic, finite representations, encodings, and rounding contracts |
 | [`TensorCore.TC`](TensorCore/TC.lean) | TC profiles, alignment, accumulation, normalization and final rounding, model specification, error and non-monotonicity theory |
 | [`TensorCore.EFT`](TensorCore/EFT.lean) | Reference extraction, scalar preconditions, chosen-grid conditions, and Algorithm 1 |
-| [`TensorCore.Kernels`](TensorCore/Kernels.lean) | Bounded 576-bit EFT execution and its refinement proofs |
+| [`TensorCore.Kernels`](TensorCore/Kernels.lean) | The bitvector Tensor Core datapath, bounded 576-bit EFT execution, and their equivalence proofs |
 | [`TensorCore.Scalar`](TensorCore/Scalar.lean) | Native FP32 addition proof support used by the bounded EFT path |
 | [`Main/`](Main/) | Command-line entry points that call the library and print results for test comparisons |
 | [`tests/`](tests/README.md) | Separate `TensorCoreTests` regression modules and executable-test walkthrough |

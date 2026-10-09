@@ -23,7 +23,7 @@
         "scripts/lean/Audit.lean"
       ],
       "exit_code": 0,
-      "audit": "tc_audit: 1399 theorem roots (864 written in source, the rest generated)"
+      "audit": "tc_audit: 1431 theorem roots (889 written in source, the rest generated)"
     },
     {
       "command": [
@@ -54,7 +54,7 @@
       "exit_code": 0
     }
   ],
-  "scanned_lean_sources": 144,
+  "scanned_lean_sources": 150,
   "bounded_scope": "Complete eight-path encoded EFT: bounded decoding, signed extraction/overlap, guards, scalar and 576-bit exact consolidation, direct FP32 rounding; universal finite-input correctness, success/range, reference refinement, and source-level operation budgets",
   "bounded_checks": {
     "status": "passed",
