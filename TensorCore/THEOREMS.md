@@ -15,9 +15,9 @@ for the Tensor Core model, and *the TC-EFT paper* for non-monotonicity and the T
 | The model accepts an input exactly when it has the right number of products, no NaN or infinity, and a sum that fits in FP32. | `evalBlock_success_iff` | [TC/AcceptedDomain.lean](TC/AcceptedDomain.lean) |
 | The exact sum of the inputs equals the output plus everything lost to alignment and rounding. | `evalBlock_residual_identity` | [TC/StageResiduals.lean](TC/StageResiduals.lean) |
 | The error is less than (number of terms) × (alignment grid step) + (one output ulp). | `evalBlock_error_bound` | [TC/ErrorBounds.lean](TC/ErrorBounds.lean) |
-| A fixed-width wrapping accumulator gives the same output for every input when it is wide enough (29/31/33 bits for V100/A100/H100 FP16). | `evalBlockMachine_eq` | [TC/MachineRefinement.lean](TC/MachineRefinement.lean) |
+| A fixed-width wrapping accumulator gives the same output for every input when it is wide enough (29/31/33 bits for V100/A100/H100 FP16, a sign bit included). | `evalBlockMachine_eq` | [TC/MachineRefinement.lean](TC/MachineRefinement.lean) |
 | Every partial sum in that accumulator is exact, in any order. | `evalBlock_machinePrefix` | [TC/AlignmentExponent.lean](TC/AlignmentExponent.lean) |
-| A bitvector datapath (aligned terms of F + 2 bits, a 29 to 33-bit accumulator, shifts and a leading-zero count) returns the same output word, or the same error, as the model for every input on all 8 supported GPU paths. | `Datapath.evalBlock_eq` | [Kernels/Datapath/Correctness.lean](Kernels/Datapath/Correctness.lean) |
+| A bitvector datapath (9-bit exponents, aligned terms of F + 2 bits, an accumulator of 28 to 32 magnitude bits plus a sign bit, shifts and a leading-zero count) returns the same output word, or the same error, as the model for every input on all 8 supported GPU paths. | `Datapath.evalBlock_eq` | [Kernels/Datapath/Correctness.lean](Kernels/Datapath/Correctness.lean) |
 | The guarantees above, bundled for any profile. | `profile_contract` | [TC/CanonicalFormats.lean](TC/CanonicalFormats.lean) |
 | For chained groups, the loss accounting holds across the whole chain. | `runBlocks_residual_ledger` | [TC/Composition.lean](TC/Composition.lean) |
 

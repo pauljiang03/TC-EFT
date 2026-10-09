@@ -179,17 +179,12 @@ theorem toInt_eq_signed (s : BitVec w) :
     omega
 
 /-- The bitvector normalizer is FP32 truncation of the accumulator's value, bit for bit. -/
-theorem normalize_eq {w : ℕ} (s : BitVec w) (e F : Grid) (hw : 24 ≤ w) (hw' : w ≤ 64)
-    (hF : F.toNat ≤ 64) :
-    normalize s e F = round32 .truncate ((s.toInt : ℚ) * pow2 ((e.toNat : ℤ) - 512 - F.toNat)) := by
+theorem normalize_eq {w : ℕ} (s : BitVec w) (e : Exp) (F : BitVec 5) (hw : 24 ≤ w) (hw' : w ≤ 64) :
+    normalize s e F = round32 .truncate ((s.toInt : ℚ) * pow2 ((e.toNat : ℤ) - 256 - F.toNat)) := by
   have hsi := toInt_eq_signed s
   unfold normalize
   dsimp only
   generalize hm : (if s.msb = true then -s else s) = m at hsi
-  generalize hlead : BitVec.ofNat 12 (w - 1) - BitVec.setWidth 12 m.clz + BitVec.zeroExtend 12 e = lead
-  generalize hbiased : (if BitVec.zeroExtend 12 F + 386 ≤ lead then lead - (BitVec.zeroExtend 12 F + 385) else 1) = biased
-  generalize hdown : biased + BitVec.zeroExtend 12 F + 362 = down
-  generalize hkb : (if down ≤ BitVec.zeroExtend 12 e then m <<< (BitVec.zeroExtend 12 e - down) else m >>> (down - BitVec.zeroExtend 12 e)) = kb
   have hsq : (s.toInt : ℚ) = if s.msb then -((m.toNat : ℕ) : ℚ) else ((m.toNat : ℕ) : ℚ) := by
     rw [hsi]; cases s.msb <;> simp [Rat.intCast_natCast]
   by_cases hz : m = 0
@@ -211,121 +206,162 @@ theorem normalize_eq {w : ℕ} (s : BitVec w) (e F : Grid) (hw : 24 ≤ w) (hw' 
     have hhi := BitVec.toNat_lt_two_pow_sub_clz (x := m)
     have he := e.isLt
     have hFl := F.isLt
-    have he12 : (BitVec.zeroExtend 12 e).toNat = e.toNat := by
-      rw [BitVec.toNat_setWidth_of_le (by decide)]
-    have hF12 : (BitVec.zeroExtend 12 F).toNat = F.toNat := by
-      rw [BitVec.toNat_setWidth_of_le (by decide)]
-    have hleadN : lead.toNat = (w - 1 - m.clz.toNat) + e.toNat := by
-      rw [← hlead]
-      simp only [BitVec.toNat_add, BitVec.toNat_sub, BitVec.toNat_ofNat, BitVec.toNat_setWidth, he12]
-      change ((4096 - m.clz.toNat % 4096 + (w - 1) % 4096) % 4096 + e.toNat) % 4096 = _
-      omega
-    have hbiasedN : biased.toNat = if F.toNat + 386 ≤ (w - 1 - m.clz.toNat) + e.toNat
-        then (w - 1 - m.clz.toNat) + e.toNat - F.toNat - 385 else 1 := by
-      rw [← hbiased]
-      have hiff : BitVec.zeroExtend 12 F + 386 ≤ lead ↔ F.toNat + 386 ≤ (w - 1 - m.clz.toNat) + e.toNat := by
-        rw [BitVec.le_def, BitVec.toNat_add, hF12, hleadN]
-        change (F.toNat + 386) % 4096 ≤ _ ↔ _
+    change e.toNat < 512 at he
+    change F.toNat < 32 at hFl
+    have hF9 : (BitVec.setWidth 9 F).toNat = F.toNat := by
+      rw [BitVec.toNat_setWidth, Nat.mod_eq_of_lt (by omega)]
+    have hleadN : (BitVec.ofNat 9 (w - 1) - BitVec.setWidth 9 m.clz).toNat = w - 1 - m.clz.toNat := by
+      rw [BitVec.toNat_sub_of_le]
+      · rw [BitVec.toNat_ofNat, BitVec.toNat_setWidth, Nat.mod_eq_of_lt (by omega),
+          Nat.mod_eq_of_lt (by omega)]
+      · rw [BitVec.le_def, BitVec.toNat_ofNat, BitVec.toNat_setWidth, Nat.mod_eq_of_lt (by omega),
+          Nat.mod_eq_of_lt (by omega)]
         omega
-      split
-      · rename_i h
-        rw [if_pos (hiff.mp h), BitVec.toNat_sub, BitVec.toNat_add, hF12, hleadN]
-        change (4096 - (F.toNat + 385) % 4096 + _) % 4096 = _
-        have := hiff.mp h
-        omega
-      · rename_i h
-        rw [if_neg (mt hiff.mpr h)]
-        rfl
-    have hdownN : down.toNat = biased.toNat + F.toNat + 362 := by
-      rw [← hdown, BitVec.toNat_add, BitVec.toNat_add, hF12]
-      change ((biased.toNat + F.toNat) % 4096 + 362) % 4096 = _
-      have : biased.toNat ≤ 1100 := by rw [hbiasedN]; split <;> omega
-      omega
-    generalize hP : w - 1 - m.clz.toNat = P at hleadN hbiasedN hlo
+    generalize hF' : BitVec.setWidth 9 F = F9 at hF9
+    generalize hlead : BitVec.ofNat 9 (w - 1) - BitVec.setWidth 9 m.clz = lead at hleadN
+    generalize hP : w - 1 - m.clz.toNat = P at hleadN hlo
     have hhi' : m.toNat < 2 ^ (P + 1) := by rw [show P + 1 = w - m.clz.toNat by omega]; exact hhi
-    have hbcase : (F.toNat + 386 ≤ P + e.toNat ∧ biased.toNat + F.toNat + 385 = P + e.toNat) ∨
-        (P + e.toNat < F.toNat + 386 ∧ biased.toNat = 1) := by
-      by_cases hc : F.toNat + 386 ≤ P + e.toNat
-      · refine Or.inl ⟨hc, ?_⟩
-        rw [hbiasedN, if_pos hc]
-        omega
-      · exact Or.inr ⟨by omega, by rw [hbiasedN, if_neg hc]⟩
-    clear hbiasedN
-    have hL : down.toNat ≤ e.toNat → e.toNat - down.toNat + P ≤ 23 := by omega
-    have hle : (down ≤ BitVec.zeroExtend 12 e) ↔ down.toNat ≤ e.toNat := by rw [BitVec.le_def, he12]
-    have hkN : kb.toNat = if ((down.toNat : ℤ) - e.toNat) ≤ 0
-        then m.toNat * 2 ^ (-((down.toNat : ℤ) - e.toNat)).toNat
-        else m.toNat / 2 ^ ((down.toNat : ℤ) - e.toNat).toNat := by
-      rw [← hkb]
-      by_cases hd : down.toNat ≤ e.toNat
-      · rw [if_pos (hle.mpr hd), if_pos (by omega)]
-        rw [BitVec.shiftLeft_eq', BitVec.toNat_shiftLeft, Nat.shiftLeft_eq]
-        have hsub : (BitVec.zeroExtend 12 e - down).toNat = e.toNat - down.toNat := by
-          rw [BitVec.toNat_sub_of_le (hle.mpr hd), he12]
-        rw [hsub, show (-((down.toNat : ℤ) - e.toNat)).toNat = e.toNat - down.toNat by omega]
-        apply Nat.mod_eq_of_lt
-        have h1 := Nat.mul_lt_mul_of_pos_right hhi' (Nat.two_pow_pos (e.toNat - down.toNat))
-        rw [← Nat.pow_add] at h1
-        exact Nat.lt_of_lt_of_le h1 (Nat.pow_le_pow_right (by decide) (by have := hL hd; omega))
-      · rw [if_neg (mt hle.mp hd), if_neg (by omega)]
-        rw [BitVec.ushiftRight_eq', BitVec.toNat_ushiftRight, Nat.shiftRight_eq_div_pow]
-        have hsub : (down - BitVec.zeroExtend 12 e).toNat = down.toNat - e.toNat := by
-          rw [BitVec.toNat_sub_of_le (by rw [BitVec.le_def, he12]; omega), he12]
-        rw [hsub, show ((down.toNat : ℤ) - e.toNat).toNat = down.toNat - e.toNat by omega]
-    have hE : ((biased.toNat : ℤ) - 127) =
-        max ((P : ℤ) + ((e.toNat : ℤ) - 512 - F.toNat)) (-126) := by
+    have hPw : P < w := by omega
+    -- comparisons of exponent registers, none of which wraps
+    have hnormalP : decide (F9 + 130 - lead ≤ e) = decide (F.toNat + 130 ≤ P + e.toNat) := by
+      apply decide_eq_decide.mpr
+      rw [BitVec.le_def, BitVec.toNat_sub_of_le (by rw [BitVec.le_def, BitVec.toNat_add, hF9, hleadN]; change _ ≤ (F.toNat + 130) % 512; omega),
+        BitVec.toNat_add, hF9, hleadN]
+      change (F.toNat + 130) % 512 - P ≤ _ ↔ _
       omega
-    have hr : ((down.toNat : ℤ) - e.toNat) =
-        ((biased.toNat : ℤ) - 127) - 23 - ((e.toNat : ℤ) - 512 - F.toNat) := by
-      rw [hdownN]; omega
-    rw [hsq, round32_truncate_dyadic s.msb m.toNat P _ _ _ kb.toNat hlo hhi' hE hr hkN]
-    have hw24 : 2 ^ 24 ≤ 2 ^ w := Nat.pow_le_pow_right (by decide) hw
-    have hkb24 : kb.toNat < 2 ^ 24 := by
+    have hovP : decide (F9 + 384 - lead ≤ e) = decide (F.toNat + 384 ≤ P + e.toNat) := by
+      apply decide_eq_decide.mpr
+      rw [BitVec.le_def, BitVec.toNat_sub_of_le (by rw [BitVec.le_def, BitVec.toNat_add, hF9, hleadN]; change _ ≤ (F.toNat + 384) % 512; omega),
+        BitVec.toNat_add, hF9, hleadN]
+      change (F.toNat + 384) % 512 - P ≤ _ ↔ _
+      omega
+    have h23P : decide (lead ≤ 23) = decide (P ≤ 23) := by
+      apply decide_eq_decide.mpr; rw [BitVec.le_def, hleadN]; rfl
+    have h107P : decide (F9 + 107 ≤ e) = decide (F.toNat + 107 ≤ e.toNat) := by
+      apply decide_eq_decide.mpr
+      rw [BitVec.le_def, BitVec.toNat_add, hF9]
+      change (F.toNat + 107) % 512 ≤ _ ↔ _
+      omega
+    rw [hnormalP, hovP, h23P, h107P]
+    generalize hleft : (if decide (F.toNat + 130 ≤ P + e.toNat) = true then decide (P ≤ 23)
+      else decide (F.toNat + 107 ≤ e.toNat)) = left
+    generalize hbiased : (if decide (F.toNat + 130 ≤ P + e.toNat) = true then e - (F9 + 129 - lead)
+      else 1) = biased
+    generalize hamount : (if decide (F.toNat + 130 ≤ P + e.toNat) = true then
+        (if left = true then 23 - lead else lead - 23)
+      else (if left = true then e - (F9 + 107) else F9 + 107 - e)) = amount
+    generalize hkb : (if left = true then m <<< amount else m >>> amount) = kb
+    -- the integer quantities these registers hold
+    have hbN : (biased.toNat : ℤ) = max ((P : ℤ) + ((e.toNat : ℤ) - 256 - F.toNat)) (-126) + 127 := by
+      rw [← hbiased]
+      by_cases hn : F.toNat + 130 ≤ P + e.toNat
+      · simp only [hn, decide_true, if_true]
+        have h1 : (F9 + 129 - lead).toNat = F.toNat + 129 - P := by
+          rw [BitVec.toNat_sub_of_le (by rw [BitVec.le_def, BitVec.toNat_add, hF9, hleadN]; change _ ≤ (F.toNat + 129) % 512; omega),
+            BitVec.toNat_add, hF9, hleadN]
+          change (F.toNat + 129) % 512 - P = _
+          omega
+        rw [BitVec.toNat_sub_of_le (by rw [BitVec.le_def, h1]; omega), h1]
+        omega
+      · simp only [hn, decide_false, Bool.false_eq_true, if_false]
+        change ((1 : ℕ) : ℤ) = _
+        omega
+    have hleftN : left = decide (((if F.toNat + 130 ≤ P + e.toNat then (P : ℤ) - 23
+        else (F.toNat : ℤ) + 107 - e.toNat)) ≤ 0) := by
+      rw [← hleft]
+      by_cases hn : F.toNat + 130 ≤ P + e.toNat
+      · simp only [hn, decide_true, if_true]; apply decide_eq_decide.mpr; omega
+      · simp only [hn, decide_false, Bool.false_eq_true, if_false]; apply decide_eq_decide.mpr; omega
+    generalize hr : (if F.toNat + 130 ≤ P + e.toNat then (P : ℤ) - 23
+      else (F.toNat : ℤ) + 107 - e.toNat) = r at hleftN
+    have hamtN : amount.toNat = if r ≤ 0 then (-r).toNat else r.toNat := by
+      rw [← hamount, hleftN]
+      by_cases hn : F.toNat + 130 ≤ P + e.toNat
+      · rw [if_pos hn] at hr
+        simp only [hn, decide_true, if_true]
+        by_cases hl : r ≤ 0
+        · simp only [hl, decide_true, if_true]
+          rw [BitVec.toNat_sub_of_le (by rw [BitVec.le_def, hleadN]; change _ ≤ 23; omega), hleadN]
+          change 23 - P = _; omega
+        · simp only [hl, decide_false, Bool.false_eq_true, if_false]
+          rw [BitVec.toNat_sub_of_le (by rw [BitVec.le_def, hleadN]; change 23 ≤ _; omega), hleadN]
+          change P - 23 = _; omega
+      · rw [if_neg hn] at hr
+        simp only [hn, decide_false, Bool.false_eq_true, if_false]
+        by_cases hl : r ≤ 0
+        · simp only [hl, decide_true, if_true]
+          rw [BitVec.toNat_sub_of_le (by rw [BitVec.le_def, BitVec.toNat_add, hF9]; change (F.toNat + 107) % 512 ≤ _; omega),
+            BitVec.toNat_add, hF9]
+          change _ - (F.toNat + 107) % 512 = _; omega
+        · simp only [hl, decide_false, Bool.false_eq_true, if_false]
+          rw [BitVec.toNat_sub_of_le (by rw [BitVec.le_def, BitVec.toNat_add, hF9]; change _ ≤ (F.toNat + 107) % 512; omega),
+            BitVec.toNat_add, hF9]
+          change (F.toNat + 107) % 512 - _ = _; omega
+    have hrange : (r ≤ 0 → P + 1 + (-r).toNat ≤ 24) ∧ (0 < r → P + 1 ≤ 24 + r.toNat) := by
+      by_cases hn : F.toNat + 130 ≤ P + e.toNat
+      · rw [if_pos hn] at hr; omega
+      · rw [if_neg hn] at hr; omega
+    have hkN : kb.toNat = if r ≤ 0 then m.toNat * 2 ^ (-r).toNat else m.toNat / 2 ^ r.toNat := by
+      rw [← hkb, hleftN]
+      by_cases hl : r ≤ 0
+      · simp only [hl, decide_true, if_true]
+        rw [BitVec.shiftLeft_eq', BitVec.toNat_shiftLeft, Nat.shiftLeft_eq, hamtN, if_pos hl]
+        apply Nat.mod_eq_of_lt
+        have h1 := Nat.mul_lt_mul_of_pos_right hhi' (Nat.two_pow_pos (-r).toNat)
+        rw [← Nat.pow_add] at h1
+        exact Nat.lt_of_lt_of_le h1 (Nat.pow_le_pow_right (by decide) (by have := hrange.1 hl; omega))
+      · simp only [hl, decide_false, Bool.false_eq_true, if_false]
+        rw [BitVec.ushiftRight_eq', BitVec.toNat_ushiftRight, Nat.shiftRight_eq_div_pow, hamtN, if_neg hl]
+    have hk24 : kb.toNat < 2 ^ 24 := by
       rw [hkN]
       split
-      · rename_i h
-        have hd : down.toNat ≤ e.toNat := by omega
-        rw [show (-((down.toNat : ℤ) - e.toNat)).toNat = e.toNat - down.toNat by omega]
-        have h1 := Nat.mul_lt_mul_of_pos_right hhi' (Nat.two_pow_pos (e.toNat - down.toNat))
+      · rename_i hl
+        have h1 := Nat.mul_lt_mul_of_pos_right hhi' (Nat.two_pow_pos (-r).toNat)
         rw [← Nat.pow_add] at h1
-        exact Nat.lt_of_lt_of_le h1 (Nat.pow_le_pow_right (by decide) (by have := hL hd; omega))
-      · rename_i h
+        exact Nat.lt_of_lt_of_le h1 (Nat.pow_le_pow_right (by decide) (hrange.1 hl))
+      · rename_i hl
         apply (Nat.div_lt_iff_lt_mul (Nat.two_pow_pos _)).mpr
         rw [← Nat.pow_add]
-        exact Nat.lt_of_lt_of_le hhi' (Nat.pow_le_pow_right (by decide) (by omega))
-    have hcond : (decide (255 ≤ biased) || (biased == 254 && kb == 16777215 &&
-        !(decide (down ≤ BitVec.zeroExtend 12 e) || kb <<< (down - BitVec.zeroExtend 12 e) == m))) = true ↔
-        (128 ≤ (biased.toNat : ℤ) - 127 ∨ ((biased.toNat : ℤ) - 127 = 127 ∧ 0 < (down.toNat : ℤ) - e.toNat ∧
-          kb.toNat = 2 ^ 24 - 1 ∧ m.toNat % 2 ^ ((down.toNat : ℤ) - e.toNat).toNat ≠ 0)) := by
-      have h1 : (255 ≤ biased) ↔ 255 ≤ biased.toNat := BitVec.le_def
-      have h2 : biased = 254 ↔ biased.toNat = 254 := BitVec.toNat_eq
+        exact Nat.lt_of_lt_of_le hhi' (Nat.pow_le_pow_right (by decide) (by have := hrange.2 (by omega); omega))
+    have hE := (rfl : max ((P : ℤ) + ((e.toNat : ℤ) - 256 - F.toNat)) (-126) =
+      max ((P : ℤ) + ((e.toNat : ℤ) - 256 - F.toNat)) (-126))
+    have hrE : r = max ((P : ℤ) + ((e.toNat : ℤ) - 256 - F.toNat)) (-126) - 23 -
+        ((e.toNat : ℤ) - 256 - F.toNat) := by
+      by_cases hn : F.toNat + 130 ≤ P + e.toNat
+      · rw [if_pos hn] at hr; omega
+      · rw [if_neg hn] at hr; omega
+    rw [hsq, round32_truncate_dyadic s.msb m.toNat P _ _ r kb.toNat hlo hhi' hE hrE hkN]
+    generalize hEv : max ((P : ℤ) + ((e.toNat : ℤ) - 256 - F.toNat)) (-126) = E at hbN hrE
+    have hw24 : 2 ^ 24 ≤ 2 ^ w := Nat.pow_le_pow_right (by decide) hw
+    have hcond : (decide (F.toNat + 384 ≤ P + e.toNat) ||
+        (biased == 254 && kb == 16777215 && !(left || kb <<< amount == m))) = true ↔
+        (128 ≤ E ∨ (E = 127 ∧ 0 < r ∧ kb.toNat = 2 ^ 24 - 1 ∧ m.toNat % 2 ^ r.toNat ≠ 0)) := by
+      have h1 : (F.toNat + 384 ≤ P + e.toNat) ↔ 128 ≤ E := by omega
+      have h2 : biased = 254 ↔ E = 127 := by
+        rw [BitVec.toNat_eq]; change biased.toNat = 254 ↔ _; omega
       have h3 : kb = 16777215 ↔ kb.toNat = 2 ^ 24 - 1 := by
         have hl : (16777215 : BitVec w).toNat = 16777215 := by
           rw [show (16777215 : BitVec w) = BitVec.ofNat w 16777215 from rfl, BitVec.toNat_ofNat]
           exact Nat.mod_eq_of_lt (by omega)
         rw [BitVec.toNat_eq, hl]
-      have h4 : ¬ down.toNat ≤ e.toNat → (kb <<< (down - BitVec.zeroExtend 12 e) = m ↔
-          m.toNat % 2 ^ ((down.toNat : ℤ) - e.toNat).toNat = 0) := by
-        intro hd
-        have hsub : (down - BitVec.zeroExtend 12 e).toNat = ((down.toNat : ℤ) - e.toNat).toNat := by
-          rw [BitVec.toNat_sub_of_le (by rw [BitVec.le_def, he12]; omega), he12]; omega
-        rw [BitVec.toNat_eq, BitVec.shiftLeft_eq', BitVec.toNat_shiftLeft, Nat.shiftLeft_eq, hsub, hkN,
-          if_neg (by omega)]
-        generalize ((down.toNat : ℤ) - e.toNat).toNat = d
+      have h4 : 0 < r → (kb <<< amount = m ↔ m.toNat % 2 ^ r.toNat = 0) := by
+        intro hl
+        rw [BitVec.toNat_eq, BitVec.shiftLeft_eq', BitVec.toNat_shiftLeft, Nat.shiftLeft_eq, hamtN,
+          hkN, if_neg (by omega), if_neg (by omega)]
+        generalize r.toNat = d
         rw [Nat.mod_eq_of_lt (Nat.lt_of_le_of_lt (Nat.div_mul_le_self _ _) m.isLt)]
         have := Nat.mod_add_div' m.toNat (2 ^ d)
         omega
+      rw [hleftN]
       simp only [Bool.or_eq_true, Bool.and_eq_true, Bool.not_eq_true', Bool.or_eq_false_iff,
-        decide_eq_true_eq, decide_eq_false_iff_not, beq_iff_eq, beq_eq_false_iff_ne, h1, h2, h3, hle]
-      by_cases hd : down.toNat ≤ e.toNat
-      · simp only [hd, not_true_eq_false, false_and, and_false, or_false]
+        decide_eq_true_eq, decide_eq_false_iff_not, beq_iff_eq, beq_eq_false_iff_ne, h1, h2, h3]
+      by_cases hl : r ≤ 0
+      · simp only [hl, not_true_eq_false, false_and, and_false, or_false]
         omega
-      · rw [ne_eq, h4 hd]
-        simp only [hd, not_false_eq_true, true_and]
+      · rw [ne_eq, h4 (by omega)]
+        simp only [hl, not_false_eq_true, true_and]
         omega
-    by_cases hc : 128 ≤ (biased.toNat : ℤ) - 127 ∨ ((biased.toNat : ℤ) - 127 = 127 ∧
-        0 < (down.toNat : ℤ) - e.toNat ∧ kb.toNat = 2 ^ 24 - 1 ∧
-        m.toNat % 2 ^ ((down.toNat : ℤ) - e.toNat).toNat ≠ 0)
+    by_cases hc : 128 ≤ E ∨ (E = 127 ∧ 0 < r ∧ kb.toNat = 2 ^ 24 - 1 ∧ m.toNat % 2 ^ r.toNat ≠ 0)
     · rw [if_pos (hcond.mpr hc), if_pos hc]
     · rw [if_neg (mt hcond.mp hc), if_neg hc]
       apply congrArg some

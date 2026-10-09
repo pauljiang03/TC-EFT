@@ -13,27 +13,27 @@ set_option exponentiation.threshold 1024
 /-- The product or c this term denotes. -/
 def Term.unnormalized (t : Term) : UnnormalizedProduct :=
   ⟨if t.negative then -(t.significand.toNat : ℤ) else t.significand.toNat,
-    (t.biasedExp.toNat : ℤ) - 512, t.mantissaBits.toNat⟩
+    (t.biasedExp.toNat : ℤ) - 256, t.mantissaBits.toNat⟩
 
 /-- A significand below 4 with at most 23 mantissa bits. -/
 def Term.Valid (t : Term) : Prop :=
   t.significand.toNat < 2 ^ (t.mantissaBits.toNat + 2) ∧ t.mantissaBits.toNat ≤ 23
 
-theorem Term.aligned_toNat (path : Path) (e : Grid) (t : Term) (ht : t.Valid)
-    (hF : 23 ≤ path.alignmentBits.toNat) :
-    (t.aligned path e).toNat = t.significand.toNat * 2 ^ (path.alignmentBits.toNat - t.mantissaBits.toNat) /
+theorem Term.aligned_toNat (path : Path) (e : Exp) (t : Term) (ht : t.Valid)
+    (hF : 23 ≤ (alignBits path).toNat) :
+    (t.aligned path e).toNat = t.significand.toNat * 2 ^ ((alignBits path).toNat - t.mantissaBits.toNat) /
       2 ^ (e - t.biasedExp).toNat := by
   obtain ⟨ht1, ht2⟩ := ht
-  have hsub : (path.alignmentBits - t.mantissaBits).toNat =
-      path.alignmentBits.toNat - t.mantissaBits.toNat := by
+  have hsub : ((alignBits path) - t.mantissaBits).toNat =
+      (alignBits path).toNat - t.mantissaBits.toNat := by
     rw [BitVec.toNat_sub_of_le (by rw [BitVec.le_def]; omega)]
   have hz : (t.significand.zeroExtend (termWidth path)).toNat = t.significand.toNat := by
     rw [BitVec.toNat_setWidth, Nat.mod_eq_of_lt]
     exact Nat.lt_of_lt_of_le ht1 (Nat.pow_le_pow_right (by decide) (by unfold termWidth; omega))
-  have hfit : t.significand.toNat * 2 ^ (path.alignmentBits.toNat - t.mantissaBits.toNat) <
+  have hfit : t.significand.toNat * 2 ^ ((alignBits path).toNat - t.mantissaBits.toNat) <
       2 ^ termWidth path := by
     have h := Nat.mul_lt_mul_of_pos_right ht1
-      (Nat.two_pow_pos (path.alignmentBits.toNat - t.mantissaBits.toNat))
+      (Nat.two_pow_pos ((alignBits path).toNat - t.mantissaBits.toNat))
     rw [← Nat.pow_add] at h
     exact Nat.lt_of_lt_of_le h (Nat.pow_le_pow_right (by decide) (by unfold termWidth; omega))
   unfold Term.aligned
@@ -45,11 +45,11 @@ theorem truncBits_zero (e : ℤ) : truncBits 0 e = 0 := by
   rw [if_neg (by grind), Rat.div_def, Rat.zero_mul]
   simpa using Rat.floor_intCast 0
 
-/-- An aligned term is the model's truncation on the grid `2 ^ (e - 512 - F)`. -/
-theorem Term.truncBits_eq (path : Path) (e : Grid) (t : Term) (ht : t.Valid)
-    (hF : 23 ≤ path.alignmentBits.toNat)
+/-- An aligned term is the model's truncation on the grid `2 ^ (e - 256 - F)`. -/
+theorem Term.truncBits_eq (path : Path) (e : Exp) (t : Term) (ht : t.Valid)
+    (hF : 23 ≤ (alignBits path).toNat)
     (he : t.significand ≠ 0 → t.biasedExp.toNat ≤ e.toNat) :
-    truncBits t.unnormalized.value ((e.toNat : ℤ) - 512 - path.alignmentBits.toNat) =
+    truncBits t.unnormalized.value ((e.toNat : ℤ) - 256 - (alignBits path).toNat) =
       if t.negative then -((t.aligned path e).toNat : ℤ) else ((t.aligned path e).toNat : ℤ) := by
   rw [t.aligned_toNat path e ht hF]
   by_cases hz : t.significand = 0
@@ -66,24 +66,24 @@ theorem Term.truncBits_eq (path : Path) (e : Grid) (t : Term) (ht : t.Valid)
       have : t.significand.toNat ≠ 0 := fun h => hz (BitVec.eq_of_toNat_eq h)
       omega
     -- |value| / 2^g is the shifted significand over 2^(e - exponent)
-    have hq : (t.significand.toNat : ℚ) * pow2 (((t.biasedExp.toNat : ℤ) - 512) - t.mantissaBits.toNat) /
-        pow2 ((e.toNat : ℤ) - 512 - path.alignmentBits.toNat) =
-        ((t.significand.toNat * 2 ^ (path.alignmentBits.toNat - t.mantissaBits.toNat) : ℕ) : ℚ) /
+    have hq : (t.significand.toNat : ℚ) * pow2 (((t.biasedExp.toNat : ℤ) - 256) - t.mantissaBits.toNat) /
+        pow2 ((e.toNat : ℤ) - 256 - (alignBits path).toNat) =
+        ((t.significand.toNat * 2 ^ ((alignBits path).toNat - t.mantissaBits.toNat) : ℕ) : ℚ) /
           ((2 ^ (e.toNat - t.biasedExp.toNat) : ℕ) : ℚ) := by
       have h1 : (t.significand.toNat : ℚ) *
-          pow2 (((t.biasedExp.toNat : ℤ) - 512) - t.mantissaBits.toNat) =
-          ((t.significand.toNat * 2 ^ (path.alignmentBits.toNat - t.mantissaBits.toNat) : ℕ) : ℚ) *
-            pow2 ((t.biasedExp.toNat : ℤ) - 512 - path.alignmentBits.toNat) := by
+          pow2 (((t.biasedExp.toNat : ℤ) - 256) - t.mantissaBits.toNat) =
+          ((t.significand.toNat * 2 ^ ((alignBits path).toNat - t.mantissaBits.toNat) : ℕ) : ℚ) *
+            pow2 ((t.biasedExp.toNat : ℤ) - 256 - (alignBits path).toNat) := by
         rw [Rat.natCast_mul, Rat.mul_assoc, ← pow2_natCast, ← pow2_add]
         congr 2
         have := ht.2
         omega
-      rw [h1, show (e.toNat : ℤ) - 512 - path.alignmentBits.toNat =
-          ((t.biasedExp.toNat : ℤ) - 512 - path.alignmentBits.toNat) +
+      rw [h1, show (e.toNat : ℤ) - 256 - (alignBits path).toNat =
+          ((t.biasedExp.toNat : ℤ) - 256 - (alignBits path).toNat) +
             ((e.toNat - t.biasedExp.toNat : ℕ) : ℤ) by omega]
       exact dyadic_div _ _ _
     have hpos : 0 ≤ (t.significand.toNat : ℚ) *
-        pow2 (((t.biasedExp.toNat : ℤ) - 512) - t.mantissaBits.toNat) :=
+        pow2 (((t.biasedExp.toNat : ℤ) - 256) - t.mantissaBits.toNat) :=
       Rat.mul_nonneg (Rat.natCast_nonneg) (Rat.le_of_lt (pow2_pos _))
     cases hs : t.negative
     · simp only [Term.unnormalized, UnnormalizedProduct.value, hs, Bool.false_eq_true, if_false,
@@ -94,11 +94,11 @@ theorem Term.truncBits_eq (path : Path) (e : Grid) (t : Term) (ht : t.Valid)
         Rat.intCast_natCast, Rat.neg_mul]
       unfold truncBits
       have hpos' : 0 < (t.significand.toNat : ℚ) *
-          pow2 (((t.biasedExp.toNat : ℤ) - 512) - t.mantissaBits.toNat) :=
+          pow2 (((t.biasedExp.toNat : ℤ) - 256) - t.mantissaBits.toNat) :=
         Rat.mul_pos (Rat.natCast_pos.mpr hn) (pow2_pos _)
       rw [if_pos (by grind), Rat.neg_neg, hq, floor_nat_div _ _ (Nat.two_pow_pos _)]
 
-theorem Term.signedAligned_eq (path : Path) (e : Grid) (t : Term) :
+theorem Term.signedAligned_eq (path : Path) (e : Exp) (t : Term) :
     t.signedAligned path e = BitVec.ofInt (accWidth path)
       (if t.negative then -((t.aligned path e).toNat : ℤ) else ((t.aligned path e).toNat : ℤ)) := by
   have hz : ((t.aligned path e).zeroExtend (accWidth path)) =
@@ -112,7 +112,7 @@ theorem Term.signedAligned_eq (path : Path) (e : Grid) (t : Term) :
     exact hz
   · simp only [if_true, BitVec.ofInt_neg, hz]
 
-theorem accumulate_eq (path : Path) (e : Grid) (ts : List Term) (s : BitVec (accWidth path)) :
+theorem accumulate_eq (path : Path) (e : Exp) (ts : List Term) (s : BitVec (accWidth path)) :
     ts.foldl (fun s t => s + t.signedAligned path e) s =
       machineAccumulate (accWidth path) s (ts.map fun t =>
         if t.negative then -((t.aligned path e).toNat : ℤ) else ((t.aligned path e).toNat : ℤ)) := by
@@ -123,7 +123,7 @@ theorem accumulate_eq (path : Path) (e : Grid) (ts : List Term) (s : BitVec (acc
     rw [ih, t.signedAligned_eq]
 
 /-- The two's complement accumulator holds the exact sum of the aligned terms. -/
-theorem accumulate_toInt (path : Path) (e : Grid) (ts : List Term)
+theorem accumulate_toInt (path : Path) (e : Exp) (ts : List Term)
     (hlen : ts.length = path.profile.products + 1) :
     (accumulate path e ts).toInt = sumZ (ts.map fun t =>
       if t.negative then -((t.aligned path e).toNat : ℤ) else ((t.aligned path e).toNat : ℤ)) := by
@@ -138,7 +138,7 @@ theorem accumulate_toInt (path : Path) (e : Grid) (ts : List Term)
     exact Nat.lt_log2_self
 
 /-- Specification of the alignment exponent fold. -/
-theorem alignFold_spec (ts : List Term) (init : Grid) :
+theorem alignFold_spec (ts : List Term) (init : Exp) :
     let r := ts.foldl (fun e t => if t.significand == 0 then e
       else if e ≤ t.biasedExp then t.biasedExp else e) init
     init.toNat ≤ r.toNat ∧ (∀ t ∈ ts, t.significand ≠ 0 → t.biasedExp.toNat ≤ r.toNat) ∧

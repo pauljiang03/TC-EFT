@@ -69,7 +69,8 @@ is the rounding loss.
 
 **No.** A model with a fixed-width, wrapping two's-complement register gives
 the same output for every input, as long as the register is wide enough:
-29, 31 and 33 bits for the V100, A100 and H100 FP16 profiles. Every partial
+29, 31 and 33 bits for the V100, A100 and H100 FP16 profiles, a sign bit
+included. Every partial
 sum is exact too, whatever the order of additions.
 
 - **Assumes:** a register at least that wide.
@@ -80,15 +81,16 @@ sum is exact too, whatever the order of additions.
 
 **Yes.** A [bitvector datapath](/TC-EFT/model/datapath/) decodes, multiplies,
 aligns, sums and normalizes using bitvector operations only. Its registers
-are sized from the profile: `F + 2` bits per aligned term and a 29 to
-33-bit accumulator. It returns the same output word as the model, or the same
+are sized from the profile: `F + 2` bits per aligned term, an accumulator of
+28 to 32 magnitude bits plus a sign bit (30 and 32 on A100 and H100 FP16, the
+widths in *Accurate Models*), and 9-bit exponents. It returns the same output word as the model, or the same
 error, for every input on all eight supported GPU paths.
 
 - **Assumes:** nothing beyond the input being one of the eight supported paths.
 - **Classification:** Core theorem. The datapath shares no arithmetic with the
   model: it uses shifts, a leading-zero count and wrapping additions where the
   model uses rationals and floors.
-- **Lean:** [`Datapath.evalBlock_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Correctness.lean#L253)
+- **Lean:** [`Datapath.evalBlock_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Correctness.lean#L208)
 
 ### Chained groups
 

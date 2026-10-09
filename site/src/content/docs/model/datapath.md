@@ -22,18 +22,45 @@ alignment bits, and the number of products `K`.
 | Register | Width | Why |
 | --- | --- | --- |
 | Product significand | 24 bits | an 11-bit × 11-bit product is below `2^22` |
-| Exponents | 10 bits, biased by 512; 12 bits during normalization | every unnormalized exponent is between −252 and 254 |
+| Exponents | 9 bits | see [exponents](#exponents) below |
+| Output exponent field | 8 bits | the FP32 exponent field |
 | Aligned term | `F + 2 = 25 + p` bits | `F = 23 + p` bits after the binary point, and 2 integer bits because products are below 4 |
-| Accumulator | `F + 2 + c + 1` bits, two's complement | `c = ⌊log₂ K⌋ + 1` carry bits, so the `K + 1` terms cannot overflow, plus a sign bit |
+| Accumulator | `F + 2 + c` magnitude bits and a sign bit, two's complement | `c = ⌊log₂ K⌋ + 1` carry bits, so the `K + 1` terms cannot overflow |
 
 | Path | `F` | `K` | Accumulator |
 | --- | --- | --- | --- |
-| V100 FP16 | 23 | 4 | 29 bits |
-| A100 FP16, BF16 | 24 | 8 | 31 bits |
-| A100 TF32 | 24 | 4 | 30 bits |
-| H100 FP16, BF16 | 25 | 16 | 33 bits |
-| H100 TF32 (wmma) | 25 | 4 | 31 bits |
-| H100 TF32 (mma) | 25 | 8 | 32 bits |
+| V100 FP16 | 23 | 4 | 28 bits + sign |
+| A100 FP16, BF16 | 24 | 8 | 30 bits + sign |
+| A100 TF32 | 24 | 4 | 29 bits + sign |
+| H100 FP16, BF16 | 25 | 16 | 32 bits + sign |
+| H100 TF32 (wmma) | 25 | 4 | 30 bits + sign |
+| H100 TF32 (mma) | 25 | 8 | 31 bits + sign |
+
+The magnitude widths for A100 and H100 FP16 are the adder widths *Accurate
+Models* gives (§4.1.2 and §4.1.6): `26 + ⌈log₂ 9⌉ = 30` and `27 + 5 = 32`.
+The paper keeps the sign separately; here it is the two's complement sign bit.
+
+### Exponents
+
+FP32 has an 8-bit exponent field, and the output word uses exactly that. The
+exponents before the output need 9 bits:
+
+- The alignment exponent can be as low as the floor, −133 on H100, and as high
+  as 127 from `C` alone. That is 261 values, more than 8 bits can hold.
+- Product exponents span more: two BF16 inputs near the maximum give 254.
+
+The datapath stores an input's unnormalized exponent biased by 128, so a
+product's exponent, the sum of two, is biased by 256, as is `C`'s. Every
+exponent fits in 9 bits. Normalization compares exponents before it
+subtracts, so no intermediate value leaves 9 bits either. *Accurate Models*
+does not give the hardware's exponent register widths; 9 bits is the least
+its reported ranges allow.
+
+*Accurate Models* writes a subnormal input with its normalized exponent, so it
+reports product exponents down to −266 for BF16 and −272 for TF32. The model
+here writes the same subnormal with exponent −126 and no hidden bit, so the
+same product has unnormalized exponent −252. The values are identical; only
+the bookkeeping differs.
 
 ## The stages
 
@@ -41,8 +68,8 @@ alignment bits, and the number of products `K`.
 follows the same five steps as the model:
 
 1. **Decode.** Bit-field extraction gives the sign, the significand with its
-   hidden bit, and a biased exponent. Zeros and subnormals are handled by the
-   field values; an all-ones exponent field rejects the input.
+   hidden bit, and a 9-bit biased exponent. Zeros and subnormals are handled
+   by the field values; an all-ones exponent field rejects the input.
 2. **Multiply.** The significands are multiplied in a 24-bit register and the
    biased exponents are added. Nothing is normalized.
 3. **Align.** A fold keeps the largest exponent of a nonzero term, starting
@@ -51,23 +78,23 @@ follows the same five steps as the model:
    right shift drops the bits below the grid, which is the truncation.
 4. **Accumulate.** The aligned terms are negated where needed and added in the
    two's complement accumulator.
-5. **Normalize and truncate.** A leading-zero count gives the exponent of the
-   leading one. The FP32 exponent field is that exponent, or 1 for a
-   subnormal. A shift by the difference keeps the top 24 bits and drops the
-   rest. The result is out of range when the exponent field reaches 255, or
-   when it is 254 with all 24 kept bits set and some dropped bit nonzero.
-   Otherwise the sign, exponent field and mantissa are packed into the
-   output word.
+5. **Normalize and truncate.** A leading-zero count gives the position of the
+   leading one. Comparing it with the alignment exponent decides whether the
+   result overflows, is normal, or is subnormal. The FP32 exponent field is
+   computed for a normal result and is 1 for a subnormal. A shift keeps the
+   top 24 bits and drops the rest. The result is out of range when the
+   exponent field would reach 255, or when it is 254 with all 24 kept bits
+   set and some dropped bit nonzero. Otherwise the sign, exponent field and
+   mantissa are packed into the output word.
 
 ```lean
 def evalBlock (path : Path) (x : BlockInput path.profile) : Except ModelError F32 := do
   if x.products.length != path.profile.products then throw .wrongProductCount
-  let some c := decode32Fields x.c | throw .nonfiniteInput
+  let some c := decodeC x.c | throw .nonfiniteInput
   let some ps := x.products.mapM (decodeTerm path) | throw .nonfiniteInput
-  let ts := cTerm c :: ps
+  let ts := c :: ps
   let e := alignExp path ts
-  let some bits := normalize (accumulate path e ts) e path.alignmentBits
-    | throw .accumulatorOutOfRange
+  let some bits := normalize (accumulate path e ts) e (alignBits path) | throw .accumulatorOutOfRange
   return bits
 ```
 
@@ -83,10 +110,11 @@ the stages:
 
 | Stage | Lean result | What it shows |
 | --- | --- | --- |
-| Decode and multiply | [`Datapath.product_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Correctness.lean#L74), [`Datapath.cTerm_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Correctness.lean#L105) | each bitvector term denotes the model's term exactly |
+| Decode | [`Datapath.decodeInput_asDecoded`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Decode.lean#L48), [`Datapath.decodeC_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Decode.lean#L97) | each decoder gives the model's decoded value |
+| Multiply | [`Datapath.product_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Correctness.lean#L17) | each product register denotes the model's unnormalized product |
 | Alignment exponent | [`Datapath.alignFold_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Align.lean#L141) | the fold is the floor-raised maximum over nonzero terms |
 | Align | [`Datapath.Term.truncBits_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Align.lean#L49) | each aligned register holds the model's `truncBits` |
-| Accumulate | [`Datapath.accumulate_toInt`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Align.lean#L126), [`Datapath.accumulator_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Correctness.lean#L166) | the accumulator's signed value is the model's exact sum; it never overflows |
+| Accumulate | [`Datapath.accumulate_toInt`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Align.lean#L126), [`Datapath.accumulator_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Correctness.lean#L121) | the accumulator's signed value is the model's exact sum; it never overflows |
 | Normalize and truncate | [`Datapath.normalize_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Normalize.lean#L182) | the bitvector normalizer is `round32 .truncate`, bit for bit |
 
 [`Normalize.lean`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/Datapath/Normalize.lean)

@@ -7,7 +7,7 @@ description: Build, audit, and validation status, and known open items.
 
 | Check | Status |
 | --- | --- |
-| `lake build` (234 targets) | passes, no Lean warnings |
+| `lake build` (235 targets) | passes, no Lean warnings |
 | Axiom audit | only `propext`, `Classical.choice`, `Quot.sound`; no `sorry` |
 | Model = independent specification | proved for all inputs on 8 paths |
 | Model = bitvector datapath | proved for all inputs on 8 paths |
