@@ -171,6 +171,18 @@ additions changes nothing.
   specification of `Float32`.
 - **Lean:** [`EFMachine.tcEft_success`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Correctness.lean#L91), [`EFMachine.tcEft_range_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Correctness.lean#L101), [`EFMachine.tcEft_agrees`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Refinement.lean#L7), [`EFMachine.tcEftWithLean_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Native.lean#L108)
 
+### Does passing the fast-path check guarantee the fast path?
+
+**Yes.** In the 576-bit implementation, whenever the fast-path check passes,
+every run-time comparison in the fast path succeeds. So the fast path is
+taken, and it returns the correctly rounded sum. The run-time comparisons are
+provably redundant: they can never fail once the check has passed.
+
+- **Assumes:** a supported, finite input that passes the check and is not all
+  zeros.
+- **Classification:** Core theorem.
+- **Lean:** [`EFMachine.Components.scalar_of_guard`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/ScalarGuard.lean#L242), [`EFMachine.tcEft_scalar_of_guard`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/ScalarGuard.lean#L268)
+
 ## Number formats and rounding
 
 ### Is FP32 rounding implemented correctly?
@@ -195,8 +207,6 @@ including subnormals and both zeros.
 
 - **That real GPUs behave like the model.** That rests on replaying recorded
   measurements. See [hardware validation](/TC-EFT/model/validation/).
-- **That the fast path is taken whenever the safety check passes.** The
-  bounded implementation checks this at run time instead.
 - **No theorem here is a finite list of cases dressed up as a general result.**
   Concrete `decide` checks are used only for worked examples and regression
   witnesses.

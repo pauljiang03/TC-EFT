@@ -7,8 +7,8 @@
   "case_record_sha256": "e9cf48a8ba9d59bcd2d3648212626ff499baa4b1ad6bf6c15528de903699bd3e",
   "comparison": "Actual Lean predicate and safe API; binary-search original-input rational oracle",
   "timing": {
-    "lean_reference_runner_seconds": 59.063,
-    "total_seconds": 65.683
+    "lean_reference_runner_seconds": 57.702,
+    "total_seconds": 64.178
   },
   "limits": [
     "All extraction and guard work here is exact arithmetic.",

@@ -13,6 +13,7 @@ import TensorCore.Kernels.EFT.Preparation
 import TensorCore.Kernels.EFT.Refinement
 import TensorCore.Kernels.EFT.Round
 import TensorCore.Kernels.EFT.Scalar
+import TensorCore.Kernels.EFT.ScalarGuard
 import TensorCore.Kernels.EFT.Split
 import TensorCore.Kernels.EFT.SplitDefs
 import TensorCore.Kernels.EFT.Success

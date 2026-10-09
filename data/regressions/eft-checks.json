@@ -23,7 +23,7 @@
         "scripts/lean/Audit.lean"
       ],
       "exit_code": 0,
-      "audit": "tc_audit: 1375 theorem roots (845 written in source, the rest generated)"
+      "audit": "tc_audit: 1394 theorem roots (858 written in source, the rest generated)"
     },
     {
       "command": [
@@ -54,7 +54,7 @@
       "exit_code": 0
     }
   ],
-  "scanned_lean_sources": 143,
+  "scanned_lean_sources": 144,
   "bounded_scope": "Complete eight-path encoded EFT: bounded decoding, signed extraction/overlap, guards, scalar and 576-bit exact consolidation, direct FP32 rounding; universal finite-input correctness, success/range, reference refinement, and source-level operation budgets",
   "bounded_checks": {
     "status": "passed",
@@ -84,7 +84,7 @@
     "coefficient_width": 576,
     "common_grid_exponent": -272,
     "seed": 20260907,
-    "elapsed_seconds": 6.126,
+    "elapsed_seconds": 6.096,
     "source_sha256": {
       "TensorCore/Kernels/EFT/BitScan.lean": "38c504b36de8ae04d321015ef6ccb3fecc689a77ba2d3a53c20bdae12bf9a0f7",
       "TensorCore/Kernels/EFT/BitScanDefs.lean": "39eada4ec892f7eafa90b8549406f743499b15df957e4c0ca2b26eaac9806df7",
@@ -92,7 +92,7 @@
       "TensorCore/Kernels/EFT/Cost.lean": "0f0041cf6d9a927c7f2c1663bbee1a28c78d3ef760c3b0a0216bbc9ac31a02da",
       "TensorCore/Kernels/EFT/Decode.lean": "e8efce11c8f27c6fd49eee574bd0fd6bb0fdf3eb2a36f186743287f426d5f6a6",
       "TensorCore/Kernels/EFT/DecodeDefs.lean": "1fe7beb11981fb4aa32ea7f063ee2dfa1f3c301e7b631b17a0bd206ad8eaabc4",
-      "TensorCore/Kernels/EFT/Defs.lean": "d8ad8f3cba8277aec106c9feb2e86d79b21ae7792b60243b72222f8f56563db8",
+      "TensorCore/Kernels/EFT/Defs.lean": "d35c422c91364b713078b22cf39b0584604307ec81af132a4c959092457cff8f",
       "TensorCore/Kernels/EFT/Dyadic.lean": "7d553af4c13b2f3d14d193dd65e0495b9a5283a31c436d097bebb8372243594a",
       "TensorCore/Kernels/EFT/Extraction.lean": "8ff7e321312b184b495fd88f840fd63a86993f9a7d926e93cc71f4d4ada1b941",
       "TensorCore/Kernels/EFT/Grid.lean": "3913bb3ef91981c10728e78942fdaeb89e5ff18c978301a176e6e495f228c0e5",
@@ -101,6 +101,7 @@
       "TensorCore/Kernels/EFT/Refinement.lean": "160a52513e9ba403d1beb6946aff955284f5ef0a4a9b8016475618f7e7c81458",
       "TensorCore/Kernels/EFT/Round.lean": "54978552dca11ba0854892c25618ec17c608a2ab7e5743dcb8c1eebe230bd8ae",
       "TensorCore/Kernels/EFT/Scalar.lean": "1792d4144369b5e20905664a05ecad09239f104883879810d0cb0350e5c1ddf5",
+      "TensorCore/Kernels/EFT/ScalarGuard.lean": "e385d64f65ed7e2a952ea003a1ccde1ce56d70b2bf97d3e9b228aaa0311d35a1",
       "TensorCore/Kernels/EFT/Split.lean": "db5022ba06387df802c32c5c23795339403241b5dec04378395e58f9193a51c1",
       "TensorCore/Kernels/EFT/SplitDefs.lean": "614005c84009722b95ff64838032079b3a27fd861d1a0e4cb414897e91be225a",
       "TensorCore/Kernels/EFT/Success.lean": "3cccf26f54de50b2a85ddf7677a724249b3682f66fdbb23e638f6368a8213725",

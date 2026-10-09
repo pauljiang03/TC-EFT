@@ -68,13 +68,18 @@ def magnitudeSumWords : List Magnitude → Option Magnitude
     let s := x + y
     if s < x then none else some s
 
-/-- Sufficient scalar support/range predicate. -/
-def Components.scalarGuard (c : Components) : Bool :=
-  let ell := c.low.foldl (fun e x =>
+/-- The common grid of the low parts: the lowest bit actually set in any nonzero low part,
+capped at the extraction grid (in units of the workspace's lowest bit `2^-272`). -/
+def Components.lowGrid (c : Components) : Magnitude :=
+  c.low.foldl (fun e x =>
     if x.magnitude == 0 then e else
       let trailing := trailingZeros x.magnitude
       if e ≤ trailing then e else trailing)
-      (c.prepared.grid.zeroExtend 576)
+    (c.prepared.grid.zeroExtend 576)
+
+/-- Sufficient scalar support/range predicate. -/
+def Components.scalarGuard (c : Components) : Bool :=
+  let ell := c.lowGrid
   (ell ≥ 123) && (ell ≤ 376) &&
   c.low.all (fun x => ((x.magnitude >>> ell) <<< ell) == x.magnitude) &&
   ((magnitudeSumWords (c.low.map fun x => x.magnitude >>> ell)).any (· < 16777216)) &&

@@ -40,12 +40,13 @@ for the Tensor Core model, and *the TC-EFT paper* for non-monotonicity and the T
 | The 576-bit implementation succeeds exactly when the rounded sum is finite, and never overflows. | `EFMachine.tcEft_success`, `EFMachine.tcEft_range_iff` | [Kernels/EFT/Correctness.lean](Kernels/EFT/Correctness.lean) |
 | The 576-bit implementation returns the same bits as the reference algorithm. | `EFMachine.tcEft_agrees` | [Kernels/EFT/Refinement.lean](Kernels/EFT/Refinement.lean) |
 | Using Lean's native `Float32` additions changes nothing (relative to Lean's `Float32` specification). | `EFMachine.tcEftWithLean_eq` | [Kernels/EFT/Native.lean](Kernels/EFT/Native.lean) |
+| In the 576-bit implementation, whenever the fast-path check passes, every run-time comparison succeeds: the fast path is taken and returns the correctly rounded sum. | `EFMachine.Components.scalar_of_guard`, `EFMachine.tcEft_scalar_of_guard` | [Kernels/EFT/ScalarGuard.lean](Kernels/EFT/ScalarGuard.lean) |
 
 ## Number formats and rounding
 
 | What it says | Lean name | File |
 | --- | --- | --- |
-| rounding to FP32 returns the nearest value, ties to even, for every in-range input. | `round32_nearestEven_correct` | [Numerics/CorrectRounding.lean](Numerics/CorrectRounding.lean) |
+| Rounding to FP32 returns the nearest value, ties to even, for every in-range input. | `round32_nearestEven_correct` | [Numerics/CorrectRounding.lean](Numerics/CorrectRounding.lean) |
 | The same holds for any binary format and rounding direction. | `roundBinary_correct` | [Numerics/Binary/RoundingContract.lean](Numerics/Binary/RoundingContract.lean) |
 | Rounding succeeds exactly when the input is within the format's finite range. | `roundBinary_isSome_iff` | [Numerics/Binary/RoundingContract.lean](Numerics/Binary/RoundingContract.lean) |
 | Finite bit patterns and representable values correspond one to one, including subnormals and both zeros. | `signedFiniteBinaryBijection` | [Numerics/Binary/SignedBijection.lean](Numerics/Binary/SignedBijection.lean) |
@@ -54,8 +55,6 @@ for the Tensor Core model, and *the TC-EFT paper* for non-monotonicity and the T
 ## Not proved
 
 - That real GPUs behave like the model. That is tested by replaying recorded GPU outputs.
-- That the fast path is taken whenever the safety check passes. The 576-bit implementation checks
-  this at run time.
 
 The [FloatLib correspondence](../floatlib-port/COMPARISON.md) covers the independent second
 implementation. This block keeps every name above connected to the actual API:
@@ -86,6 +85,8 @@ open TensorCore
 #check EFMachine.tcEft_range_iff
 #check EFMachine.tcEft_agrees
 #check EFMachine.tcEftWithLean_eq
+#check EFMachine.Components.scalar_of_guard
+#check EFMachine.tcEft_scalar_of_guard
 #check round32_nearestEven_correct
 #check roundBinary_correct
 #check roundBinary_isSome_iff

@@ -21,8 +21,6 @@ description: Build, audit, and validation status, and known open items.
   The TF32 input files duplicate the V100 FP16 inputs.
 - **`inputBudget_scalarPredicate`** takes most of its conclusion as hypotheses, and
   no repository instance satisfies all of them.
-- **Scalar fast path.** No theorem shows that the predicate forces the
-  bounded kernel to take the fast path.
 - **Validation scripts** rely on `assert` and must not run under `python -O`.
 - **Signed zero.** The binary rounding helpers return `+0` for exact zero in
   every mode, so the FP64 FMA in round-down mode differs from IEEE here.

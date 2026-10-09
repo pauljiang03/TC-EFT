@@ -122,10 +122,12 @@ term *could* have, given its format, and counted zero terms. That was safe
 but stricter than necessary. It disagreed with the paper's generator in 27
 cases, and was changed.)
 
-**4. The fast path is checked at run time, not proved to apply.** In the
-576-bit implementation, the fast path's intermediate results are compared
-with the exact ones before being accepted. Correctness is proved, but no
-theorem shows that passing the check *guarantees* the fast path is taken.
+**4. Passing the check guarantees the fast path.** The 576-bit
+implementation also compares each FP32 intermediate result with the exact
+value before accepting it. Lean proves these run-time comparisons always
+succeed once the check passes (`EFMachine.Components.scalar_of_guard`), so the
+fast path is taken exactly as the check predicts. The comparisons remain in the
+code as a defensive check, though they can never fail.
 
 **5. The paper's input-budget condition is only partly connected.** The
 TC-EFT paper's inequality (17) bounds the bit span from the inputs alone.

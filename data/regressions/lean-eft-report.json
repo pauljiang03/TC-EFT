@@ -31,7 +31,7 @@
     "lean-toolchain": "3aac669c7a910ec2389f4e4f921b605adf6ebf2d1e0c9b9cd0be4d33f3f5db71",
     "lakefile.toml": "e5c76c18e1e05b60e480b52e8c15e4546102778966e9ce6a9cc9c36eb873c532",
     "TensorCore/Kernels/EFT/Native.lean": "e396581b1a22a86e15bd8d836c33047c7bb272eea2066acac9228be77f28dfa5",
-    "TensorCore/Kernels/EFT/Defs.lean": "d8ad8f3cba8277aec106c9feb2e86d79b21ae7792b60243b72222f8f56563db8",
+    "TensorCore/Kernels/EFT/Defs.lean": "d35c422c91364b713078b22cf39b0584604307ec81af132a4c959092457cff8f",
     "tests/TensorCoreTests/EFT/NativeEFT.lean": "ea60d839b4e14725661df32637729825e19c9f214e71a8f70ad5a29a1c259d98",
     "TensorCore/Scalar/Basic.lean": "d1e559d91af91868d81fbeee3f98fd2f146929da85ab4eb09f8586daecb0e7ed",
     "TensorCore/Scalar/Compatibility.lean": "4bffcdea235a14921bd79237055d25b6dc4f2f59df1fdc8add8cb922ccf5baa6",
@@ -55,11 +55,12 @@
     "TensorCore/Kernels/EFT/Refinement.lean": "160a52513e9ba403d1beb6946aff955284f5ef0a4a9b8016475618f7e7c81458",
     "TensorCore/Kernels/EFT/Round.lean": "54978552dca11ba0854892c25618ec17c608a2ab7e5743dcb8c1eebe230bd8ae",
     "TensorCore/Kernels/EFT/Scalar.lean": "1792d4144369b5e20905664a05ecad09239f104883879810d0cb0350e5c1ddf5",
+    "TensorCore/Kernels/EFT/ScalarGuard.lean": "e385d64f65ed7e2a952ea003a1ccde1ce56d70b2bf97d3e9b228aaa0311d35a1",
     "TensorCore/Kernels/EFT/Split.lean": "db5022ba06387df802c32c5c23795339403241b5dec04378395e58f9193a51c1",
     "TensorCore/Kernels/EFT/SplitDefs.lean": "614005c84009722b95ff64838032079b3a27fd861d1a0e4cb414897e91be225a",
     "TensorCore/Kernels/EFT/Success.lean": "3cccf26f54de50b2a85ddf7677a724249b3682f66fdbb23e638f6368a8213725",
     "TensorCore/Kernels/EFT/Word.lean": "b5eec2d75afc318e1fe698383d7aa2c1e682a396558bebcdf70628d13b8d9bfa",
     "TensorCore/Kernels/EFT/WordDefs.lean": "50d9031946d93e29280339a17e034c0cb14a51f14b4c674ce282296525f06b79"
   },
-  "elapsed_seconds": 3.409
+  "elapsed_seconds": 3.406
 }
