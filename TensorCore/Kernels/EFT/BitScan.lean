@@ -1,5 +1,7 @@
 import TensorCore.Kernels.EFT.BitScanDefs
 
+/-! Correctness of the bounded leading and trailing bit scans. -/
+
 namespace TensorCore.EFMachine
 
 set_option exponentiation.threshold 1024
@@ -155,7 +157,7 @@ theorem scanBoundaryTrace_bounds (test : ℕ → Bool) (fuel lo hi : ℕ) :
           · have := ht.2 n he; omega
     · simp
 
-/-- Every probe index is below 576: all intermediate prefix words have width at most 576, and at most ten probes are executed, including for the zero word. -/
+/-- Bit scans use at most ten probes, each below index 576. -/
 theorem bitScan_probe_budget (test : ℕ → Bool) :
     (scanBoundaryTrace test 10 0 576).2.length ≤ 10 ∧
       ∀ n ∈ (scanBoundaryTrace test 10 0 576).2, n < 576 := by

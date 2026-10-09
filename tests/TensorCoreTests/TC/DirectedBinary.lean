@@ -95,6 +95,20 @@ theorem fma64_directed_half_ulp :
     fma64Bits .towardPositive 0xbff0000000000000 0x3ff0000000000000 0xbca0000000000000 = some 0xbff0000000000000 := by
   decide +kernel
 
+def fma64Signed (mode : BinaryRoundingMode) (a b c : BitVec 64) : Option ℕ :=
+  (binary64FmaBits (mode := mode) ⟨[(a, b)], c⟩).map BitVec.toNat
+
+/-- IEEE 754 signed zero for exact zeros; a nonzero result rounded to zero keeps its sign. -/
+theorem fma64_signed_zero :
+    fma64Signed .towardNegative 0x3ff0000000000000 0x3ff0000000000000 0xbff0000000000000 = some 0x8000000000000000 ∧
+    fma64Signed .nearestEven 0x3ff0000000000000 0x3ff0000000000000 0xbff0000000000000 = some 0 ∧
+    fma64Signed .nearestEven 0x8000000000000000 0x3ff0000000000000 0x8000000000000000 = some 0x8000000000000000 ∧
+    fma64Signed .nearestEven 0 0 0x8000000000000000 = some 0 ∧
+    fma64Signed .towardNegative 0 0 0x8000000000000000 = some 0x8000000000000000 ∧
+    fma64Signed .towardPositive 0x8000000000000001 0x3fe0000000000000 0 = some 0x8000000000000000 ∧
+    fma64Signed .nearestEven 0x3ff0000000000000 0x3ff0000000000000 0x3ff0000000000000 = some 0x4000000000000000 := by
+  decide +kernel
+
 theorem fma64_subnormal :
     fma64Bits .towardNegative 0x8000000000000001 0x3fe0000000000000 0 = some 0x8000000000000001 ∧
     fma64Bits .towardPositive 0x8000000000000001 0x3fe0000000000000 0 = some 0x8000000000000000 := by

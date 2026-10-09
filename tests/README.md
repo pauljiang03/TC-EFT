@@ -173,7 +173,7 @@ The universal proofs concern the defined finite-domain model under their stated 
 
 `check_axioms.py` rebuilds the full regression environment before auditing theorem roots and scanning maintained Lean sources for proof shortcuts. The permitted axioms are `propext`, `Classical.choice`, and `Quot.sound`. The audit regression deliberately puts broken source behind a valid cache and requires rejection. Specification and bounded-execution audits also contain deliberate dependency-contamination controls that must fail.
 
-Use ordinary `python3`, without `-O` or `PYTHONOPTIMIZE`, because numerical harness assertions form part of the check. A parse error, failed Lean process, unexpected record count, or failed comparison stops the harness. Successful reports go under `data/regressions/`; intermediate batches and logs go under ignored `tmp/`.
+Use ordinary `python3`: numerical harness assertions form part of the check, and every script refuses to run under `-O` or `PYTHONOPTIMIZE`. A parse error, failed Lean process, unexpected record count, or failed comparison stops the harness. Successful reports go under `data/regressions/` (run timings go to the untracked `tmp/timings/`); intermediate batches and logs go under ignored `tmp/`.
 
 For the complete gate:
 

@@ -1,5 +1,7 @@
 import TensorCore.Numerics.Defs
 
+/-! Classification and decoding of binary words. -/
+
 namespace TensorCore
 
 /-- Classification of a bit pattern given as a natural number below `2 ^ f.width`. -/

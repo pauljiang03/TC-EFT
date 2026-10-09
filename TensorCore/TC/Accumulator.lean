@@ -1,5 +1,7 @@
 import TensorCore.TC.Block
 
+/-! A fixed-width register model of accumulation. -/
+
 namespace TensorCore
 
 /-- Actual modular signed-word additions, starting from a supplied register. -/

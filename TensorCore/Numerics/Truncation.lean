@@ -1,5 +1,7 @@
 import TensorCore.Numerics.Exact
 
+/-! Truncation onto a binary grid and its residuals. -/
+
 namespace TensorCore
 
 theorem alignment_value (x : ℚ) (e : ℤ) :

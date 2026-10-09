@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Build and audit the reference, scalar, instruction-group, and bounded EFT tests."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 import argparse
 import json

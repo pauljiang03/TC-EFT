@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Replay all recorded BF16/TF32 hardware rows and the source scalar-guard corpus."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 from fractions import Fraction as Q
 import sys, json, subprocess, hashlib

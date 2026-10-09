@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Independent integer checks of the complete bounded EFT and final rounding."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from collections import Counter
 from fractions import Fraction
 from pathlib import Path
@@ -220,9 +222,11 @@ def main():
                   paper_blocks=len(corpus), arbitrary_D_blocks=len(cases) - len(corpus),
                   rounding_cases=len(rounds), branches=dict(branches), mismatches=0,
                   coefficient_width=576, common_grid_exponent=-272, seed=20260907,
-                  elapsed_seconds=round(time.perf_counter() - start, 3),
                   source_sha256={str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
                                  for p in sources})
+    timing = dict(elapsed_seconds=round(time.perf_counter() - start, 3))
+    (ROOT / 'tmp/timings').mkdir(parents=True, exist_ok=True)
+    (ROOT / 'tmp/timings/bounded-eft.json').write_text(json.dumps(timing, indent=2) + '\n')
     (ROOT / 'data/regressions/bounded-eft-report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
 

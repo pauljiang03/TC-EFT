@@ -1,6 +1,6 @@
 import TensorCore.Numerics.Encoding
 
--- Canonical algebraic representations and their finite encoded domain.
+/-! Canonical algebraic representations and their finite encoded domain. -/
 
 namespace TensorCore
 

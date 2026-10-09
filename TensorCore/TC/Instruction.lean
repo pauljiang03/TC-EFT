@@ -295,7 +295,7 @@ theorem InstructionPath.schedule_flatten (p : InstructionPath) (pairs : List (F1
   rw [h]
   exact (Nat.div_mul_cancel p.kDiv).symm
 
-/-- Conformance of a device function to the modeled path on the model's accepted domain: whenever the model produces an output, the device produces the same bits. -/
+/-- A device conforms if it returns the model's bits wherever the model returns a result. -/
 def Conforms (p : InstructionPath) (device : F32 → List (F16 × F16) → Option F32) : Prop :=
   ∀ c pairs out, p.output c pairs = some out → device c pairs = some out
 
@@ -315,7 +315,7 @@ theorem InstructionPath.run_blocks (p : InstructionPath) (c : F32) (pairs : List
   · contradiction
   · exact h
 
-/-- A `k`-wide input whose products beyond the first group are zero pairs returns the first group's output: every later group passes the accumulator through. -/
+/-- If only the first group has nonzero products, the instruction returns that group's output. -/
 theorem single_group_output (p : InstructionPath) (hfl : ∀ f ∈ p.floor, f ≤ -126)
     (hk : p.products ≤ p.k) (c : F32) (g : List (F16 × F16)) (hg : g.length = p.products)
     (t : BlockTrace) (h1 : evalBlock (⟨g, c⟩ : BlockInput p.profile) = .ok t)

@@ -46,5 +46,7 @@ Profiles for `tc_bounded_eft` are `v100-fp16`, `a100-fp16`, `h100-fp16`,
 | `check_bounded_eft.py` | bounded kernel vs reference |
 | `check_docs.py` | every Lean block in the docs elaborates |
 
-Run with Python assertions enabled (no `-O`). Several reports record
-timings, so a run modifies tracked files under `data/regressions/`.
+The scripts refuse to run under `python -O` or `PYTHONOPTIMIZE`, because
+their checks use `assert`. Run timings are written to `tmp/timings/`, which is
+not tracked, so rerunning the checks on unchanged sources leaves `git status`
+clean.

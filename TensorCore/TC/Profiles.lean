@@ -1,5 +1,7 @@
 import TensorCore.TC.Invocation
 
+/-! Invocation descriptors of the supported GPU paths. -/
+
 namespace TensorCore
 
 /-- Source-backed FP32-output families. -/

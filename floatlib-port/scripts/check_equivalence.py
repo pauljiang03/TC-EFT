@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Compare first-principles and FloatLib outputs on identical encoded inputs."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 import argparse, hashlib, itertools, json, random, shutil, subprocess
 PORT = Path(__file__).resolve().parents[1]

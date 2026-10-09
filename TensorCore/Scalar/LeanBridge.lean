@@ -2,6 +2,8 @@ import TensorCore.Scalar.LeanRounding
 import TensorCore.Scalar.Compatibility
 import Init.Data.Float
 
+/-! Bridge between FP32 words and Lean Float32. -/
+
 namespace TensorCore.IEEE.LeanBridge
 
 set_option maxRecDepth 4096

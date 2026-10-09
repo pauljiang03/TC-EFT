@@ -1,6 +1,8 @@
 import TensorCore.Kernels.EFT.Word
 import TensorCore.TC.Monotonicity
 
+/-! Values of the bounded split and rounding on dyadic words. -/
+
 namespace TensorCore.EFMachine
 
 theorem floor_nat_div (m d : ℕ) (hd : 0 < d) :

@@ -3,7 +3,7 @@ import TensorCore.TC.StageResiduals
 import TensorCore.TC.AlignmentExponent
 import TensorCore.TC.Padding
 
-
+/-! Non-monotonicity of the model under a smaller C. -/
 
 namespace TensorCore
 
@@ -14,7 +14,7 @@ theorem oneDecoded_value : oneDecoded.value = 1 := by decide +kernel
 theorem belowOneDecoded_value : belowOneDecoded.value = 16777215 * pow2 (-24) := by
   decide +kernel
 
-/-- The alignment exponent of the construction is the accumulator input's unnormalized exponent when every product's unnormalized exponent is at most that value. -/
+/-- In the construction, the alignment exponent is C's exponent when no product's exponent exceeds it. -/
 theorem construction_alignExp (prof : Profile) (K : ℕ) (da db c : Decoded)
     (hc : c.significand ≠ 0) (_hu : (unnormalizedMul da db).significand ≠ 0)
     (hs : (unnormalizedMul da db).unnormalizedExp ≤ c.unnormalizedExp) (hfl : ∀ f ∈ prof.alignFloor, f ≤ c.unnormalizedExp) :
@@ -269,6 +269,7 @@ theorem nonmonotone_perturbation (prof : Profile) (p K : ℕ) (da db : Decoded)
       · intro h; omega
 
 
+/-- Lowering C from 1 to its FP32 predecessor raises the output exactly when K ≥ 3·2^p. -/
 theorem nonmonotone_encoded (K p : ℕ) (floor : Option ℤ) (hfl : ∀ f ∈ floor, f ≤ -1)
     (a b : (fp16Fp32Profile K p floor).Word) (da db : Decoded)
     (ha : (fp16Fp32Profile K p floor).decode a = some da)

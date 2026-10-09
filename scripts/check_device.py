@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Compare the Lean V100 FP16->FP32 block evaluator with GPU-measured vectors."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from fractions import Fraction as Q
 from pathlib import Path
 import json

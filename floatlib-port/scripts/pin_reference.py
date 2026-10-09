@@ -7,6 +7,8 @@ pinned revision and manifest checksum used by prepare_reference.py and the repor
 clears renamed-identifiers.json (renames before the new pin are part of it).
 Use this only after a deliberate change to the parent's behavior has been reviewed.
 """
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 import hashlib, json, re, subprocess, sys
 import prepare_reference as pr
 

@@ -1,6 +1,8 @@
 import TensorCore.Kernels.EFT.Correctness
 import TensorCore.Kernels.EFT.Grid
 
+/-! Operation budgets of the 576-bit TC-EFT. -/
+
 namespace TensorCore.EFMachine
 
 /-! Source-level operation budgets, not processor cycles. -/
@@ -12,7 +14,6 @@ structure OperationBudget where
   splits : ℕ
   extractionAdds : ℕ
   scalarAdds : ℕ
-  exactChecks : ℕ
   conversions : ℕ
   guardCoefficientAdds : ℕ
   residualBitScans : ℕ
@@ -21,16 +22,16 @@ structure OperationBudget where
 
 def operationBudget (K : ℕ) : OperationBudget :=
   let N := K + 1
-  ⟨2 * K + 2, K, N, N, 2 * N + 3, N + 2, N + 4,
-    2 * N + 7, N, N, (N + 4) + 2 * (N + 2) + 2⟩
+  ⟨2 * K + 2, K, N, N, 2 * N + 3, N + 2,
+    2 * N + 7, N, N, 2 * (N + 2)⟩
 
 /-- Concrete maxima for every supported normalization group, including failed scalar attempts. -/
 theorem operationBudget_bounds (path : Path) :
     let b := operationBudget path.profile.products
     b.inputDecodes ≤ 34 ∧ b.products ≤ 16 ∧ b.exponentScan ≤ 17 ∧ b.splits ≤ 17 ∧
-    b.extractionAdds ≤ 37 ∧ b.scalarAdds ≤ 19 ∧ b.exactChecks ≤ 21 ∧
+    b.extractionAdds ≤ 37 ∧ b.scalarAdds ≤ 19 ∧
     b.conversions ≤ 41 ∧ b.guardCoefficientAdds ≤ 17 ∧ b.residualBitScans ≤ 17 ∧
-    b.scalarDecodes ≤ 61 := by cases path <;> decide
+    b.scalarDecodes ≤ 38 := by cases path <;> decide
 
 /-- Each direct conversion needs at most one leading scan; each nonzero residual needs at most one trailing scan. -/
 theorem bitScan_total_budget (path : Path) :

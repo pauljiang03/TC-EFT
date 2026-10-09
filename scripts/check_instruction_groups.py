@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Compare 16-position Lean instruction outputs with an independent exact-arithmetic oracle."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 import hashlib
 import json

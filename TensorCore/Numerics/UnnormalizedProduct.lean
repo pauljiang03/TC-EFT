@@ -1,5 +1,7 @@
 import TensorCore.Numerics.FormatProperties
 
+/-! Exact products with unnormalized exponents. -/
+
 namespace TensorCore
 
 /-- An exact product, not renormalized: `value = significand · 2^(unnormalizedExp − mantissaBits)`. -/

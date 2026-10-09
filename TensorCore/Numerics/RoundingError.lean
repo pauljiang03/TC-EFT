@@ -1,6 +1,6 @@
 import TensorCore.Numerics.CorrectRounding
 
--- Error bounds for finite FP32 rounding.
+/-! Error bounds for finite FP32 rounding. -/
 
 namespace TensorCore
 

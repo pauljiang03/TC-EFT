@@ -1,6 +1,8 @@
 import TensorCore.Kernels.EFT.Refinement
 import TensorCore.Numerics.Sum
 
+/-! An input-only success family for the 576-bit TC-EFT. -/
+
 namespace TensorCore.EFMachine
 
 private theorem unit_product (a b : ℚ) (ha : absQ a ≤ 1) (hb : absQ b ≤ 1) :

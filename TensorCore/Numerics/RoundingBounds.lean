@@ -1,5 +1,7 @@
 import TensorCore.Numerics.Rounding
 
+/-! Exponent and significand bounds for FP32 rounding. -/
+
 namespace TensorCore
 
 theorem binade_grid (e : ℤ) : pow2 e = 8388608 * pow2 (e - 23) := by

@@ -1,6 +1,8 @@
 # Compare the FloatLib executable with the pinned paper oracles.
 #!/usr/bin/env python3
 """Reproduce the pinned TC-EFT paper suites and compare their exact cases with Lean."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from collections import Counter
 from contextlib import redirect_stdout
 from copy import deepcopy

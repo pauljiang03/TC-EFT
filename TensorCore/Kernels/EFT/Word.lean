@@ -1,6 +1,8 @@
 import TensorCore.Kernels.EFT.WordDefs
 import TensorCore.EFT.Extraction
 
+/-! Values of bounded signed words and their sums. -/
+
 namespace TensorCore.EFMachine
 
 set_option exponentiation.threshold 1024

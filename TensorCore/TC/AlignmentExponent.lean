@@ -3,6 +3,8 @@ import TensorCore.Numerics.Truncation
 import TensorCore.TC.AccumulatorWidth
 import TensorCore.TC.StageResiduals
 
+/-! The alignment exponent and accumulator capacity. -/
+
 namespace TensorCore
 
 private def maxStep (acc : Option ℤ) (e : ℤ) : Option ℤ :=

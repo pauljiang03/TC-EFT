@@ -26,7 +26,7 @@ def EncodedEFTResult.bits : EncodedEFTResult → Option F32
 def PreparedBlock.allZeroTerms (b : PreparedBlock) : Bool :=
   b.terms.all fun t => t.significand == 0
 
-/-- Algorithm 1: check the finite encoded interface, return +0 for all-zero terms, otherwise reconstruct the grids and overlap components and execute the two-branch reference. -/
+/-- TC-EFT on encoded inputs: `+0` for all-zero terms, otherwise extraction and correction. -/
 def tcEftEncoded {p : Profile} (x : BlockInput p) (D : F32) :
     Except ModelError EncodedEFTResult :=
   match prepareEncodedEFT x D with

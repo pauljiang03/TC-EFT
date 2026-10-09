@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Check scalar-precondition cohorts using the executable Lean specification."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from collections import Counter
 from fractions import Fraction as Q
 from pathlib import Path
@@ -188,13 +190,14 @@ def main():
                   input_sha256=hashlib.sha256(rows.encode()).hexdigest(),
                   case_record_sha256=hashlib.sha256(case_text.encode()).hexdigest(),
                   comparison='Actual Lean predicate and safe API; binary-search original-input rational oracle',
-                  timing=dict(lean_reference_runner_seconds=round(lean_seconds, 3),
-                              total_seconds=round(time.perf_counter()-start, 3)),
                   limits=['All extraction and guard work here is exact arithmetic.',
-                          'Timings include diagnostics, repeated exact work and JSON; not algorithm phase costs.',
                           'The Lean predicate and this oracle both use the lowest bit actually set in the low parts.',
                           'Published rows are prior measurements; no GPU was run.'],
                   cohorts=totals)
+    timing = dict(lean_reference_runner_seconds=round(lean_seconds, 3),
+                  total_seconds=round(time.perf_counter() - start, 3))
+    (ROOT / 'tmp/timings').mkdir(parents=True, exist_ok=True)
+    (ROOT / 'tmp/timings/eft-coverage.json').write_text(json.dumps(timing, indent=2) + '\n')
     (destination / 'eft-coverage-cases.json').write_text(case_text)
     (destination / 'eft-coverage.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))

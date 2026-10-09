@@ -2,6 +2,8 @@ import TensorCore.TC.CanonicalFloor
 import TensorCore.TC.ExactAlignment
 import TensorCore.TC.AcceptedDomain
 
+/-! Padding that makes FP16 alignment exact. -/
+
 namespace TensorCore
 
 /-- Uniform finite FP16-product/FP32-c metadata bounds. -/

@@ -1,49 +1,17 @@
-import TensorCore.Kernels.EFT.Correctness
+import TensorCore.Kernels.EFT.Scalar
+import TensorCore.Kernels.EFT.Preparation
 
-/-! The fast-path check guarantees the fast path.
-
-`Components.scalar` first evaluates `scalarGuard` and then, as a run-time self-check, compares
-each FP32 intermediate result with the exact value already held in the 576-bit workspace. This
-module proves that whenever the guard accepts, every one of those comparisons succeeds: the
-fast path returns a value, and that value is the correctly rounded exact sum. -/
+/-! Correctness of the bounded scalar branch: passing the guard makes every FP32 step exact. -/
 
 namespace TensorCore.EFMachine
 
 set_option exponentiation.threshold 1024
 
-/-- Two words with the same value pass the run-time equality comparison. -/
-theorem Word.sameValue_of_value_eq {x y : Word} (h : x.value = y.value) : x.sameValue y = true := by
-  have hp : pow2 (-272) ≠ 0 := Rat.ne_of_gt (pow2_pos _)
-  have hc : x.coefficient = y.coefficient := by
-    unfold Word.value at h
-    have h' : (x.coefficient : ℚ) = y.coefficient := by
-      have := congrArg (· / pow2 (-272)) h
-      simpa [Rat.mul_div_cancel hp] using this
-    exact_mod_cast h'
-  have hx := x.magnitude.isLt
-  have hy := y.magnitude.isLt
-  unfold Word.coefficient at hc
-  simp only [Word.sameValue, Bool.and_eq_true, beq_iff_eq, Bool.or_eq_true]
-  cases hxn : x.negative <;> cases hyn : y.negative <;>
-    simp only [hxn, hyn, Bool.false_eq_true, ↓reduceIte] at hc <;>
-    refine ⟨BitVec.eq_of_toNat_eq (by omega), ?_⟩ <;>
-    first
-      | exact Or.inr rfl
-      | exact Or.inl (BitVec.eq_of_toNat_eq (by simp; omega))
-
-/-- A word whose value is exactly representable in FP32 converts exactly. -/
-theorem Word.exact32_of_finite {x : Word} (h : FiniteValue32 x.value) :
-    ∃ b, x.exact32 = some b ∧ TensorCore.value32 b = some x.value := by
+/-- A word whose value is representable in FP32 rounds to it exactly. -/
+theorem Word.round32_of_finite {x : Word} (h : FiniteValue32 x.value) :
+    ∃ b, x.round32 = some b ∧ TensorCore.value32 b = some x.value := by
   obtain ⟨b, hb, hv⟩ := round32_exact_of_finite h
-  have hr : x.round32 = some b := by rw [x.round32_eq]; exact hb
-  have hd := decode32Word_value b
-  rw [hv] at hd
-  cases hdw : decode32Word b with
-  | none => simp [hdw] at hd
-  | some y =>
-    simp only [hdw, Option.map_some, Option.some.injEq] at hd
-    refine ⟨b, ?_, hv⟩
-    simp [Word.exact32, hr, hdw, Word.sameValue_of_value_eq hd.symm]
+  exact ⟨b, by rw [x.round32_eq]; exact hb, hv⟩
 
 /-- Left-to-right FP32 summation of encoded words follows the value-level naive sum. -/
 theorem foldlM_add32 (bs : List F32) (vs : List ℚ) (acc : F32) (a s : ℚ)
@@ -135,14 +103,14 @@ theorem natAbs_le_magnitudeSum {zs : List ℤ} {z : ℤ} (h : z ∈ zs) : z.natA
     · omega
     · have := ih h; omega
 
-/-- Every word converts exactly when every value is representable in FP32. -/
-theorem mapM_exact32 (xs : List Word) (hx : ∀ x ∈ xs, FiniteValue32 x.value) :
-    ∃ bs, xs.mapM Word.exact32 = some bs ∧
+/-- Every word rounds exactly when every value is representable in FP32. -/
+theorem mapM_round32 (xs : List Word) (hx : ∀ x ∈ xs, FiniteValue32 x.value) :
+    ∃ bs, xs.mapM Word.round32 = some bs ∧
       bs.map TensorCore.value32 = (xs.map Word.value).map some := by
   induction xs with
   | nil => exact ⟨[], rfl, rfl⟩
   | cons x xs ih =>
-    obtain ⟨b, hb, hv⟩ := Word.exact32_of_finite (hx x (by simp))
+    obtain ⟨b, hb, hv⟩ := Word.round32_of_finite (hx x (by simp))
     obtain ⟨bs, hbs, hvs⟩ := ih (fun y hy => hx y (by simp [hy]))
     refine ⟨b :: bs, ?_, ?_⟩
     · simp [List.mapM_cons, hb, hbs]
@@ -158,7 +126,7 @@ theorem scalarSum_exact (xs : List Word) (ℓ : ℤ) (zs : List ℤ) (h1 : -149 
     obtain ⟨z, hz, hzx⟩ := List.mem_map.mp hmem
     rw [← hzx]
     exact grid_finiteValue32 z ℓ h1 h2 (by have := natAbs_le_magnitudeSum hz; omega)
-  obtain ⟨bs, hbs, hvs⟩ := mapM_exact32 xs hfin
+  obtain ⟨bs, hbs, hvs⟩ := mapM_round32 xs hfin
   have hnaive := naiveSum32From_exact ℓ h1 h2 0 zs (by simpa using hb)
   have h0 : (((0 : ℤ) : ℚ) * pow2 ℓ) = 0 := by simp
   rw [h0] at hnaive
@@ -182,8 +150,7 @@ theorem magnitudeSum_stepsAt (xs : List Word) (e : Magnitude) :
     · exact Int.natAbs_natCast _
     · exact (Int.natAbs_neg _).trans (Int.natAbs_natCast _)
 
-/-- The FP32 fast path succeeds under the guard's conditions, stated on an arbitrary common
-grid `ell` (in units of the 576-bit workspace, whose lowest bit is `2^-272`). -/
+/-- Under the guard's conditions on a common grid `ell`, the scalar branch returns RN of the exact sum. -/
 theorem Components.scalar_of_conditions {p : Prepared} {c : Components} {ell s : Magnitude}
     (hc : extract p = some c) (hguard : c.scalarGuard = true)
     (h1 : 123 ≤ ell.toNat) (h2 : ell.toNat ≤ 376)
@@ -194,7 +161,6 @@ theorem Components.scalar_of_conditions {p : Prepared} {c : Components} {ell s :
     (hout : FiniteValue32 p.output.value) :
     c.scalar = TensorCore.round32 .nearestEven p.ideal := by
   obtain ⟨hcp, _, _, _, hovv, hres, hrecv, hideal⟩ := extract_spec hc
-  -- (1) The low parts lie on the grid 2^ℓ, within a 24-bit budget: their FP32 sum is exact.
   let ℓ : ℤ := (ell.toNat : ℤ) - 272
   let zs := c.low.map (·.stepsAt ell)
   have hv : c.low.map Word.value = zs.map fun (z : ℤ) => (z : ℚ) * pow2 ℓ := by
@@ -204,41 +170,23 @@ theorem Components.scalar_of_conditions {p : Prepared} {c : Components} {ell s :
     rw [magnitudeSum_stepsAt, ← magnitudeSumWords_toNat hs]; exact hs24
   obtain ⟨eb, he, hve⟩ := scalarSum_exact c.low ℓ zs (by omega) (by omega) hv hbudget
   rw [← hres] at hve
-  have hed := decode32Word_value eb
-  rw [hve] at hed
-  cases hdw : decode32Word eb with
-  | none => simp [hdw] at hed
-  | some e =>
-    simp only [hdw, Option.map_some, Option.some.injEq] at hed
-    -- (2) D and the overlap convert exactly; D − overlap is exactly H.
-    obtain ⟨db, hdb, hvdb⟩ := Word.exact32_of_finite (x := c.prepared.output) (by rw [hcp]; exact hout)
-    obtain ⟨ob0, hob0⟩ := Option.isSome_iff_exists.mp hov
-    have hfo := value32_finite _ _ (Word.exact32_value hob0)
-    obtain ⟨ob, hob, hvob⟩ := Word.exact32_of_finite (x := c.overlap.neg)
-      (by rw [Word.neg_value]; exact finiteValue32_neg hfo)
-    obtain ⟨rb0, hrb0⟩ := Option.isSome_iff_exists.mp hret
-    have hfr := value32_finite _ _ (Word.exact32_value hrb0)
-    obtain ⟨hb, hhb, hvhb⟩ := round32_exact_of_finite hfr
-    have hsum : c.prepared.output.value + c.overlap.neg.value = c.retained.value := by
-      rw [Word.neg_value, hovv, hcp]; grind
-    have hadd : add32 db ob = some hb := by
-      rw [add32_eq, hvdb, hvob]; simpa [hsum] using hhb
-    have hhd := decode32Word_value hb
-    rw [hvhb] at hhd
-    cases hhw : decode32Word hb with
-    | none => simp [hhw] at hhd
-    | some h =>
-      simp only [hhw, Option.map_some, Option.some.injEq] at hhd
-      -- (3) The final addition is the single rounding of the exact sum.
-      have hfinal : add32 hb eb = TensorCore.round32 .nearestEven p.ideal := by
-        rw [add32_eq, hvhb, hve, ← hideal, hrecv]; rfl
-      simp only [Components.scalar, hguard, Bool.not_true, Bool.false_eq_true, ↓reduceIte, he,
-        Option.bind_eq_bind, Option.bind_some, hdw, Word.sameValue_of_value_eq hed, hdb, hob,
-        hadd, hhw, Word.sameValue_of_value_eq hhd, hfinal]
+  obtain ⟨db, hdb, hvdb⟩ := Word.round32_of_finite (x := c.prepared.output) (by rw [hcp]; exact hout)
+  obtain ⟨ob0, hob0⟩ := Option.isSome_iff_exists.mp hov
+  have hfo := value32_finite _ _ (Word.exact32_value hob0)
+  obtain ⟨ob, hob, hvob⟩ := Word.round32_of_finite (x := c.overlap.neg)
+    (by rw [Word.neg_value]; exact finiteValue32_neg hfo)
+  obtain ⟨rb0, hrb0⟩ := Option.isSome_iff_exists.mp hret
+  obtain ⟨hb, hhb, hvhb⟩ := round32_exact_of_finite (value32_finite _ _ (Word.exact32_value hrb0))
+  have hsum : c.prepared.output.value + c.overlap.neg.value = c.retained.value := by
+    rw [Word.neg_value, hovv, hcp]; grind
+  have hadd : add32 db ob = some hb := by
+    rw [add32_eq, hvdb, hvob]; simpa [hsum] using hhb
+  have hfinal : add32 hb eb = TensorCore.round32 .nearestEven p.ideal := by
+    rw [add32_eq, hvhb, hve, ← hideal, hrecv]; rfl
+  simp only [Components.scalar, hguard, Bool.not_true, Bool.false_eq_true, ↓reduceIte, he,
+    Option.bind_eq_bind, Option.bind_some, hdb, hob, hadd, hfinal]
 
-/-- **The fast-path check guarantees the fast path.** For a prepared block, whenever the
-576-bit implementation's `scalarGuard` accepts, every run-time comparison in
-`Components.scalar` succeeds, and the fast path returns the correctly rounded exact sum. -/
+/-- When the guard accepts, the scalar branch returns the correctly rounded exact sum. -/
 theorem Components.scalar_of_guard {path : Path} {x : BlockInput path.profile} {D : F32}
     {p : Prepared} {c : Components} (hp : prepare path x D = .ok p) (hc : extract p = some c)
     (hg : c.scalarGuard = true) :
@@ -252,7 +200,7 @@ theorem Components.scalar_of_guard {path : Path} {x : BlockInput path.profile} {
   exact Components.scalar_of_conditions hc hg (BitVec.le_def.mp h1) (BitVec.le_def.mp h2)
     hgrid hs (by have := BitVec.lt_def.mp hs24; simpa using this) hov hret hout
 
-/-- Whenever the guard accepts, the bounded TC-EFT takes the scalar branch. -/
+/-- When the guard accepts, the scalar branch returns a value. -/
 theorem Components.scalar_isSome_of_guard {path : Path} {x : BlockInput path.profile} {D : F32}
     {p : Prepared} {c : Components} (hp : prepare path x D = .ok p) (hc : extract p = some c)
     (hg : c.scalarGuard = true) : c.scalar.isSome = true := by
@@ -263,8 +211,16 @@ theorem Components.scalar_isSome_of_guard {path : Path} {x : BlockInput path.pro
   rw [← hideal, ← Word.round32_eq]
   exact (Word.round32_isSome_iff _).mpr ((Word.range_iff _).mpr hrec.2)
 
-/-- If the block is not all zeros and the guard accepts, the bounded TC-EFT returns its fast-path
-result, and that result is the correctly rounded exact sum. -/
+/-- Any scalar-branch result is the correctly rounded exact sum. -/
+theorem Components.scalar_correct {path : Path} {x : BlockInput path.profile} {D : F32}
+    {p : Prepared} {c : Components} {b : F32} (hp : prepare path x D = .ok p)
+    (hc : extract p = some c) (hb : c.scalar = some b) :
+    TensorCore.round32 .nearestEven p.ideal = some b := by
+  cases hg : c.scalarGuard
+  · simp [Components.scalar, hg] at hb
+  · rw [← Components.scalar_of_guard hp hc hg, hb]
+
+/-- A nonzero block that passes the guard takes the scalar branch, with the correctly rounded sum. -/
 theorem tcEft_scalar_of_guard {path : Path} {x : BlockInput path.profile} {D : F32}
     {p : Prepared} {c : Components} (hp : prepare path x D = .ok p) (hc : extract p = some c)
     (hnz : ¬ p.terms.all (fun t => t.word.magnitude == 0) = true) (hg : c.scalarGuard = true) :

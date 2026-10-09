@@ -2,7 +2,7 @@ import TensorCore.Numerics.Binary.DirectedRounding
 import TensorCore.TC.InvocationProperties
 import TensorCore.TC.Profiles
 
-
+/-! Correctness of the final rounding stages. -/
 
 namespace TensorCore
 
@@ -28,7 +28,7 @@ theorem roundingStage_truncate_correct (s : RoundingStage) (hf : s.format.WellFo
   cases Option.some.inj hb
   exact hc
 
-/-- The output of any accepted invocation with a nearest-even output stage is the nearest value of the output format to the intermediate value, ties to even. -/
+/-- A nearest-even output stage returns the nearest output-format value, ties to even. -/
 theorem evalInvocation_output_nearestEven {p : InvocationSpec} {x : InvocationInput p}
     {t : InvocationTrace p} (h : evalInvocation x = .ok t) (hmode : p.output.mode = .nearestEven) :
     NearestEven p.output.format t.intermediate.value t.output.bits := by

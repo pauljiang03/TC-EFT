@@ -1,4 +1,6 @@
 """Exact ordered-encoding rounding oracle for the native EFT scalar tests."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from fractions import Fraction as Q
 from functools import lru_cache
 

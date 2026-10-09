@@ -1,5 +1,7 @@
 import TensorCore.Kernels.EFT.Preparation
 
+/-! Correctness of bounded extraction. -/
+
 namespace TensorCore.EFMachine
 
 set_option exponentiation.threshold 1024

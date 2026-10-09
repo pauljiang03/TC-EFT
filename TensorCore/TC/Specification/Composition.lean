@@ -2,6 +2,8 @@ import TensorCore.TC.Specification.Supported
 import TensorCore.TC.Specification.Schedule
 import TensorCore.TC.Composition
 
+/-! Chained groups agree with the independent specification. -/
+
 namespace TensorCore.IndependentSpec
 
 /-- All encoded intermediate outputs, and failures, agree for every finite schedule. -/

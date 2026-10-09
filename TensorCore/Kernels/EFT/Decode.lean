@@ -2,6 +2,8 @@ import TensorCore.Kernels.EFT.DecodeDefs
 import TensorCore.Kernels.EFT.Round
 import TensorCore.Kernels.EFT.Split
 
+/-! Correctness of bounded input decoding and products. -/
+
 namespace TensorCore.EFMachine
 
 set_option maxRecDepth 4096

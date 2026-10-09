@@ -1,5 +1,7 @@
 import TensorCore.Numerics.Binary.Encoding
 
+/-! Magnitude bounds from decoded exponents. -/
+
 namespace TensorCore
 
 theorem decoded_normal_magnitude_lower (negative : Bool) (mantissa : ℕ) (f : ℕ) (e : ℤ) :

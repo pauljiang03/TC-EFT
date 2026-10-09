@@ -1,5 +1,7 @@
 import TensorCore.TC.Canonical
 
+/-! The exact set of inputs the model accepts. -/
+
 namespace TensorCore
 
 /-- Truncation and nearest-even rounding return decodable finite FP32 words for inputs within range. -/

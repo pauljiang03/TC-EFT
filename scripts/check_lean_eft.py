@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Compare native EFT accumulation to the bounded reference and IEEE oracle."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from collections import Counter
 import hashlib
 import json
@@ -109,8 +111,10 @@ def main():
               'correctness_theorem': 'TensorCore.EFMachine.tcEftWithLean_correct',
               'request_sha256': hashlib.sha256(data.encode()).hexdigest(),
               'source_sha256': {str(p.relative_to(ROOT)): hashlib.sha256(p.read_bytes()).hexdigest()
-                                for p in sources},
-              'elapsed_seconds': round(time.monotonic() - started, 3)}
+                                for p in sources}}
+    timing = {'elapsed_seconds': round(time.monotonic() - started, 3)}
+    (ROOT / 'tmp/timings').mkdir(parents=True, exist_ok=True)
+    (ROOT / 'tmp/timings/lean-eft.json').write_text(json.dumps(timing, indent=2) + '\n')
     (ROOT / 'data/regressions/lean-eft-report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
     return bool(failures)

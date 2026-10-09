@@ -2,6 +2,8 @@ import TensorCore.TC.CanonicalDefs
 import TensorCore.TC.Compatibility
 import TensorCore.TC.ErrorBounds
 
+/-! Contracts of the FP16 profiles. -/
+
 namespace TensorCore
 
 theorem fp16Fp32_invocation_compatible (K extra : ℕ) (floor : Option ℤ)

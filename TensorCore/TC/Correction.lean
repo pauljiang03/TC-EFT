@@ -1,6 +1,8 @@
 import TensorCore.TC.Composition
 import TensorCore.Numerics.CorrectRounding
 
+/-! Correctly rounded results recovered from traces. -/
+
 namespace TensorCore
 
 /-- Exact residual recovery followed by mathematically nearest-even rounding to FP32. -/

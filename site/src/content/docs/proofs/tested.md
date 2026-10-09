@@ -32,7 +32,7 @@ the `TensorCore` namespace and allows only `propext`, `Classical.choice`, and
 - The Lean kernel, and for `#eval` and the `tc_*` executables, Lean's
   compiler and runtime.
 - The Python harnesses that compare outputs. Their pass/fail rests largely on
-  `assert`, so they must run **without** `python -O` or `PYTHONOPTIMIZE`.
+  `assert`; every script refuses to run under `python -O` or `PYTHONOPTIMIZE`.
 - The authenticity of the vendored measurement files. They are pinned by
   SHA-256 in [`vendor/SOURCES.json`](https://github.com/pauljiang03/TC-EFT/blob/main/vendor/SOURCES.json)
   but cannot be independently re-measured without GPUs.

@@ -1,5 +1,7 @@
 import TensorCore.Scalar.Specification
 
+/-! Compatibility of IEEE scalar operations with exact rounding. -/
+
 namespace TensorCore.IEEE
 
 /-- Same-format IEEE conversion fixes every finite encoding, including both zero encodings, and raises no exception in any rounding direction. -/
@@ -47,7 +49,7 @@ theorem convert_quietNaN_roundtrip (source target : BinaryFormat) (cfg : Context
   simp [convert, convertDatum, decode_nan, Nat.mod_eq_of_lt hp, Nat.mod_eq_of_lt hpt,
     convertPayload_roundtrip source target p hw]
 
-/-- Finite FMA uses only a final range condition: its exact product is not rounded or required to fit the destination before adding the original accumulator. -/
+/-- Finite FMA needs only its exact result in range, not its product. -/
 theorem fma_finite_contract (f : BinaryFormat) (cfg : Context) (a b c : Word f)
     (sa sb sc : Bool) (x y z : ℚ)
     (ha : decode f a = .finite sa x) (hb : decode f b = .finite sb y)

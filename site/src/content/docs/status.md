@@ -19,8 +19,6 @@ description: Build, audit, and validation status, and known open items.
 - **Hardware coverage.** Floors, subnormal and zero operands, wide-exponent
   BF16/TF32 inputs, and the H100 TF32 K = 8 path have no recorded GPU rows.
   The TF32 input files duplicate the V100 FP16 inputs.
-- **`inputBudget_scalarPredicate`** takes most of its conclusion as hypotheses, and
-  no repository instance satisfies all of them.
-- **Validation scripts** rely on `assert` and must not run under `python -O`.
-- **Signed zero.** The binary rounding helpers return `+0` for exact zero in
-  every mode, so the FP64 FMA in round-down mode differs from IEEE here.
+- **The paper's input-budget condition** (17) derives five of the fast-path
+  check's nine conditions for FP32; the other four depend on the particular
+  sum and remain assumptions.

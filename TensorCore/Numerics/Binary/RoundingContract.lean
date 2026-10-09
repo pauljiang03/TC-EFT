@@ -13,6 +13,7 @@ def BinaryRoundSpec (f : Format) (mode : BinaryRoundingMode) (x : ℚ)
   | .towardNegative => TowardNegative f x bits
   | .towardPositive => TowardPositive f x bits
 
+/-- Rounding to a well-formed binary format is correct in every mode, within the finite range. -/
 theorem roundBinary_correct (f : Format) (hf : f.WellFormed) (mode : BinaryRoundingMode)
     (x : ℚ) (hr : absQ x ≤ f.maxFinite) :
     ∃ bits, roundBinary f mode x = some bits ∧ BinaryRoundSpec f mode x bits := by
@@ -33,6 +34,7 @@ theorem BinaryRoundSpec.finite {f : Format} {mode : BinaryRoundingMode} {x : ℚ
   | none => simp [hd] at hv
   | some d => exact ⟨d, rfl⟩
 
+/-- Rounding succeeds exactly within the format's finite range. -/
 theorem roundBinary_isSome_iff (f : Format) (mode : BinaryRoundingMode) (x : ℚ) :
     (roundBinary f mode x).isSome = true ↔ f.WellFormed ∧ absQ x ≤ f.maxFinite := by
   constructor

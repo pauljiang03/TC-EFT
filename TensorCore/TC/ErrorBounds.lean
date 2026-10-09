@@ -2,6 +2,8 @@ import TensorCore.Numerics.RoundingError
 import TensorCore.TC.StageResiduals
 import TensorCore.Numerics.Truncation
 
+/-! The model error bound. -/
+
 namespace TensorCore
 
 theorem evalPrepared_output {b : PreparedBlock} {t : BlockTrace}
@@ -75,6 +77,7 @@ theorem evalPrepared_error_bound {b : PreparedBlock} {t : BlockTrace}
   have hout := evalPrepared_output h
   exact block_error_bound b t.output (round32_range hout) hout
 
+/-- The model error is below (number of terms) · (alignment grid step) + (one output ulp). -/
 theorem evalBlock_error_bound {p : Profile} {x : BlockInput p} {t : BlockTrace}
     (h : evalBlock x = .ok t) :
     absQ (t.block.exactDot - t.output.value) <

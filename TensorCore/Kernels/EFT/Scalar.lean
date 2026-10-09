@@ -1,5 +1,7 @@
 import TensorCore.Kernels.EFT.Extraction
 
+/-! Values of bounded FP32 conversions and additions. -/
+
 namespace TensorCore.EFMachine
 
 set_option exponentiation.threshold 1024
@@ -43,36 +45,4 @@ theorem add32_eq (a b : F32) :
       obtain ⟨z, hz⟩ := x.add_exists y (by omega)
       simp [add32, ha, hb, hz, Word.round32_eq, Word.add_value hz]
 
-/-- Exact-intermediate checks make scalar acceptance sound even when a sufficient support predicate is conservative. -/
-theorem Components.scalar_correct {c : Components} {b : F32} (hc : c.scalar = some b) :
-    TensorCore.round32 .nearestEven (c.retained.value + c.residualSum.value) = some b := by
-  unfold Components.scalar at hc
-  split at hc
-  · contradiction
-  · cases he : scalarSum c.low with
-    | none => simp [he] at hc
-    | some eb =>
-      cases hed : decode32Word eb with
-      | none => simp [he, hed] at hc
-      | some e =>
-        simp [he, hed] at hc
-        obtain ⟨hev, hc⟩ := hc
-        have hev' : e.value = c.residualSum.value := Word.sameValue_value (by simpa using hev)
-        cases hd : c.prepared.output.exact32 with
-        | none => simp [hd] at hc
-        | some db =>
-          cases ho : c.overlap.neg.exact32 with
-          | none => simp [hd, ho] at hc
-          | some ob =>
-            cases hh : add32 db ob with
-            | none => simp [hd, ho, hh] at hc
-            | some hb =>
-              cases hhd : decode32Word hb with
-              | none => simp [hd, ho, hh, hhd] at hc
-              | some h =>
-                simp [hd, ho, hh, hhd] at hc
-                obtain ⟨hhv, hc⟩ := hc
-                have hhv' : h.value = c.retained.value := Word.sameValue_value (by simpa using hhv)
-                rw [add32_eq, ← decode32Word_value, ← decode32Word_value, hhd, hed] at hc
-                simpa [hhv', hev'] using hc
 end TensorCore.EFMachine

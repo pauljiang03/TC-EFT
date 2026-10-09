@@ -56,7 +56,7 @@ encoded input:
 | `ampere_machine_eq` | A100 FP16, K = 8, F = 24 | 31 bits |
 | `hopper_machine_eq` | H100 FP16, K = 16, F = 25 | 33 bits |
 
-[`evalBlock_machinePrefix`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AlignmentExponent.lean#L184)
+[`evalBlock_machinePrefix`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AlignmentExponent.lean#L186)
 goes further. Every **prefix** of the accumulation is exact at that width,
 so the result does not depend on the order of additions, even with
 cancellation.

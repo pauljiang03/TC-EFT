@@ -1,5 +1,7 @@
 import TensorCore.TC.Block
 
+/-! The exact sum equals output plus named residuals. -/
+
 namespace TensorCore
 
 theorem sum_stage_residuals (ts : List ℚ) (align : ℚ → ℚ) :

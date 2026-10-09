@@ -113,9 +113,9 @@ specifications that do not mention it:
 - **Nearest even:** `NearestEven32 x b` says that `b` decodes to a finite
   value at least as close to `x` as any finite FP32 value, and that `b` has
   an even final bit whenever a different value is equally close.
-  [`round32_nearestEven_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/CorrectRounding.lean#L153)
+  [`round32_nearestEven_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/CorrectRounding.lean#L155)
   proves `round32 .nearestEven` meets it on the whole finite range.
 - **Any binary format:**
-  [`roundBinary_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Binary/RoundingContract.lean#L16)
+  [`roundBinary_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Binary/RoundingContract.lean#L17)
   gives the same contract for well-formed formats and modes in general. FP64
   (DMMA) and multi-stage rounding use it.

@@ -51,7 +51,7 @@ that the two transcriptions match.
 
 ## Beyond one block: `InvocationSpec`
 
-[`InvocationSpec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Invocation.lean#L18)
+[`InvocationSpec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Invocation.lean#L20)
 is a more general description of a Tensor Core invocation. Profiles embed
 into it, and it can express variations the basic profile cannot:
 
@@ -78,6 +78,8 @@ structure InvocationSpec where
   results are equal.
 - `binary64Fma mode` models an FP64 DMMA as a **fused** operation: one
   correctly rounded result in any of four directions (`binary64Fma_correct`).
+  `binary64FmaBits` gives its output with the IEEE 754 sign for an exactly
+  zero result.
 - Output stages may use any well-formed format and rounding direction. Each
   is proved correct (`evalInvocation_output_nearestEven`,
   `..._truncate`, `..._towardNegative`, `..._towardPositive`).

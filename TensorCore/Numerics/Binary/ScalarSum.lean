@@ -162,6 +162,7 @@ theorem naiveSumBinary_exact_perm (f : Format) (hf : f.WellFormed) (ℓ : ℤ)
   rw [magnitudeSum_perm hperm] at hbound hrange
   rw [naiveSumBinary_exact f hf ℓ h1 ys hbound hrange, sumZ_perm hperm]
 
+/-- Naive summation is exact when the summands fit within a bounded bit span. -/
 theorem naiveSumBinary_exact_of_bitSpan (f : Format) (hf : f.WellFormed) (b ℓ : ℤ)
     (h1 : f.emin - f.mantissaBits ≤ ℓ) (zs : List ℤ)
     (hterm : ∀ z ∈ zs, absQ ((z : ℚ) * pow2 ℓ) < pow2 (b + 1))

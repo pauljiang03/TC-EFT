@@ -1,5 +1,7 @@
 import TensorCore.Numerics.Encoding
 
+/-! Value formats and padded operand encodings. -/
+
 namespace TensorCore
 
 inductive SpecialEncoding where

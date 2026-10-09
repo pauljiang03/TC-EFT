@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Independent exact checks for canonical FP16 -> FP32 groups."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from fractions import Fraction as Q
 from pathlib import Path
 import json

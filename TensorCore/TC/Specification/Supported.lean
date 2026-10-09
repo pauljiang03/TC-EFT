@@ -1,6 +1,8 @@
 import TensorCore.TC.Specification.Equivalence
 import TensorCore.TC.Specification.Profiles
 
+/-! The model equals the independent specification on every supported path. -/
+
 namespace TensorCore.IndependentSpec
 
 def implementationProfile : Path → Profile

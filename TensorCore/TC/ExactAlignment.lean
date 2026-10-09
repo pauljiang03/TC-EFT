@@ -1,5 +1,7 @@
 import TensorCore.TC.Canonical
 
+/-! When alignment loses nothing. -/
+
 namespace TensorCore
 
 /-- Sufficient alignment precision for this actual input, retaining unnormalized-exponent metadata. -/

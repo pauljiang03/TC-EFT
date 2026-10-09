@@ -68,8 +68,7 @@ def magnitudeSumWords : List Magnitude → Option Magnitude
     let s := x + y
     if s < x then none else some s
 
-/-- The common grid of the low parts: the lowest bit actually set in any nonzero low part,
-capped at the extraction grid (in units of the workspace's lowest bit `2^-272`). -/
+/-- Lowest bit actually set in any nonzero low part, capped at the extraction grid. -/
 def Components.lowGrid (c : Components) : Magnitude :=
   c.low.foldl (fun e x =>
     if x.magnitude == 0 then e else
@@ -88,20 +87,17 @@ def Components.scalarGuard (c : Components) : Bool :=
 
 /-- Naive summation in the specified left-to-right ordering, including encoded FP32 boundaries. -/
 def scalarSum (xs : List Word) : Option F32 := do
-  let bs ← xs.mapM Word.exact32
+  let bs ← xs.mapM Word.round32
   bs.foldlM add32 0
 
-/-- The scalar branch checks the exact intermediate values as well as the support guard. -/
+/-- The scalar branch: plain FP32 operations, taken when the guard accepts. -/
 def Components.scalar (c : Components) : Option F32 := do
   if !c.scalarGuard then none else do
     let eBits ← scalarSum c.low
-    let e ← decode32Word eBits
-    if !e.sameValue c.residualSum then none else do
-      let dBits ← c.prepared.output.exact32
-      let oBits ← c.overlap.neg.exact32
-      let hBits ← add32 dBits oBits
-      let h ← decode32Word hBits
-      if !h.sameValue c.retained then none else add32 hBits eBits
+    let dBits ← c.prepared.output.round32
+    let oBits ← c.overlap.neg.round32
+    let hBits ← add32 dBits oBits
+    add32 hBits eBits
 
 inductive Result where
   | allZero

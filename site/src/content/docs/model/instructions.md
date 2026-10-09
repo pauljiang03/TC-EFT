@@ -52,7 +52,7 @@ def InstructionPath.schedule (p : InstructionPath) (pairs : List (F16 × F16)) :
 
 ## Proved properties of chains
 
-- [`runBlocks_residual_ledger`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Composition.lean#L93):
+- [`runBlocks_residual_ledger`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Composition.lean#L95):
   the exact sum of all inputs equals the final output plus the sum of the
   losses recorded by every group, alignment and final rounding included.
 - `zero_products_passthrough`: a group whose products are all zero returns its

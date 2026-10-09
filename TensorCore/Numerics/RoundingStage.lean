@@ -1,5 +1,7 @@
 import TensorCore.Numerics.Binary.RoundOp
 
+/-! Rounding stages and finite encoded results. -/
+
 namespace TensorCore
 
 structure FiniteBinary (f : Format) where

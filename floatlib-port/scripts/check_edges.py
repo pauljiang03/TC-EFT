@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Supplied-D independence, signed underflow, padding validation and negative controls."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 import json, os, shutil, sys, subprocess, tempfile
 from pathlib import Path
 from fractions import Fraction as Q

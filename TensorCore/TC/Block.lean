@@ -2,6 +2,8 @@ import TensorCore.Numerics.UnnormalizedProduct
 import TensorCore.TC.Defs
 import TensorCore.Numerics.RoundOp
 
+/-! The Tensor Core block model. -/
+
 namespace TensorCore
 
 /-- Encoded operands of one normalization group under a profile; `c` is always FP32. -/

@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Check maintained documentation links and elaborate each standalone Lean example."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 import json
 import re

@@ -122,18 +122,19 @@ term *could* have, given its format, and counted zero terms. That was safe
 but stricter than necessary. It disagreed with the paper's generator in 27
 cases, and was changed.)
 
-**4. Passing the check guarantees the fast path.** The 576-bit
-implementation also compares each FP32 intermediate result with the exact
-value before accepting it. Lean proves these run-time comparisons always
-succeed once the check passes (`EFMachine.Components.scalar_of_guard`), so the
-fast path is taken exactly as the check predicts. The comparisons remain in the
-code as a defensive check, though they can never fail.
+**4. Passing the check guarantees the fast path.** In the 576-bit
+implementation the fast path is plain FP32 operations, with no run-time
+comparisons against exact values. Lean proves that whenever the check passes,
+every FP32 step is exact, so the fast path is taken and returns the correctly
+rounded sum (`EFMachine.Components.scalar_of_guard`).
 
-**5. The paper's input-budget condition is only partly connected.** The
-TC-EFT paper's inequality (17) bounds the bit span from the inputs alone.
-`ExtractionGrid.inputBudget_scalarPredicate` derives two of the fast-path
-conditions from it and assumes the other seven, so it says less than its
-name suggests.
+**5. The paper's input-budget condition covers part of the check.** The
+TC-EFT paper's inequality (17) bounds the bit span from the inputs alone. For
+FP32 correction, `ExtractionGrid.inputBudget_scalarPredicate_fp32` derives five
+of the check's nine conditions from it and assumes the other four: a grid no
+lower than `2^-149`, the overlap and `H` fitting in FP32, and the sum being in
+range. These four depend on the particular sum, not only the input bound. A
+concrete block satisfies all of them, checked in Lean.
 
 **6. No answer when the sum is too large for FP32.** If the exact sum rounds
 beyond FP32's largest finite value, TC-EFT returns no result rather than

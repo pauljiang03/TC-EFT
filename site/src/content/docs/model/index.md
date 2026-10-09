@@ -113,7 +113,7 @@ Three design choices run through the model:
 - **Failure is explicit.** `evalBlock` returns `Except ModelError BlockTrace`.
   It rejects inputs with the wrong number of products, NaN or infinity
   operands, and sums that overflow FP32. The proved theorem
-  [`evalBlock_success_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AcceptedDomain.lean#L33)
+  [`evalBlock_success_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AcceptedDomain.lean#L35)
   gives the exact accepted domain, so no input is rejected silently.
 
 ## A worked trace

@@ -1,6 +1,8 @@
 import TensorCore.Numerics.Sum
 import TensorCore.TC.Accumulator
 
+/-! Fixed-width accumulation is exact at adequate width. -/
+
 namespace TensorCore
 
 theorem machineAccumulate_eq (w : ℕ) (initial : ℤ) (zs : List ℤ) :

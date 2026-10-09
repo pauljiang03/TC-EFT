@@ -1,7 +1,7 @@
 import TensorCore.TC.CanonicalFormatDefs
 import TensorCore.TC.Canonical
 
-
+/-! Contracts of the BF16 and TF32 profiles. -/
 
 namespace TensorCore
 

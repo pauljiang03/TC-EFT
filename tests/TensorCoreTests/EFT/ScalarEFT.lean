@@ -1,4 +1,6 @@
 import TensorCore.EFT.Scalar
+import TensorCore.EFT.ExtractionGrid
+import TensorCore.EFT.Encoded
 import TensorCoreTests.EFT.EFT
 
 /-! Kernel regressions for generic scalar consolidation: subnormals, precision and range boundaries, the bit-span condition, and the FP64-to-FP32 double-rounding trap. -/
@@ -72,5 +74,39 @@ theorem scalar64_subnormal_guard_rejects :
 theorem scalar_generic_invalid_format_rejects :
     ((evalBlock r3).map fun t => t.scalarCorrectedIn ⟨0, 8, 127⟩) = .ok none := by
   decide +kernel
+
+def budgetBlock : BlockInput v100F16F32 := ⟨List.replicate 4 (0x0c00, 0x0c00), 0x3f800000⟩
+
+/-- Four products `2^-24` with `C = 1` and `D = 1 + 2^-22`. -/
+def budgetTrace : BlockTrace :=
+  match prepareEncodedEFT budgetBlock 0x3f800002 with
+  | .ok t => t
+  | .error _ => ⟨⟨v100F16F32, [], ⟨0, 0, 0⟩⟩, ⟨0, ⟨0, 0, 0⟩, by decide +kernel⟩⟩
+
+theorem onGrid_of_den {x q : ℚ} (hq : q ≠ 0) (h : (x / q).den = 1) : ∃ z : ℤ, x = (z : ℚ) * q :=
+  have hn : ((x / q).num : ℚ) = x / q := Rat.ext rfl h.symm
+  ⟨(x / q).num, by rw [hn, Rat.div_mul_cancel hq]⟩
+
+/-- The FP32 input-budget hypotheses hold together on a concrete block. -/
+theorem inputBudget_fp32_witness :
+    let t := budgetTrace
+    let g := t.defaultExtraction
+    (-149 : ℤ) ≤ -24 ∧ (-24 : ℤ) ≤ 104 ∧ (-24 : ℤ) ≤ g.exponent ∧
+    (∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 (-24)) ∧
+    t.block.terms.length * (2 ^ (g.exponent - (-24)).toNat - 1) < 2 ^ 24 ∧
+    representableBinary fp32 g.overlap = true ∧ representableBinary fp32 g.retainedSum = true ∧
+    absQ t.block.exactDot ≤ maxFinite32 := by
+  have hgrid : (budgetTrace.block.terms.all fun x => (x.value / pow2 (-24)).den == 1) = true := by
+    decide +kernel
+  refine ⟨by decide, by decide, by decide +kernel, ?_, by decide +kernel, by decide +kernel,
+    by decide +kernel, by decide +kernel⟩
+  intro x hx
+  exact onGrid_of_den (Rat.ne_of_gt (pow2_pos _))
+    (by simpa using List.all_eq_true.mp hgrid x hx)
+
+/-- On that block the theorem yields the scalar predicate. -/
+example : budgetTrace.defaultExtraction.scalarPredicate fp32 (-24) = true := by
+  obtain ⟨h1, h2, h3, h4, h5, h6, h7, h8⟩ := inputBudget_fp32_witness
+  exact ExtractionGrid.inputBudget_scalarPredicate_fp32 _ _ h1 h2 h3 h4 h5 h6 h7 h8
 
 end TensorCore.Regression

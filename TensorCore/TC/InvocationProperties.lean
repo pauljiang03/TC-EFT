@@ -1,6 +1,8 @@
 import TensorCore.TC.Invocation
 import TensorCore.TC.AlignmentExponent
 
+/-! Properties of general invocations. -/
+
 namespace TensorCore
 
 private theorem aligned_recovery (b : PreparedBlock) :

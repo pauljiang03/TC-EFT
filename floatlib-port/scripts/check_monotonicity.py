@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Boundary regressions for the universally proved nonmonotonicity family."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 from fractions import Fraction as Q
 import json, subprocess

@@ -261,6 +261,7 @@ theorem decode32_below (j : ℕ) (hj1 : 1 ≤ j) (hj2 : j ≤ 2 ^ 23) :
   · omega
 
 
+/-- For C = 1 − j·2^-24: which j raise the output, the resulting output, and its maximum. -/
 theorem nonmonotone_range_encoded (K p j : ℕ) (floor : Option ℤ)
     (hfl : ∀ f ∈ floor, f ≤ -1)
     (a b : (fp16Fp32Profile K p floor).Word) (da db : Decoded)

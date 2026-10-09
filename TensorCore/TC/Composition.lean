@@ -1,5 +1,7 @@
 import TensorCore.TC.StageResiduals
 
+/-! Chained groups and their loss accounting. -/
+
 namespace TensorCore
 
 /-- Execute a fixed-input schedule; the state type can be encoded floating-point values. -/

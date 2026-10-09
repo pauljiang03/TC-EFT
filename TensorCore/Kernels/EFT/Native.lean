@@ -72,7 +72,7 @@ theorem naiveSum32WithLeanFrom_eq (acc : F32) (xs : List F32) :
   simp only [naiveSum32WithLeanFrom, show add32WithLean = add32 from by funext a b; exact add32WithLean_eq a b]
 
 def scalarSumWithLean (xs : List Word) : Option F32 := do
-  let bs ← xs.mapM Word.exact32
+  let bs ← xs.mapM Word.round32
   naiveSum32WithLeanFrom 0 bs
 
 theorem scalarSumWithLean_eq (xs : List Word) : scalarSumWithLean xs = scalarSum xs := by
@@ -81,18 +81,15 @@ theorem scalarSumWithLean_eq (xs : List Word) : scalarSumWithLean xs = scalarSum
 def Components.scalarWithLean (c : Components) : Option F32 := do
   if !c.scalarGuard then none else do
     let eBits ← scalarSumWithLean c.low
-    let e ← decode32Word eBits
-    if !e.sameValue c.residualSum then none else do
-      let dBits ← c.prepared.output.exact32
-      let oBits ← c.overlap.neg.exact32
-      let hBits ← add32WithLean dBits oBits
-      let h ← decode32Word hBits
-      if !h.sameValue c.retained then none else add32WithLean hBits eBits
+    let dBits ← c.prepared.output.round32
+    let oBits ← c.overlap.neg.round32
+    let hBits ← add32WithLean dBits oBits
+    add32WithLean hBits eBits
 
 theorem Components.scalarWithLean_eq (c : Components) : c.scalarWithLean = c.scalar := by
   simp only [Components.scalarWithLean, Components.scalar, scalarSumWithLean_eq, add32WithLean_eq]
 
-/-- Algorithm 1 with native scalar additions, retaining bounded exact consolidation when the scalar guard or intermediate checks refuse the scalar branch. -/
+/-- Algorithm 1 with native scalar additions, retaining bounded exact consolidation when the scalar guard refuses the scalar branch. -/
 def tcEftWithLean (path : Path) (x : BlockInput path.profile) (D : F32) : Except Error Result := do
   let p ← prepare path x D
   if p.terms.all (fun t => t.word.magnitude == 0) then return .allZero

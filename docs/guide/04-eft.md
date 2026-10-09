@@ -43,7 +43,7 @@ The supplied D is FP32 `1.0`. Each exact product is `2^-24`, so the exact input 
 | Native scalar refinement | `EFMachine.tcEftWithLean` | Same bounded algorithm with Lean native FP32 scalar additions |
 | Independent FloatLib | `TCFloat.Interface.eftChecked` | FloatLib scalar operations and reference exact fallback |
 
-`EFMachine.tcEft_agrees` preserves the returned bits of the reference algorithm under its premises. The bounded and reference fallback branch names may differ. `tcEftWithLean_eq` preserves the entire bounded result, including tags and errors. FloatLib's `floatlib_eq_reference` preserves the complete checked reference TC/EFT observations for every encoded input in its profile family.
+`EFMachine.tcEft_agrees` preserves the returned bits of the reference algorithm under its premises. `EFMachine.Components.scalar_of_guard` proves that the bounded fast path, plain FP32 operations, returns the correctly rounded sum whenever its check passes. The bounded and reference fallback branch names may differ. `tcEftWithLean_eq` preserves the entire bounded result, including tags and errors. FloatLib's `floatlib_eq_reference` preserves the complete checked reference TC/EFT observations for every encoded input in its profile family.
 
 ```lean
 import TensorCore.EFT

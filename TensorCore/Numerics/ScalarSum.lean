@@ -84,7 +84,7 @@ theorem naiveSum32From_exact (ℓ : ℤ) (h1 : -149 ≤ ℓ) (h2 : ℓ ≤ 104)
     have hs : a + z + sumZ zs = a + sumZ (z :: zs) := by simp only [sumZ]; omega
     rw [hs]
 
-/-- Theorem IV.8: naive FP32 summation of integer multiples of one grid `2^ℓ`, with `-149 ≤ ℓ ≤ 104`, is exact whenever the sum of absolute coefficients is below `2^24`. -/
+/-- Naive FP32 summation on one grid `2^ℓ` (`-149 ≤ ℓ ≤ 104`) is exact within a 24-bit budget (TC-EFT paper, Theorem IV.8). -/
 theorem naiveSum32_exact (ℓ : ℤ) (h1 : -149 ≤ ℓ) (h2 : ℓ ≤ 104) (zs : List ℤ)
     (hbound : magnitudeSum zs < 2 ^ 24) :
     naiveSum32 (zs.map fun (z : ℤ) => (z : ℚ) * pow2 ℓ) = some ((sumZ zs : ℚ) * pow2 ℓ) := by

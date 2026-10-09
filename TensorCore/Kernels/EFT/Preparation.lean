@@ -1,6 +1,8 @@
 import TensorCore.Kernels.EFT.Defs
 import TensorCore.Kernels.EFT.Decode
 
+/-! Correctness of bounded block preparation. -/
+
 namespace TensorCore.EFMachine
 
 set_option maxRecDepth 4096

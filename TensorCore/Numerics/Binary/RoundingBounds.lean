@@ -1,7 +1,7 @@
 import TensorCore.Numerics.Binary.Encoding
 import TensorCore.Numerics.RoundingBounds
 
-
+/-! Exponent and significand bounds for binary rounding. -/
 
 namespace TensorCore
 

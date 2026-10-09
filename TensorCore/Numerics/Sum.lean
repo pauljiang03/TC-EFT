@@ -1,6 +1,6 @@
 import TensorCore.Numerics.Exact
 
--- Finite sums and coefficient budgets.
+/-! Finite sums and coefficient budgets. -/
 
 namespace TensorCore
 

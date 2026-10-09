@@ -1,6 +1,6 @@
 # TC-EFT
 
-This Lean library formalizes Tensor Core (TC) block arithmetic, its non-monotonicity, and the TC-EFT correction algorithm under explicit preconditions. Executable calculations and correctness proofs use the same definitions. The TC model follows Khattak and Mikaitis, *Accurate Models of NVIDIA Tensor Cores* ([paper](https://arxiv.org/html/2512.07004v4)).
+This Lean library formalizes Tensor Core (TC) block arithmetic, its non-monotonicity, and the TC-EFT correction algorithm under explicit preconditions. Executable calculations and correctness proofs use the same definitions. The TC model follows Khattak and Mikaitis, *Accurate Models of NVIDIA Tensor Cores* ([paper](https://arxiv.org/html/2512.07004v4)); the non-monotonicity results and the TC-EFT algorithm come from the TC-EFT paper (*TC-EFT: Characterizing and Correcting Tensor Core Arithmetic*). Lean names describe what each result states; docstrings cite the paper and number where one applies.
 
 Start with the [guide](docs/README.md). It follows a calculation from encoded input words through alignment and correction, then explains how to run the Lean tests and add cases.
 
@@ -78,9 +78,9 @@ python3 scripts/check_clean_build.py
 
 This builds a fresh snapshot, audits theorem dependencies, checks every worked Lean file and documentation example, and compares executable results with independent exact-arithmetic oracles and recorded hardware vectors. See [the test walkthrough](tests/README.md) for individual checks and their failure behavior.
 
-The supported paths use FP16, BF16, or TF32 operands and FP32 outputs. Scalar EFT correctness requires explicit grid, coefficient-budget, representability, and range assumptions. The non-monotonicity theorems cover specified families of encoded inputs. Hardware comparisons replay recorded GPU measurements; the proofs concern the formal model under their stated hypotheses. Software checks require neither MATLAB nor CUDA.
+The supported paths use FP16, BF16, or TF32 operands and FP32 outputs; the final rounding is truncation, as in *Accurate Models*. Any value TC-EFT returns is the exact sum correctly rounded to FP32, and it returns one exactly when that rounded sum is finite. Its fast FP32 path is taken whenever its check passes; otherwise a 576-bit exact path gives the answer. The non-monotonicity theorems cover specified families of encoded inputs. Hardware comparisons replay 35,000 recorded GPU measurements, which do not exercise alignment floors, zero or subnormal operands, TF32's wide exponent range, or the H100 TF32 K = 8 path; the proofs concern the formal model under their stated hypotheses. Software checks require neither MATLAB nor CUDA. The scripts refuse to run under `python -O`, and rerunning them on unchanged sources leaves `git status` clean.
 
-[What is proven](TensorCore/THEOREMS.md) · [Executable reference](docs/reference.md) · [Trust and style](docs/style.md)
+[What is proven](TensorCore/THEOREMS.md) · [What is tested](https://pauljiang03.github.io/TC-EFT/proofs/tested/) · [Executable reference](docs/reference.md) · [Trust and style](docs/style.md)
 
 ## License
 

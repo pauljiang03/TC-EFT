@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Enforce production/test ownership and the numerical/model/kernel import layers."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 import json
 import re

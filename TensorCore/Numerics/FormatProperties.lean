@@ -1,5 +1,7 @@
 import TensorCore.Numerics.Format
 
+/-! Bounds on decoded values. -/
+
 namespace TensorCore
 
 theorem decoded_signed_bounded (negative : Bool) (m : ℕ) (e : ℤ) (f : ℕ)
@@ -63,7 +65,7 @@ theorem operand_decode_bounded {s : OperandEncoding} {bits : s.Word} {d : Decode
     (h : s.decode bits = some d) : d.Bounded :=
   valueFormat_decode_bounded _ _ _ (padded_decode_value h)
 
-/-- A nonzero finite IEEE-style encoding uses at least its minimum normal unnormalized exponent; subnormal values retain that scale instead of normalizing their significand. -/
+/-- A nonzero finite encoding has exponent at least the format's minimum normal exponent. -/
 theorem classifyNat_scale_lower (f : Format) (n : ℕ) (d : Decoded)
     (h : (classifyNat f n).finite = some d) (hnz : d.significand ≠ 0) :
     1 - f.bias ≤ d.unnormalizedExp := by

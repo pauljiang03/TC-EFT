@@ -36,11 +36,11 @@ for the Tensor Core model, and *the TC-EFT paper* for non-monotonicity and the T
 | TC-EFT returns a result exactly when that rounded sum is finite. | `tcEftEncoded_bits_isSome_iff` | [EFT/Encoded.lean](EFT/Encoded.lean) |
 | When the scalar safety check passes, the fast FP32 path gives the correctly rounded sum. | `scalarCorrected_correct` | [EFT/Extraction.lean](EFT/Extraction.lean) |
 | Exact sum = D − overlap + low parts. A definitional identity: the overlap is defined as D minus the retained part. | `overlap_recovery` | [EFT/Extraction.lean](EFT/Extraction.lean) |
-| The input-budget inequality establishes two of the safety check's conditions; the other seven are assumed. | `ExtractionGrid.inputBudget_scalarPredicate` | [EFT/ExtractionGrid.lean](EFT/ExtractionGrid.lean) |
+| The input-budget inequality establishes some of the fast-path check's conditions; for FP32 it derives five of the nine and assumes the other four (grid at least `2^-149`, overlap and H fit in FP32, sum in range). A concrete block satisfies all of them. | `ExtractionGrid.inputBudget_scalarPredicate`, `ExtractionGrid.inputBudget_scalarPredicate_fp32` | [EFT/ExtractionGrid.lean](EFT/ExtractionGrid.lean) |
 | The 576-bit implementation succeeds exactly when the rounded sum is finite, and never overflows. | `EFMachine.tcEft_success`, `EFMachine.tcEft_range_iff` | [Kernels/EFT/Correctness.lean](Kernels/EFT/Correctness.lean) |
 | The 576-bit implementation returns the same bits as the reference algorithm. | `EFMachine.tcEft_agrees` | [Kernels/EFT/Refinement.lean](Kernels/EFT/Refinement.lean) |
 | Using Lean's native `Float32` additions changes nothing (relative to Lean's `Float32` specification). | `EFMachine.tcEftWithLean_eq` | [Kernels/EFT/Native.lean](Kernels/EFT/Native.lean) |
-| In the 576-bit implementation, whenever the fast-path check passes, every run-time comparison succeeds: the fast path is taken and returns the correctly rounded sum. | `EFMachine.Components.scalar_of_guard`, `EFMachine.tcEft_scalar_of_guard` | [Kernels/EFT/ScalarGuard.lean](Kernels/EFT/ScalarGuard.lean) |
+| In the 576-bit implementation, whenever the fast-path check passes, every FP32 step of the fast path is exact: the fast path is taken and returns the correctly rounded sum. | `EFMachine.Components.scalar_of_guard`, `EFMachine.tcEft_scalar_of_guard` | [Kernels/EFT/ScalarGuard.lean](Kernels/EFT/ScalarGuard.lean) |
 
 ## Number formats and rounding
 
@@ -51,6 +51,7 @@ for the Tensor Core model, and *the TC-EFT paper* for non-monotonicity and the T
 | Rounding succeeds exactly when the input is within the format's finite range. | `roundBinary_isSome_iff` | [Numerics/Binary/RoundingContract.lean](Numerics/Binary/RoundingContract.lean) |
 | Finite bit patterns and representable values correspond one to one, including subnormals and both zeros. | `signedFiniteBinaryBijection` | [Numerics/Binary/SignedBijection.lean](Numerics/Binary/SignedBijection.lean) |
 | Naive floating-point summation is exact when the summands fit within a bounded bit span. | `naiveSumBinary_exact_of_bitSpan` | [Numerics/Binary/ScalarSum.lean](Numerics/Binary/ScalarSum.lean) |
+| FP64 DMMA gives an exactly zero result the IEEE 754 sign, and keeps the correctly rounded bits otherwise. | `binary64FmaBits_of_eq_zero`, `binary64FmaBits_of_ne_zero` | [TC/FusedRounding.lean](TC/FusedRounding.lean) |
 
 ## Not proved
 
@@ -81,6 +82,7 @@ open TensorCore
 #check scalarCorrected_correct
 #check overlap_recovery
 #check ExtractionGrid.inputBudget_scalarPredicate
+#check ExtractionGrid.inputBudget_scalarPredicate_fp32
 #check EFMachine.tcEft_success
 #check EFMachine.tcEft_range_iff
 #check EFMachine.tcEft_agrees
@@ -92,4 +94,6 @@ open TensorCore
 #check roundBinary_isSome_iff
 #check signedFiniteBinaryBijection
 #check naiveSumBinary_exact_of_bitSpan
+#check binary64FmaBits_of_eq_zero
+#check binary64FmaBits_of_ne_zero
 ```

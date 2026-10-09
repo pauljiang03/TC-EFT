@@ -1,5 +1,7 @@
 import TensorCore.Numerics.RoundingBounds
 
+/-! FP32 nearest-even rounding is correct. -/
+
 namespace TensorCore
 
 theorem rne_grid_nearest (m : ℚ) (e : ℤ) (j : ℤ) :

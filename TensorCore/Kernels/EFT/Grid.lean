@@ -1,5 +1,7 @@
 import TensorCore.Kernels.EFT.Preparation
 
+/-! The bounded extraction grid. -/
+
 namespace TensorCore.EFMachine
 
 set_option exponentiation.threshold 1024

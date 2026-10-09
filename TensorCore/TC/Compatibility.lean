@@ -1,5 +1,7 @@
 import TensorCore.TC.InvocationProperties
 
+/-! Block profiles agree with their invocation descriptors. -/
+
 namespace TensorCore
 
 

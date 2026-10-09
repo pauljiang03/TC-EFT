@@ -1,5 +1,7 @@
 import TensorCore.TC.Invocation
 
+/-! FP16 to FP32 profiles. -/
+
 namespace TensorCore
 
 /-- Canonical FP16 products and FP32 c/output, with arbitrary block size and extra alignment bits beyond the baseline 23. -/

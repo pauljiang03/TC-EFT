@@ -1,6 +1,6 @@
 import TensorCore.Numerics.Exact
 
--- Binary formats and their exact decoded values.
+/-! Binary formats and their exact decoded values. -/
 
 namespace TensorCore
 
@@ -16,15 +16,13 @@ structure Format where
 abbrev F16 := BitVec 16
 abbrev F32 := BitVec 32
 
-/-- A finite value as an integer significand, its exponent, and its mantissa width:
-`value = significand · 2^(unnormalizedExp − mantissaBits)`. -/
+/-- A finite value: `significand · 2^(unnormalizedExp − mantissaBits)`. -/
 structure Decoded where
   /-- Signed integer significand, hidden bit included (e.g. `1.5` in FP16 is `1536`). -/
   significand : ℤ
   /-- Unbiased exponent as stored in the word; the minimum normal exponent for subnormals. -/
   unnormalizedExp : ℤ
-  /-- Mantissa bits of `significand`, i.e. how many of its low bits lie after the binary point:
-  the format's mantissa width for an input (10 for FP16, 23 for FP32). -/
+  /-- Bits of `significand` after the binary point; the format's mantissa width for an input. -/
   mantissaBits : ℤ
   deriving Repr, DecidableEq
 

@@ -1,4 +1,6 @@
-import TensorCore.Kernels.EFT.Scalar
+import TensorCore.Kernels.EFT.ScalarGuard
+
+/-! Correctness and success of the 576-bit TC-EFT. -/
 
 namespace TensorCore.EFMachine
 
@@ -66,9 +68,7 @@ theorem tcEft_prepared {path : Path} {x : BlockInput path.profile} {D : F32} {p 
   · cases hb : c.scalar with
     | some b =>
       refine ⟨.scalar b, by rw [if_neg hz, hc]; dsimp +instances only; rw [hb]; rfl, ?_⟩
-      have hv := Components.scalar_correct hb
-      rw [← hs.2.2.2.2.2.2.1, hs.2.2.2.2.2.2.2] at hv
-      exact hv.symm
+      exact (Components.scalar_correct hp hc hb).symm
     | none =>
       have hr := c.recovered.round32_eq
       rw [hs.2.2.2.2.2.2.2] at hr

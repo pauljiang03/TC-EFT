@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Build the independent paper specification, universal proofs, and negative controls."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 import hashlib
 import json

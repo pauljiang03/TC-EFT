@@ -1,6 +1,8 @@
 import TensorCore.TC.AlignmentExponent
 import TensorCore.TC.CanonicalDefs
 
+/-! Fixed-width and exact accumulation give the same output. -/
+
 namespace TensorCore
 
 theorem evalPreparedMachine_eq (b : PreparedBlock) (w : ℕ) (hw : 0 < w)

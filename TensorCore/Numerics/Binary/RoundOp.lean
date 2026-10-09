@@ -1,6 +1,8 @@
 import TensorCore.Numerics.Format
 import TensorCore.Numerics.RoundOp
 
+/-! Rounding of rationals to any binary format. -/
+
 namespace TensorCore
 
 inductive BinaryRoundingMode where

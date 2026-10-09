@@ -7,6 +7,8 @@ same length; every differing position must be an identifier (never a string lite
 recorded positions must reproduce the pinned token hash in reference-manifest.json.
 Run from floatlib-port/ after a rename; then run prepare_reference.py.
 """
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 import hashlib, json, subprocess
 import prepare_reference as pr
 

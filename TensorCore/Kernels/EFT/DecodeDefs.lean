@@ -2,6 +2,8 @@ import TensorCore.Kernels.EFT.WordDefs
 import TensorCore.Kernels.EFT.SplitDefs
 import TensorCore.TC.CanonicalFormatDefs
 
+/-! Bounded input decoding and exact products. -/
+
 namespace TensorCore.EFMachine
 
 inductive InputKind where

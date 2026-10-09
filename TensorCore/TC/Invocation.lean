@@ -1,6 +1,8 @@
 import TensorCore.Numerics.RoundingStage
 import TensorCore.TC.Block
 
+/-! General Tensor Core invocations. -/
+
 namespace TensorCore
 
 inductive CPlacement where

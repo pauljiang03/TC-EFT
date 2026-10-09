@@ -10,8 +10,8 @@
   "scope": "16-position FP16/FP32 instruction paths, ordered group accumulation, zeros, subnormals, and cancellation",
   "oracle": "Lean instruction outputs compared with independent exact rational arithmetic per ordered normalization group",
   "source_sha256": {
-    "scripts/check_instruction_groups.py": "cbc5ea94ecdadc173ead8edc13849711c784d1a9f2f7018421bea112b5bcafb1",
-    "scripts/check_features.py": "a63ec6f852a2ffd666aacac1f4c2ec4eb42c1e8b6e0aacb26efd2f6eb9bf58b8",
+    "scripts/check_instruction_groups.py": "1ce23bdbe31af2caa154f4cf576f2ef1223dc7a8aa4ee9730778b312759ca939",
+    "scripts/check_features.py": "50f38c002188ab64c6316a75f0b715a2a0211ef704dac7e33816769c45dfb2c4",
     "examples/InstructionGroups.lean": "2fef9eb156a9edf8eb90331f0fcecdf2bc5ff5fdf60ceafeeb7ac56f5e13f8d5"
   }
 }

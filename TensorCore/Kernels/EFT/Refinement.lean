@@ -1,6 +1,8 @@
 import TensorCore.Kernels.EFT.Cost
 import TensorCore.EFT.Encoded
 
+/-! The 576-bit TC-EFT returns the same bits as the reference version. -/
+
 namespace TensorCore.EFMachine
 
 /-- Bit refinement of the encoded-interface reference algorithm on every accepted finite input. -/

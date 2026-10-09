@@ -1,6 +1,8 @@
 import TensorCore.Kernels.EFT.SplitDefs
 import TensorCore.EFT.Extraction
 
+/-! Correctness of the bounded high/low split. -/
+
 namespace TensorCore.EFMachine
 
 /-- No multiplication wrap: even the largest 11-bit significands fit in 22 bits. -/

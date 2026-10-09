@@ -1,8 +1,11 @@
 #!/usr/bin/env python3
 """Build and audit a fresh source copy, with no preexisting .lake directory."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 import hashlib
 import json
+import os
 import re
 import shutil
 import subprocess
@@ -15,7 +18,8 @@ def source_manifest(directory):
     result = {}
     for path in sorted(directory.rglob('*')):
         rel = path.relative_to(directory)
-        if any(part in {'.git', '.lake', 'tmp', '__pycache__', '.DS_Store', 'proposals', 'reference-compat', 'test-results'} for part in rel.parts):
+        if any(part in {'.git', '.lake', 'tmp', '__pycache__', '.DS_Store', 'proposals', 'reference-compat', 'test-results',
+                                 'node_modules', 'dist', '.astro'} for part in rel.parts):
             continue
         if rel.parts[:2] == ('data', 'regressions') or str(rel) == 'docs/axioms.txt':
             continue
@@ -33,34 +37,37 @@ before = source_manifest(root)
 repository_before = repository_manifest(root)
 target = Path(tempfile.mkdtemp(prefix='tensor-core-clean-')) / 'tensor-core'
 shutil.copytree(root, target, dirs_exist_ok=True,
-                ignore=shutil.ignore_patterns('.git', '.lake', 'tmp', '__pycache__', '.DS_Store', 'proposals', 'reference-compat', 'test-results'))
+                ignore=shutil.ignore_patterns('.git', '.lake', 'tmp', '__pycache__', '.DS_Store', 'proposals', 'reference-compat', 'test-results',
+                                             'node_modules', 'dist', '.astro'))
 assert not (target / '.lake').exists()
 if (repository_before != repository_manifest(root) or
         repository_before != repository_manifest(target)):
     raise SystemExit(f'Source changed while copying; no validation claimed. Snapshot retained: {target}')
-commands = [['lake', 'build'], ['python3', 'scripts/check_axioms.py'],
-            ['python3', 'scripts/check_features.py'],
-            ['python3', 'scripts/check_device_formats.py'],
-            ['python3', 'scripts/validate.py'],
-            ['python3', 'scripts/check_device.py'],
-            ['python3', 'scripts/check_eft.py'],
-            ['python3', 'scripts/check_paper_spec.py'],
-            ['python3', 'scripts/check_axioms_regression.py'],
-            ['python3', 'scripts/check_lean_eft.py']]
+commands = [['lake', 'build'], [sys.executable, 'scripts/check_axioms.py'],
+            [sys.executable, 'scripts/check_features.py'],
+            [sys.executable, 'scripts/check_device_formats.py'],
+            [sys.executable, 'scripts/validate.py'],
+            [sys.executable, 'scripts/check_device.py'],
+            [sys.executable, 'scripts/check_eft.py'],
+            [sys.executable, 'scripts/check_paper_spec.py'],
+            [sys.executable, 'scripts/check_axioms_regression.py'],
+            [sys.executable, 'scripts/check_lean_eft.py']]
 commands += [['lake', 'env', 'lean', str(p.relative_to(target))]
              for p in sorted((target / 'examples').glob('*.lean'))]
-commands += [['python3', 'scripts/check_docs.py'],
-             ['python3', 'scripts/check_layout.py']]
+commands += [[sys.executable, 'scripts/check_docs.py'],
+             [sys.executable, 'scripts/check_layout.py']]
 logs = []
 for index, command in enumerate(commands, 1):
     print(f'[{index}/{len(commands)}] {" ".join(command)}', file=sys.stderr, flush=True)
-    proc = subprocess.run(command, cwd=target, text=True, capture_output=True)
+    env = {k: v for k, v in os.environ.items() if k != 'PYTHONOPTIMIZE'}
+    proc = subprocess.run(command, cwd=target, text=True, capture_output=True, env=env)
     logs.append(proc.stdout + proc.stderr)
     if proc.returncode:
         print(logs[-1])
         raise SystemExit(proc.returncode)
 targets = re.findall(r'\[(\d+)/(\d+)\]', logs[0])
-report = {'preexisting_build_cache': False, 'commands': commands,
+report = {'preexisting_build_cache': False,
+          'commands': [['python3' if part == sys.executable else part for part in c] for c in commands],
           'targets_built': int(targets[-1][1]) if targets else None,
           'audit': logs[1].strip().splitlines()[-1] if logs[1].strip() else None,
           'feature_checks': json.loads(logs[2]), 'format_evidence': json.loads(logs[3]),

@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 """Build and check the isolated FloatLib port; all generated files stay in this folder."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
-import subprocess, sys, json, re, hashlib
+import os, subprocess, sys, json, re, hashlib
 PORT=Path(__file__).resolve().parents[1]
 OUT=PORT/'test-results'
 OUT.mkdir(exist_ok=True)
@@ -17,7 +19,7 @@ def main():
     logs=[]
     for i,cmd in enumerate(COMMANDS):
         print('Running: '+' '.join(cmd),flush=True)
-        p=subprocess.run(cmd,cwd=PORT,text=True,capture_output=True)
+        p=subprocess.run(cmd,cwd=PORT,text=True,capture_output=True,env={k:v for k,v in os.environ.items() if k!='PYTHONOPTIMIZE'})
         log=p.stdout+p.stderr
         (OUT/f'check-{i}.log').write_text(log)
         if p.returncode:

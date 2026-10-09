@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Reproduce the pinned TC-EFT paper suites and compare their exact cases with Lean."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from collections import Counter
 from contextlib import redirect_stdout
 from copy import deepcopy
@@ -300,13 +302,15 @@ def main():
                   mismatches=0, negative_controls=controls,
                   input_sha256=sha(input_text.encode()), cases_sha256=sha(case_text.encode()),
                   output_sha256=sha(output_path.read_bytes()),
-                  timing=dict(lean_seconds=round(lean_seconds, 3), total_seconds=round(time.perf_counter()-start, 3)),
                   historical_v100_experiments=dict(reported=100, surviving_vectors=0, reproduced=False),
                   limits=['Software model checks; zero new GPU measurements.',
                           'Original generators are pinned and reproduced, not Lean proofs.',
                           'Finite reference ranges exclude overflow; excluded draws are retained and checked.',
                           'The Lean scalar predicate and the paper generator both use the lowest set bit of the low parts; they agree on every case.',
                           'The synthetic family comparison evaluates encoded blocks, not GPU instructions.'])
+    timing = dict(lean_seconds=round(lean_seconds, 3), total_seconds=round(time.perf_counter() - start, 3))
+    (ROOT / 'tmp/timings').mkdir(parents=True, exist_ok=True)
+    (ROOT / 'tmp/timings/eft-paper.json').write_text(json.dumps(timing, indent=2) + '\n')
     (DEST / 'eft-paper-report.json').write_text(json.dumps(report, indent=2) + '\n')
     print(json.dumps(report, indent=2))
 

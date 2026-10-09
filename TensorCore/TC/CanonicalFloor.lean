@@ -1,5 +1,7 @@
 import TensorCore.TC.Canonical
 
+/-! When the alignment floor is inactive on FP16 profiles. -/
+
 namespace TensorCore
 
 private theorem mapM_origin (f : α → Option β) (xs : List α) (ys : List β)

@@ -1,5 +1,7 @@
 import TensorCore.Numerics.Encoding
 
+/-! Normalization and final rounding to FP32. -/
+
 namespace TensorCore
 
 inductive RoundingMode where
@@ -30,12 +32,10 @@ def encode32 (negative : Bool) (e k : ℤ) : F32 :=
   BitVec.ofNat 32 ((if negative then 2 ^ 31 else 0) +
     (if k < 2 ^ 23 then k.toNat else (e + 127).toNat * 2 ^ 23 + (k - 2 ^ 23).toNat))
 
-/-- Normalization: the exponent of the leading 1 of a positive magnitude, clamped to the
-subnormal range. -/
+/-- Normalization: exponent of the leading 1, clamped to the subnormal range. -/
 def normExp (m : ℚ) : ℤ := max (magnitudeExponent m) emin32
 
-/-- Final rounding: the 24-bit significand kept on the grid `2^(normExp m - 23)`, truncated or
-rounded to nearest even according to `mode`. -/
+/-- Final rounding: the 24-bit significand on the grid `2^(normExp m - 23)`. -/
 def roundedSignificand (mode : RoundingMode) (m : ℚ) : ℤ :=
   roundSignificand mode (m / pow2 (normExp m - 23))
 

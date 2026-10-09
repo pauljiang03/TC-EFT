@@ -4,7 +4,7 @@ import TensorCore.TC.StageResiduals
 import TensorCore.Numerics.Truncation
 import TensorCore.Numerics.Sum
 
-
+/-! Exact sum recovery and the scalar fast-path check. -/
 
 namespace TensorCore
 
@@ -56,8 +56,7 @@ theorem overlap_eq_retained_sub_outputResidual (t : BlockTrace) :
   unfold BlockTrace.overlap BlockTrace.outputResidual
   grind
 
-/-- Number of trailing zero bits of `n` (`0` for `n = 0`). Structural recursion on a fuel
-argument, so that kernel evaluation of worked examples reduces it. -/
+/-- Number of trailing zero bits of `n` (`0` for `n = 0`), by structural recursion on fuel. -/
 def trailingZeroBitsAux : ℕ → ℕ → ℕ
   | 0, _ => 0
   | fuel + 1, n => if n ≠ 0 ∧ n % 2 = 0 then trailingZeroBitsAux fuel (n / 2) + 1 else 0
@@ -67,8 +66,7 @@ def trailingZeroBits (n : ℕ) : ℕ := trailingZeroBitsAux n n
 /-- Exponent of the lowest set bit of a nonzero dyadic rational: `x = odd · 2^(lowestBitExp x)`. -/
 def lowestBitExp (x : ℚ) : ℤ := (trailingZeroBits x.num.natAbs : ℤ) - (x.den.log2 : ℤ)
 
-/-- Exponent of the lowest bit actually set in any low part, capped at the extraction grid.
-This is the tightest grid containing every low part; zero low parts are ignored. -/
+/-- Lowest bit actually set in any low part, capped at the extraction grid; zeros are ignored. -/
 def BlockTrace.lowestLowBitExp (t : BlockTrace) : ℤ :=
   t.lowParts.foldl (fun e x => if x = 0 then e else min e (lowestBitExp x)) t.extractionExponent
 

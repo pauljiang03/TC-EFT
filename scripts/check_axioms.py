@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Rebuild and audit all theorem dependencies against the standard Lean axiom allowlist."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from pathlib import Path
 import re
 import subprocess

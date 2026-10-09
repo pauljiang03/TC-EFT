@@ -34,7 +34,7 @@ both reject the input. This holds on all eight supported GPU paths.
 - **Assumes:** nothing beyond the input being one of the eight supported paths.
 - **Classification:** Core theorem. The transcription is mechanically checked not to reuse
   any model code, and a companion result shows it isn't vacuous.
-- **Lean:** [`IndependentSpec.supported_eq_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Specification/Supported.lean#L25)
+- **Lean:** [`IndependentSpec.supported_eq_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Specification/Supported.lean#L27)
 
 ### Which inputs does the model accept?
 
@@ -43,7 +43,7 @@ sum that fits in FP32.** Anything else is rejected with a named error.
 
 - **Assumes:** nothing.
 - **Classification:** Core theorem. It is an exact "if and only if".
-- **Lean:** [`evalBlock_success_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AcceptedDomain.lean#L33)
+- **Lean:** [`evalBlock_success_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AcceptedDomain.lean#L35)
 
 ### Is all the lost precision accounted for?
 
@@ -53,7 +53,7 @@ dropped by alignment and by the final rounding.
 - **Assumes:** the model accepted the input.
 - **Classification:** Core theorem. The exact sum is computed from the original input
   words, not from the model's own intermediate values.
-- **Lean:** [`evalBlock_residual_identity`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/StageResiduals.lean#L90)
+- **Lean:** [`evalBlock_residual_identity`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/StageResiduals.lean#L92)
 
 ### How large can the error be?
 
@@ -63,7 +63,7 @@ is the rounding loss.
 
 - **Assumes:** the model accepted the input.
 - **Classification:** Core theorem.
-- **Lean:** [`evalBlock_error_bound`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/ErrorBounds.lean#L78)
+- **Lean:** [`evalBlock_error_bound`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/ErrorBounds.lean#L81)
 
 ### Does modeling the adder as exact hide anything?
 
@@ -74,7 +74,7 @@ sum is exact too, whatever the order of additions.
 
 - **Assumes:** a register at least that wide.
 - **Classification:** Core theorem.
-- **Lean:** [`evalBlockMachine_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/MachineRefinement.lean#L13), [`evalBlock_machinePrefix`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AlignmentExponent.lean#L184)
+- **Lean:** [`evalBlockMachine_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/MachineRefinement.lean#L15), [`evalBlock_machinePrefix`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/AlignmentExponent.lean#L186)
 
 ### Chained groups
 
@@ -83,7 +83,7 @@ across the whole chain.**
 
 - **Assumes:** each group's output is passed on as the next group's `C`.
 - **Classification:** Core theorem.
-- **Lean:** [`runBlocks_residual_ledger`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Composition.lean#L93)
+- **Lean:** [`runBlocks_residual_ledger`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Composition.lean#L95)
 
 ## Non-monotonicity
 
@@ -97,7 +97,7 @@ K equal tiny products, with `C` lowered from 1 to the next FP32 value below 1.
   floor at most −1.
 - **Classification:** Core theorem. It is an exact threshold, and every GPU profile has
   a checked concrete example.
-- **Lean:** [`nonmonotone_encoded`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Monotonicity.lean#L272)
+- **Lean:** [`nonmonotone_encoded`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/Monotonicity.lean#L273)
 
 ### How large can the effect be?
 
@@ -106,7 +106,7 @@ formula for the output, and its maximum,** for `C = 1 − j·2^-24`.
 
 - **Assumes:** the same construction, with `1 ≤ j ≤ 2^23`.
 - **Classification:** Core theorem.
-- **Lean:** [`nonmonotone_range_encoded`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/MonotonicityRange.lean#L264)
+- **Lean:** [`nonmonotone_range_encoded`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/MonotonicityRange.lean#L265)
 
 ### When does it happen in general?
 
@@ -140,7 +140,7 @@ intermediate FP32 operation is exact, so only the final rounding remains.
 - **Assumes:** the scalar safety check holds.
 - **Classification:** Core theorem. The core is a proof that naive FP32 summation is
   exact within a 24-bit budget.
-- **Lean:** [`scalarCorrected_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/Extraction.lean#L162), [`naiveSumBinary_exact_of_bitSpan`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Binary/ScalarSum.lean#L165)
+- **Lean:** [`scalarCorrected_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/Extraction.lean#L160), [`naiveSumBinary_exact_of_bitSpan`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Binary/ScalarSum.lean#L166)
 
 ### Recovering the exact sum from D
 
@@ -152,12 +152,15 @@ intermediate FP32 operation is exact, so only the final rounding remains.
 
 ### Does the paper's input-budget condition imply the safety check?
 
-**Partly.** It derives two of the check's conditions; the other seven are
-assumed.
+**Partly.** For FP32 correction it derives five of the check's nine
+conditions: format, grid, 24-bit budget, magnitude range, and `D` fitting in
+FP32. It assumes the other four: a grid no lower than `2^-149`, the overlap
+and `H` fitting in FP32, and the sum in range. A concrete block satisfies all
+of them.
 
-- **Classification:** Partial reduction. No example in the repository satisfies
-  all of its assumptions at once.
-- **Lean:** [`ExtractionGrid.inputBudget_scalarPredicate`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/ExtractionGrid.lean#L174)
+- **Classification:** Partial reduction. The four remaining conditions depend
+  on the particular sum, not only the input bound.
+- **Lean:** [`ExtractionGrid.inputBudget_scalarPredicate`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/ExtractionGrid.lean#L174), [`ExtractionGrid.inputBudget_scalarPredicate_fp32`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/ExtractionGrid.lean#L191)
 
 ### Does the fixed-size implementation agree?
 
@@ -169,19 +172,28 @@ additions changes nothing.
 - **Assumes:** supported, finite, correctly shaped inputs.
 - **Classification:** Core theorem. The native-float part holds relative to Lean's
   specification of `Float32`.
-- **Lean:** [`EFMachine.tcEft_success`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Correctness.lean#L91), [`EFMachine.tcEft_range_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Correctness.lean#L101), [`EFMachine.tcEft_agrees`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Refinement.lean#L7), [`EFMachine.tcEftWithLean_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Native.lean#L108)
+- **Lean:** [`EFMachine.tcEft_success`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Correctness.lean#L91), [`EFMachine.tcEft_range_iff`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Correctness.lean#L101), [`EFMachine.tcEft_agrees`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Refinement.lean#L9), [`EFMachine.tcEftWithLean_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/Native.lean#L105)
 
 ### Does passing the fast-path check guarantee the fast path?
 
-**Yes.** In the 576-bit implementation, whenever the fast-path check passes,
-every run-time comparison in the fast path succeeds. So the fast path is
-taken, and it returns the correctly rounded sum. The run-time comparisons are
-provably redundant: they can never fail once the check has passed.
+**Yes.** In the 576-bit implementation the fast path is plain FP32
+operations. Whenever the check passes, every one of those operations is
+exact, so the fast path is taken and returns the correctly rounded sum. No
+run-time comparison against exact values is needed.
 
 - **Assumes:** a supported, finite input that passes the check and is not all
   zeros.
 - **Classification:** Core theorem.
-- **Lean:** [`EFMachine.Components.scalar_of_guard`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/ScalarGuard.lean#L242), [`EFMachine.tcEft_scalar_of_guard`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/ScalarGuard.lean#L268)
+- **Lean:** [`EFMachine.Components.scalar_of_guard`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/ScalarGuard.lean#L190), [`EFMachine.tcEft_scalar_of_guard`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Kernels/EFT/ScalarGuard.lean#L224)
+
+### Does FP64 DMMA follow IEEE 754 for signed zero?
+
+**Yes.** An exactly zero result `a·b + c` gets the IEEE 754 sign: addends
+with the same sign keep it; otherwise `+0`, or `−0` when rounding toward
+negative. A nonzero result that rounds to zero keeps its own sign.
+
+- **Classification:** Core theorem.
+- **Lean:** [`binary64FmaBits_of_eq_zero`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/FusedRounding.lean#L78), [`binary64FmaBits_of_ne_zero`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/TC/FusedRounding.lean#L68)
 
 ## Number formats and rounding
 
@@ -193,7 +205,7 @@ direction.
 
 - **Classification:** Core theorem. One gap: the specification doesn't fix the sign of a
   zero result.
-- **Lean:** [`round32_nearestEven_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/CorrectRounding.lean#L153), [`roundBinary_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Binary/RoundingContract.lean#L16)
+- **Lean:** [`round32_nearestEven_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/CorrectRounding.lean#L155), [`roundBinary_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Binary/RoundingContract.lean#L17)
 
 ### Is decoding of bit patterns consistent?
 

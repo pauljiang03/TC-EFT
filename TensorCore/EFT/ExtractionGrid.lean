@@ -187,6 +187,40 @@ theorem inputBudget_scalarPredicate (g : ExtractionGrid t) (f : Format) (hf : f.
   exact ⟨⟨⟨⟨⟨⟨⟨⟨hf, hmin⟩, hgrid⟩, hcoeff⟩, hrange⟩, hD⟩, hO⟩, hH⟩,
     by simpa [g.retained_add_low] using hfinal⟩
 
+/-- For FP32 correction, the format, `D` and the magnitude range are derived rather than assumed. -/
+theorem inputBudget_scalarPredicate_fp32 (g : ExtractionGrid t) (ℓ : ℤ)
+    (hmin : -149 ≤ ℓ) (hmax : ℓ ≤ 104) (hℓ : ℓ ≤ g.exponent)
+    (hinput : ∀ x ∈ t.block.terms, ∃ z : ℤ, x.value = (z : ℚ) * pow2 ℓ)
+    (hbudget : t.block.terms.length * (2 ^ (g.exponent - ℓ).toNat - 1) < 2 ^ 24)
+    (hO : representableBinary fp32 g.overlap = true)
+    (hH : representableBinary fp32 g.retainedSum = true)
+    (hfinal : absQ t.block.exactDot ≤ maxFinite32) :
+    g.scalarPredicate fp32 ℓ = true := by
+  have hcoeff := g.inputBudget_coefficient_bound ℓ 24 hℓ hinput hbudget
+  have hrange : (magnitudeSum (g.lowBitsAt ℓ) : ℚ) * pow2 ℓ ≤ fp32.maxFinite := by
+    have hm : (magnitudeSum (g.lowBitsAt ℓ) : ℚ) ≤ 16777215 := by
+      have : magnitudeSum (g.lowBitsAt ℓ) ≤ 16777215 := by omega
+      exact_mod_cast this
+    have hp := pow2_le_of_le hmax
+    have hp0 := pow2_pos ℓ
+    have hmax32 : fp32.maxFinite = 16777215 * pow2 104 := by decide +kernel
+    rw [hmax32]
+    have h0 : (0 : ℚ) ≤ magnitudeSum (g.lowBitsAt ℓ) := by exact_mod_cast Nat.zero_le _
+    calc (magnitudeSum (g.lowBitsAt ℓ) : ℚ) * pow2 ℓ
+        ≤ (magnitudeSum (g.lowBitsAt ℓ) : ℚ) * pow2 104 :=
+          Rat.mul_le_mul_of_nonneg_left hp h0
+      _ ≤ 16777215 * pow2 104 := Rat.mul_le_mul_of_nonneg_right hm (Rat.le_of_lt (pow2_pos _))
+  have hD : representableBinary fp32 t.output.value = true := by
+    have hv : value32 t.output.bits = some t.output.value := by
+      simp [value32, t.output.valid, Finite32.value]
+    obtain ⟨b, hb, hvb⟩ := round32_exact_of_finite (value32_finite _ _ hv)
+    unfold representableBinary
+    rw [show roundBinary fp32 .nearestEven t.output.value =
+      round32 .nearestEven t.output.value from roundBinary_fp32 .nearestEven _, hb]
+    have hbv : binaryValue fp32 b = value32 b := rfl
+    simpa [Option.bind_some, hbv] using hvb
+  exact g.inputBudget_scalarPredicate fp32 (by decide) ℓ (by simp [Format.emin, fp32]; omega) hℓ
+    hinput (by simpa [fp32] using hbudget) hrange hD hO hH hfinal
 
 end ExtractionGrid
 

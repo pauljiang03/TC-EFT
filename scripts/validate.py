@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 """Independent exact IEEE decoder, common-integer-grid alignment, neighbor oracle."""
+if not __debug__:
+    raise SystemExit('Run without python -O or PYTHONOPTIMIZE: these checks rely on assert.')
 from fractions import Fraction as Q
 from pathlib import Path
 import json

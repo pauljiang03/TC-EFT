@@ -1,5 +1,7 @@
 import TensorCore.Numerics.Encoding
 
+/-! Tensor Core profiles. -/
+
 namespace TensorCore
 
 
@@ -9,8 +11,7 @@ structure Profile where
   input : Format
   /-- K, the number of products per group. -/
   products : ℕ
-  /-- F = 23 + p: mantissa bits each term keeps after alignment, counted below the alignment
-  exponent. FP32's 23 plus p extra alignment bits. -/
+  /-- F = 23 + p: mantissa bits each term keeps after alignment. -/
   alignMantissaBits : ℤ
   /-- Lower bound on the alignment exponent, if the architecture has one. -/
   alignFloor : Option ℤ

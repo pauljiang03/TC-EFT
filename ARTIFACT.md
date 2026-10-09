@@ -1,8 +1,8 @@
 # Reviewer guide
 
-This artifact contains the Lean formalization, executable TC model and TC-EFT algorithm, and validation data supporting the paper. Use this guide to check the main claims; [What is proven](TensorCore/THEOREMS.md) and the [FloatLib correspondence](floatlib-port/COMPARISON.md) give the detailed proof map and hypotheses.
+This artifact contains the Lean formalization, executable TC model and TC-EFT algorithm, and validation data supporting the TC-EFT paper (*TC-EFT: Characterizing and Correcting Tensor Core Arithmetic*); the TC model follows Khattak and Mikaitis, *Accurate Models of NVIDIA Tensor Cores*. Use this guide to check the main claims; [What is proven](TensorCore/THEOREMS.md) and the [FloatLib correspondence](floatlib-port/COMPARISON.md) give the detailed proof map and hypotheses.
 
-Install elan, Python 3, and Git as described in the [build instructions](README.md#build-and-run). Each Lean project uses its own pinned toolchain. Run the commands below from the repository root, with Python assertions enabled (no `-O` or `PYTHONOPTIMIZE`). The checks require no MATLAB, CUDA, or GPU.
+Install elan, Python 3, and Git as described in the [build instructions](README.md#build-and-run). Each Lean project uses its own pinned toolchain. Run the commands below from the repository root. The scripts use `assert` and refuse to run under `python -O` or `PYTHONOPTIMIZE`. The checks require no MATLAB, CUDA, or GPU.
 
 ## 1. Smoke check
 
@@ -32,13 +32,13 @@ Run the individual commands after the smoke build. Lean files check their proof 
 | --- | --- | --- |
 | Consistency of finite binary encodings, including subnormals and signed zero | [`signedFiniteBinaryBijection`](TensorCore/Numerics/Binary/SignedBijection.lean) and its inverse laws | `lake env lean examples/BinaryFoundation.lean` |
 | TC block model and total output error bound | [`IndependentSpec.supported_eq_spec`](TensorCore/TC/Specification/Supported.lean); [`evalBlock_error_bound`](TensorCore/TC/ErrorBounds.lean) | `python3 scripts/check_paper_spec.py` |
-| Hardware conditions for non-monotonicity and the perturbation range | [`nonmonotone_encoded`](TensorCore/TC/Monotonicity.lean); [`nonmonotone_range_encoded`](TensorCore/TC/MonotonicityRange.lean) | `lake env lean tests/TensorCoreTests/TC/Monotonicity.lean` |
+| Model conditions for non-monotonicity and the perturbation range | [`nonmonotone_encoded`](TensorCore/TC/Monotonicity.lean); [`nonmonotone_range_encoded`](TensorCore/TC/MonotonicityRange.lean) | `lake env lean tests/TensorCoreTests/TC/Monotonicity.lean` |
 | Exact Sum Recovery | [`overlap_recovery`](TensorCore/EFT/Extraction.lean) | `lake env lean tests/TensorCoreTests/EFT/EFT.lean` |
-| Precondition for Correct Rounding and its application to TC-EFT | [`ExtractionGrid.inputBudget_scalarPredicate`](TensorCore/EFT/ExtractionGrid.lean); [`scalarCorrected_correct`](TensorCore/EFT/Extraction.lean); [`tcEftEncoded_correct`](TensorCore/EFT/Encoded.lean) | `python3 scripts/check_eft.py` |
+| Precondition for Correct Rounding and its application to TC-EFT | [`ExtractionGrid.inputBudget_scalarPredicate_fp32`](TensorCore/EFT/ExtractionGrid.lean); [`scalarCorrected_correct`](TensorCore/EFT/Extraction.lean); [`tcEftEncoded_correct`](TensorCore/EFT/Encoded.lean); [`EFMachine.Components.scalar_of_guard`](TensorCore/Kernels/EFT/ScalarGuard.lean) | `python3 scripts/check_eft.py` |
 | Bitwise agreement with all 35,000 published validation cases | [Pinned source hashes](vendor/SOURCES.json) and [recorded inputs/outputs](vendor/matlab-tensor-core-v0.5/model_validation/) | `python3 scripts/check_features.py` followed by `python3 scripts/check_device_formats.py` |
 | Correspondence between the first-principles and FloatLib implementations | [`floatlib_eq_reference`](floatlib-port/TCFloat/Equivalence/Representations.lean) and `floatlib_eq_reference_inverse` | Run the FloatLib commands in section 3 |
 
-The reviewed TC paths use FP16, BF16, or TF32 operands and FP32 outputs. The scalar correctness results require the stated grid, coefficient-budget, representability, and range premises. The reference algorithm also provides exact accumulation when its scalar guard fails. Hardware evidence consists of replaying recorded GPU outputs; the universal proofs concern the defined model under their hypotheses. [What is proven](TensorCore/THEOREMS.md) also identifies the bounded backend and native FP32 refinement proofs.
+The reviewed TC paths use FP16, BF16, or TF32 operands and FP32 outputs; the final rounding is truncation. Any value TC-EFT returns is the exact sum correctly rounded to FP32, and it returns one exactly when that rounded sum is finite. Its fast FP32 path is taken whenever its check passes, which uses the lowest bit actually set in the low parts, as the TC-EFT paper's generator does; otherwise exact accumulation gives the answer. The paper's input-budget condition (17) derives five of the check's nine conditions for FP32. Hardware evidence consists of replaying recorded GPU outputs, which do not exercise alignment floors, zero or subnormal operands, TF32's wide exponent range (the TF32 input files duplicate the V100 FP16 inputs), or the H100 TF32 K = 8 path. The universal proofs concern the defined model under their hypotheses. [What is proven](TensorCore/THEOREMS.md) also identifies the bounded backend and native FP32 refinement proofs.
 
 ## 3. Full validation
 
@@ -48,7 +48,7 @@ For the first-principles implementation:
 python3 scripts/check_clean_build.py
 ```
 
-This creates a source snapshot without a build cache, checks the proofs and allowed axioms, runs exact-arithmetic comparisons and recorded-vector replay, and checks the examples, documentation, and layout. Expected evidence is `success: true` in [data/regressions/clean-build.json](data/regressions/clean-build.json), zero numerical mismatches, and an audit permitting only `propext`, `Classical.choice`, and `Quot.sound`. The command regenerates the reports under `data/regressions/`.
+This creates a source snapshot without a build cache, checks the proofs and allowed axioms, runs exact-arithmetic comparisons and recorded-vector replay, and checks the examples, documentation, and layout. Expected evidence is `success: true` in [data/regressions/clean-build.json](data/regressions/clean-build.json), zero numerical mismatches, and an audit permitting only `propext`, `Classical.choice`, and `Quot.sound`. The command regenerates the reports under `data/regressions/`; run timings go to the untracked `tmp/timings/`, so rerunning on unchanged sources leaves `git status` clean. It takes about 3 minutes on a recent laptop; the FloatLib suite below takes about 10.
 
 For the independent FloatLib implementation, run this block from the repository root:
 
