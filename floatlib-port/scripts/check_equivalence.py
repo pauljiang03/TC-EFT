@@ -8,7 +8,7 @@ PORT = Path(__file__).resolve().parents[1]
 ROOT = PORT.parent
 OUT = PORT/'test-results/equivalence'
 SOURCE = PORT/'test-results/reference-source'
-REV = 'cfe8d9c0d4353846deca2f9e13949a5faf8dbad8'
+REV = '8829cccf4bad4629c5bf2eee2b8ff76b859c8158'
 
 def sha(path): return hashlib.sha256(path.read_bytes()).hexdigest()
 

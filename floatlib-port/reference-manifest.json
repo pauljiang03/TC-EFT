@@ -1,9 +1,9 @@
 {
   "format": 1,
-  "revision": "cfe8d9c0d4353846deca2f9e13949a5faf8dbad8",
+  "revision": "8829cccf4bad4629c5bf2eee2b8ff76b859c8158",
   "files": {
     "TensorCore/EFT/Defs.lean": {
-      "source_sha256": "d44e5975ecf59513f4faf02d6be105253a67fe7094c63d52ae2a60710702fdb3",
+      "source_sha256": "9f7b023a1f73f79c1fd54614bcea88358b0e27a7915f22cb7e52de8a16ac5ba2",
       "body_tokens_sha256": "2bf63b1c0341c83f9a6872c3496a83d71c8ce42331348243eb285ad03e528a91",
       "imports": [
         "import TensorCore.TC.Block\n",
@@ -11,15 +11,15 @@
       ]
     },
     "TensorCore/EFT/Encoded.lean": {
-      "source_sha256": "b99e45019336dc759b892016cc713f6bb0a2997936096bc27d574be1a9149d76",
+      "source_sha256": "d00243cebdd6e82f7b23847f5be636387497acdf70c99fcee49d4af6bb7d0695",
       "body_tokens_sha256": "19f2fda6ba6145fc901db7df8ef38585a702e110fa54a32b014037536b77c6ef",
       "imports": [
         "import TensorCore.EFT.TcEft\n"
       ]
     },
     "TensorCore/EFT/Extraction.lean": {
-      "source_sha256": "446814b668d392e0852ca56238b1e74cc435eae0377f601c1ee372ada8d9470e",
-      "body_tokens_sha256": "a29679bf21d9309d7cc6971c9ce5ffd0f097e899fdc0d0a656d24dd4c4907b25",
+      "source_sha256": "b2247243a33b10b6bd3275b372e8a8ef10a9efcb1a264ba102a6c8f11cba9c98",
+      "body_tokens_sha256": "fc7a8cf3fa8e54be351a0a24b19b26bda4282b3edecaac15d36caaa4ab8f0b3a",
       "imports": [
         "import TensorCore.EFT.Defs\n",
         "import TensorCore.Numerics.ScalarSum\n",
@@ -45,7 +45,7 @@
       ]
     },
     "TensorCore/Numerics/Binary/Defs.lean": {
-      "source_sha256": "4ef3b8f64f820f1e827b1bd36161481487f0f338a0aa01c1fb8a523d13ac7573",
+      "source_sha256": "dd10ebf7d1ec09b8e9ecc49d6917ebc199983783df584cbf0815070a924ca7ad",
       "body_tokens_sha256": "382b4a2a21b674e31d92da07286dd99f7a1403b7f92f730330dcdac41c706648",
       "imports": [
         "import TensorCore.Numerics.Encoding\n"
@@ -69,7 +69,7 @@
       ]
     },
     "TensorCore/Numerics/Binary/RoundOp.lean": {
-      "source_sha256": "cf9dad1ae3024e8dc656764ee8799acbd851b163a3bfba335408d85f5e3cbabe",
+      "source_sha256": "ac9961486797c8e4ec8ead60b8e84b24929afaeb46a3055ad250c028411198df",
       "body_tokens_sha256": "704c925f4c92f1c0946eb8578ebad7c76bd8049e1380791da45a49454e72764f",
       "imports": [
         "import TensorCore.Numerics.Format\n",
@@ -77,7 +77,7 @@
       ]
     },
     "TensorCore/Numerics/Binary/RoundingBounds.lean": {
-      "source_sha256": "6ecef410f1621aaffa9dea73d20d8ffa351759b8b4983f6c33fc7c1b68909120",
+      "source_sha256": "57bed9189a1572edba20fcaafbc39c6c80881000ddd8c9e0cb2a168c3447d750",
       "body_tokens_sha256": "36b0c4926712289f06a51fde1b28eba89155326ca79e2aa14452a758c055f9cd",
       "imports": [
         "import TensorCore.Numerics.Binary.Encoding\n",
@@ -85,7 +85,7 @@
       ]
     },
     "TensorCore/Numerics/Binary/ScalarSum.lean": {
-      "source_sha256": "91462929621d065a6fe95f7f191113fb6dc4789501202a94704b50f41874b06a",
+      "source_sha256": "97b17510ad2e937fa20379e2266b2f52fc71f81acb519ee67a44944026b954ef",
       "body_tokens_sha256": "ac39656b38f4ca1c38952dfbfcba8dcfb0317ef1bd867e25d75e46a73ccbf092",
       "imports": [
         "import TensorCore.Numerics.Binary.CorrectRounding\n",
@@ -94,21 +94,21 @@
       ]
     },
     "TensorCore/Numerics/CorrectRounding.lean": {
-      "source_sha256": "090d385694cd5f3f8123ed87d688891f8c284ec745e0ffc1bbc4bb75b82573e4",
+      "source_sha256": "62966c590600abcab4a701587c48937ff008a5c92f27d4a553c4f8505cbaed99",
       "body_tokens_sha256": "230c63129aaf0faed464e89948f4534c8c39fcca535a97f09dc32db313538c15",
       "imports": [
         "import TensorCore.Numerics.RoundingBounds\n"
       ]
     },
     "TensorCore/Numerics/Defs.lean": {
-      "source_sha256": "bf66ac547b6cd78267da1f603dcf1adfeede0c9b41b14e43ee89445058432d08",
+      "source_sha256": "5cd6e0a97ad0527b153ff376aeb929167bd39f13ec125f8d02708a2622086ced",
       "body_tokens_sha256": "a1dfeca266c5d0ae6eec791d341d9afd4e61cc55f0c5dc55098f58324e21dae6",
       "imports": [
         "import TensorCore.Numerics.Exact\n"
       ]
     },
     "TensorCore/Numerics/Encoding.lean": {
-      "source_sha256": "102d7d7f95a95d8d673e49550e9a7395a0d414e16428ebbdecff82308d1a132e",
+      "source_sha256": "955abf5575ce13100ea6e847a2a829a36b3796417d179b05f11f958a72e9807e",
       "body_tokens_sha256": "9cef5ee199403608b43555029cc1f9ca468dec3f460eec1f0d54261c3088d678",
       "imports": [
         "import TensorCore.Numerics.Defs\n"
@@ -132,21 +132,21 @@
       ]
     },
     "TensorCore/Numerics/Format.lean": {
-      "source_sha256": "a3100197244aaf7027243109869d9178b16ebb2c39a70231adb0374b5e834a88",
+      "source_sha256": "b7c3d875a1dbbc2a626ef8afc7c3b15bb9ffe094a7da51eb49de22470973c6ec",
       "body_tokens_sha256": "d13c55c257a99094f7132a14ff83ab0aec6e61f658e7bea7f006e7b7d7e98155",
       "imports": [
         "import TensorCore.Numerics.Encoding\n"
       ]
     },
     "TensorCore/Numerics/FormatProperties.lean": {
-      "source_sha256": "212f5478a397658bae24c135a4601e9b0b2d9dde4a16cd0d3eaaba6e684e88b7",
+      "source_sha256": "833c50e59bb362048b7c3060f591db5ac4cc3ab45f6416ce9220b780118e6788",
       "body_tokens_sha256": "79663a2990cd744062da9b4cd8f5c38798deed314dad6dce465c605ce3440705",
       "imports": [
         "import TensorCore.Numerics.Format\n"
       ]
     },
     "TensorCore/Numerics/Notation.lean": {
-      "source_sha256": "4553fdbd68f1fd7ac0a927f23889375d1a3ae86e9ac321b160de7da9f6c9aeac",
+      "source_sha256": "69b7fa08cd828c76706e32055132f902089a9f9e734e0400f099c540ec0c7982",
       "body_tokens_sha256": "38f53cbb5d42e66796f1fe3f1bffcc72652a20627b047aa5001c81b5d2e6e1bb",
       "imports": [
         "import Std\n",
@@ -154,7 +154,7 @@
       ]
     },
     "TensorCore/Numerics/RoundOp.lean": {
-      "source_sha256": "87056a3c32bc7ece1e107579192206fad295d1cd830385d47cf5136e8779741c",
+      "source_sha256": "c15bbdba45da6be0834461724596daf262384fe77b0025d9949f345b78d88d82",
       "body_tokens_sha256": "b85da7a64db469978790429156a04490907682bccea37e079236bd64140f96c8",
       "imports": [
         "import TensorCore.Numerics.Encoding\n"
@@ -175,28 +175,28 @@
       ]
     },
     "TensorCore/Numerics/RoundingBounds.lean": {
-      "source_sha256": "2222e50a5a9441bf3e9b5792603ac52de01d6250324e0b94c364170b681f26ef",
+      "source_sha256": "8e78436cd2723b35446cae5e525f099038246a05e2f6eb1aeb6c718d4342a520",
       "body_tokens_sha256": "d01f9230e45ebf645fc19b424ab39190b752a78aa790e9c6a734e4856da12876",
       "imports": [
         "import TensorCore.Numerics.Rounding\n"
       ]
     },
     "TensorCore/Numerics/RoundingError.lean": {
-      "source_sha256": "63885cf4b2ed06d57d1c1b3c37a5d4c986718054a45c20c4d06fc7b45cc1d14a",
+      "source_sha256": "6cdd16219ccb9aee7c3712dfab9efd37b573958b1e3ab035ff8ccdcf39f26fa9",
       "body_tokens_sha256": "964cddc3b3193f6556e70a43638dcbbc34d34f2f5f20d8e8bd1635bcf7e9efc8",
       "imports": [
         "import TensorCore.Numerics.CorrectRounding\n"
       ]
     },
     "TensorCore/Numerics/RoundingStage.lean": {
-      "source_sha256": "bc0d1bf577d1edf7db80a61df7c42310819c9bcda7011a5c8fad4bf8b82ebb1f",
+      "source_sha256": "03594f54900cbd961c6ce50c6a8dac84505945b5086ab02db6a908ed07060145",
       "body_tokens_sha256": "ada21776c6c5e16cd5e30da19061edf3c172291c7eaa1e50b0320f0664ada676",
       "imports": [
         "import TensorCore.Numerics.Binary.RoundOp\n"
       ]
     },
     "TensorCore/Numerics/ScalarSum.lean": {
-      "source_sha256": "fe1997c4574a5387dcf5743dab640a17ee518d03a83ddf7b36c144b5130dac2b",
+      "source_sha256": "e39a95190cc620a7cba680e6ad4c36573c2e68b735cc3dfb10b9ef7cb3925d81",
       "body_tokens_sha256": "cc3a7327cd3cb8ab441c2f8b12c90ea64f1a69026705aba221f819d81ce2eea3",
       "imports": [
         "import TensorCore.Numerics.CorrectRounding\n",
@@ -204,42 +204,42 @@
       ]
     },
     "TensorCore/Numerics/Sum.lean": {
-      "source_sha256": "1cf46492a18aa462573f0b40b2448a4f5ecbefdd741adee4fad02770cd418b68",
+      "source_sha256": "e4846b5647b40e84e8959f5649e0811948c9d0ee80c89a134c059503a5415de2",
       "body_tokens_sha256": "f748497cda3de3caaf6adbd454fed8f23dc2b13975ae9e1eba6cc40b774575cf",
       "imports": [
         "import TensorCore.Numerics.Exact\n"
       ]
     },
     "TensorCore/Numerics/Truncation.lean": {
-      "source_sha256": "fc0571189d82f049b2cadf8b1ca125bbcbe835c363514ddb9285db166723ae6b",
+      "source_sha256": "0fdfc54dc6f684f8a34e94637aedb969739132c6408fcbe3c85a7081d6cf6985",
       "body_tokens_sha256": "398bdc883dec84beb7609da6d218ab63216516258bb915fa0d0b29506d43c253",
       "imports": [
         "import TensorCore.Numerics.Exact\n"
       ]
     },
     "TensorCore/Numerics/UnnormalizedProduct.lean": {
-      "source_sha256": "dff6ac83ff88ec9631aa99749ccfb26bc21391b9c0f90fea6cd93e9c82bd24e3",
+      "source_sha256": "165af1aa2ac19350533a56135dfaf23bde4c8903b6b47757929993c15f8a1e77",
       "body_tokens_sha256": "74360735cfbe922251239952b5242c79a595d00542240eca4aa60c3fa167b998",
       "imports": [
         "import TensorCore.Numerics.FormatProperties\n"
       ]
     },
     "TensorCore/TC/AcceptedDomain.lean": {
-      "source_sha256": "35c47204419184d066ff3c1fc839948eacf48b1dc3291819f7a0b3505fa35d5e",
+      "source_sha256": "229577e19d20f17cef89ea2420af2c60aded9ae92a77530d057e3fa04f4ce598",
       "body_tokens_sha256": "695084f0d3d9a701cebcc38f5867bfcdc4b73a884ba8a91358cb856339584a9a",
       "imports": [
         "import TensorCore.TC.Canonical\n"
       ]
     },
     "TensorCore/TC/Accumulator.lean": {
-      "source_sha256": "99bfe5db2e2a906b81f38829d03f7077280ac9f3caa0bae6c95388018321dec2",
+      "source_sha256": "a564d7039ebaf79a89440d7166baacc02fe7ab6b363e38b3bb0488904804862e",
       "body_tokens_sha256": "e0602c55cf633347806a7e424a22588862284e375096bd48b93ab42459bdd53e",
       "imports": [
         "import TensorCore.TC.Block\n"
       ]
     },
     "TensorCore/TC/AccumulatorWidth.lean": {
-      "source_sha256": "3f437c6700c11d487c76615c83a43926faf920fabcf5315da3eb77f7e850d4d5",
+      "source_sha256": "bfe5c5b58aef2dd31184b5a6da3781a78b7c1304456910bc390c659f4469a287",
       "body_tokens_sha256": "17c1940c3ad4aff2cccb8251385956d3dffb7a5bf08be67b6b3074e9f82b2191",
       "imports": [
         "import TensorCore.Numerics.Sum\n",
@@ -247,7 +247,7 @@
       ]
     },
     "TensorCore/TC/AlignmentExponent.lean": {
-      "source_sha256": "0b9207bbb9fc26c914d9ee5457a3603286aea4aefce8e2e6eb04bea02cffe938",
+      "source_sha256": "3660cc537306d74e8c9124549e46fb9536d61d91c51b059601843debea5d3ae0",
       "body_tokens_sha256": "4bb4a38f017c633188a8d2d52de8b71d673d443f83f6bd970c45ab71fc5f0d9c",
       "imports": [
         "import TensorCore.Numerics.FormatProperties\n",
@@ -257,7 +257,7 @@
       ]
     },
     "TensorCore/TC/Block.lean": {
-      "source_sha256": "32e3c42fbf83f4993d4bca43f831dd8715d5725ba1e6c88a0f8ccc43f9c33556",
+      "source_sha256": "9bda198491473d90db50e65969bb003c6aab81d597a4db95643778ed3b94c5d6",
       "body_tokens_sha256": "e42969e689a54a7836002b04147592547dd34c2231ecc8d7cefbff33a50dce36",
       "imports": [
         "import TensorCore.Numerics.UnnormalizedProduct\n",
@@ -266,7 +266,7 @@
       ]
     },
     "TensorCore/TC/Canonical.lean": {
-      "source_sha256": "cfccde7c4de6e69b0f1e19f76b1127d44ea873088d28fa361732773fb8817839",
+      "source_sha256": "5b6a40a033e20e719743dd99f2244e64611a9efea40b70fd0ef236a7a01150cb",
       "body_tokens_sha256": "7ffa16487e44c2972c6449314c9ee4e15a2f686c072e5553ea72009f9744997e",
       "imports": [
         "import TensorCore.TC.CanonicalDefs\n",
@@ -275,35 +275,35 @@
       ]
     },
     "TensorCore/TC/CanonicalDefs.lean": {
-      "source_sha256": "89265e049a3e17f9601d1d9b3e1dde386de1c4bf22acda13a337a0d9114ee8b9",
+      "source_sha256": "6bcb6f5621d9e61413e6ed33634f84473609262842094d852de6dc10b3fc2e94",
       "body_tokens_sha256": "6bb4c8e20150916de8808cf4922510f65fe2587b097986107bebf4dd9b109eba",
       "imports": [
         "import TensorCore.TC.Invocation\n"
       ]
     },
     "TensorCore/TC/CanonicalFloor.lean": {
-      "source_sha256": "a77c15df3622cc9379f2333719bc12643cd3c2c8075b42e9e630d3c3dce32d16",
+      "source_sha256": "2a84fa999112cae2144019d7ad5988d1e9e4b4f1e30d6ed0d4d6204007bb5aa2",
       "body_tokens_sha256": "d74904a23baa1826992e7955d9eb52c06fad31b6cc80e5b7c34fd498fcd10fb0",
       "imports": [
         "import TensorCore.TC.Canonical\n"
       ]
     },
     "TensorCore/TC/Compatibility.lean": {
-      "source_sha256": "eb2c8a1ac5d601c0adf43b775aa3343d1c6dfdff03aab385f4d7258e7a9d0f29",
+      "source_sha256": "61994f3cdff2c0d3ea8b7f74535ea620975fe83af1495b38428c4f7c178b77a2",
       "body_tokens_sha256": "24c333cde3c658ea5802bd0ff31c3ad7b469a5b61214612e19f48602d888fdfb",
       "imports": [
         "import TensorCore.TC.InvocationProperties\n"
       ]
     },
     "TensorCore/TC/Defs.lean": {
-      "source_sha256": "b2d5b9a8c0bf5600c3df3ad97cbf1e6a7faeec035fa0c4732e0900d9da92c701",
+      "source_sha256": "4cbb43c0b73dba8081771130dbef886017948fbff84a290ca56b4d04567ffa08",
       "body_tokens_sha256": "9b23bb5bd3bf198d7dd342886c5fda2beeb0ccc02418b8033d4a89166c517908",
       "imports": [
         "import TensorCore.Numerics.Encoding\n"
       ]
     },
     "TensorCore/TC/ErrorBounds.lean": {
-      "source_sha256": "e3775209c722eb80502f812dccaccdb3bb693e7df7b25e84f609104aa44bb704",
+      "source_sha256": "9c2bc83ef9cc44015b68469a8fdd3dfb70c470eda6844e1093ff47ce8a06ce32",
       "body_tokens_sha256": "a2d952285e27408337adce1f2f496ff1b8efe7c1adff004dda072a7ff5539497",
       "imports": [
         "import TensorCore.Numerics.RoundingError\n",
@@ -312,7 +312,7 @@
       ]
     },
     "TensorCore/TC/ExactAlignment.lean": {
-      "source_sha256": "0ab44ec3b9438b2a8c1094f38c270218cd3a063dd444ab0f5479eed04f0f9927",
+      "source_sha256": "24195a7dfc317f0ef7c3c8d793c15386e1c5842b58174a8dbd36a03397c47cec",
       "body_tokens_sha256": "940211023fca0b0f473e4738b31445d62fc5f0c4146baee4308db988afd88acc",
       "imports": [
         "import TensorCore.TC.Canonical\n"
@@ -329,7 +329,7 @@
       ]
     },
     "TensorCore/TC/Invocation.lean": {
-      "source_sha256": "f0d279e55a980aaa1302eabbf7e348074b58600ea31363bc957b605f15dff2ec",
+      "source_sha256": "b7d6dda3e6687d0a61a8bf62e8e0f7f2b46cf2d9dc963f806d3307bfc5212fe9",
       "body_tokens_sha256": "f38c6b2b73ac666d4ff1e310659fa5930da4f2733638479f6243161aed6c6535",
       "imports": [
         "import TensorCore.Numerics.RoundingStage\n",
@@ -337,7 +337,7 @@
       ]
     },
     "TensorCore/TC/InvocationProperties.lean": {
-      "source_sha256": "26c40e86086e5a784f56de478acb72496ab4e617bdc6adb0d7e2f1b6f8775e31",
+      "source_sha256": "860f32ae0c2416c4c55c8d7d25933bf7420e1927da2f94cb11ce79d7f8ec4d54",
       "body_tokens_sha256": "e6e7124676719d38f755319c7f8f045592068e51240afc4a034c939fda8b0485",
       "imports": [
         "import TensorCore.TC.Invocation\n",
@@ -345,7 +345,7 @@
       ]
     },
     "TensorCore/TC/Monotonicity.lean": {
-      "source_sha256": "4b0612f6b537b0ac7eaaad8290223c4d89cce30c7a899288f377574bc3d967b6",
+      "source_sha256": "e04c2892607623fb21a1ed9ce3378e353429e0d17bcf498fb4d4e5867e1451fb",
       "body_tokens_sha256": "9495dbadd4146c21e41a1a200eddd5386378dd1e8eac8ba58bc4bfc67f5a373e",
       "imports": [
         "import TensorCore.Numerics.CorrectRounding\n",
@@ -355,14 +355,14 @@
       ]
     },
     "TensorCore/TC/MonotonicityRange.lean": {
-      "source_sha256": "310158634c78787301d45ccf033ea06807c48efeb8675a3e2065987f6fed152e",
+      "source_sha256": "582226c7216059af0ce6feaae2d9d6fb86da29cdb343db6217d1fa622c2fa1ca",
       "body_tokens_sha256": "69b3ea640e6e9130fe2dd319e15c9b20a9f37e5af979d0ee4ec6bd180bf8223e",
       "imports": [
         "import TensorCore.TC.Monotonicity\n"
       ]
     },
     "TensorCore/TC/Padding.lean": {
-      "source_sha256": "2aa8b56cd6e528e1253ae6eb8c6085f5ec50272ba5ca2099c9534917cb89b571",
+      "source_sha256": "52895c0a8d36b3f92131959f7bbd08e2c849afcc504163855caafb55f781387a",
       "body_tokens_sha256": "8a2e0c7b670078c06ae8d7fb18d5c8a405a01b99a2a01510e4e166491dcc1a81",
       "imports": [
         "import TensorCore.TC.CanonicalFloor\n",
@@ -371,7 +371,7 @@
       ]
     },
     "TensorCore/TC/StageResiduals.lean": {
-      "source_sha256": "e8cfda5f4834ee37d571aaad5a60993dc748c8d24bb1a888389844d4442f98f8",
+      "source_sha256": "02a71b4375699a105590f5b2f6cf674ae81507d9bc1cd96418e47010411b9333",
       "body_tokens_sha256": "bc35c8415ccb67ee8052911814d6ac93ecf397b18c1623c1b27772b513009fe1",
       "imports": [
         "import TensorCore.TC.Block\n"

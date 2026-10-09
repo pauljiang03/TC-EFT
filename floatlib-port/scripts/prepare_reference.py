@@ -7,9 +7,9 @@ import hashlib, json, re
 
 PORT = Path(__file__).resolve().parents[1]
 REPO = PORT.parent
-PIN = "cfe8d9c0d4353846deca2f9e13949a5faf8dbad8"
+PIN = "8829cccf4bad4629c5bf2eee2b8ff76b859c8158"
 REFERENCE = PORT / "reference-manifest.json"
-REFERENCE_SHA256 = "39c0b3c9ef363731e552e24cd7aa284c318c7f116c7feb43a8c53159581d07d6"
+REFERENCE_SHA256 = "6ea0e28894e77de24c1ec1cad627134dc39cc7ef55de878df35f132b1635a25d"
 OUT = PORT / "reference-compat"
 
 def lean_tokens(source):
