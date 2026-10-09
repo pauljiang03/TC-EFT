@@ -39,8 +39,8 @@
     "TensorCore/Scalar/LeanFiniteAddition.lean": "3095b79a73bc5703435138fec1810edc344689bbcbbd86b3cd9782997a69ec9c",
     "TensorCore/Scalar/LeanRounding.lean": "8ec0751269e8bb001bac40cbcdc3711c4ca218c64d12f83c438aca7a0801ac75",
     "TensorCore/Scalar/Operations.lean": "1284711efe85c32e209a5cca490fe123977296f71cdb1bb771cfbc156266067c",
-    "TensorCore/Scalar/Precision.lean": "50f3194cef030a90abdd0e3da61cf6d59dab5addd6f38c862c7de78f386b0ce0",
-    "TensorCore/Scalar/Rounding.lean": "fca3a086e3c0d3b22115284979d25c702badd8a36069152e179e4643b2b83b85",
+    "TensorCore/Scalar/Precision.lean": "20f4e78f352923a58f3cb0e87ac8fed870d56fd236012e95c6e09e05a5ea8238",
+    "TensorCore/Scalar/Rounding.lean": "d04dbb216f4b59da777936539d724a0058ac1f8f2c1d345215335cf71ebcab58",
     "TensorCore/Scalar/Specification.lean": "17bb22eff95f3278552424c865c8928dde733019e5f2b9e0fe7179c32e65e699",
     "TensorCore/Kernels/EFT/BitScan.lean": "38c504b36de8ae04d321015ef6ccb3fecc689a77ba2d3a53c20bdae12bf9a0f7",
     "TensorCore/Kernels/EFT/BitScanDefs.lean": "39eada4ec892f7eafa90b8549406f743499b15df957e4c0ca2b26eaac9806df7",
@@ -48,18 +48,18 @@
     "TensorCore/Kernels/EFT/Cost.lean": "0f0041cf6d9a927c7f2c1663bbee1a28c78d3ef760c3b0a0216bbc9ac31a02da",
     "TensorCore/Kernels/EFT/Decode.lean": "e8efce11c8f27c6fd49eee574bd0fd6bb0fdf3eb2a36f186743287f426d5f6a6",
     "TensorCore/Kernels/EFT/DecodeDefs.lean": "1fe7beb11981fb4aa32ea7f063ee2dfa1f3c301e7b631b17a0bd206ad8eaabc4",
-    "TensorCore/Kernels/EFT/Dyadic.lean": "00fddc253c56d87008ba2cefe26a4697bcbe4b97e1a5f65234e7a37dbdbbf7c5",
+    "TensorCore/Kernels/EFT/Dyadic.lean": "7d553af4c13b2f3d14d193dd65e0495b9a5283a31c436d097bebb8372243594a",
     "TensorCore/Kernels/EFT/Extraction.lean": "8ff7e321312b184b495fd88f840fd63a86993f9a7d926e93cc71f4d4ada1b941",
     "TensorCore/Kernels/EFT/Grid.lean": "3913bb3ef91981c10728e78942fdaeb89e5ff18c978301a176e6e495f228c0e5",
     "TensorCore/Kernels/EFT/Preparation.lean": "c5f2ad5443ff08ac957d6fbdc444f9e5d6baed6105038b2ed6f710a66d9df2ad",
     "TensorCore/Kernels/EFT/Refinement.lean": "160a52513e9ba403d1beb6946aff955284f5ef0a4a9b8016475618f7e7c81458",
-    "TensorCore/Kernels/EFT/Round.lean": "7a17c3ed572bb15a7a175b87442800e7705c287b3fe1063aafe9376a0bc96910",
+    "TensorCore/Kernels/EFT/Round.lean": "54978552dca11ba0854892c25618ec17c608a2ab7e5743dcb8c1eebe230bd8ae",
     "TensorCore/Kernels/EFT/Scalar.lean": "1792d4144369b5e20905664a05ecad09239f104883879810d0cb0350e5c1ddf5",
-    "TensorCore/Kernels/EFT/Split.lean": "06c08afa9538beacb80616879e2472292c73ddd1b2a140d27fbbea2933ea46d8",
+    "TensorCore/Kernels/EFT/Split.lean": "db5022ba06387df802c32c5c23795339403241b5dec04378395e58f9193a51c1",
     "TensorCore/Kernels/EFT/SplitDefs.lean": "614005c84009722b95ff64838032079b3a27fd861d1a0e4cb414897e91be225a",
     "TensorCore/Kernels/EFT/Success.lean": "3cccf26f54de50b2a85ddf7677a724249b3682f66fdbb23e638f6368a8213725",
     "TensorCore/Kernels/EFT/Word.lean": "b5eec2d75afc318e1fe698383d7aa2c1e682a396558bebcdf70628d13b8d9bfa",
     "TensorCore/Kernels/EFT/WordDefs.lean": "50d9031946d93e29280339a17e034c0cb14a51f14b4c674ce282296525f06b79"
   },
-  "elapsed_seconds": 3.55
+  "elapsed_seconds": 3.409
 }

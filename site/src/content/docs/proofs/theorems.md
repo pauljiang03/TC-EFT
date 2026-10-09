@@ -140,7 +140,7 @@ intermediate FP32 operation is exact, so only the final rounding remains.
 - **Assumes:** the scalar safety check holds.
 - **Classification:** Core theorem. The core is a proof that naive FP32 summation is
   exact within a 24-bit budget.
-- **Lean:** [`scalarCorrected_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/Extraction.lean#L144), [`naiveSumBinary_exact_of_bitSpan`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Binary/ScalarSum.lean#L165)
+- **Lean:** [`scalarCorrected_correct`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/EFT/Extraction.lean#L162), [`naiveSumBinary_exact_of_bitSpan`](https://github.com/pauljiang03/TC-EFT/blob/main/TensorCore/Numerics/Binary/ScalarSum.lean#L165)
 
 ### Recovering the exact sum from D
 

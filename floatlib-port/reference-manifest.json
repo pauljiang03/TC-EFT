@@ -1,6 +1,6 @@
 {
   "format": 1,
-  "revision": "c1afea74646a63c2bc5d87fb6f54c3a3f4b88208",
+  "revision": "cfe8d9c0d4353846deca2f9e13949a5faf8dbad8",
   "files": {
     "TensorCore/EFT/Defs.lean": {
       "source_sha256": "d44e5975ecf59513f4faf02d6be105253a67fe7094c63d52ae2a60710702fdb3",
@@ -18,8 +18,8 @@
       ]
     },
     "TensorCore/EFT/Extraction.lean": {
-      "source_sha256": "0a3da854264f2349b3fd1f4cf5be6d44a809f5e9294ed0f124892805a993c766",
-      "body_tokens_sha256": "686c424a80803fe04676d2b9c82dc4462e454b492d9680ccfbc5477f23591c77",
+      "source_sha256": "446814b668d392e0852ca56238b1e74cc435eae0377f601c1ee372ada8d9470e",
+      "body_tokens_sha256": "a29679bf21d9309d7cc6971c9ce5ffd0f097e899fdc0d0a656d24dd4c4907b25",
       "imports": [
         "import TensorCore.EFT.Defs\n",
         "import TensorCore.Numerics.ScalarSum\n",

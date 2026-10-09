@@ -14,7 +14,7 @@ S = D - εₒ + Σ εᵢ = H + Σ εᵢ
 
 The scalar procedure sequentially adds the low parts in FP32, computes D - εₒ in FP32, and performs one final nearest-even addition. Its sufficient predicate checks that the low bits of all terms fit together within 24 bits (counted from the lowest low bit present), that this lowest bit is between `2^-149` and `2^104`, that D, εₒ and H each fit in FP32's 24 significant bits, and that the final sum is within finite FP32 range. These premises justify exact intermediate operations. A failed predicate makes the scalar helper return `none`.
 
-The deterministic support-grid choice is conservative. The chosen-grid theorems permit other valid common grids; identifiers beginning `inputBudget_` concern the TC-EFT paper's input-budget inequality (17).
+The common grid is the lowest bit actually set in the low parts (zeros ignored), the same rule as the TC-EFT paper's generator and the 576-bit implementation; it is the tightest grid for this check. The chosen-grid theorems also cover other valid common grids; identifiers beginning `inputBudget_` concern the TC-EFT paper's input-budget inequality (17).
 
 ## Execute a correction
 

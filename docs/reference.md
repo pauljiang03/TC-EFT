@@ -34,7 +34,7 @@ Both returned results decode to FP32 `1.0`. A block request has `profile`, opera
 
 [What is proven](../TensorCore/THEOREMS.md) lists the public results and their premises.
 
-Identifiers beginning `inputBudget_` concern the TC-EFT paper's input-budget inequality (17), a sufficient condition for the scalar predicate. The scalar predicate is a conservative executable sufficient condition. Chosen-grid theorems also permit other valid common grids.
+Identifiers beginning `inputBudget_` concern the TC-EFT paper's input-budget inequality (17), a sufficient condition for the scalar predicate. The scalar predicate is an executable sufficient condition that uses the lowest bit actually set in the low parts as its grid. Chosen-grid theorems also permit other valid common grids.
 
 The model rejects nonfinite operands, wrong product counts, and exact accumulators whose magnitude exceeds the maximum finite FP32 value. Exact arithmetic zero is +0; negative nonzero underflow retains its sign. EFT extraction accepts any finite D, whether or not it is the TC model's output. The bounded backend returns the same bits as the reference algorithm; its fallback branch tag may differ.
 

@@ -50,8 +50,8 @@
   "cases_sha256": "6515e27d50f2f794740036553828b2ddb86c6ac0e580fae7329338f2493b27bd",
   "output_sha256": "7b192fefd6d14bdc2efdb5f7c658d5e5ab2fdcf575ca21dbc86ff3017f51e5d9",
   "timing": {
-    "lean_seconds": 20.396,
-    "total_seconds": 24.836
+    "lean_seconds": 14.641,
+    "total_seconds": 18.713
   },
   "historical_v100_experiments": {
     "reported": 100,
@@ -62,7 +62,7 @@
     "Software model checks; zero new GPU measurements.",
     "Original generators are pinned and reproduced, not Lean proofs.",
     "Finite reference ranges exclude overflow; excluded draws are retained and checked.",
-    "Original scalar support uses the finest residual grid; the Lean baseline remains conservative.",
+    "The Lean scalar predicate and the paper generator both use the lowest set bit of the low parts; they agree on every case.",
     "The synthetic family comparison evaluates encoded blocks, not GPU instructions."
   ]
 }

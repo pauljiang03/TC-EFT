@@ -11,7 +11,7 @@
   "oracle": "Lean instruction outputs compared with independent exact rational arithmetic per ordered normalization group",
   "source_sha256": {
     "scripts/check_instruction_groups.py": "cbc5ea94ecdadc173ead8edc13849711c784d1a9f2f7018421bea112b5bcafb1",
-    "scripts/check_features.py": "b03af596e824adf910904e6c2b1e446c6c1a367e49d59968b80bbd8e4640ef87",
+    "scripts/check_features.py": "a63ec6f852a2ffd666aacac1f4c2ec4eb42c1e8b6e0aacb26efd2f6eb9bf58b8",
     "examples/InstructionGroups.lean": "2fef9eb156a9edf8eb90331f0fcecdf2bc5ff5fdf60ceafeeb7ac56f5e13f8d5"
   }
 }
