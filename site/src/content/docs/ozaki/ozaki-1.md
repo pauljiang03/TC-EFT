@@ -58,10 +58,10 @@ The proofs slice in exact arithmetic. On binary32 hardware the rounding to a
 grid is the σ-trick `hi = fl(fl(a + σ) − σ)` with `σ = 3 · 2^(g+22)`, and the
 remainder `fl(a − hi)`. Lean proves that this computes exactly the slice above
 for every binary32 `a` with `|a| ≤ 2^(g+b)`, `b ≤ 21` and every grid
-`−149 ≤ g ≤ 104` ([`sigma_split`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Split32.lean#L169)); that the remainder needs no range condition
-at all ([`finiteValue32_sub_round`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Split32.lean#L90)); and that a whole split computed with
+`−149 ≤ g ≤ 104` ([`sigma_split`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Split32.lean#L176)); that the remainder needs no range condition
+at all ([`finiteValue32_sub_round`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Split32.lean#L91)); and that a whole split computed with
 binary32 operations is the split of the proof when every grid is in that range
-([`splitFrom32_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Split32.lean#L261)). The Z3 lemma covers `|a| ≤ 1`.
+([`splitFrom32_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Split32.lean#L268)). The Z3 lemma covers `|a| ≤ 1`.
 
 Outside that range σ overflows (above about `2^115`) or the grid falls below
 binary32's, as on the long exact paths. Slicing with integer operations covers
@@ -101,13 +101,11 @@ CDNA 3 XF32 and the bf16 paths ([`mcEngine_exactOn`](https://github.com/pauljian
 
 **What the hardware models add.** That a slice product must fit the binary32
 output is the familiar slice-width rule of the Ozaki literature. The models
-prove it on each path and show why it is the output, not the accumulator, that
-sets it: a Tensor Core adds a whole group exactly and rounds once, so an A100
-block is exact on products whose binary32 running sum is not
-([`a100_exact_where_binary32_is_not`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Limits.lean#L62)), while the Z3 engine rounds every
-partial sum. The models also show where the budget bites: a full A100 or H100
-group of `11`-bit products can exceed it, and seven products `2047²` already
-lose a bit ([`a100_full_group`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Limits.lean#L51)).
+prove it on each path, show that the output rather than the accumulator sets
+it, and show where it breaks: a full A100 or H100 group of `11`-bit products
+already loses a bit ([`a100_full_group`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Limits.lean#L51)). The
+[hardware semantics](/TC-EFT/ozaki/hardware/) page has the exact condition,
+the two-pass recovery and the choice of slices per GPU.
 
 ## Step 3: what the slicing leaves out, exactly
 
@@ -127,12 +125,22 @@ Bounding each piece with Step 1 gives the slicing error
 |x · y − Σ terms| ≤ (s + 1) k 2^(E + F − s(b+1)) ≤ 4 (s + 1) k max|x| max|y| 2^(−s(b+1))
 ```
 
+An entrywise form is sharper: every slice and leftover part of an entry is at
+most twice the entry, so the slicing error is at most
+`(s + 1) Σᵢ min(2|xᵢyᵢ|, 2^(E + F − s(b+1)))`, never more than the bound above
+and `0` when every product is zero ([`exactTerms_error_sharp`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SharpBounds.lean#L315)). It has the
+shape of Abdelfattah et al.'s bound for their splitting
+([`exactTerms_error_kappa`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SharpBounds.lean#L414)).
+
 ## Step 4: the additions
 
 The scaled products are added left to right. Binary32 round to nearest returns
 `q` up to `2^-24 |q| + 2^-150` ([`Ozaki.TC.round32Value_within`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Rounding.lean#L112)), and `n` such
 additions lose at most `((1 + u)^n − 1) Σ|tⱼ| + n (1 + u)^n η`
-([`sumWith_error`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Summation.lean#L116)). Every scaled slice product is itself a binary32 value when
+([`sumWith_error`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Summation.lean#L116)). With round to nearest the sharper Jeannerod–Rump bound
+`(n − 1) u Σ|tⱼ|` holds, with no condition on `n u` and no underflow term
+when the terms are representable ([`sumWith_error_jr`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SharpBounds.lean#L756),
+[`ozaki1_error_jr`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SharpBounds.lean#L1192)). Every scaled slice product is itself a binary32 value when
 its exponent is in range, so the scaling is exact
 ([`Ozaki.TC.scaled_slice_product_exact`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Scaling.lean#L56)).
 
@@ -181,23 +189,11 @@ slices on bf16 ([`h100F16_exactOn2`](https://github.com/pauljiang03/TC-EFT/blob/
 
 ## Correctly rounded Ozaki-I
 
-Ozaki-I as above guarantees an error bound, not correct rounding. A small
-addition makes it return the correctly rounded `x · y` for every input on which
-the engine is exact. It follows TC-EFT's guarded fast path with an exact
-fallback; the check itself is Ziv's rounding test.
-
-1. **Keep the slice products exact.** Add them exactly instead of in binary32.
-   The sum `H` is then exact, and Step 3 bounds `|x · y − H|` by `B`.
-2. **Check.** If `H − B` and `H + B` round to the same word, so does `x · y`,
-   which lies between them: rounding to nearest is monotone (a classical fact,
-   Flocq's `Rnd_N_pt_monotone`; proved here from the nearest-value property,
-   [`round_monotone`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Correct.lean#L56), [`round_eq_of_enclosure`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Correct.lean#L72)).
-3. **Otherwise refine, then take the exact path.** Try more slices; if no
-   slice count settles it, compute `x · y` exactly, also on the engine: with
-   all `s²` slice products and enough slices that nothing is left over, Ozaki-I
-   is exact ([`ozaki1Full_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Correct.lean#L470)). Binary32 inputs are multiples of `2^-149`, so
-   `24` slices of `11` bits always suffice; binary64 inputs need `175`
-   ([`split_residual_zero`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Correct.lean#L415)).
+Ozaki-I as above guarantees an error bound, not correct rounding. Its
+correctly rounded variant keeps the slice products exact, checks whether both
+ends of `H ± B` round to the same float, tries more slices if not, and
+otherwise takes an exact path that also runs on the engine: Ozaki-I with all
+`s²` slice products once nothing is left over ([`ozaki1Full_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Correct.lean#L470)).
 
 ```lean
 theorem tcOzaki1CRD_eq {p : Profile} {b : ℕ} (heng : (tcEngine p).ExactOn b (2 ^ 24))
@@ -209,62 +205,10 @@ theorem tcOzaki1CRD_eq {p : Profile} {b : ℕ} (heng : (tcEngine p).ExactOn b (2
 
 This is correctly rounded FP64 GEMM on fp16, bf16 or tf32 Tensor Cores for
 binary64 inputs of any length ([`tcOzaki1CRD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L209)), and the same holds on AMD
-matrix cores ([`mcOzaki1CRD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/LongDot.lean#L120)) and for binary32 ([`tcOzaki1CRL_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L150)). Every
-variant rounds with `rne64` or `rne32Q`, a hardware-independent IEEE round to
-nearest even proved for any binary format ([`roundRNE_nearest`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Binary.lean#L448)).
-TensorCore's own binary32 and binary64 roundings compute the same values up to
-the largest finite value and return nothing above it ([`round32ValueTC_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Rounding.lean#L136),
-[`fp64RoundTC_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/IEEE.lean#L33)); MatrixCore's binary32 rounding is the same on every input
-([`round32Value_eq_rne32Q`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/IEEE.lean#L38)). So both vendors' results are the same function
-of `x · y`.
-
-**Signed zeros.** IEEE formats have two zeros. A nonzero exact sum that
-rounds to zero keeps its sign, and an exact zero is `−0` only when every
-product is `−0`. The signed check takes the sign of a zero result from the
-enclosure when it lies on one side of zero, and otherwise from the exact path;
-correctly rounded Ozaki-I with a window accumulator returns IEEE's signed
-result on both vendors, in binary32 and FP64 ([`ozaki1CRWS_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SignedZero.lean#L149),
-[`tcOzaki1CRDS_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Signed.lean#L34), [`mcOzaki1CRDS_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/Signed.lean#L34)).
-
-What runs where:
-
-- **On the hardware model:** every slice product, including those of the exact
-  path.
-- **In a small integer register:** the check. Correct rounding only has to
-  decide on which side of the nearest rounding boundary `x · y` lies, so the
-  slice products need not be added exactly: rounded down to a window of `W`
-  bits and added, they need `W + log₂ (s(s+1)/2 · (k + 1)) + 1` bits whatever
-  the inputs' exponents; with `W = 96`, under two 64-bit words
-  ([`ozaki1CRW_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Window.lean#L135), [`ozaki1Window_register`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Window.lean#L149), [`tcOzaki1CRDW_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L261)).
-- **In bounded integer registers:** the exact path and the final rounding.
-  Added exactly, the slice products of inputs spanning the whole exponent
-  range would take about `580` bits for binary32
-  ([`exactTerms_sum_register32`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Exact64.lean#L69)). Rounding needs only the sign of the sum
-  against a few rounding boundaries, which a top-down descent over windows of
-  `bitlen(s² + 1) + p + 4` bits decides, carrying the sum into the next window
-  only when cancellation has made it small ([`roundSum_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SignOracle.lean#L763)); the final round
-  to nearest even is a few integer comparisons ([`roundExact_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Bounded.lean#L635)). The
-  whole scheme in this form equals the rational one and is correctly rounded on
-  both vendors ([`ozaki1CRB_eq_CRW`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/BoundedOzaki.lean#L339), [`tcOzaki1CRBD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Bounded.lean#L37),
-  [`mcOzaki1CRBD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/Bounded.lean#L27)). Its registers take about `150` bits for FP64 with
-  up to `175` slices; what grows with the exponent range is only the exponents
-  and the number of windows visited ([`descendAll_fuel_le`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SignOracle.lean#L535)).
-- **Never on a Tensor Core:** the check. A Tensor Core's output is not monotone
-  in its inputs ([non-monotonicity](/TC-EFT/properties/non-monotonicity/)).
-
-How often the fast path suffices is a theorem too: the enclosure settles an
-entry whenever `x · y` lies at least `2B` from every rounding boundary
-([`ozaki1Enclosure_settles`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Correct.lean#L340)). On the Z3 test matrices four slices settle
-every entry and three settle all but two, so correct rounding costs no extra
-engine products in the Z3 configuration. These are 4 × 4 test matrices;
-realistic sizes and ill-conditioned inputs, where entries reach the exact path,
-are not measured.
-
-Correctly rounded Ozaki GEMM itself goes back to Mukunoki, Ozaki, Ogita and
-Imamura (ISC 2020), whose correct-rounding mode splits completely and sums with
-a correctly rounded summation. What is new here is the early-exit check on a
-truncated Ozaki-I, its extension to Ozaki-II and ADP, and a machine-checked
-proof of all of it on models of real matrix engines.
+matrix cores ([`mcOzaki1CRD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/LongDot.lean#L120)) and for binary32 ([`tcOzaki1CRL_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L150)). The
+whole pipeline also runs in fixed-width integer registers, with one theorem
+bounding every register, and with IEEE special values. All of it is on the
+[correct rounding](/TC-EFT/ozaki/correct-rounding/) page.
 
 ## What is checked
 
@@ -290,16 +234,14 @@ proof of all of it on models of real matrix engines.
 - **The engine's conditions.** Slices fit the input format (`b ≤ 11` for fp16
   and tf32, `b ≤ 8` for bf16) and `2b ≤ F`; with split-K, chunks of
   `2^(24 − 2b)` terms.
-- **Off the engine.** The check, the exact path and the final rounding have
-  a bounded integer form proved equal to the rational scheme, and the slicing
-  has an integer form proved equal to the proof's split; the two are proved
-  separately, not composed into one function. The registers' widths are proved
-  register by register, not by one theorem bounding every intermediate
-  integer. The binary32 σ-trick is proved only for grids in
-  `[2^-149, 2^104]`.
-- **TensorCore's rounding.** The schemes round with IEEE's round to nearest
-  even. TensorCore's own rounding agrees with it up to the largest finite value
-  and returns nothing above it; only the σ-trick statements, made with
-  TensorCore's binary32 addition, inherit that.
-- **Not covered.** FP8 paths, signed zeros outside correctly rounded Ozaki-I,
-  and the dispatch heuristics of production libraries.
+- **Off the engine.** The slicing, the check, the exact path and the final
+  rounding are one integer function, with one theorem bounding every
+  register ([correct rounding](/TC-EFT/ozaki/correct-rounding/)). The binary32
+  σ-trick is proved only for grids in `[2^-149, 2^104]`; the integer slicing
+  covers every grid.
+- **TensorCore's rounding.** The schemes and the σ-trick round with IEEE's
+  round to nearest even. TensorCore's own rounding agrees with it up to the
+  largest finite value and returns nothing above it; no result depends on
+  that.
+- **Not covered.** FP8 paths, NaN payloads, and the dispatch heuristics of
+  production libraries.

@@ -17,46 +17,59 @@ models of the schemes. Every theorem uses only Lean's standard axioms.
 | **Ozaki-II** (Ozaki, Uchino and Imamura, 2025) | Scale the inputs to integers, multiply them modulo a few moduli on the engine, rebuild the product with the Chinese remainder theorem. | [Ozaki-II, proved end to end](/TC-EFT/ozaki/ozaki-2/) |
 | **ADP and ESC** (Schwarz et al., NVIDIA, 2025) | Ozaki-I on INT8 engines for FP64, with a slice count chosen from the inputs' exponent spread and a fallback to native FP64. | [ADP and ESC](/TC-EFT/ozaki/adp/) |
 
+Two pages cut across the schemes: [correct rounding](/TC-EFT/ozaki/correct-rounding/)
+for all three, and [what the hardware semantics give](/TC-EFT/ozaki/hardware/).
+[Related work and novelty](/TC-EFT/ozaki/literature/) places the work in the
+literature.
+
 ## What is proved
 
 - **The engine is exact, from the hardware model.** Every scheme assumes the
   engine multiplies its small integers exactly. Lean proves this on all eight
   NVIDIA paths and on the AMD SFMA, CDNA 1, 2 and 3 fp16, bf16 and XF32 paths,
-  from the bit-level models. It holds while the products of one call total at
-  most `2^24`, a bound set by the binary32 output, not the accumulator.
-- **Error bounds** for Ozaki-I and Ozaki-II, and a Grade-A bound
-  `|C − AB| ≤ (4k + 1) 2^-53 |A||B|` for ADP's whole routine on normal inputs,
-  and on all inputs with one added guardrail; the paper establishes Grade A by
-  experiment.
+  from the bit-level models, with the exact condition, cancellation included.
+- **Error bounds** for Ozaki-I and Ozaki-II, including the sharpest published
+  ones that apply, and a Grade-A bound `|C − AB| ≤ (4k + 1) 2^-53 |A||B|` for
+  ADP's whole routine on normal inputs, and on all inputs with one added
+  guardrail; the paper establishes Grade A by experiment.
 - **Dot products of any length** (split-K), **full A100 and H100 groups** by a
-  second pass through `C`, a TC-EFT technique, and **FP64 emulation** on fp16,
-  bf16 and tf32 Tensor Cores and on AMD matrix cores.
+  second pass through `C`, and **FP64 emulation** on fp16, bf16 and tf32
+  Tensor Cores and on AMD matrix cores, with the cheapest exact configuration
+  per GPU.
 - **Correct rounding.** Each scheme has a variant that returns the round to
   nearest even of the exact product for every input, with the same result on
   both vendors: it checks whether the scheme's proved error interval rounds to
-  one value, refines if not, and falls back to an exact path. For Ozaki-I
-  the check, the exact path and the final rounding run in integer registers
-  whose width does not depend on the inputs' exponents, and zero results get
-  IEEE's sign.
-- **One rounding on both vendors.** The schemes round with IEEE's round to
-  nearest even; TensorCore's and MatrixCore's own roundings are proved to
-  compute the same values on their ranges.
+  one value, refines if not, and falls back to an exact path on the engine.
+  The whole pipeline runs in integer registers, with one theorem bounding
+  every register, none depending on the inputs' exponents.
+- **IEEE special values.** `±Inf` on overflow, NaN and infinite inputs, and
+  signed zeros, for every correctly rounded scheme, native GEMM, plain Ozaki-I
+  and Ozaki-II, and ADP, whose Inf and NaN results match the Z3 model's.
 
 ## Findings
 
 - A full A100 or H100 group of `11`-bit slice products can exceed the
   `2^24` budget; NVIDIA truncates and AMD rounds to nearest, so they give
   different wrong answers.
-- ADP can return a wrong result, even of the wrong sign, on subnormal inputs;
-  the Z3 model of ADP fails its own final-rounding check on the same input.
-  One added guardrail fixes it.
+- ADP as described in its paper, and formalized here following the Z3 model,
+  can return a wrong result, even of the wrong sign, on subnormal inputs; the
+  Z3 model fails its own final-rounding check on the same input. One added
+  guardrail fixes it. Shipping cuBLAS is not modelled; it passes an
+  independent underflow test (Demmel et al., 2026).
+- ADP with the Z3 model's "skip zeros" policy, run without the model's
+  assertion, returns `0` for a nonzero entry on one of the model's own inputs.
+- On A100 and H100, `10`-bit slices that fill a hardware group are the
+  cheapest exact configuration; a second pass through `C` is exact but costs
+  more than the extra slice.
 - On the Z3 test matrices, Ozaki-I's configuration (`4` slices) is correctly
   rounded on every entry and Ozaki-II's (`P = 22`) on none.
 
 ## Not covered
 
-FP8 paths, an INT8 Tensor Core instruction model, and a GPU
-implementation. The theorems are about the models; that GPUs behave like them
-rests on the models' [validation](/TC-EFT/model/validation/). The full list,
-with every Lean name, is in
+FP8 paths; INT8 hardware semantics, out of scope for now on both vendors
+([issue #2](https://github.com/pauljiang03/TC-EFT/issues/2)), so ADP runs on
+an idealized INT8 engine; and a GPU implementation. The theorems are about the
+models; that GPUs behave like them rests on the models'
+[validation](/TC-EFT/model/validation/). The full list, with every Lean name,
+is in
 [`ozaki/THEOREMS.md`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/THEOREMS.md).

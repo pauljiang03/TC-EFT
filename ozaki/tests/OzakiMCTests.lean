@@ -5,3 +5,8 @@ import OzakiMCTests.Correct
 import OzakiMCTests.LongFP64
 import OzakiMCTests.Signed
 import OzakiMCTests.Bounded
+import OzakiMCTests.Specials
+import OzakiMCTests.SplitChoice
+import OzakiMCTests.BoundedSchemes
+import OzakiMCTests.FinalPipelines
+import OzakiMCTests.Zeros

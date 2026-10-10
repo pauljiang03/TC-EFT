@@ -30,7 +30,7 @@ and `P = 22`: four engine calls per entry.
 | Fact | Lean |
 | --- | --- |
 | The scaled row maximum lies in `(2^(P−1), 2^P]`, and every truncated integer has magnitude at most `2^P`. | [`scaleShift_spec`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Checks.lean#L45), [`scaleTrunc_bound`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Ozaki2.lean#L51) |
-| The truncation error: `\|x · y − 2^(−sₓ−s_y)(a · c)\| ≤ Σᵢ (2^(−sₓ)\|yᵢ\| + 2^(−sₓ−s_y)\|aᵢ\|)`, at most `8 k max\|x\| max\|y\| 2^(−P)`. | [`truncProduct_error`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Ozaki2.lean#L127), [`truncProduct_error_normwise`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Ozaki2.lean#L159) |
+| The truncation error: `\|x · y − 2^(−sₓ−s_y)(a · c)\| ≤ Σᵢ (2^(−sₓ)\|yᵢ\| + 2^(−sₓ−s_y)\|aᵢ\|)`, at most `8 k max\|x\| max\|y\| 2^(−P)`. Sharper: `2^(−s)Σ\|yᵢ\| + 2^(−t)Σ\|xᵢ\|` for any shifts, Uchino et al.'s bound without its cross term, since truncation is toward zero, and `4 k max\|x\| max\|y\| 2^(−P)` normwise ([`truncProduct_error_mixed`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SharpBounds.lean#L534), [`truncProduct_error_normwise4`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SharpBounds.lean#L573)). | [`truncProduct_error`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Ozaki2.lean#L127), [`truncProduct_error_normwise`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Ozaki2.lean#L159) |
 
 ## Step 2: residues on the engine
 
@@ -95,6 +95,14 @@ every engine product, residue or slice, runs on the hardware model:
 - binary32, any length: [`tcOzaki2CRL_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L158), [`mcOzaki2CRL_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/LongDot.lean#L74);
 - FP64, any length: [`tcOzaki2CRD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L218), [`mcOzaki2CRD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/LongDot.lean#L128).
 
+The whole correctly rounded Ozaki-II also runs as one integer function from
+`(significand, exponent)` inputs: integer scaling, residues and CRT
+reconstruction, an integer check whose bound is built from the scaled
+integers the engine already multiplies, and the fallback in fixed-width
+registers ([`ozaki2CRJ_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/BoundedOzaki2J.lean#L111), [`ozaki2CRJS_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/BoundedOzaki2J.lean#L173) with signed zeros). The
+[correct rounding](/TC-EFT/ozaki/correct-rounding/) page has the register
+widths and the IEEE special values.
+
 Correct rounding costs Ozaki-II more than Ozaki-I, because it has no margin at
 `P = 22`. On the Z3 test matrices four moduli settle no entry, five settle 21
 of 32, and six settle all of them.
@@ -106,4 +114,6 @@ of 32, and six settle all of them.
   engine's budget per call (or split-K).
 - **Exact arithmetic off the engine**: the scaling, the reconstruction and the
   rounding check are exact integer and rational arithmetic in the proofs. The
-  bounded-register form of the check is proved for Ozaki-I only.
+  integer form of the whole pipeline, from `(significand, exponent)`
+  inputs, is proved equal to it, with one theorem bounding every register
+  ([correct rounding](/TC-EFT/ozaki/correct-rounding/)).

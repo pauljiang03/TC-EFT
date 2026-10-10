@@ -158,6 +158,10 @@ theorem add32_of_fp32Add {a b v : ℚ} (h : fp32Add a b = some v) : add32 a b = 
   rw [fp32Add_eq_addOfRound] at h
   exact round32Value_of_TC h
 
+/-- IEEE binary32 addition is exact when the sum is a binary32 value. -/
+theorem add32_exact (x y : ℚ) (h : FiniteValue32 (x + y)) : add32 x y = some (x + y) :=
+  add32_of_fp32Add (fp32Add_exact x y h)
+
 /-- TensorCore's binary32 values are the binary32 values of `Ozaki.Binary`. -/
 theorem finiteValue32_binary32 {v : ℚ} (h : FiniteValue32 v) : Binary32Value v := by
   obtain ⟨k, e, h1, h2, h3, rfl⟩ := h

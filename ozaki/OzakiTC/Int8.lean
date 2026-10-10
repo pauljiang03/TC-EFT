@@ -1,5 +1,6 @@
 import OzakiTC.Exactness
 import Ozaki.ADP
+import Ozaki.Binary
 
 /-! # Ozaki-I on an INT8 engine (ADP)
 
@@ -64,10 +65,9 @@ def int8Recombine (s : ℕ) (Na Nb : List ℤ) : ℤ :=
 
 /-- **Ozaki-I on the INT8 engine** for one output entry: fixed-point integers with the given
 shifts, `s` remapped byte slices, all `s²` slice products, exact recombination, and one binary64
-round to nearest. -/
-def int8Ozaki (s : ℕ) (shiftA shiftB : ℤ) (x y : List ℚ) : Option (BitVec fp64.width) :=
-  roundBinary fp64 .nearestEven
-    ((int8Recombine s (toFixed shiftA x) (toFixed shiftB y) : ℚ) * pow2 (-(shiftA + shiftB)))
+round to nearest even (IEEE's, `Ozaki.rne64`). -/
+def int8Ozaki (s : ℕ) (shiftA shiftB : ℤ) (x y : List ℚ) : Option ℚ :=
+  rne64 ((int8Recombine s (toFixed shiftA x) (toFixed shiftB y) : ℚ) * pow2 (-(shiftA + shiftB)))
 
 theorem sliceVec_s8 {s : ℕ} (hs : 0 < s) {N : List ℤ}
     (hN : ∀ z ∈ N, ADP.remapLo s ≤ z ∧ z ≤ ADP.remapHi s) (t : ℕ) :
@@ -102,16 +102,9 @@ theorem int8Ozaki_eq {s : ℕ} (hs : 0 < s) (shiftA shiftB : ℤ) {x y : List �
     (hx : ∀ z ∈ toFixed shiftA x, ADP.remapLo s ≤ z ∧ z ≤ ADP.remapHi s)
     (hy : ∀ z ∈ toFixed shiftB y, ADP.remapLo s ≤ z ∧ z ≤ ADP.remapHi s)
     (hk : x.length * (128 * 128) < 2 ^ 31) :
-    int8Ozaki s shiftA shiftB x y = roundBinary fp64 .nearestEven
-      ((dotZ (toFixed shiftA x) (toFixed shiftB y) : ℚ) * pow2 (-(shiftA + shiftB))) := by
-  unfold int8Ozaki int8Recombine
-  congr 3
-  rw [← ADP.slice_recombination hs]
-  congr 1; apply List.map_congr_left; intro t _
-  congr 1; apply List.map_congr_left; intro u _
-  congr 1
-  apply int8Dot_exact (by decide)
-  refine Nat.lt_of_le_of_lt (dotAbs_le _ _ 128 128 (sliceVec_s8 hs hx t) (sliceVec_s8 hs hy u)) ?_
-  simpa [ADP.sliceVec, toFixed] using hk
+    int8Ozaki s shiftA shiftB x y =
+      rne64 ((dotZ (toFixed shiftA x) (toFixed shiftB y) : ℚ) * pow2 (-(shiftA + shiftB))) := by
+  unfold int8Ozaki
+  rw [int8Recombine_eq hs hx hy (by simpa [toFixed] using hk)]
 
 end Ozaki.TC

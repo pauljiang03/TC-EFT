@@ -54,6 +54,21 @@ slice count in [`data/z3-adp-reference.json`](../data/z3-adp-reference.json).
 same path and returns the same values in every case, with the same ESC, `W` and slice count on the
 three emulated ones. The values are compared as rationals, so the sign of a zero is not checked.
 
+### The test-level checks
+
+[`scripts/z3_adp_labels.py`](../scripts/z3_adp_labels.py) reruns, from the same unmodified clone,
+the inputs of the Z3 model's test-level checks that concern particular matrices and records them
+in [`data/z3-adp-labels.json`](../data/z3-adp-labels.json):
+the decode edge values (`[T.1]`), the paper's remap example (`[T.2]`), the `signed` case with all
+three slice encodings (`[T.4]`), two wide-exponent cases (`[T.7]`), Test 2 with `n = 8` and
+`b = 0` and `b = 64`, through ADP and through a fixed `55`-bit emulation without guardrails
+(`[T.8]`), the emergent-overflow case (`[T.10]`), the subnormal case (`[T.11]`) and the zero-policy
+and identity cases (`[T.12]`).
+[OzakiTCTests/ADPLabels.lean](OzakiTCTests/ADPLabels.lean) checks the Lean routine against every one:
+the same paths, ESC, `W`, slice counts and values; the fixed-width emulation meets Grade A at
+`b = 0` and fails it at `b = 64`, as the Z3 model's does; and on the overflow case `adp` returns no
+values where the Z3 model returns `+Inf`.
+
 ## Correct rounding against exact arithmetic
 
 [`scripts/correct_reference.py`](../scripts/correct_reference.py) computes correctly rounded
@@ -88,17 +103,40 @@ sum instead of the exact sum (`tcOzaki1CRDW`).
 fp16 against the same oracle values; `MatrixCore` has no binary64 decoding, so the test decodes the
 words itself.
 
-## Bounded registers
+## Fixed-width integer arithmetic
 
 [OzakiTCTests/Bounded.lean](OzakiTCTests/Bounded.lean) (V100 fp16) and
 [OzakiMCTests/Bounded.lean](OzakiMCTests/Bounded.lean) (CDNA 3 fp16) run correctly rounded FP64
-Ozaki-I with its check, exact path and final rounding in bounded integer registers
-(`tcOzaki1CRBD`, `mcOzaki1CRBD`) on both binary64 oracle cases and return the oracle's words: once
-with the check settling entries (five, then six slices, a `96`-bit window), and once with no check
-(`ss = []`), so that every entry goes through the bounded exact path. The library files carry their
+Ozaki-I in bounded integer registers (`tcOzaki1CRBD`, `mcOzaki1CRBD`) and as one integer function
+from `(significand, exponent)` inputs (`tcOzaki1CRID`, `mcOzaki1CRID`) on both binary64 oracle
+cases and return the oracle's words: once with the check settling entries (five, then six slices,
+a `96`-bit window), and once with no check (`ss = []`), so that every entry goes through the
+exact path; plus signed-zero cases. These are the slowest files of the suite, about two minutes
+each.
+
+[OzakiTCTests/BoundedSchemes.lean](OzakiTCTests/BoundedSchemes.lean) and
+[OzakiMCTests/BoundedSchemes.lean](OzakiMCTests/BoundedSchemes.lean) do the same for Ozaki-II with
+twelve moduli up to `4096` (`P = 69`) and, on the Tensor Core side, for ADP-style slicing on the
+INT8 engine: integer checks and the fixed-width exact path return the oracle's words, the
+subnormal counterexample settles through the exact path at `2^-1074`, and the integer checks
+settle as many entries as the rational ones, or nearly (Ozaki-II binary64: 16 and 9 of 16 against
+16 and 10; ADP at `(8, 56)`, `(11, 81)`, `(8, 62)`, `(9, 70)`: 16, 16, 5 and 11, identical).
+
+[OzakiTCTests/FinalPipelines.lean](OzakiTCTests/FinalPipelines.lean) and
+[OzakiMCTests/FinalPipelines.lean](OzakiMCTests/FinalPipelines.lean) run the integer Ozaki-II and
+ADP pipelines with the jumping exact path on four entries per case, signed zeros, the checked
+copies at their proved widths and failing at narrower ones, and the IEEE special cases. The library files carry their
 own kernel checks of the integer pieces: a register that wraps mid-sum, ties, binary32 normal,
 subnormal and overflowing results, heavy cancellation, a tie after cancellation, and an end-to-end
 binary32 tie through the exact path.
+
+## Exact zeros
+
+[OzakiTCTests/Zeros.lean](OzakiTCTests/Zeros.lean) (V100) and
+[OzakiMCTests/Zeros.lean](OzakiMCTests/Zeros.lean) (CDNA 3) run a row and a column with no shared
+nonzero through the zero-aware check: with a sentinel in place of the exact path, the normwise
+check returns the sentinel and the zero-aware check returns `0`, with the right signed zero; the
+binary64 oracle cases stay correct.
 
 ## Signed zeros
 
@@ -108,6 +146,43 @@ Ozaki-I with signed zeros (`tcOzaki1CRDS`, `mcOzaki1CRDS`) on three inputs whose
 check each against the specification `crSigned` and the expected IEEE result: products that are all
 `−0` give `−0`, products that cancel exactly give `+0`, and a negative product that underflows
 (`2^-540 · (−2^-540)`) gives `−0`.
+
+## Error bounds
+
+[OzakiTCTests/SharpBounds.lean](OzakiTCTests/SharpBounds.lean) checks, on every entry of the Z3
+binary32 cases and the binary64 oracle cases, that the actual error is at most each sharper bound
+and each sharper bound at most the earlier one: Ozaki-I entrywise against normwise, Ozaki-II's
+mixed truncation bound against `4k` and `8k`, and Jeannerod–Rump against `γₖ` for native dot
+products.
+
+## Slice choice
+
+[OzakiTCTests/SplitChoice.lean](OzakiTCTests/SplitChoice.lean) and
+[OzakiMCTests/SplitChoice.lean](OzakiMCTests/SplitChoice.lean) run the cheapest configurations,
+`10`-bit slices filling the group, on H100 and A100 fp16 and CDNA 3 fp16: correctly rounded FP64
+returns the oracle's words.
+
+## IEEE special values
+
+[OzakiTCTests/Specials.lean](OzakiTCTests/Specials.lean) (V100) and
+[OzakiMCTests/Specials.lean](OzakiMCTests/Specials.lean) (CDNA 3 fp16) run correctly rounded FP64
+Ozaki-I with special values (`tcOzaki1CRDI`, `mcOzaki1CRDI`) on the cases of the IEEE specification
+and check each against `dotIEEE`: a NaN input, `Inf · 0`, `+Inf` and `−Inf` products, an infinity
+with finite products, a finite dot product overflowing to `±Inf`, products that are all `−0`,
+exact cancellation (`+0`), a negative product that underflows (`−0`), and an ordinary sum.
+[`scripts/z3_specials_reference.py`](../scripts/z3_specials_reference.py) records the Z3 ADP model's
+outputs on an input with an infinity, one with a NaN, and one whose emulated products overflow
+beside a row that cancels exactly, in [`data/z3-specials-reference.json`](../data/z3-specials-reference.json);
+`adpIEEE` and `adpSafeIEEE` take the same paths and return the same words, NaN compared by class.
+
+## ADP's zero policies
+
+[`scripts/z3_adp_zero_policies.py`](../scripts/z3_adp_zero_policies.py) records the Z3 model's
+zero-policy inputs and outputs in [`data/z3-adp-zero-policies.json`](../data/z3-adp-zero-policies.json).
+[OzakiTCTests/ADPZeroPolicy.lean](OzakiTCTests/ADPZeroPolicy.lean) runs the routine with each
+policy without the model's `[X.4]` assertion: the `−∞` policy returns the model's results, the
+"skip zeros" policy returns `0` for a nonzero entry on the model's `field0_case`, breaking Grade A,
+and the `−1022` policy fails on a constructed input.
 
 ## ADP's guardrail and the INT8 exact path
 

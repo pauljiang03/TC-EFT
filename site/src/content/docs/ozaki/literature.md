@@ -22,12 +22,19 @@ credited here.
   [*Accurate matrix multiplication by using level 3 BLAS operation*](https://www.tuhh.de/ti3/paper/rump/OzOgRuOi08.pdf).
   The first splitting of matrices so that products of slices are exact in any
   summation order.
-- **Ozaki, Ogita, Oishi and Rump, Numerical Algorithms 59 (2012)** (abstract),
+- **Ozaki, Ogita, Oishi and Rump, Numerical Algorithms 59 (2012)** (full, the
+  authors' [preprint](https://www.tuhh.de/ti3/paper/rump/OzOgOiRu11.pdf)),
   [*Error-free transformations of matrix multiplication by using fast routines of matrix multiplication and its applications*](https://doi.org/10.1007/s11075-011-9478-1).
-  The canonical Ozaki scheme (Ozaki-I).
-- **Ozaki, Ogita and Oishi, NLAA 2011 and 2016** (title; abstract): tight
-  enclosures of matrix products with optimized BLAS, and a posteriori
-  validation that detects overflow.
+  The canonical Ozaki scheme (Ozaki-I), in two forms: a complete split
+  followed by an accurate summation that gives signs, faithful or nearest
+  results (§2.4), or a fixed number of splits with an a-priori error bound
+  (§3–4). Neither stops early or uses its bound to certify a rounded result.
+- **Ozaki, Ogita and Oishi, NLAA 2011** (abstract; paywalled) **and 2016**
+  (full, accepted manuscript): tight enclosures of matrix products with
+  optimized BLAS (2011); in 2016, "a posteriori validation" that every slice
+  product was error-free, using deliberate overflow to detect rounding, and
+  enclosures compared by width. Neither, as far as read, uses an enclosure to
+  decide a rounded result.
 - **Ozaki, SWIM 2018** (full, [slides](https://www.com.uni-rostock.de/storages/uni-rostock/Alle_MSF/COM/Bilder/SWIM/Presentations/ozaki.pdf)),
   and **Lange and Rump** (full, [preprint](https://www.tuhh.de/ti3/paper/rump/MatrixResidualsFinal.pdf)):
   midpoint-radius enclosures of a truncated Ozaki product, and remarks that an
@@ -52,10 +59,16 @@ credited here.
   an [error analysis](https://arxiv.org/abs/2602.02549) (full, machine
   extraction) assuming exact INT8 products,
   [FP8 Ozaki-II](https://arxiv.org/abs/2603.10634),
-  [complex CRT](https://arxiv.org/abs/2512.08321) and
-  [improved scaling](https://arxiv.org/abs/2606.29129) (abstracts), and the
-  [GEMMul8](https://github.com/UCHINO-Yuki/GEMMul8) library (README) with CUDA
-  and HIP back ends and bitwise-reproducible results.
+  and [complex CRT](https://arxiv.org/abs/2512.08321) (full text, relevant
+  section), whose CUDA and HIP back ends are argued to be bitwise
+  reproducible across runs when the `log2` computation is identical; and the
+  [GEMMul8](https://github.com/UCHINO-Yuki/GEMMul8) library (README).
+  Kawakami and Takahashi ([arXiv:2606.29129](https://arxiv.org/abs/2606.29129),
+  keyword reading) prove a scaling that always satisfies the CRT uniqueness
+  condition. Kouya ([arXiv:2609.27831](https://arxiv.org/abs/2609.27831),
+  keyword reading) runs Ozaki-II on CPUs with guard bits that make results
+  "essentially correctly rounded" (within 1 ulp), with Inf and NaN treated as
+  0; there is no rounding test.
 - **Abdelfattah, Dongarra, Fasi, Mikaitis and Tisseur** (full, machine
   extraction), [arXiv:2506.11277](https://arxiv.org/abs/2506.11277): error
   analysis of Ozaki-I on integer units, a slice-count estimator, and a note that
@@ -67,13 +80,37 @@ credited here.
   coarsening is argued by a short sketch that does not treat zeros. It ships in
   cuBLAS ([NVIDIA blog](https://developer.nvidia.com/blog/unlocking-tensor-core-performance-with-floating-point-emulation-in-cublas/)),
   and CUDA 13.4 adds Ozaki-II.
-- **Further emulation work, 2025–26** (abstracts):
-  [FP8 Tensor Cores](https://arxiv.org/abs/2508.00441),
-  [FP4 limbs](https://arxiv.org/abs/2608.06812),
-  [BF16 on Intel AMX](https://arxiv.org/abs/2609.04663),
-  [EmuGEMM](https://arxiv.org/abs/2606.25453),
+- **Mazumder, Calotoiu and Hoefler**, Sept 2026 (full),
+  [arXiv:2609.37693](https://arxiv.org/abs/2609.37693),
+  *FP64 is all you want, INT8 is all you need, FP4/6/8 is all you have*: CRT
+  emulation framed as returning `fl(AB)` when the conversion is lossless, with
+  exactness resting on an accumulator bound and a window inequality; a lower
+  bound on the window a residue-only decoder needs even for a faithful
+  result; and an "exact emulation" that returns `fl(AB)` by widening the
+  window, for operands of bounded dynamic range. It notes that exactness may
+  rely on undocumented accumulation. Pen and paper, NVIDIA Blackwell only; an
+  extended version with proofs is announced.
+- **Demmel, Henry, Kozachenko, Langou, Li, Riedy and Vanover**, Sept 2026
+  (full), [*How to grade the accuracy of the BLAS*](https://arxiv.org/abs/2609.12307):
+  defines Grade A as `|E| ≤ f(n) ε |A||B|`; ozIMMU and GEMMul8 earn B, and
+  cuBLAS 13.3 with Ozaki-I emulation earns A empirically, including an
+  underflow test, because cuBLAS detects the wide range and uses its FP64
+  path. Which exponent-range criterion makes Grade A apply is left open, as
+  are exception and subnormal tests.
+- **Further emulation work, 2025–26**:
+  Mukunoki's [FP8 Tensor Core Ozaki with integer FP64 emulation](https://arxiv.org/abs/2508.00441)
+  (full), bitwise identical to FP64 but without overflow, underflow or
+  subnormal handling; NVIDIA's [BF16x9 SGEMM](https://arxiv.org/abs/2605.16617)
+  (full), which handles subnormals and saturates Inf, with no proof;
+  [FP4 limbs](https://arxiv.org/abs/2608.06812) (full);
+  [BF16 on Intel AMX](https://arxiv.org/abs/2609.04663) and
+  [EmuGEMM](https://arxiv.org/abs/2606.25453) (abstracts); Matsuoka's
   [*FP8 is all you need*](https://arxiv.org/abs/2606.06510) and
-  [*Ozaki 2.5*](https://arxiv.org/abs/2609.09095).
+  [*Ozaki 2.5*](https://arxiv.org/abs/2609.09095) (keyword reading, and
+  *Ozaki 2.5*'s Appendix A in full), which use Grade-A contracts but list the
+  truncation-mode accuracy and the ESC/ADP escalation as validation
+  obligations rather than results, and whose "machine-checked" means a numeric
+  consistency suite.
 - **Multiword Tensor Core methods**: Markidis et al. 2018
   ([arXiv:1803.04014](https://arxiv.org/abs/1803.04014), abstract), Henry, Tang
   and Heinecke 2019 (snippet), Ootomo and Yokota 2022
@@ -83,10 +120,16 @@ credited here.
 
 ### Correctly rounded, faithful and reproducible linear algebra
 
-- **Rump, Ogita and Oishi**, SISC 2005 and 2008 (bibliographic): accurate dot
-  products, faithful summation (AccSum) with an adaptive stopping criterion, and
-  round-to-nearest summation
-  ([Part II](https://www.tuhh.de/ti3/paper/rump/RuOgOi07II.pdf)).
+- **Ogita, Rump and Oishi**, SISC 2005, and **Rump, Ogita and Oishi**, SISC
+  2008, Parts [I](https://www.tuhh.de/ti3/paper/rump/RuOgOi07I.pdf) and
+  [II](https://www.tuhh.de/ti3/paper/rump/RuOgOi07II.pdf) (full). The 2005
+  paper gives accurate dot products with rigorous enclosures, but no rounding
+  decision. Part I's AccSum repeats extraction, the splitting Ozaki uses,
+  until the sum is provably faithfully rounded (a magnitude criterion, proved
+  optimal). Part II's NearSum decides round to nearest from the sign of the
+  sum relative to the midpoint next to a faithful result, and stops early
+  when that is already settled. These are the closest prior forms of an
+  early-exit rounding certificate, for summation rather than Ozaki products.
 - **ExBLAS**, Iakymchuk, Defour, Collange and Graillat (snippet,
   [paper](https://www-pequan.lip6.fr/~graillat/papers/IDCG16.pdf)): GPU GEMM
   with floating-point expansions and a long accumulator, described as correctly
@@ -98,9 +141,21 @@ credited here.
 - **Ziv's rounding test** (Ziv 1991, metadata; de Dinechin, Lauter, Muller and
   Torres 2013, [abstract](https://hal-ens-lyon.archives-ouvertes.fr/ensl-00693317))
   and CORE-MATH (snippet).
-- **Cross-vendor reproducibility, 2026** (abstracts):
-  [bitwise-equivalence checking across NVIDIA and AMD](https://arxiv.org/abs/2609.11356),
-  and [NVIDIA versus AMD logit mismatches](https://arxiv.org/abs/2610.05458).
+- **Cross-vendor reproducibility, 2026**: Yang, Riasanovsky, Deng and Sarkar
+  ([arXiv:2609.11356](https://arxiv.org/abs/2609.11356), partial), sound
+  static checkers for bitwise equivalence spanning NVIDIA PTX and AMD GCN,
+  treating an MMA as one rounding and not covering emulation; and
+  [NVIDIA versus AMD logit mismatches](https://arxiv.org/abs/2610.05458)
+  (partial), which does not treat Ozaki emulation.
+- **Open questions in the field**: a mixed-precision survey
+  ([arXiv:2609.37137](https://arxiv.org/abs/2609.37137), keyword reading)
+  lists how emulation should detect and propagate infinities, negative zero
+  and NaN, and whether it should aim for cross-vendor reproducibility, as
+  open.
+- **Interval products on Tensor Cores**: Ozaki, Ogita and Mukunoki, REC 2021
+  ([paper](https://rec2021.unime.it/papers/REC2021-18.pdf), abstract and
+  keyword reading): an enclosure of the product by error-free transformation
+  on Tensor Cores, without a rounding decision.
 
 ### Matrix-engine numerics and models
 
@@ -123,9 +178,11 @@ credited here.
   repository's models follow and which compare multiword emulation across
   vendors by simulation; MMA-Sim for ten architectures
   ([arXiv:2511.10909](https://arxiv.org/abs/2511.10909), abstract).
-- **FP8 accumulation**: the DeepSeek-V3 report
-  ([arXiv:2412.19437](https://arxiv.org/abs/2412.19437), snippet) observes
-  that FP8 accumulation on H800 keeps about 14 bits.
+- **FP8 accumulation**: Khattak and Mikaitis's model (v4) gives FP8
+  accumulation as `13` fractional bits on H100 `wgmma` and `25` on B200; the
+  DeepSeek-V3 report ([arXiv:2412.19437](https://arxiv.org/abs/2412.19437),
+  snippet) observed about 14 bits on H800. None of the bit-accurate model
+  papers evaluates Ozaki or ADP slice exactness.
 - **Non-monotonicity**: Jiang and Zheng, SC25 poster,
   [*A formal characterization of non-monotonicity in Tensor Cores*](https://sc25.supercomputing.org/proceedings/posters/poster_pages/post148.html)
   (abstract).
@@ -143,13 +200,19 @@ credited here.
 - **Hardware**: HOL Light at Intel and ACL2 (Russinoff), including an ACL2
   proof of the Chinese remainder theorem (snippets).
 - **Lean**: FloatLib ([arXiv:2609.19352](https://arxiv.org/abs/2609.19352),
-  abstract); FLoPS for P3109 formats
+  keyword reading), certified word and limb kernels and exact quire
+  accumulation, with nothing on GEMM or matrix engines; FLoPS for P3109 formats
   ([arXiv:2602.15965](https://arxiv.org/abs/2602.15965), abstract), which
   studies ExtractScalar, the σ-split; round-to-odd ExtractScalar
   ([arXiv:2601.17198](https://arxiv.org/abs/2601.17198), abstract).
 - **The Ozaki schemes, CRT emulation and ADP**: no machine-checked treatment
-  was found beyond SMT models, despite searches combining Coq, Lean, Isabelle,
-  SMT and "machine-checked" with Ozaki, CRT, ADP and GEMM emulation.
+  was found beyond SMT models, despite searches (October 2026) combining Coq,
+  Lean, Isabelle, SMT and "machine-checked" with Ozaki, CRT, ADP and GEMM
+  emulation, and the 2026 programs of FMCAD, NFM, Correctness, ARITH and MICRO.
+  No paper after Valpey et al. was found from the group behind the SMT models.
+  To watch: Hubrecht and Melquiond, *Verifying code that uses error-free
+  transformations* (ARITH 2026, title only), and the announced extended
+  version of Mazumder, Calotoiu and Hoefler with proofs.
 
 ## What is new here
 
@@ -161,11 +224,34 @@ credited here.
 | Full A100 and H100 groups of `11`-bit products exceed it; bf16 needs `8`-bit slices | Mostly known | The same slice-width formula | Concrete, proved witnesses |
 | NVIDIA and AMD give different wrong answers past the budget | Partly new | Cross-vendor studies by testing and simulation | Proved, Ozaki-specific witnesses |
 | σ-split remainder exact for every binary32 value and grid; slicing on integer significands for every grid | Modest | ExtractScalar analyses; FLoPS | Machine-checked binary32 statements with explicit ranges |
-| Ozaki-I error identity and bounds; Ozaki-II truncation bound; native `γₖ` | New as machine-checked results | Ozaki 2012; Abdelfattah et al. 2025; Uchino et al. 2026 (sharper) | Coarser than the best paper bounds, but proved |
+| Ozaki-I error identity and bounds; Ozaki-II truncation bound; native dot-product bounds | New as machine-checked results | Ozaki 2012; Abdelfattah et al. 2025; Uchino et al. 2026; Jeannerod and Rump 2013 | The sharpest published bounds that apply here, proved: an entrywise Ozaki-I bound of Abdelfattah et al.'s shape, Uchino et al.'s truncation bound without its cross term (truncation toward zero), and Jeannerod–Rump's `k·u` |
 | ADP: coarsening for every block size, Grade A for the whole routine, a subnormal counterexample, a guarded fix | New | Schwarz et al. (experiments, sketch) | First proof of a linear componentwise bound for the routine, and a failure the experiments did not exercise |
-| Correctly rounded variants: enclosure check, refinement, exact path on the engine, two-word accumulator, signed zeros | Partly new | Mukunoki et al. 2020 (full split); Ozaki et al. 2007 (adaptive faithful); Ziv's test; SWIM 2018 and Lange–Rump enclosures | An early-exit certificate on truncated Ozaki-I, its extension to Ozaki-II and ADP, and a machine-checked proof on hardware models |
+| Correctly rounded variants: enclosure check, refinement, exact path on the engine, bounded registers, IEEE special values | Partly new | Mukunoki et al. 2020 (full split); Ozaki et al. 2007 (adaptive faithful); AccSum and NearSum (Rump–Ogita–Oishi 2008, summation); Ziv's test; SWIM 2018 and Lange–Rump enclosures | An early-exit certificate on truncated Ozaki-I, its extension to Ozaki-II and ADP, and a machine-checked proof on hardware models |
 | Identical results on the NVIDIA and AMD models | Partly new | GEMMul8; HPC Asia 2021 (CPU and GPU); ExBLAS | A proved statement over two vendors' matrix-engine models |
-| Two passes through `C` recover a full group exactly | New, as far as found | TC-EFT's analysis of alignment | A Tensor-Core-only exact recovery, proved on the model |
+| The exact condition for a matrix-engine call, with cancellation and per-architecture differences (CDNA 2's tree) | New as proofs | The slice-width rule; Fasi et al.'s and Khattak–Mikaitis's measurements of alignment and accumulation | Necessary and sufficient on the models, not a scheduling rule |
+| The cheapest exact configuration per GPU (`10`-bit slices filling the group on A100, H100 and CDNA 3) | Known rule, proved | The slice-width rule `k · 2^(2b) ≤ 2^24` with the group size | Every candidate proved exact; evidence that two passes do not pay by instruction count |
+| Fixed-width integer forms of all three correctly rounded schemes, with one theorem bounding every register | New, as far as found | Correctly rounded summation in fixed precision (AccSum, NearSum, long accumulators) | Registers whose widths do not depend on the inputs' exponents, machine-checked |
+| Two passes through `C` recover a full group exactly | New, as far as found | TwoProdFMA and Boldo–Muller's exact FMA error (scalar); TC-EFT's analysis of alignment | The matrix-instruction analogue, for a multi-term truncating adder, proved on the model; by instruction count, narrower slices are cheaper |
+
+### How this differs from the most recent work
+
+The papers and tools of 2025–26 closest to this work, what each does, what
+this work adds, and what each has that this work does not.
+
+| Work | What it does | What this work adds | What it has that this work does not |
+| --- | --- | --- | --- |
+| **Ozaki-II** (Ozaki, Uchino and Imamura 2025) and its error analysis (2026) | CRT-based emulation on INT8 engines; the analysis assumes exact INT8 products | Ozaki-II machine-checked on fp16, bf16 and tf32 Tensor Cores and AMD matrix cores, with engine exactness proved from the hardware models instead of assumed, and a correctly rounded variant | Implementations and performance on INT8 hardware; complex, FP8 and improved-scaling variants |
+| **GEMMul8** (Uchino et al.) | CUDA and HIP library for Ozaki-II GEMM, bitwise reproducible | A proof that the NVIDIA and AMD models return identical results, which are also the correctly rounded ones, not only reproducible | A working library on real GPUs |
+| **ADP** (Schwarz et al. 2025, in cuBLAS) | FP64 emulation on INT8 with an exponent-span estimate and a native fallback; Grade A shown by experiment | Grade A proved for the whole routine; a subnormal counterexample and a guardrail that fixes it; the coarsening for every block size; every Z3 test-level check; Inf and NaN results; a correctly rounded variant | The production implementation, on real INT8 Tensor Cores (here an idealized INT8 engine, [issue #2](https://github.com/pauljiang03/TC-EFT/issues/2)) |
+| **Abdelfattah, Dongarra, Fasi, Mikaitis and Tisseur** (2025) | Error analysis of Ozaki-I on integer units and a slice-count estimator; −0, Inf and NaN not handled | Machine-checked bounds of the same shape for our splitting; IEEE special values handled, with proofs; correct rounding | A slice-count estimator; bounds for different slice counts per matrix and for the accumulation |
+| **Uchino, Ozaki and Imamura** (2026, Ozaki-II error analysis) | Error bounds for Ozaki-II | Their truncation bound machine-checked, without its cross term for truncation toward zero; correct rounding | The full analysis with approximate logarithms and FP64 CRT accumulation |
+| **Mazumder, Calotoiu and Hoefler** (Sept 2026) | CRT emulation targeting `fl(AB)`, a lower bound on the CRT window, and an "exact emulation" for bounded dynamic range by widening the window | Correct rounding for every input, not only bounded dynamic range: a cheap certificate settles most entries and a proved exact fallback the rest; exactness derived from hardware models rather than assumed; AMD and special values | A lower bound on the window; Blackwell measurements |
+| **Demmel et al.** (Sept 2026, grading the BLAS) | Grade A defined; cuBLAS's Ozaki-I emulation earns A empirically, the research codes B; the exponent-range criterion for Grade A left open | Grade A proved for the ADP routine as formalized, the exponent condition it needs, a subnormal input that breaks it, and a guardrail that restores it | Empirical grades of shipping libraries, including cuBLAS, which passes their underflow test |
+| **FP8 and FP4 emulation** (2025–26: FP8 Tensor Cores, FP8 Ozaki-II, FP4 limbs, *Ozaki 2.5*) | Emulation on lower-precision engines | — | Coverage of FP8 and FP4 engines, which this work defers |
+| **Valpey, Li, Pai and Gopalakrishnan** (NFM 2025) | SMT models of Volta, Turing and Ampere Tensor Cores; SMT analysis of the Markidis and Ootomo–Yokota corrections | Proofs for every input and every length in an interactive prover, for the Ozaki schemes, on NVIDIA and AMD | SMT automation, and the multiword correction algorithms |
+| **Khattak and Mikaitis** (2025, NVIDIA) and **Khattak, Mikaitis and Graziani** (2026, AMD) | Bit-accurate models; multiword emulation compared across vendors by simulation | Theorems on models that follow theirs, for every input, for the Ozaki schemes | Wider architecture coverage, and simulation of multiword methods |
+| **Cross-vendor reproducibility** (2026: bitwise-equivalence checking, NVIDIA versus AMD mismatches) | Detecting and measuring result mismatches between vendors | Proved identical correctly rounded Ozaki results on the two vendors' models, and proved witnesses where naive configurations differ (NVIDIA truncates, AMD rounds) | Measurements on real workloads and hardware |
+| **Mukunoki, Ozaki, Ogita and Imamura** (ISC 2020), the correctly rounded baseline | Correctly rounded Ozaki GEMM on Tensor Cores by a complete split and correctly rounded summation, about four times slower | An early exit: a proved check settles most entries after a few slices, and only undecided ones take the exact path; machine-checked | A GPU implementation and measured performance |
 
 ### What this work does not claim
 
@@ -179,10 +265,14 @@ credited here.
 
 ## Open questions
 
-- **Unread primary sources.** The 2012 Numerical Algorithms paper and the 2011
-  enclosure paper could contain an enclosure-to-rounding remark; the novelty of
-  the early-exit certificate rests on them.
+- **One unread source.** The 2011 NLAA enclosure paper was read only in
+  abstract (paywalled). The 2012 paper, its 2008 precursor, the 2016 follow-up
+  and Rump–Ogita–Oishi's summation papers were read in full, and none uses an
+  enclosure of a matrix product to certify its rounding or to stop splitting
+  early; the closest are AccSum's adaptive stopping and NearSum's midpoint
+  test, both for summation.
 - **Scale.** The cost claims come from small test matrices; realistic sizes,
   ill-conditioned inputs and the frequency of the exact path need measuring.
-- **Hardware coverage.** FP8 and FP4 engines, an INT8 instruction model, and
-  Blackwell are not modeled.
+- **Hardware coverage.** FP8 and FP4 engines and Blackwell are not modeled;
+  INT8 instruction semantics are out of scope for now
+  ([issue #2](https://github.com/pauljiang03/TC-EFT/issues/2)).

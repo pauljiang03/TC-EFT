@@ -7,3 +7,11 @@ import OzakiTCTests.Correct
 import OzakiTCTests.LongFP64
 import OzakiTCTests.Signed
 import OzakiTCTests.Bounded
+import OzakiTCTests.ADPLabels
+import OzakiTCTests.Specials
+import OzakiTCTests.SplitChoice
+import OzakiTCTests.ADPZeroPolicy
+import OzakiTCTests.BoundedSchemes
+import OzakiTCTests.FinalPipelines
+import OzakiTCTests.SharpBounds
+import OzakiTCTests.Zeros

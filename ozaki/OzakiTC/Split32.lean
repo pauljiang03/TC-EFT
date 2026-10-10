@@ -11,8 +11,9 @@ the first addition rounds `a` to the nearest multiple of `2^g`, ties to even; th
 `σ` is then exact, and so is `a − hi`.
 
 `sigma_split` proves this for every binary32 value `a` with `|a| ≤ 2^(g + b)`, every grid
-`−149 ≤ g ≤ 104`, and every slice width `b ≤ 21`, with TC-EFT's correctly rounded binary32
-addition: `hi = rne(a / 2^g) · 2^g` and `lo = a − hi`, both binary32 values. This is the Z3
+`−149 ≤ g ≤ 104`, and every slice width `b ≤ 21`, with IEEE binary32 addition (`add32`; TC-EFT's
+correctly rounded `fp32Add` returns the same sums, `add32_of_fp32Add`): `hi = rne(a / 2^g) · 2^g`
+and `lo = a − hi`, both binary32 values. This is the Z3
 model's lemma `[Z.1]` (proved there for `|a| ≤ 1` and `b = 11`), for all exponents. Its
 coefficient is `roundNearestEven`, the one `Ozaki.Split` uses, so the binary32 computation of a
 slice is the slice of the scheme library (`sigma_slice`). -/
@@ -163,13 +164,19 @@ theorem finiteValue32_sub_round {a : ℚ} (ha : FiniteValue32 a) (g : ℤ) :
           Rat.intCast_le_intCast.mp (by rw [Rat.intCast_ofNat]; exact hc)
         omega
 
+/-- The first addition with IEEE binary32 addition. -/
+theorem add32_sigma {a : ℚ} {g : ℤ} {b : ℕ} (hb : b ≤ 21) (hg1 : -149 ≤ g) (hg2 : g ≤ 104)
+    (ha : absQ a ≤ pow2 (g + b)) :
+    add32 a (sigma g) = some (sigma g + roundNearestEven (a / pow2 g) * pow2 g) :=
+  add32_of_fp32Add (fp32Add_sigma hb hg1 hg2 ha)
+
 /-- **The σ-trick** (`[Z.1]`, for every exponent and `b ≤ 21`). For a binary32 value `a` with
 `|a| ≤ 2^(g+b)`, `hi = fl(fl(a + σ) − σ)` is `rne(a / 2^g) · 2^g` and `lo = fl(a − hi)` is
 `a − hi`; every intermediate is a binary32 value. -/
 theorem sigma_split {a : ℚ} (ha32 : FiniteValue32 a) {g : ℤ} {b : ℕ} (hb : b ≤ 21)
     (hg1 : -149 ≤ g) (hg2 : g ≤ 104) (ha : absQ a ≤ pow2 (g + b)) :
-    ∃ s1 hi lo, fp32Add a (sigma g) = some s1 ∧ fp32Add s1 (-sigma g) = some hi ∧
-      fp32Add a (-hi) = some lo ∧ hi = roundNearestEven (a / pow2 g) * pow2 g ∧ lo = a - hi ∧
+    ∃ s1 hi lo, add32 a (sigma g) = some s1 ∧ add32 s1 (-sigma g) = some hi ∧
+      add32 a (-hi) = some lo ∧ hi = roundNearestEven (a / pow2 g) * pow2 g ∧ lo = a - hi ∧
       FiniteValue32 lo := by
   have hq : (roundNearestEven (a / pow2 g)).natAbs ≤ 2 ^ b := by
     apply natAbs_roundNearestEven_le
@@ -179,12 +186,12 @@ theorem sigma_split {a : ℚ} (ha32 : FiniteValue32 a) {g : ℤ} {b : ℕ} (hb :
   have hhi : FiniteValue32 ((roundNearestEven (a / pow2 g) : ℚ) * pow2 g) :=
     grid_finiteValue32 _ g hg1 hg2 (Nat.lt_of_le_of_lt hq
       (Nat.pow_lt_pow_right (by decide) (by omega)))
-  refine ⟨_, _, _, fp32Add_sigma hb hg1 hg2 ha, ?_, ?_, rfl, rfl,
+  refine ⟨_, _, _, add32_sigma hb hg1 hg2 ha, ?_, ?_, rfl, rfl,
     finiteValue32_sub_round ha32 g⟩
-  · rw [fp32Add_exact _ _ (by rw [show sigma g + (roundNearestEven (a / pow2 g) : ℚ) * pow2 g +
+  · rw [add32_exact _ _ (by rw [show sigma g + (roundNearestEven (a / pow2 g) : ℚ) * pow2 g +
       -sigma g = (roundNearestEven (a / pow2 g) : ℚ) * pow2 g by grind]; exact hhi)]
     congr 1; grind
-  · rw [fp32Add_exact _ _ (by rw [← Rat.sub_eq_add_neg]; exact finiteValue32_sub_round ha32 g)]
+  · rw [add32_exact _ _ (by rw [← Rat.sub_eq_add_neg]; exact finiteValue32_sub_round ha32 g)]
     congr 1; grind
 
 /-- **One slice of a binary32 vector.** With the slice's grid in range, the σ-trick computes the
@@ -192,8 +199,8 @@ slice of `Ozaki.Split` entry by entry, and what it leaves is again a binary32 ve
 theorem sigma_slice {b : ℕ} (hb : b ≤ 21) (prev : ℤ) {x : List ℚ}
     (hx : ∀ a ∈ x, FiniteValue32 a) (hg1 : -149 ≤ sliceGrid b prev x)
     (hg2 : sliceGrid b prev x ≤ 104) :
-    (∀ a ∈ x, ∃ s1 hi lo, fp32Add a (sigma (sliceGrid b prev x)) = some s1 ∧
-      fp32Add s1 (-sigma (sliceGrid b prev x)) = some hi ∧ fp32Add a (-hi) = some lo ∧
+    (∀ a ∈ x, ∃ s1 hi lo, add32 a (sigma (sliceGrid b prev x)) = some s1 ∧
+      add32 s1 (-sigma (sliceGrid b prev x)) = some hi ∧ add32 a (-hi) = some lo ∧
       hi = roundNearestEven (a / pow2 (sliceGrid b prev x)) * pow2 (sliceGrid b prev x) ∧
       lo = a - hi) ∧
     ∀ r ∈ sliceRest (sliceGrid b prev x) x, FiniteValue32 r := by
@@ -224,9 +231,9 @@ theorem splitFrom_binary32 (b : ℕ) :
 /-- One entry of a slice computed as the Z3 model does: `hi = fl(fl(a + σ) − σ)`,
 `lo = fl(a − hi)`, and the integer `hi / 2^g`. -/
 def sigmaStep (g : ℤ) (a : ℚ) : Option (ℤ × ℚ) := do
-  let s1 ← fp32Add a (sigma g)
-  let hi ← fp32Add s1 (-sigma g)
-  let lo ← fp32Add a (-hi)
+  let s1 ← add32 a (sigma g)
+  let hi ← add32 s1 (-sigma g)
+  let lo ← add32 a (-hi)
   let q ← toInt? (hi / pow2 g)
   return (q, lo)
 

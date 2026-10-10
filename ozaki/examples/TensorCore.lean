@@ -30,9 +30,9 @@ For `a = 1/3` rounded to binary32 (`0x3EAAAAAB`) and the grid `2^-11`, `σ = 3 �
 def a32 : ℚ := ((value32 0x3EAAAAAB).getD 0)
 
 example : (do
-    let s1 ← fp32Add a32 (sigma (-11))
-    let hi ← fp32Add s1 (-sigma (-11))
-    let lo ← fp32Add a32 (-hi)
+    let s1 ← add32 a32 (sigma (-11))
+    let hi ← add32 s1 (-sigma (-11))
+    let lo ← add32 a32 (-hi)
     return (hi, lo)) =
   some (roundNearestEven (a32 / pow2 (-11)) * pow2 (-11),
     a32 - roundNearestEven (a32 / pow2 (-11)) * pow2 (-11)) := by decide +kernel
@@ -88,8 +88,8 @@ def v : List ℚ := [3/5, -1/11]
 
 -- Shifts `W − 1 − exp(max)` with `W = 55`: `max|u| = 1/3` has exponent `−2`, `max|v| = 3/5`
 -- exponent `−1`. The emulated and the correctly rounded binary64 results:
-#eval (int8Ozaki 7 56 55 u v).map BitVec.toNat
-#eval (roundBinary fp64 .nearestEven (dot u v)).map BitVec.toNat
+#eval int8Ozaki 7 56 55 u v
+#eval rne64 (dot u v)
 
 /-! ## 7. Correct rounding
 

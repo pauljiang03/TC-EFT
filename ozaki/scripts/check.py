@@ -2,7 +2,8 @@
 """Validate the Ozaki formalization.
 
 1. Build the three libraries, the two test libraries (kernel-checked regressions against the Z3
-   models' outputs) and the axiom audits (`lake build`), optionally from a clean build directory.
+   models' outputs) and the axiom audits (`lake build`, one test module at a time), optionally from
+   a clean build directory.
 2. Check every worked example under `examples/`.
 3. Elaborate every ```lean code block in the README, the results summary and the test walkthrough,
    each as a standalone file.
@@ -38,10 +39,15 @@ def run(cmd, what):
 def main():
     if '--clean' in sys.argv:
         shutil.rmtree(ROOT / '.lake' / 'build', ignore_errors=True)
-    out = run(['lake', 'build'], 'lake build')
-    for line in out.splitlines():
-        if 'axiom_audit' in line:
-            print(line.split(': ', 2)[-1])
+    # The test modules evaluate large terms in the kernel; built in parallel they can exhaust
+    # memory, so the libraries are built first and then each test module on its own.
+    out = run(['lake', 'build', 'Ozaki', 'OzakiTC', 'OzakiMC'], 'lake build (libraries)')
+    for lib in ['OzakiTCTests', 'OzakiMCTests']:
+        for test in sorted((ROOT / 'tests' / lib).glob('*.lean')):
+            out += run(['lake', 'build', f'{lib}.{test.stem}'], f'lake build {lib}.{test.stem}')
+    out += run(['lake', 'build'], 'lake build')
+    for line in dict.fromkeys(line for line in out.splitlines() if 'axiom_audit' in line):
+        print(line.split(': ', 2)[-1])
     warnings = [line for line in out.splitlines() if 'warning' in line]
     print(f'ok   lake build ({len(warnings)} warnings)')
 

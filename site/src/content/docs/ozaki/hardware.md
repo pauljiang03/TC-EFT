@@ -1,0 +1,150 @@
+---
+title: What the hardware semantics give
+description: Where the bit-level Tensor Core and matrix-core models enter the Ozaki proofs - exact slice products derived instead of assumed, the exact condition with cancellation, the two-pass recovery, the per-GPU choice of slices and chunks, and where NVIDIA and AMD differ.
+---
+
+Every Ozaki scheme assumes the matrix engine multiplies its small integers
+exactly. Prior work states that assumption and backs it with documentation
+and tests. Here it is a theorem on each path, derived from the bit-level
+NVIDIA Tensor Core model of this repository and the AMD matrix-core model in
+`amd/`. Both models are validated against GPUs by measurement, and the
+theorems are about the models.
+
+The detailed semantics do three things:
+
+1. They turn the main assumption into a theorem.
+2. They show exactly where it breaks.
+3. They enable, and rule out, design choices.
+
+They do not, by themselves, make the schemes faster; see
+[the slice choice](#choosing-slices-chunks-and-passes) below.
+
+## Exact slice products, derived
+
+A Tensor Core aligns every product of a group to the largest exponent, keeps
+`F` bits below it (`F = 23` on V100, `24` on A100, `25` on H100), adds
+exactly and truncates to binary32. For integer operands of `b` bits with
+`2b ≤ F`, alignment loses nothing, and the binary32 output holds every
+integer up to `2^24`.
+
+| Fact | Lean |
+| --- | --- |
+| A block of `b`-bit integers with `\|c\| + Σ\|aᵢbᵢ\| ≤ 2^24` returns `c + Σ aᵢbᵢ`; so does a chain of blocks. | [`Ozaki.TC.evalBlock_int`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Exactness.lean#L184), [`Ozaki.TC.runBlocks_int`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Exactness.lean#L335) |
+| The engine is exact on all eight NVIDIA paths (`b = 11` for fp16 and tf32, `8` for bf16). | [`tcEngine_exactOn`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Engine.lean#L193), [`v100_exactOn`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Profiles.lean#L31) and seven more |
+| The same on the AMD SFMA, CDNA 1, 2 and 3 fp16, bf16 and XF32 paths. | [`mcEngine_exactOn`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/Engine.lean#L326), [`cdna3F16_exactEngine`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/Profiles.lean#L92) |
+
+The model shows why the output, not the accumulator, sets this budget. A
+Tensor Core adds a whole group exactly and rounds once, so an A100 block is
+exact on products whose binary32 running sum is not
+([`a100_exact_where_binary32_is_not`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Limits.lean#L62)). A model that rounds every partial
+sum, like the Z3 models' engine, is stricter than the hardware.
+
+## The exact condition, with cancellation
+
+The budget `Σ|aᵢbᵢ| ≤ 2^24` is sufficient, not necessary. On the Tensor Core
+model a block of `b`-bit integers with `2b ≤ F` and an integer `c` with
+`|c| < 2^(F+1)` returns the exact sum whenever that sum is a binary32 value,
+however large the products are ([`Ozaki.TC.evalBlock_cancel`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Cancellation.lean#L70)). The
+condition on the sum is also necessary
+([`evalBlock_exact_needs_binary32`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Cancellation.lean#L118)). For example:
+
+- eight products `±2^22` on A100 total `2^25` and return `0` exactly
+  ([`a100_cancel_zero`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Cancellation.lean#L349));
+- a full H100 group of sixteen products does the same
+  ([`h100_cancel_zero`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Cancellation.lean#L368)).
+
+The AMD architectures differ:
+
+- **CDNA 1 and CDNA 3:** exact whenever every product, `c` and the exact
+  sum are within `2^24`.
+- **CDNA 2:** it adds a pairwise tree of binary32 products, so every node of
+  the tree must also be within `2^24` ([`Ozaki.MC.pairTree_cancel`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/Cancellation.lean#L41),
+  [`treeOK_of_budget`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/Cancellation.lean#L66)). Cancellation inside a node is free; cancellation
+  across the tree is not.
+
+This is the precise boundary, not a scheduling rule: the running sums are
+known only after computing them. Its use is in knowing exactly when results
+are right, and why.
+
+## Where the budget breaks, and how the vendors differ
+
+- **Full groups.** With `11`-bit slices, `k · 2^22 ≤ 2^24` allows four
+  products, but A100 and H100 groups take eight and sixteen. Seven products
+  `2047²` already lose a bit ([`a100_full_group`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/Limits.lean#L51)).
+- **NVIDIA and AMD fail differently.** Past the budget the Tensor Core
+  truncates and CDNA 3 rounds to nearest. The same seven products return
+  `29331462` on the Tensor Core and `29331464` on CDNA 3, where the exact sum
+  is `29331463` ([`cdna3F16_full_group`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/Limits.lean#L33)). Configurations that rely on luck
+  give different wrong answers on the two vendors.
+- **The check cannot run on a Tensor Core.** A Tensor Core's output is not
+  monotone in its inputs ([non-monotonicity](/TC-EFT/properties/non-monotonicity/)),
+  and the correct-rounding check relies on monotone rounding, so it runs on
+  exact values.
+
+## Two passes recover a full group
+
+Run a group once from `c = 0`, giving `D1`, the truncation of the exact sum
+`S`. Run it again from `c = −D1`. Because `c` takes part in alignment, the
+mechanism behind the non-monotonicity, the second pass is exact as long as
+`|D1| ≤ 2^(F+1)`, and it returns `S − D1`, so `D1 + D2 = S`
+([`twoPass_exact`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/TwoPass.lean#L254)). `F` grows by one bit each time the group size doubles,
+so a full group of `11`-bit products always fits. The two-pass engine is
+exact for every length on all eight paths ([`tcEngine2_exactOn`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/TwoPass.lean#L401),
+[`h100F16_exactOn2`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/TwoPass.lean#L471) and seven more).
+
+This is the matrix-instruction analogue of the scalar TwoProdFMA, for a
+multi-term truncating adder. It needs the precise semantics: from "FP32
+accumulation" alone it cannot be designed safely. By instruction count it is
+not the cheapest way to fill a group, as the next section shows.
+
+## Choosing slices, chunks and passes
+
+For each path, the model gives every exact configuration: a slice width `b`
+up to the input format's limit, a chunk length, one or two passes. Each
+candidate is proved exact for every length ([`candidates_exact`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/SplitChoice.lean#L117),
+[`mcCandidates_exact`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/SplitChoice.lean#L48)). The cost counts matrix-engine blocks for the
+`s(s+1)/2` slice products of Ozaki-I, with the slice count from a stated
+normwise rule ([`slicesFor`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SliceRule.lean#L25), [`slicing_term_le_maxAbs`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/SliceRule.lean#L30)). At `k = 1024`:
+
+| Path | FP64: cheapest | `11`-bit, chunks of 4 | `11`-bit, two passes | binary32: cheapest |
+| --- | --- | --- | --- | --- |
+| V100 fp16 | `b = 11`, 3840 blocks | 3840 | 7680 | `b = 11`, 1536 |
+| A100 fp16 | `b = 10`, 2688 | 3840 | 3840 | `b = 10`, 768 |
+| H100 fp16 | `b = 10`, 1344 | 3840 | 1920 | `b = 10`, 384 |
+| A100 / H100 bf16 | `b = 8`, 3584 / 1792 | — | — | `b = 8`, 1280 / 640 |
+| H100 tf32 `mma` | `b = 10`, 2688 | 3840 | 3840 | `b = 10`, 768 |
+| CDNA 3 fp16 | `b = 10`, 2688 | 3840 | — | `b = 10`, 768 |
+
+The theorems are [`h100F16_best`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/SplitChoice.lean#L185), [`cdna3F16_best`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/SplitChoice.lean#L92) and the others in
+[`OzakiTC/SplitChoice.lean`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/SplitChoice.lean)
+and [`OzakiMC/SplitChoice.lean`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/SplitChoice.lean).
+The chosen configurations are proved exact and correctly rounded
+([`h100F16_fp64CR10`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/SplitChoice.lean#L246), [`cdna3F16_fp64CR10`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/SplitChoice.lean#L113)).
+
+Two findings:
+
+- **`10`-bit slices that fill the group are the cheapest exact
+  configuration** wherever a group holds more than four products. One extra
+  slice costs less than a second pass, so the two-pass engine never wins by
+  this count.
+- **The gain does not need the detailed semantics.** The conservative rule
+  `k · 2^(2b) ≤ 2^24` with `k = 16` also allows `10`-bit slices in an H100
+  group. The reduction, about `2.9×` on H100 and `1.4×` on A100 over chunks of
+  four, comes from matching the slice width to the group size. What the
+  semantics add is the proof, and the evidence that the alternatives,
+  two passes included, do not pay.
+
+The cost counts model instructions, not time: it leaves out slicing,
+memory traffic and the off-engine integer work. On a GPU, where an extra
+slice costs memory traffic and a second pass reuses loaded operands, two
+passes might still pay; only benchmarks can say.
+
+## What is not modelled
+
+- **FP8 and FP4 engines**, deferred. FP8 accumulation keeps about `13`
+  fractional bits on H100, so conservative assumptions there are likely wrong
+  and exact semantics would decide which configurations are possible.
+- **INT8 instructions**, out of scope for now on both vendors
+  ([issue #2](https://github.com/pauljiang03/TC-EFT/issues/2)). ADP runs on
+  an idealized INT8 engine.
+- **Blackwell.**

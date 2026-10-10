@@ -17,7 +17,7 @@ for binary64 GEMM on the INT8 engine of `OzakiTC/Int8.lean`:
 4. **Heuristic (§5.3).** Emulate only when `s² ≤ cfg.speedRatio` (`[G.3]`), else native FP64.
 5. **Emulation.** Row-wise fixed point with shift `W − 1 − exp(row max)`, `s` remapped slices,
    all `s²` INT8 products in TC-EFT's 32-bit register, exact recombination, and one binary64
-   round to nearest (`emulEntry`).
+   round to nearest (`emulEntry`, through `int8Ozaki`).
 
 Native FP64 is `nativeDot fp64Round`: products and running sums rounded to binary64, as Python's
 `acc = acc + A[i][t] * B[t][j]`. Every binary64 rounding is IEEE's round to nearest even
@@ -346,8 +346,7 @@ theorem matrixEsc_ge {n : ℕ} {A cols : List (List ℚ)} {m : ℤ} (h : matrixE
 /-- One emulated entry: fixed point with ADP's shifts, `s` remapped slices on the INT8 engine, exact
 recombination, and binary64 round to nearest. -/
 def emulEntry (W s : ℕ) (x y : List ℚ) : Option ℚ :=
-  fp64Round ((int8Recombine s (toFixed (ADP.shiftOf W x) x) (toFixed (ADP.shiftOf W y) y) : ℚ) *
-    pow2 (-(ADP.shiftOf W x + ADP.shiftOf W y)))
+  int8Ozaki s (ADP.shiftOf W x) (ADP.shiftOf W y) x y
 
 /-- Every fixed-point integer of a row fits `s` remapped slices when `remapFits W s`. -/
 theorem fixed_in_remap {W s : ℕ} (hfit : ADP.remapFits W s = true) (x : List ℚ) :
@@ -382,7 +381,7 @@ theorem emulEntry_eq {W s : ℕ} (hs : 0 < s) (hfit : ADP.remapFits W s = true) 
     (hk : x.length * (128 * 128) < 2 ^ 31) :
     emulEntry W s x y = fp64Round (ADP.fixedProduct W x y) := by
   unfold emulEntry
-  rw [int8Recombine_eq hs (fixed_in_remap hfit x) (fixed_in_remap hfit y) (by simpa [toFixed] using hk)]
+  rw [int8Ozaki_eq hs _ _ (fixed_in_remap hfit x) (fixed_in_remap hfit y) hk]
   rfl
 
 theorem two_k_u_le {k : ℕ} (hk : k * (128 * 128) < 2 ^ 31) : 2 * (k : ℚ) * 2 ^ (-53 : ℤ) ≤ 1 := by
