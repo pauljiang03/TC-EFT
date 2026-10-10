@@ -60,7 +60,12 @@ export default defineConfig({
         },
         {
           label: 'Ozaki schemes',
-          items: [{ label: 'Ozaki-I, proved end to end', slug: 'ozaki/ozaki-1' }],
+          items: [
+            { label: 'At a glance', slug: 'ozaki' },
+            { label: 'Ozaki-I, proved end to end', slug: 'ozaki/ozaki-1' },
+            { label: 'Ozaki-II, proved end to end', slug: 'ozaki/ozaki-2' },
+            { label: 'ADP and ESC', slug: 'ozaki/adp' },
+          ],
         },
         {
           label: 'Proofs & trust',

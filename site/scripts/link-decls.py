@@ -19,7 +19,7 @@ def declarations():
     files = subprocess.check_output(['git', 'ls-files', '*.lean'], cwd=REPO, text=True).split()
     found = {}
     for f in files:
-        if f.startswith(('floatlib-port/reference-compat/', 'site/')):
+        if 'floatlib-port/reference-compat/' in f or f.startswith('site/'):
             continue
         stack = []
         for no, line in enumerate((REPO / f).read_text().splitlines(), 1):
@@ -40,8 +40,12 @@ def resolve(name, decls):
     hits = [(full, loc) for full, locs in decls.items()
             if full == name or full.endswith('.' + name) for loc in locs]
     if len(hits) > 1:
-        # The FloatLib port mirrors some names; the main library is the canonical source.
-        hits = [h for h in hits if not h[1][0].startswith('floatlib-port/')] or hits
+        # The FloatLib ports mirror some names; the main libraries are the canonical source.
+        hits = [h for h in hits if 'floatlib-port/' not in h[1][0]] or hits
+    if len(hits) > 1:
+        # A name shared by the NVIDIA and AMD libraries means the NVIDIA one; write
+        # `MatrixCore.Name` for the AMD one.
+        hits = [h for h in hits if not h[1][0].startswith('amd/')] or hits
     if len(hits) > 1:
         # An unqualified name means the least-nested declaration (e.g. not ExtractionGrid.*).
         depth = min(h[0].count('.') for h in hits)
