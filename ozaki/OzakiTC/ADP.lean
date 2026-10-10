@@ -17,10 +17,12 @@ for binary64 GEMM on the INT8 engine of `OzakiTC/Int8.lean`:
 4. **Heuristic (§5.3).** Emulate only when `s² ≤ cfg.speedRatio` (`[G.3]`), else native FP64.
 5. **Emulation.** Row-wise fixed point with shift `W − 1 − exp(row max)`, `s` remapped slices,
    all `s²` INT8 products in TC-EFT's 32-bit register, exact recombination, and one binary64
-   round to nearest (`emulEntry`, through `int8Ozaki`).
+   round to nearest (`emulEntry`).
 
 Native FP64 is `nativeDot fp64Round`: products and running sums rounded to binary64, as Python's
-`acc = acc + A[i][t] * B[t][j]`.
+`acc = acc + A[i][t] * B[t][j]`. Every binary64 rounding is IEEE's round to nearest even
+(`fp64Round`, `Ozaki.rne64`); TensorCore's (`fp64RoundTC`) computes the same value up to the
+largest finite value and differs only in overflow (`OzakiTC.IEEE`).
 
 The results:
 
@@ -33,10 +35,9 @@ The results:
   for the whole routine: every entry of every result meets the Grade-A bound of its path.
 * `adp_nonfinite_iff` (`[G.2]`), `adp_emulated_finite` (`[G.1]`), `adp_emulated_slices` (`[G.3]`).
 
-One difference from the Z3 model: TensorCore's `roundBinary` rejects every value above the
-largest finite binary64 number (`fp64Round_none_iff`), while IEEE rounds values below
-`2^1024 − 2^970` down to it; the Z3 model returns `±Inf` only from `2^1024 − 2^970` on (`[R.2]`).
-The results here concern finite outputs, and `adp` returns no values on the non-finite path. -/
+Overflow is IEEE's, as in the Z3 model (`[R.2]`): a binary64 rounding fails exactly when the rounded
+magnitude exceeds the largest finite value (`fp64Round_none_iff`); `adp` returns no values where
+the Z3 model returns `±Inf`. -/
 
 open TensorCore
 
@@ -47,8 +48,13 @@ namespace Ozaki.TC
 /-- The value of a binary64 word, `none` for Inf and NaN. -/
 def value64 (w : BitVec 64) : Option ℚ := binaryValue fp64 w
 
-/-- Binary64 round to nearest even, as a value; `none` above the largest finite value. -/
-def fp64Round (q : ℚ) : Option ℚ := (roundBinary fp64 .nearestEven q).bind (binaryValue fp64)
+/-- TensorCore's binary64 round to nearest even, as a value; `none` above the largest finite
+value. -/
+def fp64RoundTC (q : ℚ) : Option ℚ := (roundBinary fp64 .nearestEven q).bind (binaryValue fp64)
+
+/-- **Binary64 round to nearest even**, IEEE's: `Ozaki.rne64`; `none` exactly when the rounded
+magnitude exceeds the largest finite value. -/
+def fp64Round (q : ℚ) : Option ℚ := rne64 q
 
 theorem fp64_wellFormed : fp64.WellFormed := by decide
 
@@ -94,10 +100,10 @@ theorem binaryMagnitude_error (f : Format) (hf : f.WellFormed) (negative : Bool)
     rw [this]
     grind
 
-/-- **Binary64 rounding error.** `|fl(q) − q| ≤ 2^-53 |q| + 2^-1075` whenever `fl(q)` is finite. -/
-theorem fp64Round_within : RoundWithin fp64Round (2 ^ (-53 : ℤ)) (2 ^ (-1075 : ℤ)) := by
+/-- TensorCore's binary64 rounding error: `|fl(q) − q| ≤ 2^-53 |q| + 2^-1075`. -/
+theorem fp64RoundTC_within : RoundWithin fp64RoundTC (2 ^ (-53 : ℤ)) (2 ^ (-1075 : ℤ)) := by
   intro q v h
-  unfold fp64Round at h
+  unfold fp64RoundTC at h
   cases hw : roundBinary fp64 .nearestEven q with
   | none => simp [hw] at h
   | some w =>
@@ -137,13 +143,13 @@ theorem fp64Round_within : RoundWithin fp64Round (2 ^ (-53 : ℤ)) (2 ^ (-1075 :
         rw [absQ_of_nonneg hq0, abs_of_nonneg hq0]
         exact herr
 
-/-- **Overflow** (`[R.2]`): binary64 rounding fails exactly above the largest finite value. -/
-theorem fp64Round_none_iff (q : ℚ) : fp64Round q = none ↔ fp64.maxFinite < Rat.abs q := by
+/-- TensorCore's binary64 rounding fails exactly above the largest finite value. -/
+theorem fp64RoundTC_none_iff (q : ℚ) : fp64RoundTC q = none ↔ fp64.maxFinite < Rat.abs q := by
   have hs := roundBinary_isSome_iff fp64 .nearestEven q
   rw [absQ_eq] at hs
   constructor
   · intro h
-    unfold fp64Round at h
+    unfold fp64RoundTC at h
     cases hw : roundBinary fp64 .nearestEven q with
     | none =>
       rw [hw] at hs
@@ -165,10 +171,34 @@ theorem fp64Round_none_iff (q : ℚ) : fp64Round q = none ↔ fp64.maxFinite < R
   · intro h
     have hn : ¬ (roundBinary fp64 .nearestEven q).isSome = true := by
       rw [hs]; intro ⟨_, hr⟩; exact Rat.not_le.mpr h hr
-    unfold fp64Round
+    unfold fp64RoundTC
     cases hw : roundBinary fp64 .nearestEven q with
     | none => rfl
     | some w => rw [hw] at hn; simp at hn
+
+/-- **Binary64 rounding error.** `|fl(q) − q| ≤ 2^-53 |q| + 2^-1075` whenever `fl(q)` is finite. -/
+theorem fp64Round_within : RoundWithin fp64Round (2 ^ (-53 : ℤ)) (2 ^ (-1075 : ℤ)) := rne64_within
+
+theorem fp64_maxFinite_eq_maxFormat : fp64.maxFinite = maxFormat 53 1023 := by decide +kernel
+
+/-- **Overflow** (`[R.2]`): binary64 rounding fails exactly when the rounded magnitude exceeds the
+largest finite value, as in IEEE; never at or below the largest finite value. -/
+theorem fp64Round_none_iff (q : ℚ) :
+    fp64Round q = none ↔ fp64.maxFinite < Rat.abs (rneU 53 (-1022) q) := by
+  have h := roundRNE_isSome_iff (p := 53) (emin := -1022) (emax := 1023) (q := q)
+  rw [fp64_maxFinite_eq_maxFormat]
+  unfold fp64Round rne64
+  cases hr : roundRNE 53 (-1022) 1023 q with
+  | none =>
+    rw [hr] at h; simp only [Option.isSome_none, Bool.false_eq_true, false_iff] at h
+    exact ⟨fun _ => Rat.not_le.mp h, fun _ => rfl⟩
+  | some v =>
+    rw [hr] at h; simp only [Option.isSome_some, true_iff] at h
+    exact ⟨fun h' => (by cases h'), fun h' => absurd h (Rat.not_le.mpr h')⟩
+
+/-- Binary64 rounding succeeds up to the largest finite value. -/
+theorem fp64Round_isSome {q : ℚ} (hq : Rat.abs q ≤ fp64.maxFinite) : (fp64Round q).isSome = true :=
+  rne64_isSome (by rw [← fp64_maxFinite_eq_maxFormat]; exact hq)
 
 /-! ## Decoding (`[D.1]`–`[D.3]`) -/
 
@@ -316,7 +346,8 @@ theorem matrixEsc_ge {n : ℕ} {A cols : List (List ℚ)} {m : ℤ} (h : matrixE
 /-- One emulated entry: fixed point with ADP's shifts, `s` remapped slices on the INT8 engine, exact
 recombination, and binary64 round to nearest. -/
 def emulEntry (W s : ℕ) (x y : List ℚ) : Option ℚ :=
-  (int8Ozaki s (ADP.shiftOf W x) (ADP.shiftOf W y) x y).bind (binaryValue fp64)
+  fp64Round ((int8Recombine s (toFixed (ADP.shiftOf W x) x) (toFixed (ADP.shiftOf W y) y) : ℚ) *
+    pow2 (-(ADP.shiftOf W x + ADP.shiftOf W y)))
 
 /-- Every fixed-point integer of a row fits `s` remapped slices when `remapFits W s`. -/
 theorem fixed_in_remap {W s : ℕ} (hfit : ADP.remapFits W s = true) (x : List ℚ) :
@@ -351,7 +382,7 @@ theorem emulEntry_eq {W s : ℕ} (hs : 0 < s) (hfit : ADP.remapFits W s = true) 
     (hk : x.length * (128 * 128) < 2 ^ 31) :
     emulEntry W s x y = fp64Round (ADP.fixedProduct W x y) := by
   unfold emulEntry
-  rw [int8Ozaki_eq hs _ _ (fixed_in_remap hfit x) (fixed_in_remap hfit y) hk]
+  rw [int8Recombine_eq hs (fixed_in_remap hfit x) (fixed_in_remap hfit y) (by simpa [toFixed] using hk)]
   rfl
 
 theorem two_k_u_le {k : ℕ} (hk : k * (128 * 128) < 2 ^ 31) : 2 * (k : ℚ) * 2 ^ (-53 : ℤ) ≤ 1 := by

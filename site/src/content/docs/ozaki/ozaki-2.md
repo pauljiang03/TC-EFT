@@ -92,8 +92,8 @@ are tried, and finally an exact path ([`ozaki2CR_eq`](https://github.com/pauljia
 on the engine too, as Ozaki-I with all slice products ([`ozaki2CRE_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/Ozaki/Correct.lean#L538)), so
 every engine product, residue or slice, runs on the hardware model:
 
-- binary32, any length: [`tcOzaki2CRL_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L163), [`mcOzaki2CRL_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/LongDot.lean#L74);
-- FP64, any length: [`tcOzaki2CRD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L223), [`mcOzaki2CRD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/LongDot.lean#L128).
+- binary32, any length: [`tcOzaki2CRL_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L158), [`mcOzaki2CRL_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/LongDot.lean#L74);
+- FP64, any length: [`tcOzaki2CRD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiTC/LongDot.lean#L218), [`mcOzaki2CRD_eq`](https://github.com/pauljiang03/TC-EFT/blob/main/ozaki/OzakiMC/LongDot.lean#L128).
 
 Correct rounding costs Ozaki-II more than Ozaki-I, because it has no margin at
 `P = 22`. On the Z3 test matrices four moduli settle no entry, five settle 21
@@ -105,4 +105,5 @@ of 32, and six settle all of them.
 - **The conditions**: valid moduli at most `2^(b+1)`, `2 k 2^(2P) < M`, and the
   engine's budget per call (or split-K).
 - **Exact arithmetic off the engine**: the scaling, the reconstruction and the
-  rounding check are exact integer and rational arithmetic in the proofs.
+  rounding check are exact integer and rational arithmetic in the proofs. The
+  bounded-register form of the check is proved for Ozaki-I only.

@@ -65,6 +65,7 @@ export default defineConfig({
             { label: 'Ozaki-I, proved end to end', slug: 'ozaki/ozaki-1' },
             { label: 'Ozaki-II, proved end to end', slug: 'ozaki/ozaki-2' },
             { label: 'ADP and ESC', slug: 'ozaki/adp' },
+            { label: 'Related work and novelty', slug: 'ozaki/literature' },
           ],
         },
         {

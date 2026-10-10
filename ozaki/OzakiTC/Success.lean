@@ -23,15 +23,13 @@ namespace Ozaki.TC
 magnitude at most `maxFinite32`. -/
 theorem round32Value_succeeds : RoundSucceeds round32Value maxFinite32 := by
   intro q hq
-  rw [← absQ_eq] at hq
-  by_cases h0 : q = 0
-  · subst h0
-    exact ⟨0, by decide +kernel⟩
-  · obtain ⟨b, hb, hv, _⟩ := round32_nonzero_spec .nearestEven q h0 hq
-    exact ⟨_, by unfold round32Value; rw [hb, Option.bind_some]; exact hv⟩
+  have h := roundRNE_isSome (p := 24) (emin := -126) (emax := 127) (q := q) (by decide) (by decide)
+    (by rw [← maxFinite32_eq_maxFormat]; exact hq)
+  obtain ⟨v, hv⟩ := Option.isSome_iff_exists.mp h
+  exact ⟨v, hv⟩
 
-theorem fp32Add_succeeds : AddSucceeds fp32Add maxFinite32 := by
-  rw [fp32Add_eq_addOfRound]; exact addOfRound_succeeds round32Value_succeeds
+theorem add32_succeeds : AddSucceeds add32 maxFinite32 := by
+  rw [add32_eq_addOfRound]; exact addOfRound_succeeds round32Value_succeeds
 
 /-- **Ozaki-I returns a value on the Tensor Core** (`[H.1]`). -/
 theorem tcOzaki1_isSome {p : Profile} {b : ℕ} (heng : (tcEngine p).ExactOn b (2 ^ 24)) (s : ℕ)
@@ -41,8 +39,8 @@ theorem tcOzaki1_isSome {p : Profile} {b : ℕ} (heng : (tcEngine p).ExactOn b (
       (trianglePairs s).length * (1 + 2 ^ (-24 : ℤ)) ^ (trianglePairs s).length * 2 ^ (-150 : ℤ) ≤
         maxFinite32) :
     ∃ v, tcOzaki1 p b s x y = some v :=
-  ozaki1_isSome heng (Rat.le_of_lt (two_pow_pos _)) (Rat.le_of_lt (two_pow_pos _)) fp32Add_within
-    fp32Add_succeeds hlen hk hL
+  ozaki1_isSome heng (Rat.le_of_lt (two_pow_pos _)) (Rat.le_of_lt (two_pow_pos _)) add32_within
+    add32_succeeds hlen hk hL
 
 /-- **Ozaki-II returns a value on the Tensor Core** (`[H.1]`). -/
 theorem tcOzaki2_isSome {p : Profile} {b : ℕ} (heng : (tcEngine p).ExactOn b (2 ^ 24))

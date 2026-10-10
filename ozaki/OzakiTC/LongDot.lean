@@ -107,7 +107,7 @@ theorem tcSplitKReg_exactOn {p : Profile} {b : ℕ} (heng : (tcEngine p).ExactOn
 
 /-- Ozaki-I on Tensor Core blocks with split-K, binary32 recombination. -/
 def tcOzaki1L (p : Profile) (b s : ℕ) (x y : List ℚ) : Option ℚ :=
-  ozaki1 (tcSplitK p b) fp32Add b s x y
+  ozaki1 (tcSplitK p b) add32 b s x y
 
 /-- **Ozaki-I on the Tensor Core for any inner dimension**: the bound of `tcOzaki1_error` without
 the condition `k · 2^(2b) ≤ 2^24`. -/
@@ -121,12 +121,7 @@ theorem tcOzaki1L_error {p : Profile} {b : ℕ} (heng : (tcEngine p).ExactOn b (
           2 ^ (-150 : ℤ) +
         ((s + 1 : ℕ) : ℚ) * x.length * 2 ^ (splitExp b x + splitExp b y - s * (b + 1)) :=
   ozaki1_error (tcSplitK_exactOn heng hb _) (Rat.le_of_lt (two_pow_pos _))
-    (Rat.le_of_lt (two_pow_pos _)) fp32Add_within hlen (Nat.le_refl _) hv
-
-/-- TensorCore's binary32 values are the binary32 values of `Ozaki.Binary`. -/
-theorem finiteValue32_binary32 {v : ℚ} (h : FiniteValue32 v) : Binary32Value v := by
-  obtain ⟨k, e, h1, h2, h3, rfl⟩ := h
-  exact ⟨k, e, h1, h2, h3, by rw [pow2_eq]; congr 2⟩
+    (Rat.le_of_lt (two_pow_pos _)) add32_within hlen (Nat.le_refl _) hv
 
 /-- TensorCore's binary64 values are the binary64 values of `Ozaki.Binary`. -/
 theorem fp64_binary64 {v : ℚ} (h : fp64.FiniteValue v) : Binary64Value v := by

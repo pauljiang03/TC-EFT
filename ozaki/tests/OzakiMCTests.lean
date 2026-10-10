@@ -3,3 +3,5 @@ import OzakiMCTests.Audit
 import OzakiMCTests.Accuracy
 import OzakiMCTests.Correct
 import OzakiMCTests.LongFP64
+import OzakiMCTests.Signed
+import OzakiMCTests.Bounded

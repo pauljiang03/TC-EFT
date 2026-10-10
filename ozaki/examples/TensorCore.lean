@@ -57,8 +57,8 @@ def y : List ℚ := [3, 1/7, -2, 1/9]
 #eval tcOzaki2 v100F16F32 z3Basis 22 x y
 #eval (dot x y : ℚ)
 
-/-- The result is the binary32 sum, smallest first, of the exact scaled slice products. -/
-example : tcOzaki1 v100F16F32 11 4 x y = sumWith fp32Add 0 (exactTerms 11 4 x y) :=
+/-- The result is the IEEE binary32 sum, smallest first, of the exact scaled slice products. -/
+example : tcOzaki1 v100F16F32 11 4 x y = sumWith add32 0 (exactTerms 11 4 x y) :=
   v100_ozaki1_z3 rfl rfl
 
 /-! ## 5. CRT reconstruction

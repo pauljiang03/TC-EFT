@@ -88,6 +88,35 @@ sum instead of the exact sum (`tcOzaki1CRDW`).
 fp16 against the same oracle values; `MatrixCore` has no binary64 decoding, so the test decodes the
 words itself.
 
+## Bounded registers
+
+[OzakiTCTests/Bounded.lean](OzakiTCTests/Bounded.lean) (V100 fp16) and
+[OzakiMCTests/Bounded.lean](OzakiMCTests/Bounded.lean) (CDNA 3 fp16) run correctly rounded FP64
+Ozaki-I with its check, exact path and final rounding in bounded integer registers
+(`tcOzaki1CRBD`, `mcOzaki1CRBD`) on both binary64 oracle cases and return the oracle's words: once
+with the check settling entries (five, then six slices, a `96`-bit window), and once with no check
+(`ss = []`), so that every entry goes through the bounded exact path. The library files carry their
+own kernel checks of the integer pieces: a register that wraps mid-sum, ties, binary32 normal,
+subnormal and overflowing results, heavy cancellation, a tie after cancellation, and an end-to-end
+binary32 tie through the exact path.
+
+## Signed zeros
+
+[OzakiTCTests/Signed.lean](OzakiTCTests/Signed.lean) (V100) and
+[OzakiMCTests/Signed.lean](OzakiMCTests/Signed.lean) (CDNA 3 fp16) run correctly rounded FP64
+Ozaki-I with signed zeros (`tcOzaki1CRDS`, `mcOzaki1CRDS`) on three inputs whose result is zero, and
+check each against the specification `crSigned` and the expected IEEE result: products that are all
+`−0` give `−0`, products that cancel exactly give `+0`, and a negative product that underflows
+(`2^-540 · (−2^-540)`) gives `−0`.
+
+## ADP's guardrail and the INT8 exact path
+
+[OzakiTC/ADPFix.lean](../OzakiTC/ADPFix.lean) carries its own kernel checks: on the subnormal
+counterexample `adp` returns `−2^-1074` for a positive product, `adpSafe` takes the native path and
+returns the correctly rounded `2^-1074`, and `adpCRE` returns `2^-1074` through its exact path on the
+INT8 engine after the enclosure of `8` slices fails to settle it; on the five recorded Z3 cases
+`adpSafe` returns what `adp` returns.
+
 ## Axiom audits
 
 [OzakiTCTests/Audit.lean](OzakiTCTests/Audit.lean) and [OzakiMCTests/Audit.lean](OzakiMCTests/Audit.lean)

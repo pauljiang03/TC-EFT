@@ -9,6 +9,9 @@ import OzakiMC.Scaling
 import OzakiMC.Correct
 import OzakiMC.Native
 import OzakiMC.LongDot
+import OzakiMC.IEEE
+import OzakiMC.Signed
+import OzakiMC.Bounded
 
 /-! # The Ozaki schemes on the AMD matrix-core model
 

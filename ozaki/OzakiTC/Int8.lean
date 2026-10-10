@@ -80,6 +80,21 @@ theorem sliceVec_s8 {s : ℕ} (hs : 0 < s) {N : List ℤ}
   | none => simp
   | some d => have := h8 d (List.mem_of_getElem? hget); simp; omega
 
+/-- On the remap range the INT8 slice products are exact and recombine to the fixed-point product
+(the core of `int8Ozaki_eq`). -/
+theorem int8Recombine_eq {s : ℕ} (hs : 0 < s) {Na Nb : List ℤ}
+    (hx : ∀ z ∈ Na, ADP.remapLo s ≤ z ∧ z ≤ ADP.remapHi s)
+    (hy : ∀ z ∈ Nb, ADP.remapLo s ≤ z ∧ z ≤ ADP.remapHi s)
+    (hk : Na.length * (128 * 128) < 2 ^ 31) : int8Recombine s Na Nb = dotZ Na Nb := by
+  unfold int8Recombine
+  rw [← ADP.slice_recombination hs]
+  congr 1; apply List.map_congr_left; intro t _
+  congr 1; apply List.map_congr_left; intro u _
+  congr 1
+  apply int8Dot_exact (by decide)
+  refine Nat.lt_of_le_of_lt (dotAbs_le _ _ 128 128 (sliceVec_s8 hs hx t) (sliceVec_s8 hs hy u)) ?_
+  simpa [ADP.sliceVec] using hk
+
 /-- **Exact INT8 emulation.** If every fixed-point integer lies in the remap range of `s` slices and
 `k · 2^14 < 2^31`, every INT8 slice product is exact and the recombination is the exact
 fixed-point product, so the result is its single binary64 rounding (`[E.3]`, `[R.1]`). -/

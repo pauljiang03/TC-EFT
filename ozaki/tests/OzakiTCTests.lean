@@ -5,3 +5,5 @@ import OzakiTCTests.Accuracy
 import OzakiTCTests.ADPMatrices
 import OzakiTCTests.Correct
 import OzakiTCTests.LongFP64
+import OzakiTCTests.Signed
+import OzakiTCTests.Bounded

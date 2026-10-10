@@ -473,9 +473,45 @@ theorem h100F16_exactOn2 (B : ℕ) : (tcEngine2 hopperF16F32).ExactOn 11 B :=
     ⟨by decide, by decide, by decide, by decide⟩ (by decide) (by decide) (by decide)
     (by decide +kernel) B
 
+/-- **V100 fp16**: four products of `11`-bit slices (`4 · 2^22 = 2^24 = 2^(F+1)`). -/
+theorem v100F16_exactOn2 (B : ℕ) : (tcEngine2 v100F16F32).ExactOn 11 B :=
+  tcEngine2_exactOn ⟨by decide, by decide, (fun _ hf => by cases hf), by decide⟩
+    ⟨by decide, by decide, by decide, by decide⟩ (by decide) (by decide) (by decide)
+    (by decide +kernel) B
+
+/-- **A100 bf16**: eight products of `8`-bit slices. -/
+theorem a100BF16_exactOn2 (B : ℕ) : (tcEngine2 a100BF16F32).ExactOn 8 B :=
+  tcEngine2_exactOn ⟨by decide, by decide, floor_ok _ _ (by decide), by decide⟩
+    ⟨by decide, by decide, by decide, by decide⟩ (by decide) (by decide) (by decide)
+    (by decide +kernel) B
+
+/-- **H100 bf16**: sixteen products of `8`-bit slices. -/
+theorem h100BF16_exactOn2 (B : ℕ) : (tcEngine2 hopperBF16F32).ExactOn 8 B :=
+  tcEngine2_exactOn ⟨by decide, by decide, floor_ok _ _ (by decide), by decide⟩
+    ⟨by decide, by decide, by decide, by decide⟩ (by decide) (by decide) (by decide)
+    (by decide +kernel) B
+
+/-- **A100 tf32**: four products of `11`-bit slices. -/
+theorem a100TF32_exactOn2 (B : ℕ) : (tcEngine2 a100TF32F32).ExactOn 11 B :=
+  tcEngine2_exactOn ⟨by decide, by decide, floor_ok _ _ (by decide), by decide⟩
+    ⟨by decide, by decide, by decide, by decide⟩ (by decide) (by decide) (by decide)
+    (by decide +kernel) B
+
+/-- **H100 tf32 (wmma)**: four products of `11`-bit slices. -/
+theorem h100TF32Wmma_exactOn2 (B : ℕ) : (tcEngine2 hopperTF32WmmaF32).ExactOn 11 B :=
+  tcEngine2_exactOn ⟨by decide, by decide, floor_ok _ _ (by decide), by decide⟩
+    ⟨by decide, by decide, by decide, by decide⟩ (by decide) (by decide) (by decide)
+    (by decide +kernel) B
+
+/-- **H100 tf32 (mma)**: eight products of `11`-bit slices (`8 · 2^22 = 2^25 ≤ 2^26`). -/
+theorem h100TF32Mma_exactOn2 (B : ℕ) : (tcEngine2 hopperTF32MmaF32).ExactOn 11 B :=
+  tcEngine2_exactOn ⟨by decide, by decide, floor_ok _ _ (by decide), by decide⟩
+    ⟨by decide, by decide, by decide, by decide⟩ (by decide) (by decide) (by decide)
+    (by decide +kernel) B
+
 /-- Ozaki-I on the two-pass engine, binary32 recombination. -/
 def tcOzaki1TP (p : Profile) (b s : ℕ) (x y : List ℚ) : Option ℚ :=
-  ozaki1 (tcEngine2 p) fp32Add b s x y
+  ozaki1 (tcEngine2 p) add32 b s x y
 
 /-- **Ozaki-I on full A100 or H100 groups, for every inner dimension**: the bound of
 `tcOzaki1_error` with no condition on `k`, on any path where the two-pass engine is exact. -/
@@ -488,7 +524,7 @@ theorem tcOzaki1TP_error {p : Profile} {b : ℕ} (heng : ∀ B, (tcEngine2 p).Ex
           2 ^ (-150 : ℤ) +
         ((s + 1 : ℕ) : ℚ) * x.length * 2 ^ (splitExp b x + splitExp b y - s * (b + 1)) :=
   ozaki1_error (heng _) (Rat.le_of_lt (two_pow_pos _)) (Rat.le_of_lt (two_pow_pos _))
-    fp32Add_within hlen (Nat.le_refl _) hv
+    add32_within hlen (Nat.le_refl _) hv
 
 theorem a100_ozaki1TP_error (s : ℕ) {x y : List ℚ} (hlen : x.length = y.length) {v : ℚ}
     (hv : tcOzaki1TP ampereF16F32 11 s x y = some v) :

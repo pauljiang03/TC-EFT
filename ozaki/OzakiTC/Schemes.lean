@@ -7,7 +7,7 @@ The schemes of the `Ozaki` library with the Tensor Core engine of a `TensorCore`
 binary32 round-to-nearest in the recombination:
 
 * `tcOzaki1 p b s x y`: Ozaki-I with `s` slices of `b` bits, slice products on the profile's
-  blocks, scaled products added with `fp32Add`;
+  blocks, scaled products added with `add32` (IEEE binary32 addition);
 * `tcOzaki2 p B P x y`: Ozaki-II with CRT basis `B` and precision `P`, one engine product per
   modulus, one final binary32 rounding.
 
@@ -29,7 +29,7 @@ namespace Ozaki.TC
 
 /-- Ozaki-I on a Tensor Core path, with binary32 recombination. -/
 def tcOzaki1 (p : Profile) (b s : ℕ) (x y : List ℚ) : Option ℚ :=
-  ozaki1 (tcEngine p) fp32Add b s x y
+  ozaki1 (tcEngine p) add32 b s x y
 
 /-- Ozaki-II on a Tensor Core path, with one binary32 rounding. -/
 def tcOzaki2 (p : Profile) (B : CRTBasis) (P : ℕ) (x y : List ℚ) : Option ℚ :=
@@ -37,7 +37,7 @@ def tcOzaki2 (p : Profile) (B : CRTBasis) (P : ℕ) (x y : List ℚ) : Option �
 
 /-- `C = AB` with Ozaki-I on a Tensor Core path; `A` and `B` by rows. -/
 def tcOzaki1Gemm (p : Profile) (b s : ℕ) (A B : List (List ℚ)) : Option (List (List ℚ)) :=
-  ozaki1Gemm (tcEngine p) fp32Add b s A B
+  ozaki1Gemm (tcEngine p) add32 b s A B
 
 /-- `C = AB` with Ozaki-II on a Tensor Core path; `A` and `B` by rows. -/
 def tcOzaki2Gemm (p : Profile) (B : CRTBasis) (P : ℕ) (A Bm : List (List ℚ)) :
@@ -49,8 +49,8 @@ the binary32 sum of the exact scaled slice products. -/
 theorem tcOzaki1_eq {p : Profile} {b : ℕ} (hp : IntExact p b) (hh : HoldsInts p b)
     (hK : 0 < p.products) (s : ℕ) {x y : List ℚ} (hlen : x.length = y.length)
     (hk : x.length * (2 ^ b * 2 ^ b) ≤ 2 ^ 24) :
-    tcOzaki1 p b s x y = sumWith fp32Add 0 (exactTerms b s x y) :=
-  ozaki1_eq_sumWith (tcEngine_exactOn hp hh hK) fp32Add s hlen hk
+    tcOzaki1 p b s x y = sumWith add32 0 (exactTerms b s x y) :=
+  ozaki1_eq_sumWith (tcEngine_exactOn hp hh hK) add32 s hlen hk
 
 /-- **Ozaki-I error on the Tensor Core.** -/
 theorem tcOzaki1_error {p : Profile} {b : ℕ} (hp : IntExact p b) (hh : HoldsInts p b)
@@ -63,7 +63,7 @@ theorem tcOzaki1_error {p : Profile} {b : ℕ} (hp : IntExact p b) (hh : HoldsIn
           2 ^ (-150 : ℤ) +
         ((s + 1 : ℕ) : ℚ) * x.length * 2 ^ (splitExp b x + splitExp b y - s * (b + 1)) :=
   ozaki1_error (tcEngine_exactOn hp hh hK) (Rat.le_of_lt (two_pow_pos _))
-    (Rat.le_of_lt (two_pow_pos _)) fp32Add_within hlen hk hv
+    (Rat.le_of_lt (two_pow_pos _)) add32_within hlen hk hv
 
 /-- **Ozaki-II on the Tensor Core.** With moduli at most `2^(b+1)` and `2 k 2^(2P) < M`, every
 block returns its residue product exactly, reconstruction is exact, and the result is one
@@ -104,7 +104,7 @@ ten slice products are exact on V100 blocks, and the result is the binary32 sum,
 of the exact scaled products. -/
 theorem v100_ozaki1_z3 {x y : List ℚ} (hlen : x.length = y.length) (hk : x.length = z3K) :
     tcOzaki1 v100F16F32 z3SliceBits z3Slices x y =
-      sumWith fp32Add 0 (exactTerms z3SliceBits z3Slices x y) :=
+      sumWith add32 0 (exactTerms z3SliceBits z3Slices x y) :=
   tcOzaki1_eq v100_intExact v100_holdsInts (by decide) z3Slices hlen (by rw [hk]; decide)
 
 /-- **The Z3 Ozaki-II model on the V100 Tensor Core.** Moduli `{4096, 4095, 4093, 4091}` and

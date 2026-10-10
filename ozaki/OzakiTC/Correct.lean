@@ -7,8 +7,7 @@ import Ozaki.Correct
 
 The enclosure test of `Ozaki.Correct` needs a rounding that returns a nearest representable value
 and succeeds on intervals. TensorCore's binary32 and binary64 round to nearest do both
-(`round32Value_nearest`, `fp64Round_nearest`, from `round32_nearestEven_correct` and
-`roundBinary_correct`). With them:
+(`round32Value_nearest`, `fp64Round_nearest`, IEEE's round to nearest even of `Ozaki.Binary`). With them:
 
 * `tcOzaki1CR`, `tcOzaki2CR`: Ozaki-I and Ozaki-II on Tensor Core blocks, correctly rounded to
   binary32 for every input on every path where the engine is exact (`tcOzaki1CR_eq`,
@@ -25,52 +24,15 @@ namespace Ozaki.TC
 
 /-! ## Binary32 round to nearest -/
 
-theorem round32Value_some {q v : ℚ} (h : round32Value q = some v) :
-    absQ q ≤ maxFinite32 ∧ ∃ b, round32 .nearestEven q = some b ∧ value32 b = some v := by
-  unfold round32Value at h
-  cases hb : round32 .nearestEven q with
-  | none => simp [hb] at h
-  | some b =>
-    rw [hb] at h
-    refine ⟨?_, b, rfl, h⟩
-    unfold round32 at hb
-    split at hb
-    · cases hb
-    · rename_i hgt; exact Rat.not_lt.mp hgt
-
-theorem round32Value_of_le {q : ℚ} (hq : absQ q ≤ maxFinite32) :
-    ∃ v, round32Value q = some v ∧ ∀ y, FiniteValue32 y → Rat.abs (q - v) ≤ Rat.abs (q - y) := by
-  obtain ⟨b, hb, d, hd, hnear, _⟩ := round32_nearestEven_correct q hq
-  refine ⟨d, by simp only [round32Value, hb, Option.bind_some, hd], fun y hy => ?_⟩
-  have := hnear y hy
-  rwa [absQ_eq, absQ_eq] at this
-
 /-- Binary32 round to nearest returns a nearest binary32 value. -/
-theorem round32Value_nearest : RoundsToNearest FiniteValue32 round32Value := by
-  intro q v h
-  obtain ⟨hr, b, _, hv⟩ := round32Value_some h
-  obtain ⟨d, hd, hnear⟩ := round32Value_of_le hr
-  rw [h] at hd
-  cases hd
-  exact ⟨value32_finite b v hv, hnear⟩
+theorem round32Value_nearest : RoundsToNearest Binary32Value round32Value := rne32Q_nearest
 
 theorem abs_le_of_between {a b q c : ℚ} (h1 : a ≤ q) (h2 : q ≤ b) (ha : Rat.abs a ≤ c)
     (hb : Rat.abs b ≤ c) : Rat.abs q ≤ c := by
   rw [abs_le_iff] at *; grind
 
-/-- Binary32 round to nearest succeeds on intervals (it fails only beyond the largest finite
-value). -/
-theorem round32Value_intervals : RoundsOnIntervals round32Value := by
-  intro a b q h1 h2 ha hb
-  obtain ⟨va, hva⟩ := Option.isSome_iff_exists.mp ha
-  obtain ⟨vb, hvb⟩ := Option.isSome_iff_exists.mp hb
-  have ra := (round32Value_some hva).1
-  have rb := (round32Value_some hvb).1
-  rw [absQ_eq] at ra rb
-  have hq := abs_le_of_between h1 h2 ra rb
-  rw [← absQ_eq] at hq
-  obtain ⟨v, hv, _⟩ := round32Value_of_le hq
-  simp [hv]
+/-- Binary32 round to nearest succeeds on intervals. -/
+theorem round32Value_intervals : RoundsOnIntervals round32Value := rne32Q_intervals
 
 /-! ## Binary64 round to nearest
 
@@ -86,46 +48,10 @@ theorem binaryValue_finiteValue {f : Format} (hf : f.WellFormed) {bits : BitVec 
     subst h
     exact classifyNat_finiteValue f hf bits.toNat d hc
 
-theorem fp64Round_some {q v : ℚ} (h : fp64Round q = some v) :
-    absQ q ≤ fp64.maxFinite ∧
-      ∃ bits, roundBinary fp64 .nearestEven q = some bits ∧ binaryValue fp64 bits = some v := by
-  unfold fp64Round at h
-  cases hb : roundBinary fp64 .nearestEven q with
-  | none => simp [hb] at h
-  | some bits =>
-    rw [hb] at h
-    have hs : (roundBinary fp64 .nearestEven q).isSome = true := by simp [hb]
-    exact ⟨((roundBinary_isSome_iff fp64 .nearestEven q).mp hs).2, bits, rfl, h⟩
-
-theorem fp64Round_of_le {q : ℚ} (hq : absQ q ≤ fp64.maxFinite) :
-    ∃ v, fp64Round q = some v ∧
-      ∀ y, fp64.FiniteValue y → Rat.abs (q - v) ≤ Rat.abs (q - y) := by
-  obtain ⟨bits, hb, hspec⟩ := roundBinary_correct fp64 fp64_wellFormed .nearestEven q hq
-  obtain ⟨d, hd, hnear, _⟩ : NearestEven fp64 q bits := hspec
-  refine ⟨d, by simp only [fp64Round, hb, Option.bind_some, hd], fun y hy => ?_⟩
-  have := hnear y hy
-  rwa [absQ_eq, absQ_eq] at this
-
 /-- Binary64 round to nearest returns a nearest binary64 value. -/
-theorem fp64Round_nearest : RoundsToNearest fp64.FiniteValue fp64Round := by
-  intro q v h
-  obtain ⟨hr, bits, _, hv⟩ := fp64Round_some h
-  obtain ⟨d, hd, hnear⟩ := fp64Round_of_le hr
-  rw [h] at hd
-  cases hd
-  exact ⟨binaryValue_finiteValue fp64_wellFormed hv, hnear⟩
+theorem fp64Round_nearest : RoundsToNearest Binary64Value fp64Round := rne64_nearest
 
-theorem fp64Round_intervals : RoundsOnIntervals fp64Round := by
-  intro a b q h1 h2 ha hb
-  obtain ⟨va, hva⟩ := Option.isSome_iff_exists.mp ha
-  obtain ⟨vb, hvb⟩ := Option.isSome_iff_exists.mp hb
-  have ra := (fp64Round_some hva).1
-  have rb := (fp64Round_some hvb).1
-  rw [absQ_eq] at ra rb
-  have hq := abs_le_of_between h1 h2 ra rb
-  rw [← absQ_eq] at hq
-  obtain ⟨v, hv, _⟩ := fp64Round_of_le hq
-  simp [hv]
+theorem fp64Round_intervals : RoundsOnIntervals fp64Round := rne64_intervals
 
 /-! ## Ozaki-I and Ozaki-II, correctly rounded to binary32 -/
 
@@ -296,21 +222,6 @@ theorem toFixed_range (W : ℕ) (x : List ℚ) :
       rw [Rat.intCast_natCast]; grind
     have := Rat.intCast_lt_intCast.mp hlt'
     omega
-
-/-- On the remap range the INT8 slice products are exact and recombine to the fixed-point product
-(the core of `int8Ozaki_eq`). -/
-theorem int8Recombine_eq {s : ℕ} (hs : 0 < s) {Na Nb : List ℤ}
-    (hx : ∀ z ∈ Na, ADP.remapLo s ≤ z ∧ z ≤ ADP.remapHi s)
-    (hy : ∀ z ∈ Nb, ADP.remapLo s ≤ z ∧ z ≤ ADP.remapHi s)
-    (hk : Na.length * (128 * 128) < 2 ^ 31) : int8Recombine s Na Nb = dotZ Na Nb := by
-  unfold int8Recombine
-  rw [← ADP.slice_recombination hs]
-  congr 1; apply List.map_congr_left; intro t _
-  congr 1; apply List.map_congr_left; intro u _
-  congr 1
-  apply int8Dot_exact (by decide)
-  refine Nat.lt_of_le_of_lt (dotAbs_le _ _ 128 128 (sliceVec_s8 hs hx t) (sliceVec_s8 hs hy u)) ?_
-  simpa [ADP.sliceVec] using hk
 
 /-- If `W` bits fit `s` remapped slices, every fixed-point integer lies in the remap range. -/
 theorem toFixed_remap {s W : ℕ} (hfit : ADP.remapFits W s = true) (x : List ℚ) :

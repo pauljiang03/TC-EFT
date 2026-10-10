@@ -25,16 +25,22 @@ models of the schemes. Every theorem uses only Lean's standard axioms.
   from the bit-level models. It holds while the products of one call total at
   most `2^24`, a bound set by the binary32 output, not the accumulator.
 - **Error bounds** for Ozaki-I and Ozaki-II, and a Grade-A bound
-  `|C − AB| ≤ (4k + 1) 2^-53 |A||B|` for ADP's whole routine on normal inputs;
-  the paper establishes Grade A by experiment.
+  `|C − AB| ≤ (4k + 1) 2^-53 |A||B|` for ADP's whole routine on normal inputs,
+  and on all inputs with one added guardrail; the paper establishes Grade A by
+  experiment.
 - **Dot products of any length** (split-K), **full A100 and H100 groups** by a
   second pass through `C`, a TC-EFT technique, and **FP64 emulation** on fp16,
   bf16 and tf32 Tensor Cores and on AMD matrix cores.
 - **Correct rounding.** Each scheme has a variant that returns the round to
   nearest even of the exact product for every input, with the same result on
   both vendors: it checks whether the scheme's proved error interval rounds to
-  one value, refines if not, and falls back to an exact path. The check needs
-  only a two-word accumulator.
+  one value, refines if not, and falls back to an exact path. For Ozaki-I
+  the check, the exact path and the final rounding run in integer registers
+  whose width does not depend on the inputs' exponents, and zero results get
+  IEEE's sign.
+- **One rounding on both vendors.** The schemes round with IEEE's round to
+  nearest even; TensorCore's and MatrixCore's own roundings are proved to
+  compute the same values on their ranges.
 
 ## Findings
 
@@ -43,12 +49,13 @@ models of the schemes. Every theorem uses only Lean's standard axioms.
   different wrong answers.
 - ADP can return a wrong result, even of the wrong sign, on subnormal inputs;
   the Z3 model of ADP fails its own final-rounding check on the same input.
+  One added guardrail fixes it.
 - On the Z3 test matrices, Ozaki-I's configuration (`4` slices) is correctly
   rounded on every entry and Ozaki-II's (`P = 22`) on none.
 
 ## Not covered
 
-FP8 paths, an INT8 Tensor Core instruction model, signed zeros, and a GPU
+FP8 paths, an INT8 Tensor Core instruction model, and a GPU
 implementation. The theorems are about the models; that GPUs behave like them
 rests on the models' [validation](/TC-EFT/model/validation/). The full list,
 with every Lean name, is in

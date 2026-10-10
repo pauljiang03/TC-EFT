@@ -22,9 +22,8 @@ open TensorCore
 namespace Ozaki.TC
 
 /-- A binary32 value is returned unchanged by the binary32 rounding. -/
-theorem round32Value_of_finite {q : ℚ} (h : FiniteValue32 q) : round32Value q = some q := by
-  obtain ⟨b, hb, hv⟩ := round32_exact_of_finite h
-  unfold round32Value; rw [hb, Option.bind_some]; exact hv
+theorem round32Value_of_finite {q : ℚ} (h : FiniteValue32 q) : round32Value q = some q :=
+  roundRNE_of_formatValue (by decide) (finiteValue32_binary32 h)
 
 /-- **Powers of two are binary32 values** (Ozaki-I `[H.2]`, Ozaki-II `[H.3]`): `2^e` for
 `−149 ≤ e ≤ 127`. -/

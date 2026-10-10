@@ -1,21 +1,37 @@
 import OzakiTC.Exactness
+import Ozaki.Binary
 
 /-! # Binary32 rounding in the recombination
 
 Ozaki-I adds its scaled slice products, and Ozaki-II rounds its reconstructed product, in binary32
-with round to nearest even. `round32Value` is TC-EFT's binary32 converter as a rounding of values;
-`fp32Add` (TC-EFT's correctly rounded addition) is the addition it induces. Both satisfy the
-standard model with a subnormal term: `|fl(q) − q| ≤ 2^-24 |q| + 2^-150`
-(`round32Value_within`). -/
+with round to nearest even. `round32Value` is IEEE's binary32 round to nearest even
+(`Ozaki.rne32Q`), and `add32` the correctly rounded addition it induces. Both satisfy the standard
+model with a subnormal term: `|fl(q) − q| ≤ 2^-24 |q| + 2^-150` (`round32Value_within`).
+
+TensorCore's binary32 converter (`round32ValueTC`, and TC-EFT's addition `fp32Add`) computes the
+same value on every input of magnitude at most the largest finite value
+(`round32ValueTC_eq`): it is the same formula (`signedRounded_eq_rneU`). It differs only in
+overflow, returning no result above the largest finite value where IEEE rounds values below half an
+ulp above it down to it. The σ-trick of `OzakiTC.Split32` is stated with `fp32Add`; every result it
+returns is also IEEE's (`add32_of_fp32Add`). -/
 
 open TensorCore
 
 namespace Ozaki.TC
 
-/-- Binary32 round to nearest even, as a value; `none` on overflow. -/
-def round32Value (q : ℚ) : Option ℚ := (round32 .nearestEven q).bind value32
+/-- TensorCore's binary32 round to nearest even, as a value; `none` above the largest finite value. -/
+def round32ValueTC (q : ℚ) : Option ℚ := (round32 .nearestEven q).bind value32
 
-theorem fp32Add_eq_addOfRound : fp32Add = addOfRound round32Value := by
+/-- **Binary32 round to nearest even**, IEEE's: `Ozaki.rne32Q`; `none` exactly when the rounded
+magnitude exceeds the largest finite value. -/
+def round32Value (q : ℚ) : Option ℚ := rne32Q q
+
+/-- IEEE binary32 addition: the exact sum rounded to nearest even. -/
+def add32 (a b : ℚ) : Option ℚ := round32Value (a + b)
+
+theorem add32_eq_addOfRound : add32 = addOfRound round32Value := rfl
+
+theorem fp32Add_eq_addOfRound : fp32Add = addOfRound round32ValueTC := by
   funext x y; rfl
 
 /-- Rounding a positive magnitude to nearest even loses at most `2^-24 m + 2^-150`. -/
@@ -54,10 +70,10 @@ theorem magnitudeRounded_error {m : ℚ} (hm : 0 < m) (hr : m ≤ maxFinite32) :
     rw [this]
     grind
 
-/-- **Binary32 rounding error.** `|fl(q) − q| ≤ 2^-24 |q| + 2^-150` whenever `fl(q)` is finite. -/
-theorem round32Value_within : RoundWithin round32Value (2 ^ (-24 : ℤ)) (2 ^ (-150 : ℤ)) := by
+/-- TensorCore's binary32 rounding error: `|fl(q) − q| ≤ 2^-24 |q| + 2^-150`. -/
+theorem round32ValueTC_within : RoundWithin round32ValueTC (2 ^ (-24 : ℤ)) (2 ^ (-150 : ℤ)) := by
   intro q v h
-  unfold round32Value at h
+  unfold round32ValueTC at h
   cases hw : round32 .nearestEven q with
   | none => simp [hw] at h
   | some w =>
@@ -90,6 +106,61 @@ theorem round32Value_within : RoundWithin round32Value (2 ^ (-24 : ℤ)) (2 ^ (-
         exact herr
 
 theorem fp32Add_within : AddWithin fp32Add (2 ^ (-24 : ℤ)) (2 ^ (-150 : ℤ)) := by
-  rw [fp32Add_eq_addOfRound]; exact addOfRound_within round32Value_within
+  rw [fp32Add_eq_addOfRound]; exact addOfRound_within round32ValueTC_within
+
+/-- **Binary32 rounding error.** `|fl(q) − q| ≤ 2^-24 |q| + 2^-150` whenever `fl(q)` is finite. -/
+theorem round32Value_within : RoundWithin round32Value (2 ^ (-24 : ℤ)) (2 ^ (-150 : ℤ)) :=
+  rne32Q_within
+
+theorem add32_within : AddWithin add32 (2 ^ (-24 : ℤ)) (2 ^ (-150 : ℤ)) :=
+  addOfRound_within round32Value_within
+
+/-! ## TensorCore's round to nearest is IEEE's in range -/
+
+theorem magnitudeRounded_eq_rneMag (m : ℚ) :
+    magnitudeRounded .nearestEven m = rneMag 24 (-126) m := rfl
+
+/-- TensorCore's rounded value is IEEE's, before the overflow check. -/
+theorem signedRounded_eq_rneU (q : ℚ) : signedRounded .nearestEven q = rneU 24 (-126) q := by
+  unfold signedRounded rneU
+  by_cases h : q < 0
+  · have : absQ q = -q := by unfold absQ; simp [h]
+    rw [if_pos h, if_pos h, this, magnitudeRounded_eq_rneMag]
+  · have : absQ q = q := by unfold absQ; simp [h]
+    rw [if_neg h, if_neg h, this, magnitudeRounded_eq_rneMag]
+
+theorem maxFinite32_eq_maxFormat : maxFinite32 = maxFormat 24 127 := by decide +kernel
+
+/-- **TensorCore's binary32 round to nearest is IEEE's** on every input of magnitude at most the
+largest finite value. -/
+theorem round32ValueTC_eq {q : ℚ} (hq : absQ q ≤ maxFinite32) : round32ValueTC q = round32Value q := by
+  by_cases h0 : q = 0
+  · subst h0; decide +kernel
+  · obtain ⟨b, hb, hv, _⟩ := round32_nonzero_spec .nearestEven q h0 hq
+    have hfin := value32_finite b _ hv
+    have habs := finiteValue32_abs_le hfin
+    rw [signedRounded_eq_rneU, absQ_eq] at habs
+    unfold round32ValueTC round32Value rne32Q roundRNE
+    rw [hb, Option.bind_some, hv, signedRounded_eq_rneU, ← maxFinite32_eq_maxFormat,
+      if_pos habs]
+
+/-- A result TensorCore's rounding returns is IEEE's. -/
+theorem round32Value_of_TC {q v : ℚ} (h : round32ValueTC q = some v) : round32Value q = some v := by
+  have hr : absQ q ≤ maxFinite32 := by
+    unfold round32ValueTC at h
+    cases hw : round32 .nearestEven q with
+    | none => simp [hw] at h
+    | some w => exact round32_range hw
+  rw [← round32ValueTC_eq hr]; exact h
+
+/-- A sum TC-EFT's binary32 addition returns is IEEE's. -/
+theorem add32_of_fp32Add {a b v : ℚ} (h : fp32Add a b = some v) : add32 a b = some v := by
+  rw [fp32Add_eq_addOfRound] at h
+  exact round32Value_of_TC h
+
+/-- TensorCore's binary32 values are the binary32 values of `Ozaki.Binary`. -/
+theorem finiteValue32_binary32 {v : ℚ} (h : FiniteValue32 v) : Binary32Value v := by
+  obtain ⟨k, e, h1, h2, h3, rfl⟩ := h
+  exact ⟨k, e, h1, h2, h3, by rw [pow2_eq]; congr 2⟩
 
 end Ozaki.TC
