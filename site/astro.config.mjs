@@ -59,6 +59,10 @@ export default defineConfig({
           ],
         },
         {
+          label: 'Ozaki schemes',
+          items: [{ label: 'Ozaki-I, proved end to end', slug: 'ozaki/ozaki-1' }],
+        },
+        {
           label: 'Proofs & trust',
           items: [
             { label: 'What is proven', slug: 'proofs/theorems' },

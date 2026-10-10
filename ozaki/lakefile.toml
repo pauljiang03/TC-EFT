@@ -1,0 +1,36 @@
+name = "ozaki"
+version = "0.1.0"
+defaultTargets = ["Ozaki", "OzakiTC", "OzakiMC", "OzakiTCTests", "OzakiMCTests"]
+
+[leanOptions]
+pp.unicode.fun = true
+
+[[require]]
+name = "tensorCore"
+path = ".."
+
+[[require]]
+name = "matrixCore"
+path = "../amd"
+
+[[lean_lib]]
+name = "Ozaki"
+globs = ["Ozaki", "Ozaki.*"]
+
+[[lean_lib]]
+name = "OzakiTC"
+globs = ["OzakiTC", "OzakiTC.*"]
+
+[[lean_lib]]
+name = "OzakiMC"
+globs = ["OzakiMC", "OzakiMC.*"]
+
+[[lean_lib]]
+name = "OzakiTCTests"
+srcDir = "tests"
+globs = ["OzakiTCTests", "OzakiTCTests.*"]
+
+[[lean_lib]]
+name = "OzakiMCTests"
+srcDir = "tests"
+globs = ["OzakiMCTests", "OzakiMCTests.*"]
